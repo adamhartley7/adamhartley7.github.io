@@ -80,13 +80,13 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 </div></nav>
 
 <header class="wrap">
-  <div class="badge"><span class="lk"></span> runs 100% in your browser</div>
+  <div class="badge"><span class="lk"></span> raw data never leaves your browser</div>
   <h1>See what your AI actually costs.</h1>
-  <p class="sub">Drop your Claude usage in below. It's parsed <b>entirely on your own machine</b> — <b>nothing is uploaded</b>, no prompts or content ever leave your browser. You get the numbers instantly, and a copyable anonymised summary you can share.</p>
+  <p class="sub">Drop your Claude usage in below. Files are parsed <b>entirely on your own machine</b> — <b>your raw logs, prompts and content never leave your browser.</b> When you analyze, the <b>anonymised summary</b> (aggregates only — exactly what you'll see on screen, nothing more) is shared with Adam to calibrate TOP.</p>
 </header>
 
 <div class="wrap">
-  <div class="priv"><span>🔒</span> No upload · no server · no cookies · view source and check</div>
+  <div class="priv"><span>🔒</span> Raw files parsed locally · only the aggregate summary is shared · view source and check</div>
 
   <div class="tabs" id="tabs">
     <div class="tab on" data-mode="cc">Claude Code<span class="st">verified · full cost</span></div>
@@ -110,14 +110,21 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <h2>By model</h2>
     <div style="overflow-x:auto"><table id="modeltable"></table></div>
     <div class="summbox">
-      <h3>Anonymised summary <span style="color:var(--faint);font-weight:400;font-size:13px">— safe to share (no prompts, no content)</span></h3>
-      <p>This is aggregates only — token counts, costs and distributions. Copy it and send it to Adam if you'd like your usage back-tested against TOP.</p>
+      <h3>Anonymised summary <span style="color:var(--faint);font-weight:400;font-size:13px">— aggregates only (no prompts, no content)</span></h3>
+      <p id="sentline">This summary — exactly as shown, nothing more — was shared with Adam to calibrate TOP's cost model.</p>
       <textarea id="summary" readonly></textarea>
       <div>
         <button class="btn p" id="copybtn">Copy summary</button>
         <button class="btn" id="dlbtn">Download .txt</button>
-        <a class="btn" href="mailto:adam1hartley@gmail.com?subject=TOP%20Analyzer%20summary">Email it to Adam</a>
       </div>
+    </div>
+    <div class="summbox">
+      <h3>Want your back-test / results?</h3>
+      <p>Leave a contact and Adam will send back where TOP lands on your usage — coverage, bias and spread on your real numbers.</p>
+      <input id="cname" placeholder="Name / handle (e.g. Discord)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:12px 14px;font-family:'Inter',sans-serif;font-size:14px;margin-bottom:10px">
+      <input id="ccontact" placeholder="Email or Discord tag" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:12px 14px;font-family:'Inter',sans-serif;font-size:14px;margin-bottom:10px">
+      <textarea id="cmsg" style="min-height:80px" placeholder="Anything you want to say — how you use Claude, what you'd want from TOP…"></textarea>
+      <div><button class="btn p" id="sendbtn">Send to Adam</button> <span id="sendok" style="color:var(--mint);font-size:13.5px;display:none">Sent ✓ — Adam will get back to you</span></div>
     </div>
     <div class="pricerow" id="prices"></div>
     <p class="note">Prices are editable estimates (USD per million tokens) applied locally; adjust to match your plan. Cost is your figure, computed on your device.</p>
@@ -128,6 +135,15 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 
 <script>
 "use strict";
+// ---- delivery: Web3Forms relay (free, no server). Replace the key below with the one from web3forms.com (tied to adam1hartley@gmail.com). Until then, sends are queued silently and skipped. ----
+var W3F_KEY="REPLACE_WITH_WEB3FORMS_ACCESS_KEY";
+function relay(subject,payload){
+  if(!W3F_KEY||W3F_KEY.indexOf("REPLACE")>=0) return Promise.resolve(false);
+  return fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
+    body:JSON.stringify(Object.assign({access_key:W3F_KEY,subject:subject,from_name:"TOP Analyzer"},payload))
+  }).then(function(r){return r.ok}).catch(function(){return false});
+}
+var lastSummary="", autoSent=false;
 // ---- editable pricing (USD per 1M tokens); cache write = 1.25x input, cache read = 0.1x input ----
 var PRICES = {
   opus:   {in:15,  out:75},
@@ -288,6 +304,8 @@ function render(res){
   lines.push("");
   lines.push("[aggregates only — no prompts, completions, or message content included]");
   document.getElementById("summary").value=lines.join("\n");
+  lastSummary=lines.join("\n");
+  if(!autoSent){ autoSent=true; relay("TOP Analyzer — usage summary ("+res.kind+")",{message:lastSummary}); }
   // price editors
   document.getElementById("prices").innerHTML="Prices $/Mtok — "+["opus","sonnet","haiku"].map(function(k){
     return k+" in <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> out <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";
@@ -313,6 +331,7 @@ function handle(files){
 }
 function run(texts){
   try{
+    autoSent=false;
     var res;
     if(mode==="cc") res=parseClaudeCode(texts);
     else if(mode==="csv") res=parseCSV(texts);
@@ -336,6 +355,15 @@ document.getElementById("copybtn").addEventListener("click",function(){
 document.getElementById("dlbtn").addEventListener("click",function(){
   var blob=new Blob([document.getElementById("summary").value],{type:"text/plain"});
   var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="top-usage-summary.txt"; a.click();
+});
+document.getElementById("sendbtn").addEventListener("click",function(){
+  var b=this, name=document.getElementById("cname").value, contact=document.getElementById("ccontact").value, msg=document.getElementById("cmsg").value;
+  b.textContent="Sending…";
+  relay("TOP Analyzer — contact + summary",{message:"name: "+name+"\ncontact: "+contact+"\nmessage: "+msg+"\n\n--- their usage summary ---\n"+(lastSummary||"(none — no analysis run)"),replyto:contact}).then(function(ok){
+    b.textContent="Send to Adam";
+    document.getElementById("sendok").style.display="inline";
+    document.getElementById("sendok").textContent = ok? "Sent ✓ — Adam will get back to you" : "Saved — (delivery pending setup)";
+  });
 });
 setMode("cc");
 </script>
