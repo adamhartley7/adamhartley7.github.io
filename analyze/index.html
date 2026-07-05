@@ -39,7 +39,8 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .tab.on .st{color:var(--iris2)}
 .hint{text-align:center;color:var(--faint);font-size:13.5px;margin:6px auto 18px;max-width:60ch}
 .hint code{color:var(--muted);background:var(--panel);padding:1px 6px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
-.drop{border:1.5px dashed var(--border2);border-radius:16px;background:var(--panel);padding:40px 24px;text-align:center;cursor:pointer;transition:.2s}
+.drop{display:block;width:100%;border:1.5px dashed var(--border2);border-radius:16px;background:var(--panel);padding:clamp(26px,6vw,40px) 20px;text-align:center;cursor:pointer;transition:.2s}
+.drop .big{overflow-wrap:anywhere}
 .drop.over{border-color:var(--iris);background:rgba(110,123,242,.08)}
 .drop .big{font-size:19px;font-weight:600;margin-bottom:6px}
 .drop .small{color:var(--muted);font-size:14px}
