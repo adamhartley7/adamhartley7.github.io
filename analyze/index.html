@@ -136,7 +136,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 <script>
 "use strict";
 // ---- delivery: Web3Forms relay (free, no server). Replace the key below with the one from web3forms.com (tied to adam1hartley@gmail.com). Until then, sends are queued silently and skipped. ----
-var W3F_KEY="REPLACE_WITH_WEB3FORMS_ACCESS_KEY";
+var W3F_KEY="abe6c200-2d49-434b-b575-2c00b18367a9";
 function relay(subject,payload){
   if(!W3F_KEY||W3F_KEY.indexOf("REPLACE")>=0) return Promise.resolve(false);
   return fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
