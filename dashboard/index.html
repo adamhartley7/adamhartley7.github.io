@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TOP — Command Dashboard</title>
 <meta name="description" content="Private local dashboard: reports archive, money tracker, and site views for TOP. Runs entirely in your browser.">
-<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22TOP%20Dashboard%22%2C%22short_name%22%3A%22TOP%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2308080A%22%2C%22theme_color%22%3A%22%2308080A%22%7D">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#08080A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TOP">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='14' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3E%E2%8C%98%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -117,7 +123,9 @@ footer{border-top:1px solid var(--border);padding:24px 0;color:var(--faint);font
       <a href="https://adamhartley7.goatcounter.com" target="_blank" rel="noopener">GoatCounter (views)</a>
       <a href="https://github.com/adamhartley7/checkpointkm" target="_blank" rel="noopener">CheckpointKM repo (hackathon)</a>
       <a href="https://github.com/adamhartley7/checkpointkm/graphs/traffic" target="_blank" rel="noopener">CheckpointKM traffic</a>
+      <a href="https://ntfy.sh/top-hartley-live-9k2m" target="_blank" rel="noopener" style="border-color:var(--mint);color:var(--mint)">🔔 Subscribe to live pings</a>
     </div>
+    <p style="color:var(--faint);font-size:12.5px;margin-top:10px">Live pings arrive in the <b>ntfy app</b> — subscribe to topic <span class="mono" style="color:var(--muted)">top-hartley-live-9k2m</span> to get a buzz on every visitor + analyzer use.</p>
   </section>
 </div>
 
@@ -206,6 +214,7 @@ document.addEventListener('click',function(e){
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
 renderIncome(); renderReports();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 </script>
 </body>
 </html>
