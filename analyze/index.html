@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TOP Analyzer — your AI spend, parsed locally</title>
+<meta name="description" content="Drop your Claude usage in and see your token + euro spend — parsed 100% in your browser. Nothing is uploaded.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080A;--bg1:#0C0C0F;--panel:#141418;--panel2:#191920;--border:#232329;--border2:#33333d;
+  --text:#F1F1F3;--muted:#9B9BA6;--faint:#6A6A74;--iris:#6E7BF2;--iris2:#9AA2F7;--glow:rgba(110,123,242,.30);
+  --mint:#3ECF8E;--amber:#E8B23A;--red:#F26D6D;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(800px 460px at 72% -8%,rgba(110,123,242,.13),transparent 60%)}
+.mono{font-family:"JetBrains Mono",monospace}
+a{color:var(--iris2);text-decoration:none}
+.wrap{max-width:960px;margin:0 auto;padding:0 22px}
+nav{border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,10,.8);backdrop-filter:blur(10px);z-index:5}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700}
+.logo .mk{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--iris),#4b56c9);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+nav a.back{font-size:14px;color:var(--muted)}
+header{text-align:center;padding:48px 0 22px}
+.badge{display:inline-flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--mint);border:1px solid rgba(62,207,142,.3);background:rgba(62,207,142,.07);padding:6px 14px;border-radius:100px;margin-bottom:20px}
+.badge .lk{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 7px var(--mint)}
+h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-width:16ch;margin:0 auto 14px}
+.sub{color:var(--muted);max-width:56ch;margin:0 auto;font-size:17px}
+.sub b{color:var(--text)}
+.tabs{display:flex;gap:8px;justify-content:center;margin:28px 0 8px;flex-wrap:wrap}
+.tab{font-family:"JetBrains Mono",monospace;font-size:13px;padding:9px 16px;border:1px solid var(--border2);border-radius:9px;background:var(--panel);color:var(--muted);cursor:pointer;transition:.2s}
+.tab.on{color:#fff;border-color:var(--iris);background:rgba(110,123,242,.12)}
+.tab .st{font-size:10px;display:block;margin-top:2px;letter-spacing:.05em}
+.tab.on .st{color:var(--iris2)}
+.hint{text-align:center;color:var(--faint);font-size:13.5px;margin:6px auto 18px;max-width:60ch}
+.hint code{color:var(--muted);background:var(--panel);padding:1px 6px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
+.drop{border:1.5px dashed var(--border2);border-radius:16px;background:var(--panel);padding:40px 24px;text-align:center;cursor:pointer;transition:.2s}
+.drop.over{border-color:var(--iris);background:rgba(110,123,242,.08)}
+.drop .big{font-size:19px;font-weight:600;margin-bottom:6px}
+.drop .small{color:var(--muted);font-size:14px}
+.drop input{display:none}
+.note{color:var(--faint);font-size:13px;text-align:center;margin:14px auto;max-width:64ch}
+.note.warn{color:var(--amber)}
+#err{display:none;color:var(--red);background:rgba(242,109,109,.08);border:1px solid rgba(242,109,109,.3);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:14.5px}
+#out{display:none;margin:28px 0 60px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:8px 0 22px}
+.mcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.mcard .k{font-size:12px;color:var(--faint);font-family:"JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
+.mcard .v{font-size:clamp(22px,3.5vw,30px);font-weight:700;font-family:"JetBrains Mono",monospace;margin-top:6px}
+.mcard .v.g{color:var(--mint)}.mcard .v.a{color:var(--amber)}.mcard .v.i{color:var(--iris2)}
+h2{font-size:15px;font-family:"JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--iris2);margin:26px 0 12px}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{text-align:right;padding:9px 12px;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--faint);font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+td.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+tfoot td{font-weight:700;border-top:1px solid var(--border2);border-bottom:none}
+.summbox{background:var(--panel2);border:1px solid var(--border2);border-radius:12px;padding:18px;margin:22px 0}
+.summbox h3{font-size:15px;margin-bottom:6px}
+.summbox p{color:var(--muted);font-size:14px;margin-bottom:12px}
+textarea{width:100%;min-height:150px;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:12.5px;padding:14px;resize:vertical}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;padding:11px 18px;border-radius:9px;border:1px solid var(--border2);background:var(--panel);color:var(--text);cursor:pointer;transition:.2s;margin-top:10px}
+.btn.p{background:var(--iris);border-color:transparent;color:#fff}
+.btn:hover{transform:translateY(-1px)}
+.pricerow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--faint);margin-top:10px}
+.pricerow input{width:64px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 7px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
+footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font-size:13px;text-align:center}
+.priv{display:flex;align-items:center;gap:8px;justify-content:center;color:var(--mint);font-size:13.5px;margin:2px 0 8px;font-family:"JetBrains Mono",monospace}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="/"><span class="mk">T</span> TOP</a>
+  <a class="back" href="/">← back to TOP</a>
+</div></nav>
+
+<header class="wrap">
+  <div class="badge"><span class="lk"></span> runs 100% in your browser</div>
+  <h1>See what your AI actually costs.</h1>
+  <p class="sub">Drop your Claude usage in below. It's parsed <b>entirely on your own machine</b> — <b>nothing is uploaded</b>, no prompts or content ever leave your browser. You get the numbers instantly, and a copyable anonymised summary you can share.</p>
+</header>
+
+<div class="wrap">
+  <div class="priv"><span>🔒</span> No upload · no server · no cookies · view source and check</div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab on" data-mode="cc">Claude Code<span class="st">verified · full cost</span></div>
+    <div class="tab" data-mode="csv">Console CSV<span class="st">real spend</span></div>
+    <div class="tab" data-mode="chat">claude.ai export<span class="st">estimate only</span></div>
+  </div>
+
+  <div class="hint" id="hint"></div>
+
+  <label class="drop" id="drop">
+    <div class="big">Drop file(s) here, or click to choose</div>
+    <div class="small" id="dropsmall">.jsonl session logs from ~/.claude/projects</div>
+    <input type="file" id="file" multiple>
+  </label>
+
+  <div class="note" id="modenote"></div>
+  <div id="err"></div>
+
+  <div id="out">
+    <div class="cards" id="cards"></div>
+    <h2>By model</h2>
+    <div style="overflow-x:auto"><table id="modeltable"></table></div>
+    <div class="summbox">
+      <h3>Anonymised summary <span style="color:var(--faint);font-weight:400;font-size:13px">— safe to share (no prompts, no content)</span></h3>
+      <p>This is aggregates only — token counts, costs and distributions. Copy it and send it to Adam if you'd like your usage back-tested against TOP.</p>
+      <textarea id="summary" readonly></textarea>
+      <div>
+        <button class="btn p" id="copybtn">Copy summary</button>
+        <button class="btn" id="dlbtn">Download .txt</button>
+        <a class="btn" href="mailto:adam1hartley@gmail.com?subject=TOP%20Analyzer%20summary">Email it to Adam</a>
+      </div>
+    </div>
+    <div class="pricerow" id="prices"></div>
+    <p class="note">Prices are editable estimates (USD per million tokens) applied locally; adjust to match your plan. Cost is your figure, computed on your device.</p>
+  </div>
+</div>
+
+<footer><div class="wrap">TOP Analyzer · built by <a href="/">Adam Hartley</a> · everything above happens in your browser — <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a></div></footer>
+
+<script>
+"use strict";
+// ---- editable pricing (USD per 1M tokens); cache write = 1.25x input, cache read = 0.1x input ----
+var PRICES = {
+  opus:   {in:15,  out:75},
+  sonnet: {in:3,   out:15},
+  haiku:  {in:0.80,out:4},
+  other:  {in:3,   out:15}
+};
+function priceFor(model){
+  var m=(model||"").toLowerCase();
+  if(m.indexOf("opus")>=0) return PRICES.opus;
+  if(m.indexOf("sonnet")>=0) return PRICES.sonnet;
+  if(m.indexOf("haiku")>=0) return PRICES.haiku;
+  if(m.indexOf("fable")>=0) return PRICES.opus; // fable ~ frontier tier
+  return PRICES.other;
+}
+function costOf(model,inp,out,cw,cr){
+  var p=priceFor(model);
+  return (inp*p.in + out*p.out + cw*p.in*1.25 + cr*p.in*0.1)/1e6;
+}
+function fmt$(x){return "$"+(x<0.01&&x>0?x.toFixed(4):x.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}))}
+function fmtN(x){return Math.round(x).toLocaleString()}
+
+var MODES={
+  cc:{small:".jsonl session logs from ~/.claude/projects (drop one, many, or your whole projects folder)",
+      hint:"On your machine, your Claude Code logs live in <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>). Drop the <code>.jsonl</code> files in. This is the most accurate mode — real token counts per turn.",
+      note:""},
+  csv:{small:"usage .csv exported from console.anthropic.com",
+      hint:"On <code>console.anthropic.com</code> → <b>Usage</b> → export/download the CSV, then drop it here.",
+      note:""},
+  chat:{small:"conversations.json from your claude.ai data export",
+      hint:"claude.ai → Settings → Privacy → Export data → drop <code>conversations.json</code> here.",
+      note:"⚠️ claude.ai exports contain NO token counts or costs — everything here is a rough estimate from text length (chars ÷ 4). Treat it as ballpark, not billing."}
+};
+var mode="cc";
+function setMode(m){
+  mode=m;
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("on",t.dataset.mode===m)});
+  document.getElementById("dropsmall").textContent=MODES[m].small;
+  document.getElementById("hint").innerHTML=MODES[m].hint;
+  var mn=document.getElementById("modenote"); mn.textContent=MODES[m].note; mn.className="note"+(MODES[m].note?" warn":"");
+  document.getElementById("out").style.display="none";
+  document.getElementById("err").style.display="none";
+}
+document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab"); if(t) setMode(t.dataset.mode)});
+
+// ---------- parsers ----------
+function parseClaudeCode(texts){
+  var by={}, turns=0, sessions={}, days={};
+  texts.forEach(function(txt){
+    txt.split(/\r?\n/).forEach(function(line){
+      line=line.trim(); if(!line) return;
+      var r; try{r=JSON.parse(line)}catch(e){return}
+      if(r.type!=="assistant"||!r.message) return;
+      var u=r.message.usage; if(!u) return;
+      var model=r.message.model||"unknown";
+      var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0});
+      e.inp+=u.input_tokens||0; e.out+=u.output_tokens||0;
+      e.cw+=u.cache_creation_input_tokens||0; e.cr+=u.cache_read_input_tokens||0;
+      e.turns++; turns++;
+      if(r.sessionId) sessions[r.sessionId]=1;
+      if(r.timestamp) days[String(r.timestamp).slice(0,10)]=1;
+    });
+  });
+  return {by:by, turns:turns, sessions:Object.keys(sessions).length||texts.length, days:Object.keys(days).length, kind:"Claude Code", estimate:false};
+}
+function splitCSV(line){
+  var out=[],cur="",q=false;
+  for(var i=0;i<line.length;i++){var c=line[i];
+    if(c==='"'){ if(q&&line[i+1]==='"'){cur+='"';i++} else q=!q }
+    else if(c===','&&!q){out.push(cur);cur=""} else cur+=c;
+  } out.push(cur); return out;
+}
+function parseCSV(texts){
+  var by={}, rows=0;
+  texts.forEach(function(txt){
+    var lines=txt.split(/\r?\n/).filter(function(l){return l.trim()});
+    if(!lines.length) return;
+    var hd=splitCSV(lines[0]).map(function(h){return h.trim().toLowerCase()});
+    function col(){for(var a=0;a<arguments.length;a++){var i=hd.indexOf(arguments[a]); if(i>=0) return i;}
+      // fuzzy contains
+      for(var a2=0;a2<arguments.length;a2++){for(var j=0;j<hd.length;j++){if(hd[j].indexOf(arguments[a2])>=0) return j;}} return -1;}
+    var ci={model:col("model"), inp:col("input_tokens","input","uncached_input_tokens","prompt_tokens"),
+      out:col("output_tokens","output","completion_tokens"), cw:col("cache_creation_input_tokens","cache_write","cache_creation"),
+      cr:col("cache_read_input_tokens","cache_read"), cost:col("cost","amount","usd","cost_usd")};
+    for(var i=1;i<lines.length;i++){
+      var f=splitCSV(lines[i]); if(f.length<2) continue;
+      var model=(ci.model>=0?f[ci.model]:"unknown")||"unknown";
+      var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,hasCost:false});
+      function num(idx){var v=idx>=0?parseFloat(String(f[idx]).replace(/[^0-9.\-]/g,"")):0; return isNaN(v)?0:v;}
+      e.inp+=num(ci.inp); e.out+=num(ci.out); e.cw+=num(ci.cw); e.cr+=num(ci.cr);
+      if(ci.cost>=0){e.cost+=num(ci.cost); e.hasCost=true;}
+      e.turns++; rows++;
+    }
+  });
+  return {by:by, turns:rows, sessions:rows, days:0, kind:"Console CSV", estimate:false, csv:true};
+}
+function estTokens(s){return Math.ceil((s||"").length/4)}
+function parseChat(texts){
+  var by={}, turns=0, convos=0;
+  texts.forEach(function(txt){
+    var data; try{data=JSON.parse(txt)}catch(e){return}
+    var arr=Array.isArray(data)?data:(data.conversations||[data]);
+    arr.forEach(function(c){
+      convos++;
+      var msgs=c.chat_messages||c.messages||[];
+      msgs.forEach(function(m){
+        var role=m.sender||m.role||"";
+        var text=m.text|| (Array.isArray(m.content)?m.content.map(function(x){return x.text||""}).join(" "):(m.content||""));
+        var t=estTokens(text);
+        var model="claude.ai (est.)";
+        var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0});
+        if(role==="assistant"||role==="Claude"||role==="claude"){e.out+=t;} else {e.inp+=t;}
+        e.turns++; turns++;
+      });
+    });
+  });
+  return {by:by, turns:turns, sessions:convos, days:0, kind:"claude.ai (estimated)", estimate:true};
+}
+
+// ---------- render ----------
+function render(res){
+  var by=res.by, totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[];
+  Object.keys(by).forEach(function(model){
+    var e=by[model];
+    var cost = (res.csv&&e.hasCost)? e.cost : costOf(model,e.inp,e.out,e.cw,e.cr);
+    totInp+=e.inp; totOut+=e.out; totCw+=e.cw; totCr+=e.cr; totCost+=cost;
+    rows.push({model:model,e:e,cost:cost});
+  });
+  rows.sort(function(a,b){return b.cost-a.cost});
+  var totTok=totInp+totOut+totCw+totCr;
+  var cur = res.estimate? "~$" : "$";
+  var cards=[
+    ["Total spend",(res.estimate?"~":"")+fmt$(totCost),"a"],
+    ["Total tokens",fmtN(totTok),"i"],
+    ["Turns",fmtN(res.turns),""],
+    [res.days?"Active days":(res.csv?"Rows":"Sessions"), fmtN(res.days||res.sessions),"g"]
+  ];
+  document.getElementById("cards").innerHTML=cards.map(function(c){return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div></div>'}).join("");
+  var th='<thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cache w/r</th><th>Turns</th><th>Cost</th></tr></thead>';
+  var tb=rows.map(function(r){return '<tr><td>'+r.model+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+(res.estimate?"~":"")+fmt$(r.cost)+'</td></tr>'}).join("");
+  var tf='<tfoot><tr><td>Total</td><td class="n">'+fmtN(totInp)+'</td><td class="n">'+fmtN(totOut)+'</td><td class="n">'+fmtN(totCw)+' / '+fmtN(totCr)+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+(res.estimate?"~":"")+fmt$(totCost)+'</td></tr></tfoot>';
+  document.getElementById("modeltable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
+  // avg cost/turn
+  var perTurn = res.turns? totCost/res.turns : 0;
+  // summary text (aggregates only)
+  var lines=[];
+  lines.push("TOP Analyzer — anonymised usage summary");
+  lines.push("source: "+res.kind+(res.estimate?" (ESTIMATE — no real token/cost data)":""));
+  lines.push("");
+  lines.push("total_cost_usd: "+(res.estimate?"~":"")+totCost.toFixed(2));
+  lines.push("total_tokens: "+totTok);
+  lines.push("input_tokens: "+totInp+" | output_tokens: "+totOut+" | cache_write: "+totCw+" | cache_read: "+totCr);
+  lines.push("turns: "+res.turns+(res.sessions?(" | sessions: "+res.sessions):"")+(res.days?(" | active_days: "+res.days):""));
+  lines.push("avg_cost_per_turn_usd: "+perTurn.toFixed(4));
+  lines.push("");
+  lines.push("by_model:");
+  rows.forEach(function(r){lines.push("  "+r.model+": cost="+(res.estimate?"~":"")+r.cost.toFixed(2)+" in="+r.e.inp+" out="+r.e.out+" cw="+r.e.cw+" cr="+r.e.cr+" turns="+r.e.turns)});
+  lines.push("");
+  lines.push("[aggregates only — no prompts, completions, or message content included]");
+  document.getElementById("summary").value=lines.join("\n");
+  // price editors
+  document.getElementById("prices").innerHTML="Prices $/Mtok — "+["opus","sonnet","haiku"].map(function(k){
+    return k+" in <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> out <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";
+  }).join(" &nbsp;·&nbsp; ");
+  document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
+    var v=parseFloat(inp.value); if(!isNaN(v)) PRICES[inp.dataset.k][inp.dataset.f]=v; render(res);
+  })});
+  document.getElementById("out").style.display="block";
+}
+
+// ---------- file handling ----------
+function showErr(msg){var e=document.getElementById("err"); e.textContent=msg; e.style.display="block"; document.getElementById("out").style.display="none";}
+function handle(files){
+  document.getElementById("err").style.display="none";
+  var texts=[], pending=files.length, any=false;
+  if(!pending){showErr("No files selected.");return;}
+  Array.prototype.forEach.call(files,function(f){
+    var rd=new FileReader();
+    rd.onload=function(){texts.push(rd.result); if(--pending===0) run(texts);};
+    rd.onerror=function(){if(--pending===0) run(texts);};
+    rd.readAsText(f); any=true;
+  });
+}
+function run(texts){
+  try{
+    var res;
+    if(mode==="cc") res=parseClaudeCode(texts);
+    else if(mode==="csv") res=parseCSV(texts);
+    else res=parseChat(texts);
+    var n=Object.keys(res.by).length;
+    if(!n||res.turns===0){showErr("Couldn't find usage data in that file for this mode. Make sure you picked the right tab for your file type — Claude Code (.jsonl), Console CSV, or claude.ai export (conversations.json).");return;}
+    render(res);
+    document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
+  }catch(err){showErr("Something went wrong parsing that file: "+err.message+". Nothing was uploaded. Try a different file or tab.");}
+}
+var drop=document.getElementById("drop"), fileInput=document.getElementById("file");
+fileInput.addEventListener("change",function(){handle(fileInput.files)});
+["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("over")})});
+["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("over")})});
+drop.addEventListener("drop",function(e){e.preventDefault();drop.classList.remove("over"); if(e.dataTransfer&&e.dataTransfer.files) handle(e.dataTransfer.files);});
+document.getElementById("copybtn").addEventListener("click",function(){
+  var t=document.getElementById("summary"); t.select();
+  navigator.clipboard? navigator.clipboard.writeText(t.value).then(function(){this.textContent="Copied ✓"}.bind(this)) : document.execCommand("copy");
+  this.textContent="Copied ✓"; var b=this; setTimeout(function(){b.textContent="Copy summary"},1600);
+});
+document.getElementById("dlbtn").addEventListener("click",function(){
+  var blob=new Blob([document.getElementById("summary").value],{type:"text/plain"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="top-usage-summary.txt"; a.click();
+});
+setMode("cc");
+</script>
+</body>
+</html>
