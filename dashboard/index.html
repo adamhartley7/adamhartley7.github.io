@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TOP — Command Dashboard</title>
+<meta name="description" content="Private local dashboard: reports archive, money tracker, and site views for TOP. Runs entirely in your browser.">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22TOP%20Dashboard%22%2C%22short_name%22%3A%22TOP%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2308080A%22%2C%22theme_color%22%3A%22%2308080A%22%7D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='14' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3E%E2%8C%98%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080A;--panel:#141418;--panel2:#191920;--border:#232329;--border2:#33333d;--text:#F1F1F3;--muted:#9B9BA6;--faint:#6A6A74;--iris:#6E7BF2;--iris2:#9AA2F7;--glow:rgba(110,123,242,.30);--mint:#3ECF8E;--amber:#E8B23A;--red:#F26D6D}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;background-image:radial-gradient(800px 460px at 80% -8%,rgba(110,123,242,.12),transparent 60%)}
+.mono{font-family:"JetBrains Mono",monospace}
+a{color:var(--iris2);text-decoration:none}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+nav{border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,10,.85);backdrop-filter:blur(10px);z-index:5}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:56px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700}
+.logo .mk{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--iris),#4b56c9);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+nav .links{display:flex;gap:16px;font-size:13.5px;color:var(--muted)}
+nav .links a:hover{color:var(--text)}
+h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:34px 0 4px}
+.lede{color:var(--muted);margin-bottom:6px}
+.priv{display:flex;align-items:center;gap:7px;color:var(--mint);font-size:13px;font-family:"JetBrains Mono",monospace;margin:8px 0 24px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:18px}
+.card .k{font-size:11px;color:var(--faint);font-family:"JetBrains Mono",monospace;letter-spacing:.1em;text-transform:uppercase}
+.card .v{font-size:30px;font-weight:700;font-family:"JetBrains Mono",monospace;margin-top:6px}
+.card .v.g{color:var(--mint)}.card .v.a{color:var(--amber)}.card .v.i{color:var(--iris2)}
+.card .sub{font-size:12.5px;color:var(--muted);margin-top:4px}
+section{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;margin:18px 0}
+h2{font-size:13px;font-family:"JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--iris2);margin-bottom:4px}
+.hint{color:var(--faint);font-size:13px;margin-bottom:16px}
+.bar{height:12px;border-radius:100px;background:var(--panel2);overflow:hidden;margin:12px 0 6px}
+.bar .fill{height:100%;background:linear-gradient(90deg,var(--mint),var(--iris) 70%,var(--amber));border-radius:100px;transition:width .6s}
+.barlabel{display:flex;justify-content:space-between;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+input,textarea,select{background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:10px 12px;font-family:"Inter",sans-serif;font-size:14px}
+input.amt{width:120px;font-family:"JetBrains Mono",monospace}
+.btn{background:var(--iris);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-weight:600;font-size:14px;cursor:pointer;font-family:"Inter",sans-serif}
+.btn:hover{background:var(--iris2)}
+.btn.ghost{background:transparent;border:1px solid var(--border2);color:var(--text)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border)}
+th{color:var(--faint);font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+td.n{text-align:right;font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+.drop{display:block;border:1.5px dashed var(--border2);border-radius:14px;background:var(--panel2);padding:26px 20px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:14px}
+.drop.over{border-color:var(--iris);background:rgba(110,123,242,.08)}
+.drop input{display:none}
+.rep{border:1px solid var(--border);border-radius:11px;padding:14px 16px;margin:10px 0;background:var(--panel2)}
+.rep .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;cursor:pointer}
+.rep .nm{font-weight:600}
+.rep .meta{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--muted)}
+.rep pre{display:none;margin-top:12px;white-space:pre-wrap;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto}
+.rep.open pre{display:block}
+.del{color:var(--red);cursor:pointer;font-size:12px;font-family:"JetBrains Mono",monospace;background:none;border:none}
+.empty{color:var(--faint);text-align:center;padding:24px;font-style:italic}
+.qlinks{display:flex;gap:10px;flex-wrap:wrap}
+.qlinks a{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:9px 14px;font-size:13.5px;color:var(--text)}
+.qlinks a:hover{border-color:var(--border2)}
+footer{border-top:1px solid var(--border);padding:24px 0;color:var(--faint);font-size:12.5px;text-align:center;margin-top:20px}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <span class="logo"><span class="mk">⌘</span> TOP · Dashboard</span>
+  <div class="links"><a href="/">Site</a><a href="/analyze/">Analyzer</a><a href="https://adamhartley7.goatcounter.com" target="_blank" rel="noopener">Views ↗</a></div>
+</div></nav>
+
+<div class="wrap">
+  <h1>Command dashboard</h1>
+  <div class="lede">Your reports, your revenue, your reach — one place.</div>
+  <div class="priv"><span>🔒</span> Runs 100% in your browser · data saved locally on this device · nothing uploaded</div>
+
+  <div class="cards">
+    <div class="card"><div class="k">Reports collected</div><div class="v i" id="cReports">0</div><div class="sub">anonymised usage summaries</div></div>
+    <div class="card"><div class="k">Money made</div><div class="v g" id="cMoney">€0</div><div class="sub" id="cMoneySub">toward €1,000,000</div></div>
+    <div class="card"><div class="k">Data points</div><div class="v a" id="cTokens">0</div><div class="sub">total tokens across reports</div></div>
+    <div class="card"><div class="k">Site views</div><div class="v" style="font-size:16px;font-weight:600"><a href="https://adamhartley7.goatcounter.com" target="_blank" rel="noopener">open GoatCounter ↗</a></div><div class="sub">landing + analyzer, live</div></div>
+  </div>
+
+  <section>
+    <h2>The €1,000,000 meter</h2>
+    <div class="hint">Log every real euro TOP (or anything) earns. Declared income only — this is your HAR7LEY finance cut.</div>
+    <div class="barlabel"><span id="mNow">€0</span><span>€1,000,000</span></div>
+    <div class="bar"><div class="fill" id="mBar" style="width:0%"></div></div>
+    <div class="row">
+      <input class="amt" id="iAmt" type="number" placeholder="€ amount" step="0.01">
+      <input id="iSrc" placeholder="source (e.g. first client)" style="flex:1;min-width:140px">
+      <input id="iDate" type="date">
+      <button class="btn" id="addIncome">Add</button>
+    </div>
+    <table id="incomeTable"></table>
+  </section>
+
+  <section>
+    <h2>Reports archive</h2>
+    <div class="hint">Drop the anonymised summary files people send you (or that I pull from your Gmail) — they're parsed, archived and searchable here. Ask me anytime to sync your latest Gmail submissions into files for this.</div>
+    <label class="drop" id="drop">
+      <div style="font-weight:600">Drop report .txt files here, or click</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px">the "TOP Analyzer — anonymised usage summary" files</div>
+      <input type="file" id="file" multiple accept=".txt,.md,text/plain">
+    </label>
+    <input id="search" placeholder="search reports…" style="width:100%;margin-bottom:10px">
+    <div id="reports"></div>
+  </section>
+
+  <section>
+    <h2>Quick links</h2>
+    <div class="qlinks">
+      <a href="https://adamhartley7.github.io/" target="_blank" rel="noopener">TOP landing page</a>
+      <a href="https://adamhartley7.github.io/analyze/" target="_blank" rel="noopener">Analyzer</a>
+      <a href="https://adamhartley7.goatcounter.com" target="_blank" rel="noopener">GoatCounter (views)</a>
+      <a href="https://github.com/adamhartley7/checkpointkm" target="_blank" rel="noopener">CheckpointKM repo (hackathon)</a>
+      <a href="https://github.com/adamhartley7/checkpointkm/graphs/traffic" target="_blank" rel="noopener">CheckpointKM traffic</a>
+    </div>
+  </section>
+</div>
+
+<footer><div class="wrap">TOP Command Dashboard · everything is stored locally in your browser (localStorage) · export/back up regularly</div></footer>
+
+<script>
+"use strict";
+function $(id){return document.getElementById(id)}
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function eur(x){return "€"+Number(x).toLocaleString(undefined,{maximumFractionDigits:2})}
+function nfmt(x){return Number(x).toLocaleString()}
+
+/* ---------- income / money meter ---------- */
+var income=load('top_income',[]);
+function renderIncome(){
+  var total=income.reduce(function(s,i){return s+(+i.amt||0)},0);
+  $('mNow').textContent=eur(total);
+  $('cMoney').textContent=eur(total);
+  $('mBar').style.width=Math.min(100,(total/1000000)*100)+'%';
+  var t=$('incomeTable');
+  if(!income.length){t.innerHTML='<tr><td class="empty" colspan="4">No income logged yet — TOP is free right now. Log your first euro here.</td></tr>';return;}
+  t.innerHTML='<thead><tr><th>Date</th><th>Source</th><th style="text-align:right">Amount</th><th></th></tr></thead><tbody>'+
+    income.slice().reverse().map(function(i,ri){var idx=income.length-1-ri;return '<tr><td class="mono" style="color:var(--muted)">'+(i.date||'')+'</td><td>'+esc(i.src)+'</td><td class="n">'+eur(i.amt)+'</td><td style="text-align:right"><button class="del" data-i="'+idx+'" data-t="income">delete</button></td></tr>'}).join('')+'</tbody>';
+}
+$('addIncome').addEventListener('click',function(){
+  var amt=parseFloat($('iAmt').value); if(isNaN(amt)){$('iAmt').focus();return;}
+  income.push({amt:amt,src:$('iSrc').value||'—',date:$('iDate').value||''});
+  save('top_income',income); $('iAmt').value='';$('iSrc').value='';$('iDate').value='';
+  renderIncome();
+});
+
+/* ---------- reports archive ---------- */
+var reports=load('top_reports',[]);
+function parseReport(txt,name){
+  function g(re){var m=txt.match(re);return m?m[1]:null;}
+  return {
+    id:Date.now()+Math.random().toString(36).slice(2,6),
+    name:name||'report',
+    added:new Date().toISOString().slice(0,10),
+    cost:g(/total_cost_usd:\s*~?\$?([0-9.]+)/i),
+    tokens:g(/total_tokens:\s*([0-9]+)/i),
+    turns:g(/turns:\s*([0-9]+)/i),
+    source:g(/source:\s*(.+)/i),
+    raw:txt
+  };
+}
+function renderReports(){
+  var q=($('search').value||'').toLowerCase();
+  var list=reports.filter(function(r){return !q||r.raw.toLowerCase().indexOf(q)>=0||r.name.toLowerCase().indexOf(q)>=0});
+  $('cReports').textContent=reports.length;
+  $('cTokens').textContent=nfmt(reports.reduce(function(s,r){return s+(+r.tokens||0)},0));
+  var el=$('reports');
+  if(!reports.length){el.innerHTML='<div class="empty">No reports yet. They land here as people run their usage through the analyzer and send it — or ask me to pull your latest from Gmail.</div>';return;}
+  if(!list.length){el.innerHTML='<div class="empty">No reports match "'+esc(q)+'".</div>';return;}
+  el.innerHTML=list.map(function(r){
+    return '<div class="rep" data-id="'+r.id+'"><div class="top"><span class="nm">'+esc(r.name)+'</span><span class="meta">'+(r.cost?('$'+r.cost):'—')+' · '+(r.tokens?nfmt(r.tokens)+' tok':'')+' · '+r.added+' <button class="del" data-id="'+r.id+'" data-t="report">✕</button></span></div><pre>'+esc(r.raw)+'</pre></div>';
+  }).join('');
+}
+function addReports(files){
+  var pending=files.length; if(!pending)return;
+  Array.prototype.forEach.call(files,function(f){
+    var rd=new FileReader();
+    rd.onload=function(){ reports.push(parseReport(rd.result,f.name)); if(--pending===0){save('top_reports',reports);renderReports();} };
+    rd.onerror=function(){ if(--pending===0){save('top_reports',reports);renderReports();} };
+    rd.readAsText(f);
+  });
+}
+var drop=$('drop'),fi=$('file');
+fi.addEventListener('change',function(){addReports(fi.files);fi.value='';});
+['dragenter','dragover'].forEach(function(e){drop.addEventListener(e,function(ev){ev.preventDefault();drop.classList.add('over')})});
+['dragleave','drop'].forEach(function(e){drop.addEventListener(e,function(ev){ev.preventDefault();drop.classList.remove('over')})});
+drop.addEventListener('drop',function(ev){ev.preventDefault();drop.classList.remove('over');if(ev.dataTransfer&&ev.dataTransfer.files)addReports(ev.dataTransfer.files);});
+$('search').addEventListener('input',renderReports);
+
+/* ---------- shared: expand + delete ---------- */
+document.addEventListener('click',function(e){
+  var del=e.target.closest('.del');
+  if(del){ e.stopPropagation();
+    if(del.dataset.t==='income'){ income.splice(+del.dataset.i,1); save('top_income',income); renderIncome(); }
+    else { reports=reports.filter(function(r){return r.id!==del.dataset.id}); save('top_reports',reports); renderReports(); }
+    return;
+  }
+  var rep=e.target.closest('.rep'); if(rep) rep.classList.toggle('open');
+});
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+renderIncome(); renderReports();
+</script>
+</body>
+</html>
