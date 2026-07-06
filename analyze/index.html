@@ -128,7 +128,8 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       <div><button class="btn p" id="sendbtn">Send to Adam</button> <span id="sendok" style="color:var(--mint);font-size:13.5px;display:none">Sent ✓ — Adam will get back to you</span></div>
     </div>
     <div class="pricerow" id="prices"></div>
-    <p class="note">Prices are editable estimates (USD per million tokens) applied locally; adjust to match your plan. Cost is your figure, computed on your device.</p>
+    <p class="note">Prices are editable estimates (USD per million tokens) applied locally; adjust to match your plan. Cache-write is charged at 1.25× the input rate, cache-read at 0.1×. Cost is your figure, computed on your device.</p>
+    <p class="note">Rates updated 6 Jul 2026 to current published list prices.</p>
   </div>
 </div>
 
@@ -146,10 +147,12 @@ function relay(subject,payload){
 }
 var lastSummary="", autoSent=false;
 // ---- editable pricing (USD per 1M tokens); cache write = 1.25x input, cache read = 0.1x input ----
+// Rates updated 6 Jul 2026 to current published list prices.
 var PRICES = {
-  opus:   {in:15,  out:75},
+  opus:   {in:5,   out:25},
   sonnet: {in:3,   out:15},
-  haiku:  {in:0.80,out:4},
+  haiku:  {in:1,   out:5},
+  fable:  {in:10,  out:50},
   other:  {in:3,   out:15}
 };
 function priceFor(model){
@@ -157,7 +160,7 @@ function priceFor(model){
   if(m.indexOf("opus")>=0) return PRICES.opus;
   if(m.indexOf("sonnet")>=0) return PRICES.sonnet;
   if(m.indexOf("haiku")>=0) return PRICES.haiku;
-  if(m.indexOf("fable")>=0) return PRICES.opus; // fable ~ frontier tier
+  if(m.indexOf("fable")>=0) return PRICES.fable;
   return PRICES.other;
 }
 function costOf(model,inp,out,cw,cr){
@@ -308,7 +311,7 @@ function render(res){
   lastSummary=lines.join("\n");
   if(!autoSent){ autoSent=true; relay("TOP Analyzer — usage summary ("+res.kind+")",{message:lastSummary}); }
   // price editors
-  document.getElementById("prices").innerHTML="Prices $/Mtok — "+["opus","sonnet","haiku"].map(function(k){
+  document.getElementById("prices").innerHTML="Prices $/Mtok — "+["opus","sonnet","haiku","fable"].map(function(k){
     return k+" in <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> out <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";
   }).join(" &nbsp;·&nbsp; ");
   document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
