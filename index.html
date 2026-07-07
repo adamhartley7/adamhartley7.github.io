@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TOP: Know what your AI costs before you run it</title>
-<meta name="description" content="TOP (Token Optimization Protocol) forecasts the token and euro cost of an AI task before it runs — so teams can budget, cap and route spend per request instead of learning it from the bill.">
+<meta name="description" content="TOP (Token Optimization Protocol) forecasts the token and euro cost of an AI task before it runs, so teams can budget, cap and route spend per request instead of learning it from the bill.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -195,7 +195,7 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="badge"><span class="d"></span> Token Optimization Protocol</div>
     <h1>Know what your AI costs, before you run it.</h1>
-    <p class="sub">TOP forecasts the token and euro cost of an AI task from its description — as a calibrated P10 / P50 / P90 band — so your team can budget, cap and route spend per request instead of learning it from the bill.</p>
+    <p class="sub">TOP forecasts the token and euro cost of an AI task from its description, as a calibrated P10 / P50 / P90 band, so your team can budget, cap and route spend per request instead of learning it from the bill.</p>
     <div class="cta">
       <a class="btn btn-primary" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Book a call →</a>
       <a class="btn btn-ghost" href="#how">See how it works</a>
@@ -213,7 +213,7 @@ footer a:hover{color:var(--muted)}
             <div class="fig mid"><div class="n">€0.42</div><div class="k">P50</div></div>
             <div class="fig hi"><div class="n">€1.10</div><div class="k">P90</div></div>
           </div>
-          <div class="guard"><span class="chip">spend-guard</span> fails closed at P90 — this request can't exceed <b class="mono" style="color:var(--text)">€1.10</b></div>
+          <div class="guard"><span class="chip">spend-guard</span> fails closed at P90, this request can't exceed <b class="mono" style="color:var(--text)">€1.10</b></div>
         </div>
       </div>
     </div>
@@ -232,7 +232,7 @@ footer a:hover{color:var(--muted)}
     </div>
     <div class="grid3">
       <div class="tile reveal"><div class="ic">📉</div><h3>You can't budget or cap</h3><p>No sane per-request ceiling exists when the bill is invisible until the work is already done.</p></div>
-      <div class="tile reveal"><div class="ic">🔀</div><h3>Routing inverts</h3><p>Trivial work gets sent to a frontier model out of habit; hard reasoning gets pushed to a cheap one to "save money" — degrading exactly what needed the strong model.</p></div>
+      <div class="tile reveal"><div class="ic">🔀</div><h3>Routing inverts</h3><p>Trivial work gets sent to a frontier model out of habit; hard reasoning gets pushed to a cheap one to "save money", degrading exactly what needed the strong model.</p></div>
       <div class="tile reveal"><div class="ic">🔥</div><h3>Spend runs away</h3><p>An agent loop with no cost foresight can burn a budget with nothing standing in the way.</p></div>
     </div>
   </div>
@@ -247,9 +247,9 @@ footer a:hover{color:var(--muted)}
       <p>Everything else measures spend after it happens. TOP prices it before you commit.</p>
     </div>
     <div class="grid3">
-      <div class="tile reveal"><div class="step-n">01</div><h3>Classify the task</h3><p>An ensemble sorts the request into an archetype — code, refactor, research, chat — each carrying a cost distribution learned from real logged history. Never an invented number.</p></div>
-      <div class="tile reveal"><div class="step-n">02</div><h3>Blend with your usage</h3><p>It blends that shared prior with your own logged actuals (empirical-Bayes, in log-space) — sensible on day one, sharper the more you run.</p></div>
-      <div class="tile reveal"><div class="step-n">03</div><h3>Forecast &amp; guard</h3><p>You get a P10 / P50 / P90 band. A spend-guard takes the P90 and enforces a hard ceiling — the design fails closed rather than advising and hoping.</p></div>
+      <div class="tile reveal"><div class="step-n">01</div><h3>Classify the task</h3><p>An ensemble sorts the request into an archetype, code, refactor, research, chat, each carrying a cost distribution learned from real logged history. Never an invented number.</p></div>
+      <div class="tile reveal"><div class="step-n">02</div><h3>Blend with your usage</h3><p>It blends that shared prior with your own logged actuals (empirical-Bayes, in log-space), sensible on day one, sharper the more you run.</p></div>
+      <div class="tile reveal"><div class="step-n">03</div><h3>Forecast &amp; guard</h3><p>You get a P10 / P50 / P90 band. A spend-guard takes the P90 and enforces a hard ceiling, the design fails closed rather than advising and hoping.</p></div>
     </div>
   </div>
 </section>
@@ -260,14 +260,14 @@ footer a:hover{color:var(--muted)}
     <div class="shead reveal">
       <div class="eyebrow">where it stands</div>
       <h2 style="margin-top:14px">Real numbers, stated honestly.</h2>
-      <p>No overclaiming — these are the measured figures, gaps included.</p>
+      <p>No overclaiming, these are the measured figures, gaps included.</p>
     </div>
     <div class="status reveal">
       <div class="m"><div class="n a">766</div><div class="k">real sessions calibrated on</div></div>
       <div class="m"><div class="n g">~13%</div><div class="k">median error, given the turn count</div></div>
       <div class="m"><div class="n w">P90</div><div class="k">the fail-closed spend ceiling</div></div>
     </div>
-    <p class="honest reveal">The open problem is predicting <b>how many back-and-forth turns</b> a task takes from its description alone — so end-to-end, we're still sharpening accuracy. That's exactly what more real-world partner data unlocks, which is why the founding-partner programme below exists.</p>
+    <p class="honest reveal">The open problem is predicting <b>how many back-and-forth turns</b> a task takes from its description alone, so end-to-end, we're still sharpening accuracy. That's exactly what more real-world partner data unlocks, which is why the founding-partner programme below exists.</p>
   </div>
 </section>
 
@@ -277,13 +277,13 @@ footer a:hover{color:var(--muted)}
     <div class="shead reveal">
       <div class="eyebrow">privacy</div>
       <h2 style="margin-top:14px">We never see your code or your prompts.</h2>
-      <p>Data handling is the centre of the arrangement — not an afterthought.</p>
+      <p>Data handling is the centre of the arrangement, not an afterthought.</p>
     </div>
     <div class="plist">
       <div class="prow reveal"><span class="ck">✓</span><div><b>Local parse.</b> <span>Your session logs are featurised on your machine. Only anonymised, aggregate numbers ever leave your environment.</span></div></div>
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Aggregates only.</b> <span>Counts, distributions, log-token statistics and cost totals — never the underlying prompts or completions.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Aggregates only.</b> <span>Counts, distributions, log-token statistics and cost totals, never the underlying prompts or completions.</span></div></div>
       <div class="prow reveal"><span class="ck">✓</span><div><b>Inspectable.</b> <span>The parsing script contains no network code. Read it, search it for <code class="mono">fetch(</code>, run it yourself.</span></div></div>
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Consent &amp; NDA.</b> <span>Opt-in, revocable, with an auditable manifest of exactly which fields leave the machine — all under a signed NDA.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Consent &amp; NDA.</b> <span>Opt-in, revocable, with an auditable manifest of exactly which fields leave the machine, all under a signed NDA.</span></div></div>
     </div>
   </div>
 </section>
@@ -293,7 +293,7 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="offer reveal">
       <div class="eyebrow">founding partners</div>
-      <h2 style="margin-top:14px">Help build it — get it at a founding rate.</h2>
+      <h2 style="margin-top:14px">Help build it, get it at a founding rate.</h2>
       <p>A small number of early partners whose usage data is genuinely load-bearing. A fair exchange of statistics for a product built around how you actually work.</p>
       <div class="exchange">
         <div class="xc in"><div class="t">you share</div><p>Anonymised, aggregate usage statistics from your agentic workloads. Nothing raw ever leaves your side.</p></div>
@@ -310,7 +310,7 @@ footer a:hover{color:var(--muted)}
       <div class="av">AH</div>
       <div>
         <h3>Built by Adam Hartley</h3>
-        <p>Medical student at Trinity College Dublin, building TOP and CheckpointKM — a scientific-reproducibility tool. The research core is a collaboration with two University College Cork academics working on uncertainty-aware forecasting and privacy.</p>
+        <p>Medical student at Trinity College Dublin, building TOP and CheckpointKM, a scientific-reproducibility tool. The research core is a collaboration with two University College Cork academics working on uncertainty-aware forecasting and privacy.</p>
         <div class="lk">
           <a href="https://www.linkedin.com/in/adam-hartley-966a8741b/" target="_blank" rel="noopener">LinkedIn ↗</a>
           <a href="mailto:adam1hartley@gmail.com">adam1hartley@gmail.com</a>
@@ -348,6 +348,6 @@ if(REDUCE||!('IntersectionObserver' in window)){els.forEach(function(e){e.classL
 else{var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}})},{threshold:.12,rootMargin:'0px 0px -8% 0px'});els.forEach(function(e){io.observe(e)});}
 </script>
 <script data-goatcounter="https://adamhartley7.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-<script>try{if(!sessionStorage.getItem('_tpv')){sessionStorage.setItem('_tpv','1');fetch('https://ntfy.sh/top-hartley-live-9k2m',{method:'POST',body:'New visitor on landing page'+(document.referrer?(' — via '+document.referrer):' — direct')});}}catch(e){}</script>
+<script>try{if(!sessionStorage.getItem('_tpv')){sessionStorage.setItem('_tpv','1');fetch('https://ntfy.sh/top-hartley-live-9k2m',{method:'POST',body:'New visitor on landing page'+(document.referrer?(' via '+document.referrer):', direct')});}}catch(e){}</script>
 </body>
 </html>
