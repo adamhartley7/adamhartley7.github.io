@@ -62,20 +62,20 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px
 .cardtop .dt{width:11px;height:11px;border-radius:50%;background:#2c2c34}
 .cardtop .lbl{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);letter-spacing:.04em}
 
-.legend{display:flex;flex-wrap:wrap;gap:18px;align-items:center;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.legend{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:center;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--muted);margin-bottom:8px}
 .legend span{display:flex;align-items:center;gap:7px}
 .legend .sw{width:16px;height:3px;border-radius:2px}
 .legend .sq{width:12px;height:12px;border-radius:3px}
 
-.plot{position:relative;background:rgba(255,255,255,.014);border:1px solid var(--border);border-radius:12px;padding:6px 8px 2px}
+.plot{position:relative;background:rgba(255,255,255,.014);border:1px solid var(--border);border-radius:12px;padding:6px 10px 2px;max-width:580px;margin:0 auto}
 
-.controls{display:flex;align-items:center;gap:14px;margin:18px 2px 6px}
+.controls{display:flex;align-items:center;gap:14px;margin:18px 2px 6px;max-width:640px;margin-left:auto;margin-right:auto}
 .controls label{font-size:13.5px;color:var(--muted);min-width:190px}
 input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:100px;background:linear-gradient(90deg,var(--mint) 0%,var(--amber) 55%,var(--red) 100%);outline:none;flex:1}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.5)}
 input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer}
 .controls .gval{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:500;min-width:64px;text-align:right;color:var(--iris-2)}
-.cap{font-size:14px;color:var(--muted);margin:2px 2px 18px;min-height:22px}
+.cap{font-size:14px;color:var(--muted);margin:2px auto 18px;min-height:22px;max-width:640px;text-align:center}
 .cap b{color:var(--text);font-weight:600}
 
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -84,7 +84,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .stat .k{font-size:12.5px;color:var(--muted);margin-bottom:7px}
 .stat .n{font-family:"JetBrains Mono",monospace;font-size:26px;font-weight:500;font-variant-numeric:tabular-nums}
 .stat.after .n{color:var(--mint)}.stat.imp .n{color:var(--iris-2)}
-.illus{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);margin:12px 2px 0;letter-spacing:.02em}
+.illus{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);margin:12px 2px 0;letter-spacing:.02em;text-align:center}
 
 .actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:30px}
 
@@ -164,46 +164,13 @@ footer a:hover{color:var(--muted)}
         </div>
 
         <div class="plot">
-        <svg id="pv" viewBox="0 0 900 440" width="100%" role="img" aria-label="Token cost in red and output value in green over time. An upload point where TOP-1 begins forecasting privately, then an implementation point where TOP-2 bends the cost curve down while output value keeps rising, opening a value surplus.">
+        <svg id="pv" viewBox="0 0 520 500" width="100%" role="img" aria-label="Token cost in red and output value in green over time. An upload point where TOP-1 begins forecasting privately, then an implementation point where TOP-2 bends the cost curve down while output value keeps rising, opening a value surplus.">
           <defs>
             <linearGradient id="valGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stop-color="#3ECF8E" stop-opacity="0.16"/>
               <stop offset="1" stop-color="#3ECF8E" stop-opacity="0"/>
             </linearGradient>
           </defs>
-
-          <line x1="52" y1="396" x2="876" y2="396" stroke="rgba(255,255,255,.24)" stroke-width="1"/>
-          <line x1="52" y1="330.2" x2="876" y2="330.2" stroke="rgba(255,255,255,.045)" stroke-width="1"/>
-          <line x1="52" y1="264.4" x2="876" y2="264.4" stroke="rgba(255,255,255,.045)" stroke-width="1"/>
-          <line x1="52" y1="198.5" x2="876" y2="198.5" stroke="rgba(255,255,255,.045)" stroke-width="1"/>
-          <line x1="52" y1="132.7" x2="876" y2="132.7" stroke="rgba(255,255,255,.045)" stroke-width="1"/>
-          <line x1="52" y1="66.9" x2="876" y2="66.9" stroke="rgba(255,255,255,.045)" stroke-width="1"/>
-          <text x="44" y="400" text-anchor="end" font-size="11" fill="#6A6A74" font-family="JetBrains Mono,monospace">0</text>
-          <text x="44" y="268" text-anchor="end" font-size="11" fill="#6A6A74" font-family="JetBrains Mono,monospace">4</text>
-          <text x="44" y="136" text-anchor="end" font-size="11" fill="#6A6A74" font-family="JetBrains Mono,monospace">8</text>
-          <text x="872" y="418" text-anchor="end" font-size="11" fill="#6A6A74" font-family="JetBrains Mono,monospace">time →</text>
-
-          <g class="fx">
-            <line x1="422.8" y1="396" x2="422.8" y2="72" stroke="#6E7BF2" stroke-width="1.2" stroke-dasharray="4 5" stroke-opacity="0.6"/>
-            <line x1="505.2" y1="396" x2="505.2" y2="72" stroke="#3ECF8E" stroke-width="1.2" stroke-dasharray="4 5" stroke-opacity="0.6"/>
-            <text x="417" y="58" text-anchor="end" font-size="12.5" fill="#9AA2F7" font-family="JetBrains Mono,monospace">upload · TOP-1</text>
-            <text x="511" y="58" text-anchor="start" font-size="12.5" fill="#3ECF8E" font-family="JetBrains Mono,monospace">implementation · TOP-2</text>
-          </g>
-
-          <polygon id="valueArea" class="fx" points="" fill="url(#valGrad)"/>
-          <polygon id="surplus" class="fx" points="" fill="#35F5A0" fill-opacity="0.32"/>
-          <polyline id="costLine" class="ln" points="" pathLength="1" fill="none" stroke="#F26D6D" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-          <polyline id="valueLine" class="ln" points="" pathLength="1" fill="none" stroke="#3ECF8E" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-
-          <g class="fx">
-            <circle cx="422.8" cy="277.4" r="9.5" fill="#6E7BF2" fill-opacity="0.22"/>
-            <circle cx="422.8" cy="277.4" r="4.6" fill="#6E7BF2" stroke="#EAECFF" stroke-width="1.5"/>
-            <circle cx="505.2" cy="254.7" r="9.5" fill="#3ECF8E" fill-opacity="0.24"/>
-            <circle cx="505.2" cy="254.7" r="4.6" fill="#3ECF8E" stroke="#E6FFF2" stroke-width="1.5"/>
-          </g>
-
-          <circle id="costDot" class="fx" r="5" fill="#F26D6D"/>
-          <circle id="valDot" class="fx" r="5" fill="#3ECF8E"/>
         </svg>
         </div>
 
@@ -298,49 +265,74 @@ footer a:hover{color:var(--muted)}
 
 <script>
 (function(){
-  var X0=52, plotW=824, YB=396, plotH=362, vMax=11, spanX=6, BEND=3.3;
-  function xToPx(x){ return X0 + (x/spanX)*plotW; }
-  function yToPx(v){ return YB - (v/vMax)*plotH; }
-  var c0=0.5, cs1=1.15, v0=0.3, vs1=1.0;
-  function costAt(x,g){ return x<=BEND ? c0+cs1*x : (c0+cs1*BEND)+g*(x-BEND); }
-  function vs2f(g){ return 0.7 + 1.85*g; }
-  function valAt(x,g){ return x<=BEND ? v0+vs1*x : (v0+vs1*BEND)+vs2f(g)*(x-BEND); }
+  var NS='http://www.w3.org/2000/svg';
+  var C={X0:44,X1:504,YT:26,YB:456,vMax:9,spanX:6,BEND:3.3,UP:2.55,IMP:3.3,
+         c0:0.5,cs1:1.15,v0:0.3,vs1:1.0};
+  function xToPx(x){ return C.X0 + (x/C.spanX)*(C.X1-C.X0); }
+  function yToPx(v){ v=Math.min(v,C.vMax); return C.YB - (v/C.vMax)*(C.YB-C.YT); }
+  function costAt(x,g){ return x<=C.BEND ? C.c0+C.cs1*x : (C.c0+C.cs1*C.BEND)+g*(x-C.BEND); }
+  function vs2f(g){ return 0.84 + 1.16*g; }
+  function valAt(x,g){ return x<=C.BEND ? C.v0+C.vs1*x : (C.v0+C.vs1*C.BEND)+vs2f(g)*(x-C.BEND); }
   function el(id){ return document.getElementById(id); }
-  function pts(fn,g){ return [0,BEND,6].map(function(x){ return xToPx(x)+','+yToPx(fn(x,g)); }).join(' '); }
+  function mk(tag,a){ var e=document.createElementNS(NS,tag); for(var k in a){ e.setAttribute(k,a[k]); } return e; }
+  function pts(fn,g){ return [0,C.BEND,6].map(function(x){ return xToPx(x)+','+yToPx(fn(x,g)); }).join(' '); }
+
+  var pv=el('pv');
+  // static: gridlines + labels
+  [2,4,6,8].forEach(function(v){ pv.appendChild(mk('line',{x1:C.X0,y1:yToPx(v),x2:C.X1,y2:yToPx(v),stroke:'rgba(255,255,255,.045)','stroke-width':1})); });
+  pv.appendChild(mk('line',{x1:C.X0,y1:yToPx(0),x2:C.X1,y2:yToPx(0),stroke:'rgba(255,255,255,.24)','stroke-width':1}));
+  [[0,'0'],[4,'4'],[8,'8']].forEach(function(p){ var t=mk('text',{x:C.X0-8,y:yToPx(p[0])+4,'text-anchor':'end','font-size':11,fill:'#6A6A74','font-family':'JetBrains Mono,monospace'}); t.textContent=p[1]; pv.appendChild(t); });
+  var xl=mk('text',{x:C.X1,y:C.YB+20,'text-anchor':'end','font-size':11,fill:'#6A6A74','font-family':'JetBrains Mono,monospace'}); xl.textContent='time →'; pv.appendChild(xl);
+  // static: markers (fx)
+  var mg=mk('g',{'class':'fx'});
+  mg.appendChild(mk('line',{x1:xToPx(C.UP),y1:C.YB,x2:xToPx(C.UP),y2:C.YT+16,stroke:'#6E7BF2','stroke-width':1.2,'stroke-dasharray':'4 5','stroke-opacity':.6}));
+  mg.appendChild(mk('line',{x1:xToPx(C.IMP),y1:C.YB,x2:xToPx(C.IMP),y2:C.YT+16,stroke:'#3ECF8E','stroke-width':1.2,'stroke-dasharray':'4 5','stroke-opacity':.6}));
+  var lu=mk('text',{x:xToPx(C.UP)-6,y:C.YT+10,'text-anchor':'end','font-size':11.5,fill:'#9AA2F7','font-family':'JetBrains Mono,monospace'}); lu.textContent='upload'; mg.appendChild(lu);
+  var li=mk('text',{x:xToPx(C.IMP)+6,y:C.YT+10,'text-anchor':'start','font-size':11.5,fill:'#3ECF8E','font-family':'JetBrains Mono,monospace'}); li.textContent='implementation'; mg.appendChild(li);
+  pv.appendChild(mg);
+  // dynamic elements (created once, updated)
+  var valueArea=mk('polygon',{'class':'fx',fill:'url(#valGrad)'}); pv.appendChild(valueArea);
+  var surplus=mk('polygon',{'class':'fx',fill:'#35F5A0','fill-opacity':.32}); pv.appendChild(surplus);
+  var costLine=mk('polyline',{'class':'ln',pathLength:1,fill:'none',stroke:'#F26D6D','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'}); pv.appendChild(costLine);
+  var valueLine=mk('polyline',{'class':'ln',pathLength:1,fill:'none',stroke:'#3ECF8E','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'}); pv.appendChild(valueLine);
+  // moment dots on top (fx), static positions
+  var mdg=mk('g',{'class':'fx'}), uy=yToPx(costAt(C.UP,0)), iy=yToPx(costAt(C.IMP,0));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.UP),cy:uy,r:9.5,fill:'#6E7BF2','fill-opacity':.22}));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.UP),cy:uy,r:4.6,fill:'#6E7BF2',stroke:'#EAECFF','stroke-width':1.5}));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.IMP),cy:iy,r:9.5,fill:'#3ECF8E','fill-opacity':.24}));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.IMP),cy:iy,r:4.6,fill:'#3ECF8E',stroke:'#E6FFF2','stroke-width':1.5}));
+  pv.appendChild(mdg);
+  var costDot=mk('circle',{'class':'fx',r:5,fill:'#F26D6D'}); pv.appendChild(costDot);
+  var valDot=mk('circle',{'class':'fx',r:5,fill:'#3ECF8E'}); pv.appendChild(valDot);
+
+  var gEl=el('g'), vpaEl=el('vpa'), impEl=el('imp'), goutEl=el('gout'), capEl=el('cap');
   function update(){
-    var g=parseFloat(el('g').value);
-    el('costLine').setAttribute('points', pts(costAt,g));
-    el('valueLine').setAttribute('points', pts(valAt,g));
-    el('valueArea').setAttribute('points',
-      xToPx(0)+','+yToPx(valAt(0,g))+' '+xToPx(BEND)+','+yToPx(valAt(BEND,g))+' '+xToPx(6)+','+yToPx(valAt(6,g))+' '+xToPx(6)+','+YB+' '+xToPx(0)+','+YB);
+    var g=parseFloat(gEl.value);
+    costLine.setAttribute('points', pts(costAt,g));
+    valueLine.setAttribute('points', pts(valAt,g));
+    valueArea.setAttribute('points',
+      xToPx(0)+','+yToPx(valAt(0,g))+' '+xToPx(C.BEND)+','+yToPx(valAt(C.BEND,g))+' '+xToPx(6)+','+yToPx(valAt(6,g))+' '+xToPx(6)+','+C.YB+' '+xToPx(0)+','+C.YB);
     var vs2=vs2f(g), poly='';
     if(vs2>g){
-      var gap=(c0+cs1*BEND)-(v0+vs1*BEND);
-      var tc=gap/(vs2-g);
-      var xc=BEND+Math.min(Math.max(tc,0),6-BEND);
-      if(xc<6){
-        poly=[xToPx(xc)+','+yToPx(valAt(xc,g)),
-              xToPx(6)+','+yToPx(valAt(6,g)),
-              xToPx(6)+','+yToPx(costAt(6,g)),
-              xToPx(xc)+','+yToPx(costAt(xc,g))].join(' ');
-      }
+      var gap=(C.c0+C.cs1*C.BEND)-(C.v0+C.vs1*C.BEND);
+      var tc=gap/(vs2-g), xc=C.BEND+Math.min(Math.max(tc,0),6-C.BEND);
+      if(xc<6){ poly=[xToPx(xc)+','+yToPx(valAt(xc,g)),xToPx(6)+','+yToPx(valAt(6,g)),xToPx(6)+','+yToPx(costAt(6,g)),xToPx(xc)+','+yToPx(costAt(xc,g))].join(' '); }
     }
-    el('surplus').setAttribute('points', poly);
+    surplus.setAttribute('points', poly);
     var vpa=vs2/g, imp=vpa/0.85;
-    el('vpa').textContent=vpa.toFixed(1);
-    el('imp').textContent=imp.toFixed(1);
-    el('gout').textContent = g<=0.25?'low':(g>=0.7?'high':'medium');
+    vpaEl.textContent=vpa.toFixed(1);
+    impEl.textContent=imp.toFixed(1);
+    goutEl.textContent = g<=0.25?'low':(g>=0.7?'high':'medium');
     var cap;
     if(g<=0.35) cap='<b>Cutting the bill.</b> Token cost flattens while output value keeps climbing.';
     else if(g>=0.7) cap='<b>Reinvesting the saving (Jevons).</b> A similar spend now buys far more output.';
     else cap='<b>Balanced.</b> Part of the saving is a lower bill, part is reinvested into more output.';
-    el('cap').innerHTML=cap;
-    el('costDot').setAttribute('cx',xToPx(6)); el('costDot').setAttribute('cy',yToPx(costAt(6,g)));
-    el('valDot').setAttribute('cx',xToPx(6)); el('valDot').setAttribute('cy',yToPx(valAt(6,g)));
+    capEl.innerHTML=cap;
+    costDot.setAttribute('cx',xToPx(6)); costDot.setAttribute('cy',yToPx(costAt(6,g)));
+    valDot.setAttribute('cx',xToPx(6)); valDot.setAttribute('cy',yToPx(valAt(6,g)));
   }
-  el('g').addEventListener('input',update);
+  gEl.addEventListener('input',update);
   update();
-  var pv=el('pv');
   setTimeout(function(){ pv.classList.add('drawn'); }, 90);
 })();
 var REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
