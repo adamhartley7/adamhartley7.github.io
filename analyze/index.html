@@ -263,8 +263,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
           <button class="btn p" id="shareprep" disabled>Create My Sharing Package</button>
           <div id="shareactions" style="display:none;margin-top:10px">
             <button class="btn" id="sharedownload">Download Aggregate Package</button>
-            <button class="btn" id="shareemail">Open Email Draft</button>
-            <p class="note" style="text-align:left;margin:10px 0 0">The email opens as a draft. You still review it and press Send yourself.</p>
+            <p class="note" style="text-align:left;margin:10px 0 0">The download stays on your device. TOP is not accepting external data yet while its consent, retention, and deletion process is finalized.</p>
           </div>
           <div id="sharestatus" role="status" aria-live="polite" style="margin-top:10px;color:var(--mint);font-weight:650"></div>
         </div>
@@ -1062,16 +1061,10 @@ document.getElementById("shareprep").addEventListener("click",function(){
   if(!shareConsent.checked||!lastSummary) return;
   sharePackage="TOP aggregate sharing package\ncreated_utc: "+new Date().toISOString()+"\nraw_file_included: no\nautomatic_submission: no\n"+lastSummary+(surveyBlock()||"\n\nquestionnaire answers:\n  (not provided)");
   document.getElementById("shareactions").style.display="block";
-  document.getElementById("sharestatus").textContent="Package ready. Nothing has been sent.";
+  document.getElementById("sharestatus").textContent="Package ready on your device. TOP has not received it.";
 });
 document.getElementById("sharedownload").addEventListener("click",function(){
   if(sharePackage) dlFile("top-aggregate-sharing-package.txt",sharePackage,"text/plain");
-});
-document.getElementById("shareemail").addEventListener("click",function(){
-  if(!sharePackage) return;
-  var subject=encodeURIComponent("TOP aggregate usage package");
-  var body=encodeURIComponent(sharePackage);
-  window.location.href="mailto:adam1hartley@gmail.com?subject="+subject+"&body="+body;
 });
 // ---------- Route B: text-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;

@@ -13,6 +13,7 @@ const forbiddenPatterns = [
   [/ntfy\.sh/i, "visitor notification endpoint"],
   [/fonts\.googleapis|fonts\.gstatic/i, "remote font request"],
   [/id=["']sendbtn["']/, "remote send button"],
+  [/mailto:adam1hartley/i, "email collection action"],
 ];
 
 for (const [pattern, label] of forbiddenPatterns) {
