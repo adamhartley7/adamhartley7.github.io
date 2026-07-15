@@ -19,12 +19,22 @@
   --maxw:1120px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{background:#09071a;color:var(--text);font-family:"Inter",system-ui,sans-serif;
-  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;
-  background-image:radial-gradient(1100px 720px at 78% -14%,rgba(124,77,255,.22),transparent 60%),radial-gradient(950px 620px at 8% 4%,rgba(94,84,232,.16),transparent 58%),radial-gradient(780px 520px at 52% 114%,rgba(40,54,130,.22),transparent 62%),linear-gradient(180deg,#160b2e 0%,#0c0a1c 46%,#08060f 100%);background-attachment:fixed}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-repeat:no-repeat;
-  background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1.1px 1.1px at 27% 62%,rgba(255,255,255,.85),transparent),radial-gradient(1.7px 1.7px at 41% 11%,#fff,transparent),radial-gradient(1px 1px at 55% 44%,rgba(255,255,255,.7),transparent),radial-gradient(1.3px 1.3px at 63% 78%,#fff,transparent),radial-gradient(1.1px 1.1px at 72% 21%,rgba(255,255,255,.8),transparent),radial-gradient(1.6px 1.6px at 84% 55%,#fff,transparent),radial-gradient(1px 1px at 91% 33%,rgba(255,255,255,.7),transparent),radial-gradient(1.2px 1.2px at 18% 82%,rgba(255,255,255,.8),transparent),radial-gradient(1px 1px at 33% 91%,rgba(255,255,255,.6),transparent),radial-gradient(1.5px 1.5px at 48% 70%,#fff,transparent),radial-gradient(1px 1px at 6% 48%,rgba(255,255,255,.7),transparent),radial-gradient(1.2px 1.2px at 78% 88%,rgba(255,255,255,.75),transparent),radial-gradient(1.6px 1.6px at 95% 74%,#fff,transparent),radial-gradient(1px 1px at 22% 38%,rgba(255,255,255,.6),transparent),radial-gradient(1.4px 1.4px at 60% 15%,#fff,transparent),radial-gradient(1.1px 1.1px at 38% 33%,rgba(255,255,255,.7),transparent),radial-gradient(1.3px 1.3px at 88% 12%,#fff,transparent),radial-gradient(1px 1px at 3% 78%,rgba(255,255,255,.65),transparent),radial-gradient(1.4px 1.4px at 67% 52%,#fff,transparent)}
+html{scroll-behavior:smooth;background:#031521}
+body{background:transparent;color:var(--text);font-family:"Inter",system-ui,sans-serif;
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(1,14,24,.08),rgba(2,13,22,.28) 48%,rgba(2,10,17,.90) 78%,#07090d 100%)}
+.coast-world{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:linear-gradient(180deg,#031b32 0%,#075270 34%,#df8c67 51%,#0a6376 52%,#052f43 74%,#041923 100%)}
+.coast-world::before{content:"";position:absolute;inset:52% 0 0;background:repeating-linear-gradient(176deg,rgba(255,255,255,.15) 0 2px,rgba(18,111,129,.08) 3px 9px,rgba(2,35,52,.22) 10px 17px);opacity:.75}
+.coast-world::after{content:"";position:absolute;left:-12%;right:-12%;bottom:-18%;height:41%;background:radial-gradient(ellipse at 40% 0%,#d7ad6c 0 28%,#987348 56%,#372f27 100%);clip-path:polygon(0 46%,14% 26%,35% 15%,56% 25%,78% 7%,100% 31%,100% 100%,0 100%);filter:brightness(.55)}
+.coast-sun{position:absolute;left:13%;top:34%;width:clamp(88px,10vw,150px);aspect-ratio:1;border-radius:50%;background:#ffe99b;box-shadow:0 0 45px 20px rgba(255,196,109,.34),0 0 120px 45px rgba(255,132,88,.16)}
+.coast-stars{position:absolute;inset:0 0 45%;opacity:.66;background-image:radial-gradient(1.3px 1.3px at 8% 22%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 22% 48%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 43% 16%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 61% 37%,#fff 45%,transparent 55%),radial-gradient(1.3px 1.3px at 79% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 42%,#fff 45%,transparent 55%)}
+.shooting-star{position:absolute;width:90px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.92));transform:rotate(-24deg);opacity:0;animation:shoot 8s ease-in-out infinite}
+.shooting-star.s1{top:15%;left:34%;animation-delay:1.4s}.shooting-star.s2{top:27%;left:72%;width:62px;animation-delay:5.2s}
+@keyframes shoot{0%,72%,100%{opacity:0;transform:translate(0,0) rotate(-24deg)}76%{opacity:1}88%{opacity:0;transform:translate(150px,64px) rotate(-24deg)}}
+.black-hole{position:absolute;right:9%;top:16%;width:clamp(56px,6vw,88px);aspect-ratio:1;border-radius:50%;background:#000;box-shadow:0 0 0 2px rgba(255,226,166,.72),0 0 18px 5px rgba(255,139,71,.44),0 0 44px 12px rgba(79,183,205,.12);transform:rotate(-13deg);opacity:.68}
+.black-hole::before{content:"";position:absolute;left:-47%;right:-47%;top:42%;height:16%;border:3px solid rgba(255,177,92,.88);border-left-color:rgba(109,210,223,.55);border-radius:50%;box-shadow:0 0 12px rgba(255,139,71,.68);transform:rotate(4deg)}
+.black-hole::after{content:"";position:absolute;inset:8%;border-radius:50%;border-top:2px solid rgba(255,255,255,.72);filter:blur(.4px)}
+.interstellar-scout{position:absolute;right:24%;top:42%;width:78px;height:18px;background:linear-gradient(90deg,transparent 0 5%,#7ed5df 7% 12%,#d8eef0 13% 70%,#4b7783 71%);clip-path:polygon(0 50%,20% 24%,76% 12%,100% 50%,76% 88%,20% 76%);opacity:.32;filter:drop-shadow(-12px 0 7px rgba(102,227,235,.58));transform:rotate(-8deg) scale(.72)}
 .mono{font-family:"JetBrains Mono",monospace}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
@@ -56,6 +66,7 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px
 .dropdown a:hover{background:rgba(255,255,255,.08)}
 .dropdown a small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
 .nav-analyze{color:var(--iris-2) !important;font-weight:600}
+nav>.wrap>.btn-primary{min-width:190px;justify-content:center;background:linear-gradient(180deg,#8bf0e7,#0c8d98);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 10px 28px rgba(10,118,132,.34)}
 @media(max-width:820px){.navlinks{display:none}nav .wrap{max-width:calc(100% - 24px)}}
 .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;padding:9px 18px;border-radius:9px;transition:.2s;cursor:pointer;border:1px solid transparent}
 .btn-primary{background:var(--iris);color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.15) inset,0 8px 24px -8px var(--glow)}
@@ -163,14 +174,25 @@ footer a:hover{color:var(--muted)}
 /* nav dropdown hover-bridge (keeps the menu open while the cursor crosses the gap) */
 .navdrop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);width:240px;max-width:82vw;height:16px;pointer-events:auto}
 
-/* hero gem totem */
-.hero-totem-link{display:flex;width:min(280px,70vw);margin:6px auto 30px;flex-direction:column;align-items:center;gap:8px;border-radius:24px;padding:8px 10px 12px;transition:transform .2s ease,background .2s ease,box-shadow .2s ease}
-.hero-totem-link:hover,.hero-totem-link:focus-visible{transform:translateY(-4px);background:rgba(110,123,242,.1);box-shadow:0 20px 55px rgba(62,42,140,.25);outline:none}
-.hero-totem{display:block;width:100%;height:auto;filter:drop-shadow(0 0 34px rgba(124,77,255,.5))}
-.hero-totem-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 22px;border-radius:999px;background:linear-gradient(135deg,var(--iris),#8c5cff);color:#fff;font-size:15px;font-weight:700;box-shadow:0 10px 30px rgba(110,123,242,.35)}
-.hero-totem .gem-ring{filter:drop-shadow(0 0 5px currentColor)}
-.hero-totem .electron{filter:drop-shadow(0 0 7px currentColor)}
-@media (prefers-reduced-motion:reduce){.hero-totem animateMotion,.hero-totem .electron animate{display:none}}
+/* interactive hero prism */
+.hero-orbit-stage{position:relative;width:min(660px,calc(100vw - 28px));height:clamp(360px,43vw,500px);margin:-18px auto 8px;perspective:900px;isolation:isolate}
+.orbit-layer{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 10px rgba(64,203,224,.36));pointer-events:none}
+.orbit-back{z-index:1}.orbit-front{z-index:4}
+.orbit-layer .ring{fill:none;stroke-width:2.4;vector-effect:non-scaling-stroke}.orbit-layer .electron{filter:drop-shadow(0 0 7px currentColor)}
+.totem-tilt{position:absolute;left:50%;top:46%;width:clamp(210px,28vw,300px);aspect-ratio:1.1547;z-index:3;transform-style:preserve-3d;transform:translate(-50%,-50%) rotateX(-8deg);transition:transform .16s ease-out;pointer-events:none}
+.totem-spin{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.hex-depth,.hex-face{position:absolute;inset:0;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);backface-visibility:hidden}
+.hex-depth{background:linear-gradient(125deg,#142e49,#07111d 58%,#2b655f);border:1px solid rgba(174,235,238,.16)}
+.hex-depth{backface-visibility:visible}
+.hex-face{width:100%;height:100%;filter:drop-shadow(0 18px 30px rgba(0,0,0,.42))}
+.hex-face.front{transform:translateZ(27px)}
+.hex-back{display:flex;align-items:center;justify-content:center;transform:translateZ(-27px) rotateY(180deg);background:linear-gradient(145deg,#1b776f,#102d47 55%,#06131f);color:#eafcff;font-weight:800;font-size:clamp(34px,5vw,58px);letter-spacing:.18em;text-indent:.18em;box-shadow:inset 0 0 30px rgba(116,232,224,.2)}
+.hero-analyze-cta{position:absolute;left:50%;bottom:4%;z-index:7;display:flex;flex-direction:column;align-items:center;justify-content:center;width:min(470px,92%);min-height:76px;padding:12px 34px;border:1px solid rgba(255,255,255,.72);border-radius:999px;background:linear-gradient(180deg,#9af4ea 0%,#24b8b4 16%,#087e91 54%,#045366 100%);color:#fff;box-shadow:inset 0 3px 0 rgba(255,255,255,.42),inset 0 -8px 16px rgba(0,30,47,.30),0 18px 44px rgba(0,10,22,.52),0 0 46px rgba(64,210,210,.24);text-shadow:0 2px 5px rgba(0,26,39,.65);transition:transform .2s ease,filter .2s ease}
+.hero-analyze-cta strong{font-size:clamp(20px,2.7vw,27px);line-height:1.1}.hero-analyze-cta small{font-size:12px;font-weight:600;opacity:.88;margin-top:4px}
+.hero-analyze-cta:hover,.hero-analyze-cta:focus-visible{transform:translate(-50%,-4px) scale(1.025);filter:saturate(1.12) brightness(1.08);outline:3px solid #fff;outline-offset:5px}
+.hero-analyze-cta{transform:translateX(-50%)}
+@media(max-width:640px){.hero-orbit-stage{height:370px}.totem-tilt{top:43%;width:230px}.hero-analyze-cta{min-height:68px;bottom:5%}}
+@media (prefers-reduced-motion:reduce){.shooting-star{display:none}.totem-tilt{transition:none}.orbit-layer animateMotion,.orbit-layer .electron animate{display:none}}
 
 /* value model (interactive cost vs value) */
 .vm-stage{max-width:1000px;margin:0 auto;position:relative}
@@ -223,6 +245,14 @@ footer a:hover{color:var(--muted)}
 </style>
 </head>
 <body>
+<div class="coast-world" aria-hidden="true">
+  <div class="coast-stars"></div>
+  <div class="coast-sun"></div>
+  <div class="shooting-star s1"></div>
+  <div class="shooting-star s2"></div>
+  <div class="black-hole"></div>
+  <div class="interstellar-scout"></div>
+</div>
 <nav>
   <div class="wrap">
     <a class="logo" href="#"><span class="mk">T</span> TOP</a>
@@ -253,53 +283,74 @@ footer a:hover{color:var(--muted)}
 <!-- HERO -->
 <header class="hero">
   <div class="wrap">
-    <a class="hero-totem-link" href="/analyze/" aria-label="Analyze your usage with TOP">
-    <svg class="hero-totem" viewBox="0 0 200 200" role="img" aria-label="TOP faceted emblem with fixed three-dimensional orbital rings and particles travelling around them">
-      <defs>
-        <radialGradient id="electronBlue"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#baf1ff"/><stop offset="1" stop-color="#38bdf8"/></radialGradient>
-        <radialGradient id="electronPink"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#ffd1ec"/><stop offset="1" stop-color="#f472b6"/></radialGradient>
-      </defs>
-      <g class="gem-ring gem-ring-a" transform="rotate(-22 100 102)" color="#38bdf8">
-        <ellipse cx="100" cy="102" rx="94" ry="27" fill="none" stroke="#57c9ff" stroke-width="2" opacity=".58"/>
-        <circle class="electron" r="4.8" fill="url(#electronBlue)">
-          <animateMotion dur="4.8s" repeatCount="indefinite" path="M194 102 A94 27 0 1 1 6 102 A94 27 0 1 1 194 102"/>
-          <animate attributeName="r" values="3.4;5.2;3.4" dur="2.4s" repeatCount="indefinite"/>
-        </circle>
-        <circle class="electron" r="3.7" fill="url(#electronBlue)" opacity=".9">
-          <animateMotion dur="4.8s" begin="-2.4s" repeatCount="indefinite" path="M194 102 A94 27 0 1 1 6 102 A94 27 0 1 1 194 102"/>
-          <animate attributeName="r" values="3;4.5;3" dur="2.4s" begin="-1.2s" repeatCount="indefinite"/>
-        </circle>
-      </g>
-      <g class="gem-ring gem-ring-b" transform="rotate(24 100 102)" color="#f472b6">
-        <ellipse cx="100" cy="102" rx="94" ry="27" fill="none" stroke="#ff8fd0" stroke-width="2" opacity=".58"/>
-        <circle class="electron" r="4.8" fill="url(#electronPink)">
-          <animateMotion dur="6.2s" repeatCount="indefinite" path="M194 102 A94 27 0 1 0 6 102 A94 27 0 1 0 194 102"/>
-          <animate attributeName="r" values="5.2;3.4;5.2" dur="3.1s" repeatCount="indefinite"/>
-        </circle>
-        <circle class="electron" r="3.7" fill="url(#electronPink)" opacity=".9">
-          <animateMotion dur="6.2s" begin="-3.1s" repeatCount="indefinite" path="M194 102 A94 27 0 1 0 6 102 A94 27 0 1 0 194 102"/>
-          <animate attributeName="r" values="4.5;3;4.5" dur="3.1s" begin="-1.55s" repeatCount="indefinite"/>
-        </circle>
-      </g>
-      <polygon points="100,100 40,100 70,48" fill="#6b49d6"/>
-      <polygon points="100,100 70,48 130,48" fill="#8763f0"/>
-      <polygon points="100,100 130,48 160,100" fill="#5b3fd6"/>
-      <polygon points="100,100 40,100 70,152" fill="#4c31ad"/>
-      <polygon points="100,100 70,152 130,152" fill="#3f2896"/>
-      <polygon points="100,100 130,152 160,100" fill="#4c31ad"/>
-      <polygon points="160,100 130,152 70,152 40,100 70,48 130,48" fill="none" stroke="#d9ccff" stroke-width="1.5" opacity=".5"/>
-      <g fill="#fff" font-family="Inter,sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central">
-        <text x="70" y="82" font-size="20">T</text><text x="100" y="66" font-size="20">O</text><text x="130" y="82" font-size="20">P</text>
-        <text x="70" y="118" font-size="18">1</text><text x="100" y="135" font-size="18">2</text><text x="130" y="118" font-size="18">3</text>
-      </g>
-    </svg>
-    <span class="hero-totem-cta">Analyze your usage →</span>
-    </a>
+    <div class="hero-orbit-stage" id="topOrbitStage" aria-label="Interactive three-dimensional TOP emblem. Move the pointer across it to change the spin.">
+      <svg class="orbit-layer orbit-back" viewBox="0 0 400 330" aria-hidden="true">
+        <defs>
+          <clipPath id="orbitBackA"><rect x="0" y="0" width="400" height="150"/></clipPath>
+          <clipPath id="orbitBackB"><rect x="0" y="0" width="400" height="150"/></clipPath>
+          <radialGradient id="electronTeal"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#c8ffff"/><stop offset="1" stop-color="#31d8d0"/></radialGradient>
+          <radialGradient id="electronCoral"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#ffe1c7"/><stop offset="1" stop-color="#ff8a62"/></radialGradient>
+        </defs>
+        <g transform="rotate(-18 200 150)" clip-path="url(#orbitBackA)" color="#31d8d0">
+          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#5ee4df" opacity=".42"/>
+          <circle class="electron" r="5" fill="url(#electronTeal)"><animateMotion dur="5.2s" repeatCount="indefinite" path="M380 150 A180 47 0 1 1 20 150 A180 47 0 1 1 380 150"/><animate attributeName="r" values="3;6.5;3" dur="2.6s" repeatCount="indefinite"/></circle>
+          <circle class="electron" r="4" fill="url(#electronTeal)"><animateMotion dur="5.2s" begin="-2.6s" repeatCount="indefinite" path="M380 150 A180 47 0 1 1 20 150 A180 47 0 1 1 380 150"/></circle>
+        </g>
+        <g transform="rotate(20 200 150)" clip-path="url(#orbitBackB)" color="#ff8a62">
+          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#ff9d74" opacity=".38"/>
+          <circle class="electron" r="5" fill="url(#electronCoral)"><animateMotion dur="6.4s" repeatCount="indefinite" path="M380 150 A180 47 0 1 0 20 150 A180 47 0 1 0 380 150"/><animate attributeName="r" values="6.5;3;6.5" dur="3.2s" repeatCount="indefinite"/></circle>
+          <circle class="electron" r="4" fill="url(#electronCoral)"><animateMotion dur="6.4s" begin="-3.2s" repeatCount="indefinite" path="M380 150 A180 47 0 1 0 20 150 A180 47 0 1 0 380 150"/></circle>
+        </g>
+      </svg>
+
+      <div class="totem-tilt" id="topTotemTilt" aria-hidden="true">
+        <div class="totem-spin" id="topTotemSpin">
+          <div class="hex-back hex-face">TOP</div>
+          <svg class="hex-face front" viewBox="0 0 200 174">
+            <polygon points="100,87 0,87 50,0" fill="#1f8f8a"/>
+            <polygon points="100,87 50,0 150,0" fill="#3ccbc1"/>
+            <polygon points="100,87 150,0 200,87" fill="#167b8d"/>
+            <polygon points="100,87 0,87 50,174" fill="#12536c"/>
+            <polygon points="100,87 50,174 150,174" fill="#0b3d57"/>
+            <polygon points="100,87 150,174 200,87" fill="#176775"/>
+            <polygon points="200,87 150,174 50,174 0,87 50,0 150,0" fill="none" stroke="#d5fffb" stroke-width="2" opacity=".72"/>
+            <g fill="#fff" font-family="Inter,sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central">
+              <text x="50" y="57" font-size="27">T</text><text x="100" y="31" font-size="27">O</text><text x="150" y="57" font-size="27">P</text>
+              <text x="50" y="117" font-size="24">1</text><text x="100" y="145" font-size="24">2</text><text x="150" y="117" font-size="24">3</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <svg class="orbit-layer orbit-front" viewBox="0 0 400 330" aria-hidden="true">
+        <defs>
+          <clipPath id="orbitFrontA"><rect x="0" y="150" width="400" height="180"/></clipPath>
+          <clipPath id="orbitFrontB"><rect x="0" y="150" width="400" height="180"/></clipPath>
+          <radialGradient id="electronTealFront"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#c8ffff"/><stop offset="1" stop-color="#31d8d0"/></radialGradient>
+          <radialGradient id="electronCoralFront"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#ffe1c7"/><stop offset="1" stop-color="#ff8a62"/></radialGradient>
+        </defs>
+        <g transform="rotate(-18 200 150)" clip-path="url(#orbitFrontA)" color="#31d8d0">
+          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#8cfff7" opacity=".86"/>
+          <circle class="electron" r="5" fill="url(#electronTealFront)"><animateMotion dur="5.2s" repeatCount="indefinite" path="M380 150 A180 47 0 1 1 20 150 A180 47 0 1 1 380 150"/><animate attributeName="r" values="3;6.5;3" dur="2.6s" repeatCount="indefinite"/></circle>
+          <circle class="electron" r="4" fill="url(#electronTealFront)"><animateMotion dur="5.2s" begin="-2.6s" repeatCount="indefinite" path="M380 150 A180 47 0 1 1 20 150 A180 47 0 1 1 380 150"/></circle>
+        </g>
+        <g transform="rotate(20 200 150)" clip-path="url(#orbitFrontB)" color="#ff8a62">
+          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#ffc199" opacity=".82"/>
+          <circle class="electron" r="5" fill="url(#electronCoralFront)"><animateMotion dur="6.4s" repeatCount="indefinite" path="M380 150 A180 47 0 1 0 20 150 A180 47 0 1 0 380 150"/><animate attributeName="r" values="6.5;3;6.5" dur="3.2s" repeatCount="indefinite"/></circle>
+          <circle class="electron" r="4" fill="url(#electronCoralFront)"><animateMotion dur="6.4s" begin="-3.2s" repeatCount="indefinite" path="M380 150 A180 47 0 1 0 20 150 A180 47 0 1 0 380 150"/></circle>
+        </g>
+      </svg>
+
+      <a class="hero-analyze-cta" href="/analyze/">
+        <strong>Analyze Your Usage</strong>
+        <small>Private on-device analysis, nothing sends itself</small>
+      </a>
+    </div>
     <div class="badge"><span class="d"></span> Token Optimization Protocol</div>
     <h1>Know what your AI really costs, on your own usage.</h1>
     <p class="sub">See your real AI spend, then a calibrated forecast of what each task costs before it runs. Drop in your usage export, parsed privately in your browser, and get your number in minutes.</p>
     <div class="cta">
-      <a class="btn btn-primary" href="/analyze/">Analyze your usage →</a>
+      <a class="btn btn-primary" href="#how">See how TOP works</a>
       <a class="btn btn-ghost" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Book a call</a>
     </div>
 
@@ -627,6 +678,49 @@ footer a:hover{color:var(--muted)}
       }
     });
   });
+})();
+(function initTopPrism(){
+  var stage=document.getElementById('topOrbitStage');
+  var tilt=document.getElementById('topTotemTilt');
+  var spin=document.getElementById('topTotemSpin');
+  if(!stage||!tilt||!spin) return;
+  var front=spin.querySelector('.front');
+  for(var z=-24;z<=24;z+=2){
+    var layer=document.createElement('div');
+    layer.className='hex-depth';
+    layer.style.transform='translateZ('+z+'px)';
+    layer.style.opacity=String(.58+((z+24)/48)*.34);
+    spin.insertBefore(layer,front);
+  }
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){
+    spin.style.transform='rotateY(-12deg)';
+    document.querySelectorAll('.orbit-layer').forEach(function(svg){if(svg.pauseAnimations) svg.pauseAnimations()});
+    return;
+  }
+  var motion=spin.animate([{transform:'rotateY(0deg)'},{transform:'rotateY(360deg)'}],{duration:26000,iterations:Infinity,easing:'linear'});
+  motion.playbackRate=.22;
+  var coarse=matchMedia('(pointer: coarse)').matches;
+  if(!coarse){
+    stage.addEventListener('pointermove',function(event){
+      var rect=stage.getBoundingClientRect();
+      var px=Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width));
+      var py=Math.max(0,Math.min(1,(event.clientY-rect.top)/rect.height));
+      var rx=(.5-py)*20-7;
+      var ry=(px-.5)*20;
+      tilt.style.transform='translate(-50%,-50%) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg)';
+      var rate=(px-.5)*7;
+      motion.playbackRate=Math.abs(rate)<.28?(rate<0?-.28:.28):rate;
+    });
+    stage.addEventListener('pointerleave',function(){
+      tilt.style.transform='translate(-50%,-50%) rotateX(-8deg)';
+      motion.playbackRate=.22;
+    });
+  }
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting) motion.play();else motion.pause()})},{threshold:.04}).observe(stage);
+  }
+  document.addEventListener('visibilitychange',function(){if(document.hidden) motion.pause();else motion.play()});
 })();
 var REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
 var els=document.querySelectorAll('.reveal');

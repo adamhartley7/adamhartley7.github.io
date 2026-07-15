@@ -12,11 +12,28 @@
   --bg:#eef6fb;--bg1:#e5f0f7;--panel:rgba(255,255,255,.88);--panel2:rgba(255,250,244,.94);--border:#c5d4df;--border2:#9db3c3;
   --text:#14263a;--muted:#30465d;--faint:#536a80;--iris:#6556dd;--iris2:#4f43c7;--glow:rgba(101,86,221,.24);
   --mint:#087f62;--amber:#9a5900;--red:#bd3f50;--coral:#f57f72;--sky:#79c8ef;
+  --sun-x:8%;--sun-y:70%;--sun-alpha:1;--moon-x:8%;--moon-y:78%;--moon-alpha:0;--star-alpha:0;
+  --sky-top:#0b4968;--sky-mid:#f0a270;--sky-low:#ffd5a2;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{min-height:100vh;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
-  background-image:radial-gradient(circle 180px at 70% 39%,rgba(255,242,178,.96) 0 18%,rgba(255,160,111,.40) 40%,transparent 68%),linear-gradient(180deg,#82cff1 0%,#cce8ef 27%,#f7b29a 47%,#486f83 48%,#214d68 71%,#12354f 100%);background-attachment:fixed}
-body::before{content:"";position:fixed;inset:48% 0 0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(177deg,rgba(255,255,255,.20) 0 2px,rgba(64,120,151,.16) 3px 8px,rgba(9,49,75,.15) 9px 15px);mix-blend-mode:screen}
+html{background:#b9dde8}
+body{min-height:100vh;background:transparent;color:var(--text);font-family:"Inter",system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(8,44,62,.04) 48%,rgba(5,42,55,.22) 100%)}
+.journey-world{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 36%,var(--sky-low) 52%,#2c90a4 52.5%,#09536c 75%,#06394f 100%);transition:background 1.2s ease}
+.journey-stars{position:absolute;inset:0 0 48%;opacity:var(--star-alpha);transition:opacity 1.2s ease;background-image:radial-gradient(1.3px 1.3px at 9% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 26% 42%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 44% 14%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 62% 35%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 80% 18%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 41%,#fff 45%,transparent 55%)}
+.journey-sun,.journey-moon{position:absolute;left:var(--sun-x);top:var(--sun-y);width:clamp(82px,10vw,142px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);transition:left 1s cubic-bezier(.2,.8,.2,1),top 1s cubic-bezier(.2,.8,.2,1),opacity 1s ease}
+.journey-sun{opacity:var(--sun-alpha);background:#ffefaa;box-shadow:0 0 38px 18px rgba(255,214,126,.58),0 0 110px 42px rgba(255,130,82,.25)}
+.journey-moon{left:var(--moon-x);top:var(--moon-y);width:clamp(58px,7vw,98px);opacity:var(--moon-alpha);background:radial-gradient(circle at 36% 32%,#fff 0 8%,#dbe8e8 9% 54%,#a8bec4 56% 100%);box-shadow:0 0 30px rgba(213,240,246,.5)}
+.journey-ocean{position:absolute;inset:52% 0 0;background:repeating-linear-gradient(177deg,rgba(255,255,255,.24) 0 2px,rgba(67,158,177,.13) 3px 8px,rgba(3,57,80,.16) 9px 15px);mix-blend-mode:screen}
+.journey-island{position:absolute;left:-4%;bottom:12%;width:48%;height:25%;background:linear-gradient(180deg,#2e6f54 0 14%,#b58b55 17% 100%);clip-path:polygon(0 66%,12% 54%,25% 47%,37% 51%,53% 38%,69% 44%,82% 56%,100% 71%,100% 100%,0 100%);filter:drop-shadow(0 -6px 8px rgba(1,38,42,.18));opacity:.92}
+.journey-beach{position:absolute;left:-8%;right:-8%;bottom:-15%;height:35%;background:radial-gradient(ellipse at 50% 0%,#f5d18b 0 28%,#d2a363 58%,#8e6845 100%);clip-path:polygon(0 54%,15% 30%,35% 17%,56% 27%,78% 9%,100% 34%,100% 100%,0 100%)}
+.journey-palm{position:absolute;left:13%;bottom:25%;width:9px;height:110px;background:#493a28;border-radius:60% 25% 30% 60%;transform:rotate(-8deg);transform-origin:bottom}
+.journey-palm::before{content:"";position:absolute;left:-47px;top:-23px;width:100px;height:58px;background:#246b4f;clip-path:polygon(50% 50%,0 25%,42% 42%,19% 0,47% 39%,51% 0,54% 39%,88% 4%,58% 43%,100% 35%,60% 50%,83% 88%,55% 57%,40% 100%,49% 56%,0 77%)}
+.journey-rail{position:sticky;top:70px;z-index:4;margin:0 0 22px;padding:13px 16px;border:1px solid rgba(255,255,255,.86);border-radius:18px;background:rgba(255,255,255,.86);box-shadow:0 14px 34px rgba(25,66,92,.12);backdrop-filter:blur(16px)}
+.journey-meta{display:flex;justify-content:space-between;gap:16px;align-items:center;font-weight:750;font-size:14px}.journey-meta span{color:var(--muted);font-weight:650}.journey-meta strong{color:#087f62}
+.journey-track{height:7px;margin-top:9px;border-radius:999px;background:#d6e3e8;overflow:hidden}.journey-track span{display:block;width:8%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#f2ad63,#23b6ae,#6253d7);transition:width .75s cubic-bezier(.2,.8,.2,1)}
+.intake-hold{display:flex;gap:8px 16px;align-items:center;justify-content:center;flex-wrap:wrap;color:#6d3900;font-size:14px;margin:2px auto 12px;background:rgba(255,248,222,.94);border:1px solid rgba(151,91,0,.28);border-radius:18px;padding:11px 17px;width:max-content;max-width:100%;box-shadow:0 12px 28px rgba(25,66,92,.10)}
+.intake-hold strong{font-size:15px}.intake-hold span{max-width:66ch}
 .mono{font-family:"JetBrains Mono",monospace}
 a{color:var(--iris2);text-decoration:none}
 .wrap{max-width:960px;margin:0 auto;padding:0 22px}
@@ -35,7 +52,7 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .tab{min-height:112px;font-family:"Inter",system-ui,sans-serif;font-size:17px;font-weight:750;padding:18px;border:1px solid rgba(255,255,255,.82);border-radius:22px;background:rgba(255,255,255,.78);color:var(--text);cursor:pointer;transition:.2s;box-shadow:0 16px 34px rgba(25,66,92,.10);text-align:left}
 .tab:nth-child(1){background:linear-gradient(145deg,#fff,#dff0ff)}.tab:nth-child(2){background:linear-gradient(145deg,#fff,#f9e2f0)}.tab:nth-child(3){background:linear-gradient(145deg,#fff,#e9e3ff)}.tab:nth-child(4){background:linear-gradient(145deg,#fff,#fff0d5)}
 .tab:hover{transform:translateY(-3px);border-color:rgba(101,86,221,.45)}
-.tab.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,#6253d7,#8d6de9);box-shadow:0 18px 42px rgba(101,86,221,.26)}
+.tab.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,#087f87,#2e9ba5);box-shadow:0 18px 42px rgba(15,116,127,.24)}
 .tab:focus-visible,.drop:focus-visible,.btn:focus-visible{outline:3px solid var(--iris2);outline-offset:3px}
 .tab .st{font-size:13px;font-weight:550;display:block;margin-top:7px;letter-spacing:0;color:var(--muted);line-height:1.35}
 .tab.on .st{color:#eeeaff}
@@ -90,8 +107,11 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .routechoices{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 8px}
 .routepick{min-height:132px;border:1px solid rgba(255,255,255,.84);border-radius:22px;background:rgba(255,255,255,.84);color:var(--text);padding:22px;text-align:left;cursor:pointer;box-shadow:0 16px 34px rgba(25,66,92,.10);transition:.2s}
 .routepick:hover{transform:translateY(-3px);border-color:rgba(101,86,221,.45)}
-.routepick.on{background:linear-gradient(145deg,#6656d9,#8f70e8);color:#fff;border-color:transparent}
-.routepick strong{font-size:19px;display:block;margin-bottom:6px}.routepick span{font-size:14px;line-height:1.45;color:var(--muted)}.routepick.on span{color:#f0edff}
+.routepick.on{background:linear-gradient(145deg,#087f87,#2479a0);color:#fff;border-color:transparent}
+.routepick .rlabel{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#087f62;font-weight:850;margin-bottom:8px}.routepick.on .rlabel{color:#cafff6}
+.routepick strong{font-size:21px;display:block;margin-bottom:8px}.routepick .rdesc{display:block;font-size:14.5px;line-height:1.5;color:var(--muted)}.routepick.on .rdesc{color:#f1ffff}
+.routepick .rbest{display:block;margin-top:11px;font-size:13px;font-weight:750;color:#536a80}.routepick.on .rbest{color:#d7fff8}
+.route-intro{color:var(--muted);font-size:15px;max-width:72ch;margin:-2px 0 15px}
 .routepanel[hidden],.survey[hidden]{display:none!important}
 .routebanner{padding:14px 17px;border-radius:15px;background:#fff7e8;border:1px solid #efc787;color:#654317;font-size:14px;margin:14px 0}
 .survey{display:flex;flex-direction:column;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.84);border-radius:24px;margin:28px 0 12px;padding:clamp(20px,4vw,32px);box-shadow:0 20px 48px rgba(25,66,92,.11)}
@@ -164,9 +184,19 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .dlrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
 @media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.routechoices{grid-template-columns:1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.chipgroup.arch{grid-template-columns:1fr}}
 @media(max-width:430px){.tabs{grid-template-columns:1fr}.tab{min-height:82px}}
+@media(prefers-reduced-motion:reduce){.journey-world,.journey-sun,.journey-moon,.journey-track span{transition:none!important}}
 </style>
 </head>
 <body>
+<div class="journey-world" aria-hidden="true">
+  <div class="journey-stars"></div>
+  <div class="journey-sun"></div>
+  <div class="journey-moon"></div>
+  <div class="journey-ocean"></div>
+  <div class="journey-island"></div>
+  <div class="journey-palm"></div>
+  <div class="journey-beach"></div>
+</div>
 <nav><div class="wrap">
   <a class="logo" href="/"><span class="mk">T</span> TOP</a>
   <a class="back" href="/">← back to TOP</a>
@@ -174,28 +204,33 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 
 <header class="wrap">
   <div class="badge"><span class="lk"></span> Your raw data stays on your device</div>
-  <h1>See what your AI usage is really worth.</h1>
-  <p class="sub">Choose your AI, pick the privacy route that feels right, and get a clear breakdown on your own device. Nothing is submitted merely because you choose a file.</p>
+  <h1>Understand your AI use without handing over your conversations.</h1>
+  <p class="sub">Everything happens on this device. Choose an export, see your results, then decide whether to make a text-free copy for yourself. Nothing is uploaded or sent.</p>
 </header>
 
 <div class="wrap">
-  <div class="priv"><span>🔒</span> Local analysis first. Review the aggregate package before you choose to share it.</div>
+  <div class="intake-hold"><strong>Analysis is open. Data collection is paused.</strong><span>You can analyze your export and download a copy for yourself. Please do not send files to TOP yet while the consent, retention, and deletion process is finalized.</span></div>
   <div class="flow-shell">
+    <div class="journey-rail" aria-live="polite">
+      <div class="journey-meta"><span id="journeyLabel">Sunrise: choose your AI to begin</span><strong id="journeyPercent">8%</strong></div>
+      <div class="journey-track" aria-hidden="true"><span id="journeyFill"></span></div>
+    </div>
     <h2><span class="flow-kicker">1</span>Choose Your AI</h2>
     <div class="tabs" id="tabs">
-      <button type="button" class="tab on" data-mode="cc">Claude Code<span class="st">Real token counts from local session logs</span></button>
-      <button type="button" class="tab" data-mode="chat">Claude Chat<span class="st">Conversation export, estimated tokens</span></button>
-      <button type="button" class="tab" data-mode="openai">ChatGPT<span class="st">OpenAI conversation export, estimated tokens</span></button>
-      <button type="button" class="tab" data-mode="csv">Claude Console<span class="st">Anthropic usage CSV with billed cost</span></button>
+      <button type="button" class="tab on" data-mode="cc">Claude Code<span class="st">Most accurate, with real token counts</span></button>
+      <button type="button" class="tab" data-mode="chat">Claude Chat<span class="st">How you use Claude, with estimated tokens</span></button>
+      <button type="button" class="tab" data-mode="openai">ChatGPT<span class="st">How you use ChatGPT, with estimated tokens</span></button>
+      <button type="button" class="tab" data-mode="csv">Claude Console<span class="st">Billed API usage and recorded cost</span></button>
     </div>
 
     <div id="routechooser">
-      <h2><span class="flow-kicker">2</span>Choose Your Privacy Route</h2>
+      <h2><span class="flow-kicker">2</span>What Do You Want To Do With Your Export?</h2>
+      <p class="route-intro">Both choices keep the original file on this device. The difference is whether you only want to see your report, or also want a new text-free copy to inspect and download.</p>
       <div class="routechoices">
-        <button type="button" class="routepick" data-route="a"><strong>Route A: Fast Local Analysis</strong><span>Choose the original export. It is read only inside this browser tab. Nothing is uploaded.</span></button>
-        <button type="button" class="routepick" data-route="b"><strong>Route B: Aggregate-Only Sharing</strong><span>Create or review a text-free package before anything is shared. Claude Code also has a pre-strip script.</span></button>
+        <button type="button" class="routepick" data-route="a"><span class="rlabel">Route A, fastest</span><strong>Analyze It Here</strong><span class="rdesc">Like opening a spreadsheet on your own laptop. TOP reads the original export inside this tab and shows you the report. Nothing is uploaded or sent.</span><span class="rbest">Best if: you only want your own results.</span></button>
+        <button type="button" class="routepick" data-route="b"><span class="rlabel">Route B, text-free copy</span><strong>Prepare A Safer Copy</strong><span class="rdesc">Like sharing the totals from a bank statement instead of the statement itself. You inspect and download a new report with usage numbers and labels, not prompts or replies. Nothing is sent.</span><span class="rbest">Best if: you may want to share the summary later.</span></button>
       </div>
-      <p class="note" id="routehelp">Pick either route. Both require a separate, explicit sharing action after you see the result.</p>
+      <p class="note" id="routehelp">Pick either route. Nothing uploads, emails, or submits itself.</p>
     </div>
 
     <div class="routepanel" id="routea" hidden>
@@ -248,7 +283,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     </div>
 
     <div class="summbox">
-      <h3>Anonymised summary <span style="color:var(--faint);font-weight:400;font-size:13px">— aggregates only (no prompts, no content)</span></h3>
+      <h3>Text-free summary <span style="color:var(--faint);font-weight:400;font-size:13px">numbers and labels only, with no prompts or replies</span></h3>
       <p id="sentline">This is the complete summary available to copy or download. Nothing is sent automatically.</p>
       <textarea id="summary" readonly></textarea>
       <div>
@@ -257,13 +292,12 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       </div>
     </div>
         <div class="summbox">
-          <h3>Share Only When You Choose</h3>
-          <p>Review the aggregate summary and your questionnaire answers. The raw file, prompts, replies, and code are never included.</p>
-          <label style="display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-weight:650"><input type="checkbox" id="shareconsent" style="margin-top:5px;transform:scale(1.25)"> I have reviewed what will be included and I choose to create an aggregate sharing package.</label>
-          <button class="btn p" id="shareprep" disabled>Create My Sharing Package</button>
+          <h3>Download A Text-Free Copy</h3>
+          <p>Review exactly what is included. TOP is not accepting external files yet, so keep this copy for yourself for now.</p>
+          <label style="display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-weight:650"><input type="checkbox" id="shareconsent" style="margin-top:5px;transform:scale(1.25)"> I have reviewed this copy and understand that downloading it does not send it to TOP.</label>
+          <button class="btn p" id="shareprep" disabled>Prepare My Download</button>
           <div id="shareactions" style="display:none;margin-top:10px">
-            <button class="btn" id="sharedownload">Download Aggregate Package</button>
-            <p class="note" style="text-align:left;margin:10px 0 0">The download stays on your device. TOP is not accepting external data yet while its consent, retention, and deletion process is finalized.</p>
+            <button class="btn" id="sharedownload">Download My Copy</button>
           </div>
           <div id="sharestatus" role="status" aria-live="polite" style="margin-top:10px;color:var(--mint);font-weight:650"></div>
         </div>
@@ -274,8 +308,8 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     </div>
 
     <div class="routeb routepanel" id="routeb" hidden>
-    <h2><span class="flow-kicker">3</span>Build a Text-Free File</h2>
-    <p class="lead"><b>Maximum privacy.</b> You run a short, readable script on your own machine. It reads your Claude Code logs and writes ONE new file that holds only numbers and labels: model, the four token counts, timestamps, and permission mode (whether you were steering it live or it ran on its own). <b>No prompt text, no replies, no code, no file contents, ever.</b> That text is never copied into the file in the first place. Read the script first, run it, check the file it makes, then decide whether to share it. Your original logs are never touched.</p>
+    <h2><span class="flow-kicker">3</span>Build A Text-Free File First</h2>
+    <p class="lead">Run the readable privacy tool on your own machine before this page sees anything. It creates a new file with model names, token counts, timestamps, session identifiers, and permission modes. <b>It does not copy prompts, replies, code, or file contents.</b> Read the script, run it, and inspect the new file before choosing it here.</p>
 
     <div class="steps">
       <h4>How Route B works</h4>
@@ -284,9 +318,9 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         <li>Run <code>python3 strip_claude_logs.py</code>. It writes <code>claude-usage-only.jsonl</code> next to it.</li>
         <li>Open that file and check it yourself: every line is just numbers and labels, no text.</li>
         <li>Drop that file into the box below to see it parsed locally on your device.</li>
-        <li>Press <b>download your text-free data</b> and send Adam the small CSV or JSON.</li>
+        <li>Download a CSV or JSON copy for yourself. TOP is not accepting external files yet.</li>
       </ol>
-      <div class="tip">Nothing here uploads on its own. Route B never auto-sends: you download the file and send it yourself, only if you want to.</div>
+      <div class="tip">Nothing here uploads or sends itself. Keep the downloaded copy on your device for now.</div>
     </div>
 
     <div class="scriptbox">
@@ -400,7 +434,7 @@ def main():
                         n_out += 1
 
     print(f"Read {n_in} log lines, wrote {n_out} stripped lines to {OUT}")
-    print("Open that file and check it before you send it. It should")
+    print("Open that file and check it before you use it. It should")
     print("contain no prompt text, no code, and no file contents,")
     print("only numbers and labels.")
 
@@ -410,7 +444,7 @@ if __name__ == "__main__":
 </textarea>
     </div>
 
-    <div class="privbox"><b>What is in the file you would send:</b> model names, input / output / cache-read / cache-write token counts, timestamps, session ids, permission mode, and turn counts. <b>What is never in it:</b> your prompts, the assistant's replies, any code, any file contents. You can read both the script and the file it produces before anything is shared.</div>
+    <div class="privbox"><b>What is in the file this tool creates:</b> model names, input / output / cache-read / cache-write token counts, timestamps, session ids, permission mode, and turn counts. <b>What is never in it:</b> your prompts, the assistant's replies, code, or file contents. You can read both the script and its output before choosing the file here.</div>
 
     <label class="drop" id="dropb" tabindex="0" role="button">
       <div class="big">Drop your <code>claude-usage-only.jsonl</code> here, or click to choose</div>
@@ -425,8 +459,8 @@ if __name__ == "__main__":
       <div style="overflow-x:auto"><table id="modeltableb"></table></div>
       <p class="note" id="permb" style="text-align:left"></p>
       <div class="summbox">
-        <h3>Download your text-free data <span style="color:var(--faint);font-weight:400;font-size:13px">· to send to Adam yourself</span></h3>
-        <p>Built entirely on your device from the file you dropped in. Small, numbers and labels only. Nothing is uploaded from this page; you send it whenever you are happy with it.</p>
+        <h3>Download Your Text-Free Copy</h3>
+        <p>Built entirely on your device from the file you chose. It contains numbers and labels only. Nothing is uploaded or sent, and TOP is not accepting external files yet.</p>
         <div class="dlrow">
           <button class="btn p" id="dlcsvb">Download CSV</button>
           <button class="btn" id="dljsonb">Download JSON</button>
@@ -436,8 +470,8 @@ if __name__ == "__main__":
   </div>
 
   <div class="survey" id="survey" hidden>
-    <h2><span class="flow-kicker">4</span>Tell Us What You Run</h2>
-    <p class="lead">These optional answers make the aggregate more useful. They stay in this browser until you deliberately create a sharing package.</p>
+    <h2><span class="flow-kicker">4</span>Add Context To Your Report, Optional</h2>
+    <p class="lead">We can explain the numbers better if you tell us what kind of work you do. Your answers stay in this tab. Skip any question, or skip the whole step.</p>
 
     <div class="field">
       <label class="flabel">How often do you use your AI assistant?</label>
@@ -517,18 +551,55 @@ if __name__ == "__main__":
       </div>
     </div>
 
-    <div class="survey-actions"><p class="note" style="text-align:left;margin:14px 0">Your selections are added only to the aggregate package you explicitly create. They are never sent automatically.</p>
-    <div><button class="btn p" id="surveysend">Copy My Answers</button> <span id="surveyok" style="color:var(--mint);font-size:13.5px;display:none">Copied.</span></div></div>
+    <div class="survey-actions"><p class="note" style="text-align:left;margin:14px 0">Your selections stay in this tab and can be added to the text-free copy you deliberately download. They are never sent.</p>
+    <div><button class="btn p" id="surveydone">Finish This Step</button> <button class="btn" id="surveyskip">Skip This Step</button> <button class="btn" id="surveysend">Copy My Answers</button> <span id="surveyok" style="color:var(--mint);font-size:13.5px;display:none">Copied.</span></div></div>
   </div>
   </div>
 </div>
 
-<footer><div class="wrap">TOP Analyzer · built by <a href="/">Adam Hartley</a> · everything above happens in your browser — <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a></div></footer>
+<footer><div class="wrap">TOP Analyzer · built by <a href="/">Adam Hartley</a> · everything above happens in your browser, <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a></div></footer>
 
 <script>
 "use strict";
 // No network delivery is configured. Analysis and exports remain local.
 var lastSummary="";
+function setJourney(progress,label){
+  var p=Math.max(0,Math.min(1,progress));
+  var root=document.documentElement;
+  var sunX=7+86*p;
+  var sunY=70-Math.sin(Math.PI*p)*52;
+  var sunAlpha=p<.82?1:Math.max(0,1-(p-.82)/.16);
+  var moonP=Math.max(0,(p-.68)/.32);
+  var moonX=8+76*moonP;
+  var moonY=70-Math.sin(Math.PI*.72*moonP)*45;
+  root.style.setProperty('--sun-x',sunX.toFixed(1)+'%');
+  root.style.setProperty('--sun-y',sunY.toFixed(1)+'%');
+  root.style.setProperty('--sun-alpha',sunAlpha.toFixed(2));
+  root.style.setProperty('--moon-x',moonX.toFixed(1)+'%');
+  root.style.setProperty('--moon-y',moonY.toFixed(1)+'%');
+  root.style.setProperty('--moon-alpha',Math.min(1,moonP*1.35).toFixed(2));
+  root.style.setProperty('--star-alpha',Math.max(0,(p-.72)/.28).toFixed(2));
+  if(p<.34){root.style.setProperty('--sky-top','#0b4968');root.style.setProperty('--sky-mid','#f0a270');root.style.setProperty('--sky-low','#ffd5a2')}
+  else if(p<.68){root.style.setProperty('--sky-top','#44a7cf');root.style.setProperty('--sky-mid','#96d8e3');root.style.setProperty('--sky-low','#f5e0ad')}
+  else if(p<.88){root.style.setProperty('--sky-top','#235d8b');root.style.setProperty('--sky-mid','#e98e68');root.style.setProperty('--sky-low','#ffd09a')}
+  else{root.style.setProperty('--sky-top','#07162e');root.style.setProperty('--sky-mid','#354b76');root.style.setProperty('--sky-low','#d96f67')}
+  var fill=document.getElementById('journeyFill');
+  var pct=document.getElementById('journeyPercent');
+  var text=document.getElementById('journeyLabel');
+  if(fill) fill.style.width=Math.round(p*100)+'%';
+  if(pct) pct.textContent=Math.round(p*100)+'%';
+  if(text) text.textContent=label;
+}
+function resetDownstream(){
+  lastSummary='';
+  document.getElementById('out').style.display='none';
+  document.getElementById('outb').style.display='none';
+  document.getElementById('survey').hidden=true;
+  document.getElementById('file').value='';
+  document.getElementById('fileb').value='';
+  document.getElementById('shareactions').style.display='none';
+  document.getElementById('sharestatus').textContent='';
+}
 // ---- editable pricing (USD per 1M tokens); cache write = 1.25x input, cache read = 0.1x input ----
 // Rates updated 6 Jul 2026 to current published list prices.
 var PRICES = {
@@ -611,6 +682,20 @@ var MODES={
       stepstip:"OpenAI says exports may take up to seven days. TOP supports the conversation JSON, not the whole ZIP yet.",
       note:"ChatGPT conversation exports do not provide a reliable subscription cost per chat. TOP estimates text tokens locally and clearly labels the dollar result as an editable API-equivalent estimate, not your ChatGPT plan charge."}
 };
+var ROUTE_COPY={
+  cc:{
+    a:"Choose your original Claude Code session logs. This tab reads the real token counts locally. Your prompts, replies, code, and files are not uploaded.",
+    b:"Run the readable privacy tool first. It creates a new text-free file before this page sees anything. That file can contain model names, token counts, timestamps, session identifiers, and permission modes, but not prompts, replies, code, or file contents."},
+  chat:{
+    a:"Choose conversations.json. This tab reads the conversation text locally so it can estimate tokens. The text never leaves this tab. Your export does not contain billed subscription cost.",
+    b:"Choose conversations.json. This tab reads it locally, then prepares a new report containing totals and optional answers, not conversation text. You inspect and download that report yourself."},
+  openai:{
+    a:"Choose your OpenAI conversation export. This tab reads the conversation text locally so it can estimate tokens. The text is not uploaded. The result is an API-equivalent estimate, not your ChatGPT subscription charge.",
+    b:"Choose your OpenAI conversation export. This tab reads it locally, then prepares a new report containing totals and optional answers, not conversation text. You inspect and download that report yourself."},
+  csv:{
+    a:"Choose your Anthropic usage CSV. This tab reads the recorded token counts and billed costs locally. The CSV is not uploaded.",
+    b:"Choose your Anthropic usage CSV. This tab prepares a smaller report containing model, token, and cost totals rather than the original rows. You inspect and download it yourself."}
+};
 var mode="cc";
 var selectedRoute="";
 function renderSteps(m){
@@ -620,7 +705,15 @@ function renderSteps(m){
   document.getElementById("exportsteps").innerHTML=html;
 }
 function setMode(m){
+  var changed=mode!==m;
   mode=m;
+  if(changed){
+    selectedRoute="";
+    document.querySelectorAll(".routepick").forEach(function(b){b.classList.remove("on")});
+    document.getElementById("routea").hidden=true;
+    document.getElementById("routeb").hidden=true;
+    resetDownstream();
+  }
   document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("on",t.dataset.mode===m)});
   document.getElementById("dropsmall").textContent=MODES[m].small;
   document.getElementById("hint").innerHTML=MODES[m].hint;
@@ -630,27 +723,25 @@ function setMode(m){
   document.getElementById("err").style.display="none";
   document.getElementById("file").value="";
   if(selectedRoute) selectRoute(selectedRoute);
+  else setJourney(.2,MODES[m].label+" selected. Now choose what you want to do with the export.");
 }
 document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab"); if(t) setMode(t.dataset.mode)});
 function selectRoute(route){
   selectedRoute=route;
+  resetDownstream();
   document.querySelectorAll(".routepick").forEach(function(b){b.classList.toggle("on",b.dataset.route===route)});
   var a=document.getElementById("routea"), b=document.getElementById("routeb"), survey=document.getElementById("survey");
-  survey.hidden=false;
+  survey.hidden=true;
   if(route==="b"&&mode==="cc"){
     a.hidden=true; b.hidden=false;
-    document.getElementById("routehelp").textContent="Claude Code Route B creates a numbers-and-labels-only file before analysis. You inspect it before sharing.";
+    document.getElementById("routehelp").textContent=ROUTE_COPY[mode][route];
   }else{
     a.hidden=false; b.hidden=true;
     var banner=document.getElementById("routebanner");
-    if(route==="b"){
-      banner.textContent="Aggregate-only route: your original "+MODES[mode].label+" export is read inside this tab, then TOP creates a text-free aggregate package. The original file is never shared.";
-      document.getElementById("routehelp").textContent="For "+MODES[mode].label+", Route B means only the reviewed aggregate package can leave the browser. Nothing is sent automatically.";
-    }else{
-      banner.textContent="Route A reads the selected "+MODES[mode].label+" file locally. The file itself never leaves this page.";
-      document.getElementById("routehelp").textContent="Route A is the fastest path. Analysis is local and sharing remains a separate choice.";
-    }
+    banner.textContent=ROUTE_COPY[mode][route];
+    document.getElementById("routehelp").textContent=route==="b"?"This route makes a new text-free copy for you to inspect and download. Nothing is sent.":"This is the fastest route when you only want to understand your own usage.";
   }
+  setJourney(.4,route==="a"?"Morning: choose your export for private analysis.":"Morning: choose your export to prepare a text-free copy.");
   var target=(route==="b"&&mode==="cc")?b:a;
   target.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -821,7 +912,7 @@ function render(res){
   var perTurn = res.turns? totCost/res.turns : 0;
   // summary text (aggregates only)
   var lines=[];
-  lines.push("TOP Analyzer — anonymised usage summary");
+  lines.push("TOP Analyzer: text-free usage summary");
   lines.push("source: "+res.kind+(res.estimate?" (ESTIMATE: "+res.estimateReason+")":""));
   lines.push("");
   lines.push("cost_provenance: "+(res.estimate?"api_equivalent_estimate":"billed_or_exported_cost"));
@@ -834,7 +925,7 @@ function render(res){
   lines.push("by_model:");
   rows.forEach(function(r){lines.push("  "+r.model+": cost="+(res.estimate?"~":"")+r.cost.toFixed(2)+" in="+fmtInt(r.e.inp)+" out="+fmtInt(r.e.out)+" cw="+fmtInt(r.e.cw)+" cr="+fmtInt(r.e.cr)+" turns="+fmtInt(r.e.turns))});
   lines.push("");
-  lines.push("[aggregates only — no prompts, completions, or message content included]");
+  lines.push("[text-free copy: no prompts, replies, code, or message content included]");
   document.getElementById("summary").value=lines.join("\n");
   lastSummary=lines.join("\n");
   document.getElementById("shareconsent").checked=false;
@@ -850,6 +941,9 @@ function render(res){
   })});
   renderValueModel(rows, totCost, res);
   document.getElementById("out").style.display="block";
+  document.getElementById("survey").hidden=false;
+  setJourney(.68,"Midday: your export is ready on this device. Add context, or skip.");
+  document.getElementById("survey").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 // ---------- your value model (personalised source-labelled baseline + illustrative right-sizing estimate) ----------
@@ -1054,17 +1148,25 @@ document.getElementById("surveysend").addEventListener("click",function(){
     t.value=combined; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); done();
   }
 });
+function finishSurvey(skipped){
+  var message=skipped?"Sunset: questions skipped. Your private report is ready, and nothing was sent.":"Sunset: context added. Your private report is ready, and nothing was sent.";
+  setJourney(1,message);
+  var result=selectedRoute==="b"&&mode==="cc"?document.getElementById("outb"):document.getElementById("out");
+  if(result&&result.style.display!=="none") result.scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.getElementById("surveydone").addEventListener("click",function(){finishSurvey(false)});
+document.getElementById("surveyskip").addEventListener("click",function(){finishSurvey(true)});
 var sharePackage="";
 var shareConsent=document.getElementById("shareconsent");
 shareConsent.addEventListener("change",function(){document.getElementById("shareprep").disabled=!shareConsent.checked});
 document.getElementById("shareprep").addEventListener("click",function(){
   if(!shareConsent.checked||!lastSummary) return;
-  sharePackage="TOP aggregate sharing package\ncreated_utc: "+new Date().toISOString()+"\nraw_file_included: no\nautomatic_submission: no\n"+lastSummary+(surveyBlock()||"\n\nquestionnaire answers:\n  (not provided)");
+  sharePackage="TOP text-free copy\ncreated_utc: "+new Date().toISOString()+"\nraw_file_included: no\nautomatic_submission: no\n"+lastSummary+(surveyBlock()||"\n\nquestionnaire answers:\n  (not provided)");
   document.getElementById("shareactions").style.display="block";
-  document.getElementById("sharestatus").textContent="Package ready on your device. TOP has not received it.";
+  document.getElementById("sharestatus").textContent="Your copy is ready on this device. TOP has not received it.";
 });
 document.getElementById("sharedownload").addEventListener("click",function(){
-  if(sharePackage) dlFile("top-aggregate-sharing-package.txt",sharePackage,"text/plain");
+  if(sharePackage){dlFile("top-text-free-copy.txt",sharePackage,"text/plain");setJourney(1,"Moonrise: your private copy is downloaded. Nothing was sent.");}
 });
 // ---------- Route B: text-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;
@@ -1124,6 +1226,9 @@ function renderB(res){
   document.getElementById("permb").textContent = keys.length? ("permission mode (turns): "+keys.map(function(k){return k+"="+fmtInt(pm[k])}).join("  ·  ")) : "";
   ROUTEB={rows:rows,res:res,totInp:totInp,totOut:totOut,totCw:totCw,totCr:totCr,totCost:totCost,totTok:totTok};
   document.getElementById("outb").style.display="block";
+  document.getElementById("survey").hidden=false;
+  setJourney(.68,"Midday: your text-free file is ready on this device. Add context, or skip.");
+  document.getElementById("survey").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function showErrB(msg){var e=document.getElementById("errb");
   e.textContent=msg;
@@ -1188,6 +1293,7 @@ document.getElementById("dlcsvb").addEventListener("click",function(){ if(ROUTEB
 document.getElementById("dljsonb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-textfree-data.json",buildBJSON(),"application/json"); });
 
 setMode("cc");
+setJourney(.08,"Sunrise: choose your AI to begin.");
 </script>
 </body>
 </html>
