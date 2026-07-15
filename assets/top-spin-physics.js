@@ -124,6 +124,25 @@
     return { x: velocity.x * scale, y: velocity.y * scale, z: velocity.z * scale };
   }
 
+  function flickVelocityFromSamples(samples, rect, maxSpeed, windowMs) {
+    if (!Array.isArray(samples) || samples.length < 2) return { x: 0, y: 0, z: 0 };
+    var end = samples[samples.length - 1];
+    var span = windowMs == null ? 110 : Math.max(20, windowMs);
+    var start = null;
+    for (var i = samples.length - 2; i >= 0; i -= 1) {
+      var candidate = samples[i];
+      if (end.timeStamp - candidate.timeStamp > span) break;
+      var distance = Math.hypot(end.clientX - candidate.clientX, end.clientY - candidate.clientY);
+      if (distance >= 1) start = candidate;
+    }
+    if (!start) return { x: 0, y: 0, z: 0 };
+    var from = projectToTrackball(start.clientX, start.clientY, rect);
+    var to = projectToTrackball(end.clientX, end.clientY, rect);
+    var delta = quaternionFromUnitVectors(from, to);
+    var velocity = angularVelocityFromQuaternion(delta, Math.max(1, end.timeStamp - start.timeStamp));
+    return clampAngularVelocity(velocity, maxSpeed);
+  }
+
   function integrateOrientation(orientation, velocity, elapsedMs, maxElapsedMs) {
     var elapsed = Math.max(0, Math.min(elapsedMs, maxElapsedMs == null ? 40 : maxElapsedMs));
     var speed = velocityLength(velocity);
@@ -163,6 +182,7 @@
     angularVelocityFromQuaternion: angularVelocityFromQuaternion,
     velocityLength: velocityLength,
     clampAngularVelocity: clampAngularVelocity,
+    flickVelocityFromSamples: flickVelocityFromSamples,
     integrateOrientation: integrateOrientation,
     dampAngularVelocity: dampAngularVelocity,
     quaternionToMatrix3d: quaternionToMatrix3d,

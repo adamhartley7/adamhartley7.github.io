@@ -45,6 +45,30 @@ close(hugeFrame.w, cappedFrame.w);
 const clamped = physics.clampAngularVelocity({ x: 1, y: 2, z: 3 }, 0.02);
 close(physics.velocityLength(clamped), 0.02);
 
+const flick = physics.flickVelocityFromSamples([
+  { clientX: 120, clientY: 175, timeStamp: 0 },
+  { clientX: 160, clientY: 145, timeStamp: 45 },
+  { clientX: 215, clientY: 105, timeStamp: 90 },
+], rect, 0.022, 110);
+assert.ok(physics.velocityLength(flick) > 0, "a release sample must create post-drag inertia");
+assert.ok(Math.abs(flick.x) > 0 && Math.abs(flick.y) > 0,
+  "a diagonal flick must preserve both vertical and horizontal rotation");
+
+const stationaryRelease = physics.flickVelocityFromSamples([
+  { clientX: 120, clientY: 175, timeStamp: 0 },
+  { clientX: 215, clientY: 105, timeStamp: 70 },
+  { clientX: 215, clientY: 105, timeStamp: 90 },
+], rect, 0.022, 110);
+assert.ok(physics.velocityLength(stationaryRelease) > 0,
+  "a stationary pointerup must not erase a recent real flick");
+
+const staleFlick = physics.flickVelocityFromSamples([
+  { clientX: 120, clientY: 175, timeStamp: 0 },
+  { clientX: 215, clientY: 105, timeStamp: 40 },
+  { clientX: 215, clientY: 105, timeStamp: 300 },
+], rect, 0.022, 110);
+close(physics.velocityLength(staleFlick), 0);
+
 let longRun = physics.identityQuaternion();
 for (let i = 0; i < 10000; i += 1) {
   longRun = physics.integrateOrientation(longRun, { x: 0.001, y: 0.002, z: -0.0005 }, 16);

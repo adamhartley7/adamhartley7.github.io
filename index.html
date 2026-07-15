@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TOP: Know what your AI costs before you run it</title>
 <meta name="description" content="TOP (Token Optimization Protocol) forecasts the token and euro cost of an AI task before it runs, so teams can budget, cap and route spend per request instead of learning it from the bill.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%238B5CF6'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
   --bg:#08080A; --bg-1:#0C0C0F; --panel:#141418; --panel-2:#191920;
   --border:#232329; --border-2:#33333d;
   --text:#F1F1F3; --muted:#9B9BA6; --faint:#6A6A74;
-  --iris:#6E7BF2; --iris-2:#9AA2F7; --glow:rgba(110,123,242,.30);
+  --iris:#8B5CF6; --iris-2:#C4A7FF; --glow:rgba(139,92,246,.36);
   --mint:#3ECF8E; --amber:#E8B23A; --red:#F26D6D;
   --maxw:1120px;
 }
@@ -23,16 +23,16 @@ html{scroll-behavior:smooth;background:#02040a;width:100%;max-width:100%;overflo
 body{background:transparent;color:var(--text);font-family:"Inter",system-ui,sans-serif;
   font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;width:100%;max-width:100%;overflow-x:hidden}
 @supports (overflow:clip){html,body{overflow-x:clip}}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(0,2,8,.08),rgba(1,4,12,.34) 45%,rgba(2,5,12,.86) 82%,#07090d 100%)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(23,8,48,.10),rgba(10,4,26,.36) 45%,rgba(5,2,16,.86) 82%,#08060d 100%)}
 .coast-world{--cosmos-y:0px;position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:#000}
 .coast-world::before{content:"";position:absolute;z-index:0;inset:-7%;background:#000 url("assets/hubble-c1-starfield.webp") center 42%/cover no-repeat;transform:translate3d(0,var(--cosmos-y),0) scale(1.08);filter:saturate(.42) brightness(.78) contrast(1.18);will-change:transform}
-.coast-world::after{content:"";position:absolute;z-index:1;inset:0;background:radial-gradient(ellipse at 18% 35%,rgba(112,69,198,.17) 0,rgba(76,43,144,.07) 28%,transparent 54%),radial-gradient(circle at 52% 18%,transparent 0 22%,rgba(0,2,8,.14) 55%,rgba(0,2,8,.54) 100%),linear-gradient(180deg,rgba(0,2,8,.02),rgba(2,5,12,.28) 58%,rgba(2,5,12,.78) 100%)}
+.coast-world::after{content:"";position:absolute;z-index:1;inset:0;background:radial-gradient(ellipse at 18% 35%,rgba(142,82,255,.30) 0,rgba(92,42,180,.14) 30%,transparent 58%),radial-gradient(ellipse at 78% 76%,rgba(99,52,184,.18),transparent 48%),radial-gradient(circle at 52% 18%,transparent 0 22%,rgba(0,2,8,.14) 55%,rgba(0,2,8,.54) 100%),linear-gradient(180deg,rgba(0,2,8,.02),rgba(9,3,24,.31) 58%,rgba(5,2,14,.80) 100%)}
 .coast-stars{position:absolute;z-index:2;inset:0;opacity:.14;mix-blend-mode:screen;background-image:radial-gradient(1.3px 1.3px at 8% 22%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 22% 48%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 43% 16%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 61% 37%,#fff 45%,transparent 55%),radial-gradient(1.3px 1.3px at 79% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 42%,#fff 45%,transparent 55%)}
 .shooting-star{position:absolute;width:90px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.92));transform:rotate(-24deg);opacity:0;animation:shoot 8s ease-in-out infinite}
 .shooting-star{z-index:2}.shooting-star.s1{top:15%;left:34%;animation-delay:1.4s}.shooting-star.s2{top:27%;left:72%;width:62px;animation-delay:5.2s}
 @keyframes shoot{0%,72%,100%{opacity:0;transform:translate(0,0) rotate(-24deg)}76%{opacity:1}88%{opacity:0;transform:translate(150px,64px) rotate(-24deg)}}
-.black-hole{position:absolute;z-index:2;right:5%;top:12%;width:clamp(112px,12vw,176px);aspect-ratio:1;opacity:.72;filter:saturate(.82) contrast(1.08);-webkit-mask-image:radial-gradient(circle,black 0 42%,rgba(0,0,0,.92) 53%,rgba(0,0,0,.34) 69%,transparent 82%);mask-image:radial-gradient(circle,black 0 42%,rgba(0,0,0,.92) 53%,rgba(0,0,0,.34) 69%,transparent 82%)}
-.black-hole img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;transform:scale(1.10)}
+.black-hole{position:absolute;z-index:2;right:4%;top:10%;width:clamp(132px,15vw,220px);opacity:.56;filter:saturate(.78) contrast(1.14);mix-blend-mode:screen}
+.black-hole img{display:block;width:100%;height:auto;object-fit:contain;object-position:center}
 .mono{font-family:"JetBrains Mono",monospace}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
@@ -87,14 +87,14 @@ nav>.wrap>.btn-primary{min-width:190px;justify-content:center;background:linear-
 .badge{display:inline-flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--muted);
   border:1px solid var(--border-2);background:var(--panel);padding:6px 14px;border-radius:100px;margin-bottom:26px}
 .badge .d{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint)}
-.hero h1{font-size:clamp(38px,6.4vw,74px);font-weight:800;max-width:16ch;margin:0 auto 22px;background:linear-gradient(180deg,#fff,#c7c7d1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero h1{font-size:clamp(38px,6.4vw,74px);font-weight:800;max-width:16ch;margin:0 auto 22px;background:linear-gradient(180deg,#fff 0%,#e7ddff 58%,#bca2ff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .hero .sub{font-size:clamp(17px,2.1vw,21px);color:var(--muted);max-width:56ch;margin:0 auto 34px}
 .hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .hero .btn{padding:13px 24px;font-size:16px}
 
 /* product card */
 .stage{max-width:900px;margin:56px auto 0;position:relative}
-.stage::before{content:"";position:absolute;inset:-1px;border-radius:18px;background:linear-gradient(180deg,rgba(110,123,242,.5),transparent 40%);opacity:.6;filter:blur(2px)}
+.stage::before{content:"";position:absolute;inset:-1px;border-radius:18px;background:linear-gradient(180deg,rgba(139,92,246,.68),transparent 40%);opacity:.7;filter:blur(2px)}
 .card{position:relative;background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--border-2);border-radius:16px;padding:26px;box-shadow:0 40px 90px -40px rgba(0,0,0,.9)}
 .cardtop{display:flex;align-items:center;gap:8px;margin-bottom:20px}
 .cardtop .dt{width:11px;height:11px;border-radius:50%;background:#2c2c34}
@@ -129,6 +129,13 @@ section.blk{padding:clamp(64px,9vw,110px) 0}
 .tile{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:28px;transition:.25s}
 .tile:hover{border-color:var(--border-2);background:var(--panel-2);transform:translateY(-3px)}
 .tile .ic{width:40px;height:40px;border-radius:10px;background:var(--panel-2);border:1px solid var(--border-2);display:flex;align-items:center;justify-content:center;margin-bottom:18px;font-size:19px}
+.tile .ic{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:800;letter-spacing:.08em}
+#problem .tile:nth-child(1),#how .tile:nth-child(1){background:linear-gradient(145deg,rgba(62,207,142,.12),var(--panel) 58%);border-color:rgba(62,207,142,.30)}
+#problem .tile:nth-child(2),#how .tile:nth-child(2){background:linear-gradient(145deg,rgba(139,92,246,.17),var(--panel) 58%);border-color:rgba(139,92,246,.36)}
+#problem .tile:nth-child(3),#how .tile:nth-child(3){background:linear-gradient(145deg,rgba(232,178,58,.14),var(--panel) 58%);border-color:rgba(232,178,58,.30)}
+#problem .tile:nth-child(1) .ic,#how .tile:nth-child(1) .step-n{color:var(--mint)}
+#problem .tile:nth-child(2) .ic,#how .tile:nth-child(2) .step-n{color:var(--iris-2)}
+#problem .tile:nth-child(3) .ic,#how .tile:nth-child(3) .step-n{color:var(--amber)}
 .tile h3{font-size:20px;margin-bottom:9px}
 .tile p{font-size:15.5px;color:var(--muted)}
 .step-n{font-family:"JetBrains Mono",monospace;color:var(--iris-2);font-size:13px;margin-bottom:14px}
@@ -136,7 +143,7 @@ section.blk{padding:clamp(64px,9vw,110px) 0}
 /* honest status */
 .status{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:clamp(28px,4vw,44px);max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
 @media(max-width:720px){.status{grid-template-columns:1fr;gap:20px}}
-.status .m .n{font-size:clamp(28px,4vw,40px);font-weight:700;font-family:"JetBrains Mono",monospace}
+.status .m .n{font-size:clamp(18px,2.3vw,25px);font-weight:800;font-family:"JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.03em}
 .status .m .n.a{color:var(--iris-2)}.status .m .n.g{color:var(--mint)}.status .m .n.w{color:var(--amber)}
 .status .m .k{color:var(--muted);font-size:14px;margin-top:6px}
 .honest{max-width:760px;margin:28px auto 0;text-align:center;color:var(--muted);font-size:16px}
@@ -149,7 +156,7 @@ section.blk{padding:clamp(64px,9vw,110px) 0}
 .prow b{color:var(--text)}.prow span{color:var(--muted);font-size:15.5px}
 
 /* founding partner */
-.offer{max-width:900px;margin:0 auto;background:linear-gradient(180deg,rgba(110,123,242,.09),var(--panel));border:1px solid var(--border-2);border-radius:18px;padding:clamp(30px,4vw,50px);text-align:center}
+.offer{max-width:900px;margin:0 auto;background:linear-gradient(145deg,rgba(139,92,246,.17),rgba(62,207,142,.06) 48%,var(--panel));border:1px solid rgba(139,92,246,.32);border-radius:18px;padding:clamp(30px,4vw,50px);text-align:center}
 .offer h2{font-size:clamp(26px,3.6vw,40px);margin-bottom:14px}
 .offer p{color:var(--muted);max-width:60ch;margin:0 auto 26px;font-size:17px}
 .exchange{display:flex;gap:16px;justify-content:center;align-items:stretch;flex-wrap:wrap;margin-top:8px}
@@ -162,6 +169,7 @@ section.blk{padding:clamp(64px,9vw,110px) 0}
 /* founder */
 .founder{max-width:760px;margin:0 auto;display:flex;gap:26px;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:30px}
 @media(max-width:640px){.founder{flex-direction:column;text-align:center}}
+.founder-avatars{display:flex;flex:none;padding-right:16px}.founder-avatars .av+ .av{margin-left:-16px;transform:translateY(12px);background:linear-gradient(135deg,#c4a7ff,#55308d)}
 .founder .av{flex:none;width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--iris),#3a3a55);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff}
 .founder h3{font-size:21px;margin-bottom:6px}
 .founder p{color:var(--muted);font-size:15.5px}
@@ -213,13 +221,14 @@ footer a:hover{color:var(--muted)}
 
 /* value model (interactive cost vs value) */
 .vm-stage{max-width:1000px;margin:0 auto;position:relative}
-.vm-stage::before{content:"";position:absolute;inset:-1px;border-radius:20px;background:linear-gradient(180deg,rgba(110,123,242,.5),transparent 42%);opacity:.55;filter:blur(2px)}
+.vm-stage::before{content:"";position:absolute;inset:-1px;border-radius:20px;background:linear-gradient(180deg,rgba(139,92,246,.62),transparent 42%);opacity:.62;filter:blur(2px)}
 .vm-card{position:relative;min-width:0;max-width:100%;background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--border-2);border-radius:18px;padding:clamp(18px,3vw,30px);box-shadow:0 40px 90px -40px rgba(0,0,0,.9)}
 .vm-legend{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:center;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--muted);margin-bottom:8px}
 .vm-legend span{display:flex;align-items:center;gap:7px}
 .vm-legend .sw{width:16px;height:3px;border-radius:2px}
 .vm-legend .sq{width:12px;height:12px;border-radius:3px}
 .vm-plot{position:relative;background:rgba(255,255,255,.014);border:1px solid var(--border);border-radius:12px;padding:6px 10px 2px;max-width:580px;margin:0 auto}
+.vm-layout{display:grid;gap:22px;align-items:start}.vm-side{min-width:0}
 .vm-controls{display:flex;align-items:center;gap:14px;margin:18px auto 6px;max-width:640px}
 .vm-controls label{font-size:13.5px;color:var(--muted);min-width:190px}
 .vm-controls input[type=range]{-webkit-appearance:none;appearance:none;width:100%;min-width:0;height:6px;border-radius:100px;background:linear-gradient(90deg,var(--mint) 0%,var(--amber) 55%,var(--red) 100%);outline:none;flex:1}
@@ -241,9 +250,12 @@ footer a:hover{color:var(--muted)}
 #vm_pv.drawn .ln{stroke-dashoffset:0}
 #vm_pv .fx{opacity:0;transition:opacity .75s ease .95s}
 #vm_pv.drawn .fx{opacity:1}
+@media(min-width:900px){.vm-card{padding:22px}.vm-card>.cardtop{margin-bottom:10px}.vm-layout{grid-template-columns:minmax(0,1.25fr) minmax(285px,.75fr)}.vm-plot{max-width:none}.vm-plot svg{display:block;width:100%;max-height:400px}.vm-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;margin:4px 0 8px}.vm-controls label{grid-column:1/-1;min-width:0}.vm-controls .gval{min-width:70px}.vm-cap{text-align:left;margin:4px 0 14px}.vm-cards{grid-template-columns:1fr 1fr}.vm-cards .vm-stat:first-child{grid-column:1/-1}.vm-stat{padding:10px 13px}.vm-stat .n{font-size:22px}.vm-illus{text-align:left}.jevons-note{max-width:none;margin:12px 0 0;padding:11px 13px;font-size:13px}}
+
+@media(min-width:900px){.vm-card{padding:20px}}
 
 /* analyse-your-usage atomic section */
-.analyse-band{position:relative;background:linear-gradient(180deg,rgba(110,123,242,.11),var(--panel));border:1px solid var(--border-2);border-radius:22px;padding:clamp(30px,4.5vw,56px);box-shadow:0 40px 90px -50px rgba(0,0,0,.9)}
+.analyse-band{position:relative;background:linear-gradient(145deg,rgba(139,92,246,.17),rgba(62,207,142,.06) 48%,var(--panel));border:1px solid rgba(139,92,246,.34);border-radius:22px;padding:clamp(30px,4.5vw,56px);box-shadow:0 40px 90px -50px rgba(0,0,0,.9)}
 .atomic{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1000px;margin:0 auto}
 @media(max-width:840px){.atomic{grid-template-columns:1fr}}
 .acard{position:relative;background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--border-2);border-radius:16px;padding:26px}
@@ -254,6 +266,7 @@ footer a:hover{color:var(--muted)}
 .acard .atag.val{color:var(--amber)}.acard .atag.val .dot{background:var(--amber);box-shadow:0 0 8px var(--amber)}
 .acard h3{font-size:20px;margin-bottom:10px}
 .acard p{font-size:15.5px;color:var(--muted)}
+.acard:nth-child(1){background:linear-gradient(145deg,rgba(62,207,142,.12),var(--panel))}.acard:nth-child(2){background:linear-gradient(145deg,rgba(139,92,246,.16),var(--panel))}.acard:nth-child(3){background:linear-gradient(145deg,rgba(232,178,58,.13),var(--panel))}
 .acta{margin-top:34px;text-align:center}
 .acta .btn{padding:15px 34px;font-size:17px}
 .acta .sub{margin-top:14px;color:var(--faint);font-family:"JetBrains Mono",monospace;font-size:13px}
@@ -366,47 +379,47 @@ footer a:hover{color:var(--muted)}
         <small>Private on-device analysis, nothing sends itself</small>
       </a>
     </div>
-    <div class="badge"><span class="d"></span> Token Optimization Protocol</div>
-    <h1>Know what your AI really costs, on your own usage.</h1>
-    <p class="sub">See your real AI spend, then a calibrated forecast of what each task costs before it runs. Drop in your usage export, parsed privately in your browser, and get your number in minutes.</p>
+    <div class="badge"><span class="d"></span> AI cost control, made clear</div>
+    <h1>Understand your AI spend before it gets out of control.</h1>
+    <p class="sub">Analyze what you already spend, privately on your own device. TOP is also building a simple way to estimate the cost of each AI task before it starts.</p>
     <div class="cta">
-      <a class="btn btn-primary" href="#how">See how TOP works</a>
-      <a class="btn btn-ghost" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Book a call</a>
+      <a class="btn btn-primary" href="#how">See how it works</a>
+      <a class="btn btn-ghost" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Talk to us</a>
     </div>
 
     <div class="stage reveal">
       <div class="card">
-        <div class="cardtop"><span class="dt"></span><span class="dt"></span><span class="dt"></span><span class="lbl">top · estimate</span></div>
-        <div class="qline"><span class="fn">estimate</span>(<span class="str">"refactor the auth module and add tests"</span>)</div>
+        <div class="cardtop"><span class="dt"></span><span class="dt"></span><span class="dt"></span><span class="lbl">ILLUSTRATIVE TASK ESTIMATE</span></div>
+        <div class="qline">Task: update sign-in and add tests</div>
         <div class="band">
-          <div class="bl"><span>cheaper</span><span>expected</span><span>tail risk</span></div>
+          <div class="bl"><span>lower estimate</span><span>most likely</span><span>higher estimate</span></div>
           <div class="track"><div class="fill"></div><div class="p50"></div></div>
           <div class="figs">
-            <div class="fig lo"><div class="n">€0.18</div><div class="k">P10</div></div>
-            <div class="fig mid"><div class="n">€0.42</div><div class="k">P50</div></div>
-            <div class="fig hi"><div class="n">€1.10</div><div class="k">P90</div></div>
+            <div class="fig lo"><div class="n">€0.18</div><div class="k">LOW</div></div>
+            <div class="fig mid"><div class="n">€0.42</div><div class="k">LIKELY</div></div>
+            <div class="fig hi"><div class="n">€1.10</div><div class="k">HIGH</div></div>
           </div>
-          <div class="guard"><span class="chip">design target</span> a future spend guard would fail closed at P90. Enforcement is not shipped.</div>
+          <div class="guard"><span class="chip">planned</span> A future control could stop a task before it exceeds your chosen limit. This is not live yet.</div>
         </div>
       </div>
     </div>
   </div>
 </header>
 
-<div class="trust wrap">Built from <b>historical agent traces</b> &nbsp;·&nbsp; current accuracy limits stated openly &nbsp;·&nbsp; privacy-first by design</div>
+<div class="trust wrap">Built from <b>real AI usage</b> &nbsp;·&nbsp; limitations shown clearly &nbsp;·&nbsp; your files stay on your device</div>
 
 <!-- PROBLEM -->
 <section class="blk" id="problem">
   <div class="wrap">
     <div class="shead reveal">
-      <div class="eyebrow">the problem</div>
-      <h2 style="margin-top:14px">AI spend is invisible until the bill lands.</h2>
-      <p>You pay per token, but the cost of any given task is unknowable until after it runs. Three failures follow.</p>
+      <div class="eyebrow">why it matters</div>
+      <h2 style="margin-top:14px">AI costs are hard to control before the work starts.</h2>
+      <p>A team usually sees the price only after a task is finished. That creates three practical problems.</p>
     </div>
     <div class="grid3">
-      <div class="tile reveal"><div class="ic">📉</div><h3>You can't budget or cap</h3><p>No sane per-request ceiling exists when the bill is invisible until the work is already done.</p></div>
-      <div class="tile reveal"><div class="ic">🔀</div><h3>Routing inverts</h3><p>Trivial work gets sent to a frontier model out of habit; hard reasoning gets pushed to a cheap one to "save money", degrading exactly what needed the strong model.</p></div>
-      <div class="tile reveal"><div class="ic">🔥</div><h3>Spend runs away</h3><p>An agent loop with no cost foresight can burn a budget with nothing standing in the way.</p></div>
+      <div class="tile reveal"><div class="ic">01</div><h3>No budget before the task</h3><p>You cannot set a sensible limit when you do not know whether a task is likely to cost cents or euros.</p></div>
+      <div class="tile reveal"><div class="ic">02</div><h3>The wrong tool gets used</h3><p>Teams often use an expensive model for simple work, or a cheaper model for work that needs stronger reasoning.</p></div>
+      <div class="tile reveal"><div class="ic">03</div><h3>Automated work keeps spending</h3><p>Long-running AI jobs can continue using money without a clear warning or stopping point.</p></div>
     </div>
   </div>
 </section>
@@ -416,13 +429,13 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="shead reveal">
       <div class="eyebrow">how it works</div>
-      <h2 style="margin-top:14px">A calibrated forecast, per request.</h2>
-      <p>Everything else measures spend after it happens. TOP prices it before you commit.</p>
+      <h2 style="margin-top:14px">Estimate the cost before you press run.</h2>
+      <p>TOP uses past usage to show a realistic cost range for a new task. The forecasting system is still an early prototype.</p>
     </div>
     <div class="grid3">
-      <div class="tile reveal"><div class="step-n">01</div><h3>Classify the task</h3><p>An ensemble sorts the request into an archetype, code, refactor, research, chat, each carrying a cost distribution learned from real logged history. Never an invented number.</p></div>
-      <div class="tile reveal"><div class="step-n">02</div><h3>Blend with your usage</h3><p>It blends that shared prior with your own logged actuals (empirical-Bayes, in log-space), sensible on day one, sharper the more you run.</p></div>
-      <div class="tile reveal"><div class="step-n">03</div><h3>Forecast, then validate</h3><p>The prototype returns a P10 / P50 / P90 band. A hard P90 spend guard is the intended control layer, but it is not yet shipped or production-validated.</p></div>
+      <div class="tile reveal"><div class="step-n">01</div><h3>Understand the job</h3><p>TOP groups the request by the kind of work, such as coding, research, or a quick answer.</p></div>
+      <div class="tile reveal"><div class="step-n">02</div><h3>Learn from real usage</h3><p>It compares that kind of task with past jobs, including your own history when available.</p></div>
+      <div class="tile reveal"><div class="step-n">03</div><h3>Show a useful range</h3><p>It shows a lower, likely, and higher cost. A future control could stop work above your chosen limit, but that control is not live yet.</p></div>
     </div>
   </div>
 </section>
@@ -431,41 +444,45 @@ footer a:hover{color:var(--muted)}
 <section class="blk" id="valuemodel">
   <div class="wrap">
     <div class="shead reveal">
-      <div class="eyebrow">the value model</div>
-      <h2 style="margin-top:14px">Cost is only half the picture.</h2>
-      <p>Every dashboard shows spend. This shows what the spend is worth: cost against output value across the life of a deployment. Drag the slider to bank the saving or reinvest it.</p>
+      <div class="eyebrow">cost and value</div>
+      <h2 style="margin-top:14px">A lower bill matters only if the work stays good.</h2>
+      <p>This chart compares what you spend with the value your AI work creates. Use the slider to explore two choices: keep the saving, or use some of it to run more valuable work.</p>
     </div>
     <div class="vm-stage reveal">
       <div class="vm-card">
-        <div class="cardtop"><span class="dt"></span><span class="dt"></span><span class="dt"></span><span class="lbl">top · exhibit 1 · cost vs value</span></div>
+        <div class="cardtop"><span class="dt"></span><span class="dt"></span><span class="dt"></span><span class="lbl">ILLUSTRATIVE COST AND VALUE</span></div>
         <div class="vm-legend">
-          <span><span class="sw" style="background:#F26D6D"></span>token cost</span>
-          <span><span class="sw" style="background:#3ECF8E"></span>output value</span>
-          <span><span class="sq" style="background:rgba(53,245,160,.42)"></span>value surplus</span>
+          <span><span class="sw" style="background:#F26D6D"></span>AI cost</span>
+          <span><span class="sw" style="background:#3ECF8E"></span>value of completed work</span>
+          <span><span class="sq" style="background:rgba(53,245,160,.42)"></span>value left after cost</span>
         </div>
-        <div class="vm-plot">
-        <svg id="vm_pv" viewBox="0 0 520 500" width="100%" role="img" aria-label="Illustrative token cost and output value over time. The TOP-2 curve is an unshipped research hypothesis, not a measured result.">
-          <defs>
-            <linearGradient id="vm_valGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#3ECF8E" stop-opacity="0.16"/>
-              <stop offset="1" stop-color="#3ECF8E" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-        </svg>
+        <div class="vm-layout">
+          <div class="vm-plot">
+            <svg id="vm_pv" viewBox="0 0 520 400" width="100%" role="img" aria-label="Illustrative AI cost and value of completed work over time. The TOP-2 curve is an unshipped research idea, not a measured result.">
+              <defs>
+                <linearGradient id="vm_valGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#3ECF8E" stop-opacity="0.16"/>
+                  <stop offset="1" stop-color="#3ECF8E" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="vm-side">
+            <div class="vm-controls">
+              <label for="vm_g">How much extra AI work is run after tasks get cheaper?</label>
+              <input id="vm_g" type="range" min="0.05" max="1" step="0.01" value="0.2">
+              <span class="gval" id="vm_gout">low</span>
+            </div>
+            <p class="vm-cap" id="vm_cap">Keep most of the saving while the value of the work keeps rising.</p>
+            <div class="vm-cards">
+              <div class="vm-stat"><div class="k">value for each unit of cost, before</div><div class="n">~0.85</div></div>
+              <div class="vm-stat after"><div class="k">illustrative value for each unit of cost</div><div class="n"><span id="vm_vpa">5.4</span></div></div>
+              <div class="vm-stat imp"><div class="k">illustrative improvement</div><div class="n"><span id="vm_imp">6.3</span>×</div></div>
+            </div>
+            <p class="vm-illus">Illustrative, not measured. These are example figures, not a customer's results.</p>
+            <div class="jevons-note"><strong>The Jevons effect, in plain English</strong>When each task costs less, teams may run more tasks. The price per task falls, but the total bill can rise.</div>
+          </div>
         </div>
-        <div class="vm-controls">
-          <label for="vm_g">illustrative token spend under TOP-2 R&amp;D</label>
-          <input id="vm_g" type="range" min="0.05" max="1" step="0.01" value="0.2">
-          <span class="gval" id="vm_gout">low</span>
-        </div>
-        <p class="vm-cap" id="vm_cap">Cutting the bill: token cost flattens while output value keeps climbing.</p>
-        <div class="vm-cards">
-          <div class="vm-stat"><div class="k">value per unit cost, before</div><div class="n">~0.85</div></div>
-          <div class="vm-stat after"><div class="k">illustrative value per unit cost</div><div class="n"><span id="vm_vpa">5.4</span></div></div>
-          <div class="vm-stat imp"><div class="k">improvement in value per unit cost</div><div class="n"><span id="vm_imp">6.3</span>×</div></div>
-        </div>
-        <p class="vm-illus">Illustrative, not measured. These figures model how the ratio moves; they are not a real customer's numbers.</p>
-        <div class="jevons-note"><strong>The Jevons effect, in plain English</strong>Making each AI task cheaper can encourage people to run many more tasks. Cost per task falls, but total spend can still rise. TOP needs to show both: the price of one task and the change in overall workload.</div>
       </div>
     </div>
   </div>
@@ -476,30 +493,30 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="analyse-band reveal">
       <div class="shead" style="margin-bottom:clamp(30px,4vw,44px)">
-        <div class="eyebrow">analyze your usage</div>
-        <h2 style="margin-top:14px">Point it at your own AI usage.</h2>
-        <p>No mystery. Three parts, then your real number.</p>
+        <div class="eyebrow">see your own numbers</div>
+        <h2 style="margin-top:14px">Start with what you already spend.</h2>
+        <p>Choose your AI service, select the export, and see a private breakdown on your device.</p>
       </div>
       <div class="atomic">
         <div class="acard reveal">
           <div class="atag priv"><span class="dot"></span>01 · private</div>
-          <h3>It never sees your prompts or code</h3>
-          <p>Your export is parsed locally, in your browser. Nothing is sent automatically. You can inspect and copy an aggregate summary if you choose.</p>
+          <h3>Your files stay with you</h3>
+          <p>The browser reads them on your device. Nothing is uploaded or sent automatically.</p>
         </div>
         <div class="acard reveal">
-          <div class="atag how"><span class="dot"></span>02 · how</div>
-          <h3>Two or three steps</h3>
-          <p>Pick your AI, follow the short export steps for it, and drop your file in. That is the whole flow. No account, nothing to install.</p>
+          <div class="atag how"><span class="dot"></span>02 · guided</div>
+          <h3>Follow a short guide</h3>
+          <p>Choose the AI service you use. We show you where to get the right file and where to select it.</p>
         </div>
         <div class="acard reveal">
-          <div class="atag val"><span class="dot"></span>03 · value</div>
-          <h3>Your real spend, and the saving</h3>
-          <p>See what you are actually spending, plus an estimate of what right-sizing each task could save. On your numbers, not a generic demo.</p>
+          <div class="atag val"><span class="dot"></span>03 · useful</div>
+          <h3>See the useful totals</h3>
+          <p>Review estimated spend, activity, and task patterns. Any possible savings are estimates and are clearly labelled.</p>
         </div>
       </div>
       <div class="acta reveal">
-        <a class="btn btn-primary" href="/analyze/">Analyze your usage →</a>
-        <div class="sub">Parsed in your browser · aggregates only · a couple of minutes</div>
+        <a class="btn btn-primary" href="/analyze/">Analyze my usage →</a>
+        <div class="sub">No account · nothing to install · nothing sent automatically</div>
       </div>
     </div>
   </div>
@@ -510,15 +527,15 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="shead reveal">
       <div class="eyebrow">where it stands</div>
-      <h2 style="margin-top:14px">Real numbers, stated honestly.</h2>
-      <p>No overclaiming, these are the measured figures, gaps included.</p>
+      <h2 style="margin-top:14px">What works now, and what comes next.</h2>
+      <p>TOP is early. Here is the product status in plain English.</p>
     </div>
     <div class="status reveal">
-      <div class="m"><div class="n a">91%</div><div class="k">of the historic benchmark was one repeated loop</div></div>
-      <div class="m"><div class="n g">~3.3× high</div><div class="k">forward-test bias on varied real work</div></div>
-      <div class="m"><div class="n w">R&amp;D</div><div class="k">TOP-2 and the hard spend guard are not shipped</div></div>
+      <div class="m"><div class="n g">Available now</div><div class="k">Private analysis of your existing usage</div></div>
+      <div class="m"><div class="n a">Testing now</div><div class="k">A cost estimate before an AI task starts</div></div>
+      <div class="m"><div class="n w">Planned</div><div class="k">An automatic limit that can stop overspending</div></div>
     </div>
-    <p class="honest reveal">The open problem is predicting <b>how many back-and-forth turns</b> a task takes from its description alone, so end-to-end, we're still sharpening accuracy. That's exactly what more real-world partner data unlocks, which is why the founding-partner programme below exists.</p>
+    <p class="honest reveal"><b>Early evidence is limited.</b> In the historical benchmark, 91% of the data came from one repeated workflow. A later test on more varied work overestimated cost by roughly 3.3 times. Broader testing is required before TOP makes an accuracy claim.</p>
   </div>
 </section>
 
@@ -527,14 +544,14 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="shead reveal">
       <div class="eyebrow">privacy</div>
-      <h2 style="margin-top:14px">We never see your code or your prompts.</h2>
-      <p>Data handling is the centre of the arrangement, not an afterthought.</p>
+      <h2 style="margin-top:14px">Your files stay on your device.</h2>
+      <p>The analyzer reads them in your browser. Nothing is uploaded automatically.</p>
     </div>
     <div class="plist">
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Local parse.</b> <span>Your session logs are processed on your machine. Nothing is sent automatically.</span></div></div>
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Aggregates only.</b> <span>Counts, distributions, log-token statistics and cost totals, never the underlying prompts or completions.</span></div></div>
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Inspectable.</b> <span>The parsing script contains no network code. Read it, search it for <code class="mono">fetch(</code>, run it yourself.</span></div></div>
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Consent before collection.</b> <span>External data collection stays paused until retention, withdrawal, deletion, legal responsibility, and agreement terms are approved.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Processed on your device.</b> <span>Your export is read locally in the browser.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>You decide what to share.</b> <span>TOP does not send anything automatically.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Raw content stays private.</b> <span>The shareable summary excludes prompts, replies, code, and raw identifiers.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Partner collection is not open yet.</b> <span>It stays paused until consent, deletion, and responsibility rules are agreed.</span></div></div>
     </div>
   </div>
 </section>
@@ -544,11 +561,11 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="offer reveal">
       <div class="eyebrow">founding partners</div>
-      <h2 style="margin-top:14px">Help build it, get it at a founding rate.</h2>
-      <p>A small number of early partners whose usage data is genuinely load-bearing. A fair exchange of statistics for a product built around how you actually work.</p>
+      <h2 style="margin-top:14px">Help us test TOP with real business workloads.</h2>
+      <p>We are preparing a small founding-partner programme to improve the forecast. External data collection has not opened yet.</p>
       <div class="exchange">
-        <div class="xc in"><div class="t">you share</div><p>Anonymised, aggregate usage statistics from your agentic workloads. Nothing raw ever leaves your side.</p></div>
-        <div class="xc out"><div class="t">you get</div><p>A back-test report on your own AI spend now, a locked founding-partner rate later, and a say in the roadmap.</p></div>
+        <div class="xc in"><div class="t">you share</div><p>If you choose to join later: a privacy-checked summary of usage totals and patterns, not raw prompts or code.</p></div>
+        <div class="xc out"><div class="t">you get</div><p>A private review of your AI spend, early product access, and a voice in what we build next.</p></div>
       </div>
     </div>
   </div>
@@ -558,10 +575,10 @@ footer a:hover{color:var(--muted)}
 <section class="blk" id="about">
   <div class="wrap">
     <div class="founder reveal">
-      <div class="av">AH</div>
+      <div class="founder-avatars"><div class="av">AH</div><div class="av">SO</div></div>
       <div>
-        <h3>Built by Adam Hartley</h3>
-        <p>Medical student at Trinity College Dublin, building TOP and CheckpointKM, a scientific-reproducibility tool. Outreach for academic collaboration on uncertainty-aware forecasting and privacy is prepared, not yet a confirmed partnership.</p>
+        <h3>Built by Adam Hartley, co-founded with Sam O'Connell</h3>
+        <p>Adam and Sam are building TOP to make AI spending easier to understand and control. TOP is an early-stage product. Sam's public profile links will be added after he provides and approves them.</p>
         <div class="lk">
           <a href="https://www.linkedin.com/in/adam-hartley-966a8741b/" target="_blank" rel="noopener">LinkedIn ↗</a>
           <a href="mailto:adam1hartley@gmail.com">adam1hartley@gmail.com</a>
@@ -600,7 +617,7 @@ footer a:hover{color:var(--muted)}
 <script>
 (function(){
   var NS='http://www.w3.org/2000/svg';
-  var C={X0:44,X1:504,YT:26,YB:456,vMax:9,spanX:6,BEND:3.3,UP:2.55,IMP:3.3,
+  var C={X0:62,X1:504,YT:24,YB:356,vMax:9,spanX:6,BEND:3.3,UP:2.55,IMP:3.3,
          c0:0.5,cs1:1.15,v0:0.3,vs1:1.0};
   function xToPx(x){ return C.X0 + (x/C.spanX)*(C.X1-C.X0); }
   function yToPx(v){ v=Math.min(v,C.vMax); return C.YB - (v/C.vMax)*(C.YB-C.YT); }
@@ -618,11 +635,12 @@ footer a:hover{color:var(--muted)}
   pv.appendChild(mk('line',{x1:C.X0,y1:yToPx(0),x2:C.X1,y2:yToPx(0),stroke:'rgba(255,255,255,.24)','stroke-width':1}));
   [[0,'0'],[4,'4'],[8,'8']].forEach(function(p){ var t=mk('text',{x:C.X0-8,y:yToPx(p[0])+4,'text-anchor':'end','font-size':11,fill:'#6A6A74','font-family':'JetBrains Mono,monospace'}); t.textContent=p[1]; pv.appendChild(t); });
   var xl=mk('text',{x:C.X1,y:C.YB+20,'text-anchor':'end','font-size':11,fill:'#6A6A74','font-family':'JetBrains Mono,monospace'}); xl.textContent='time →'; pv.appendChild(xl);
+  var yl=mk('text',{x:17,y:(C.YT+C.YB)/2,'text-anchor':'middle','font-size':10.5,fill:'#9B9BA6','font-family':'JetBrains Mono,monospace',transform:'rotate(-90 17 '+((C.YT+C.YB)/2)+')'}); yl.textContent='AI cost · output value · value left after cost'; pv.appendChild(yl);
   // static: markers (fx)
   var mg=mk('g',{'class':'fx'});
-  mg.appendChild(mk('line',{x1:xToPx(C.UP),y1:C.YB,x2:xToPx(C.UP),y2:C.YT+16,stroke:'#6E7BF2','stroke-width':1.2,'stroke-dasharray':'4 5','stroke-opacity':.6}));
+  mg.appendChild(mk('line',{x1:xToPx(C.UP),y1:C.YB,x2:xToPx(C.UP),y2:C.YT+16,stroke:'#8B5CF6','stroke-width':1.2,'stroke-dasharray':'4 5','stroke-opacity':.6}));
   mg.appendChild(mk('line',{x1:xToPx(C.IMP),y1:C.YB,x2:xToPx(C.IMP),y2:C.YT+16,stroke:'#3ECF8E','stroke-width':1.2,'stroke-dasharray':'4 5','stroke-opacity':.6}));
-  var lu=mk('text',{x:xToPx(C.UP)-6,y:C.YT+10,'text-anchor':'end','font-size':11.5,fill:'#9AA2F7','font-family':'JetBrains Mono,monospace'}); lu.textContent='upload'; mg.appendChild(lu);
+  var lu=mk('text',{x:xToPx(C.UP)-6,y:C.YT+10,'text-anchor':'end','font-size':11.5,fill:'#C4A7FF','font-family':'JetBrains Mono,monospace'}); lu.textContent='usage added'; mg.appendChild(lu);
   var li=mk('text',{x:xToPx(C.IMP)+6,y:C.YT+10,'text-anchor':'start','font-size':11.5,fill:'#3ECF8E','font-family':'JetBrains Mono,monospace'}); li.textContent='implementation'; mg.appendChild(li);
   pv.appendChild(mg);
   // dynamic elements (created once, updated)
@@ -632,8 +650,8 @@ footer a:hover{color:var(--muted)}
   var valueLine=mk('polyline',{'class':'ln',pathLength:1,fill:'none',stroke:'#3ECF8E','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'}); pv.appendChild(valueLine);
   // moment dots on top (fx), static positions
   var mdg=mk('g',{'class':'fx'}), uy=yToPx(costAt(C.UP,0)), iy=yToPx(costAt(C.IMP,0));
-  mdg.appendChild(mk('circle',{cx:xToPx(C.UP),cy:uy,r:9.5,fill:'#6E7BF2','fill-opacity':.22}));
-  mdg.appendChild(mk('circle',{cx:xToPx(C.UP),cy:uy,r:4.6,fill:'#6E7BF2',stroke:'#EAECFF','stroke-width':1.5}));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.UP),cy:uy,r:9.5,fill:'#8B5CF6','fill-opacity':.22}));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.UP),cy:uy,r:4.6,fill:'#8B5CF6',stroke:'#F2EBFF','stroke-width':1.5}));
   mdg.appendChild(mk('circle',{cx:xToPx(C.IMP),cy:iy,r:9.5,fill:'#3ECF8E','fill-opacity':.24}));
   mdg.appendChild(mk('circle',{cx:xToPx(C.IMP),cy:iy,r:4.6,fill:'#3ECF8E',stroke:'#E6FFF2','stroke-width':1.5}));
   pv.appendChild(mdg);
@@ -659,9 +677,9 @@ footer a:hover{color:var(--muted)}
     impEl.textContent=imp.toFixed(1);
     goutEl.textContent = g<=0.25?'low':(g>=0.7?'high':'medium');
     var cap;
-    if(g<=0.35) cap='<b>Cutting the bill.</b> Token cost flattens while output value keeps climbing.';
-    else if(g>=0.7) cap='<b>Reinvesting the saving (Jevons).</b> A similar spend now buys far more output.';
-    else cap='<b>Balanced.</b> Part of the saving is a lower bill, part is reinvested into more output.';
+    if(g<=0.35) cap='<b>Keep most of the saving.</b> AI cost flattens while the value of the work keeps rising.';
+    else if(g>=0.7) cap='<b>Run more useful work.</b> A similar budget now buys more output. Total spend can still rise.';
+    else cap='<b>Split the benefit.</b> Keep part of the saving and use part to run more valuable work.';
     capEl.innerHTML=cap;
     costDot.setAttribute('cx',xToPx(6)); costDot.setAttribute('cy',yToPx(costAt(6,g)));
     valDot.setAttribute('cx',xToPx(6)); valDot.setAttribute('cy',yToPx(valAt(6,g)));
@@ -737,8 +755,8 @@ footer a:hover{color:var(--muted)}
 
   var motionQuery=matchMedia('(prefers-reduced-motion: reduce)');
   var userMode='system';
-  try{userMode=sessionStorage.getItem('top-motion-mode')||'system'}catch(ignore){}
-  var idleVelocity=0.00028;
+  try{userMode=localStorage.getItem('top-motion-mode')||'system'}catch(ignore){}
+  var idleVelocity=0.00014;
   var maxVelocity=0.022;
   var orientation=physics.multiplyQuaternions(
     physics.quaternionFromAxisAngle({x:1,y:0,z:0},-0.14),
@@ -749,6 +767,8 @@ footer a:hover{color:var(--muted)}
   var pointerId=null;
   var lastVector=null;
   var lastPointerTime=0;
+  var pointerSamples=[];
+  var gestureInertia=false;
   var dragRect=null;
   var inView=true;
   var lastFrame=0;
@@ -779,15 +799,15 @@ footer a:hover{color:var(--muted)}
     var active=motionEnabled();
     toggle.setAttribute('aria-pressed',active?'true':'false');
     toggle.textContent=active?'Pause Motion':(motionQuery.matches&&userMode==='system'?'Enable Full Motion':'Resume Motion');
-    hint.textContent=active?'Drag or flick in any direction.':(motionQuery.matches&&userMode==='system'?'Reduced motion is on. Tap Enable Full Motion for inertia.':'Motion is paused. Dragging still works.');
+    hint.textContent=active?'Drag or flick in any direction.':(motionQuery.matches&&userMode==='system'?'Automatic motion is reduced. A direct flick still has inertia.':'Motion is paused. Dragging still works.');
     if(active&&physics.velocityLength(angularVelocity)<idleVelocity*.5) angularVelocity={x:0,y:idleVelocity,z:0};
-    if(!active) angularVelocity={x:0,y:0,z:0};
+    if(!active&&!gestureInertia) angularVelocity={x:0,y:0,z:0};
     setOrbitPaused(!active||!inView||document.hidden);
     updateParallax();
   }
   function rememberMode(mode){
     userMode=mode;
-    try{sessionStorage.setItem('top-motion-mode',mode)}catch(ignore){}
+    try{localStorage.setItem('top-motion-mode',mode)}catch(ignore){}
     syncMotionState();
   }
   toggle.addEventListener('click',function(){
@@ -803,6 +823,8 @@ footer a:hover{color:var(--muted)}
     var points=event.getCoalescedEvents?event.getCoalescedEvents():[event];
     if(!points.length) points=[event];
     points.forEach(function(point){
+      pointerSamples.push({clientX:point.clientX,clientY:point.clientY,timeStamp:point.timeStamp});
+      pointerSamples=pointerSamples.filter(function(sample){return point.timeStamp-sample.timeStamp<=120});
       var next=physics.projectToTrackball(point.clientX,point.clientY,dragRect);
       var delta=physics.quaternionFromUnitVectors(lastVector,next);
       orientation=physics.multiplyQuaternions(delta,orientation);
@@ -826,6 +848,8 @@ footer a:hover{color:var(--muted)}
     dragRect=tilt.getBoundingClientRect();
     lastVector=physics.projectToTrackball(event.clientX,event.clientY,dragRect);
     lastPointerTime=event.timeStamp;
+    pointerSamples=[{clientX:event.clientX,clientY:event.clientY,timeStamp:event.timeStamp}];
+    gestureInertia=false;
     angularVelocity={x:0,y:0,z:0};
     tilt.classList.add('dragging');
     if(tilt.setPointerCapture) tilt.setPointerCapture(pointerId);
@@ -837,11 +861,20 @@ footer a:hover{color:var(--muted)}
   });
   function endDrag(event){
     if(!dragging||(event&&event.pointerId!==pointerId)) return;
+    if(event&&event.type==='pointerup'){
+      var finalSample=pointerSamples[pointerSamples.length-1];
+      if(!finalSample||Math.hypot(event.clientX-finalSample.clientX,event.clientY-finalSample.clientY)>=.75) updateFromPointer(event);
+      else if(event.timeStamp>finalSample.timeStamp) pointerSamples.push({clientX:event.clientX,clientY:event.clientY,timeStamp:event.timeStamp});
+    }
+    var flick=physics.flickVelocityFromSamples(pointerSamples,dragRect,maxVelocity,110);
+    if(physics.velocityLength(flick)>idleVelocity*.6) angularVelocity=flick;
+    else if(event&&event.timeStamp-lastPointerTime>120) angularVelocity={x:0,y:0,z:0};
     var releasedId=pointerId;
     dragging=false;
     pointerId=null;
     tilt.classList.remove('dragging');
-    if(!motionEnabled()) angularVelocity={x:0,y:0,z:0};
+    gestureInertia=userMode!=='off'&&physics.velocityLength(angularVelocity)>idleVelocity*.6;
+    if(userMode==='off') angularVelocity={x:0,y:0,z:0};
     if(releasedId!==null&&tilt.hasPointerCapture&&tilt.hasPointerCapture(releasedId)) tilt.releasePointerCapture(releasedId);
   }
   tilt.addEventListener('pointerup',endDrag);
@@ -862,16 +895,19 @@ footer a:hover{color:var(--muted)}
 
   function animate(timestamp){
     requestAnimationFrame(animate);
-    if(!motionEnabled()||dragging||!inView||document.hidden){lastFrame=timestamp;return}
+    var automatic=motionEnabled();
+    if((!automatic&&!gestureInertia)||dragging||!inView||document.hidden){lastFrame=timestamp;return}
     var elapsed=lastFrame?Math.min(40,Math.max(0,timestamp-lastFrame)):16;
     lastFrame=timestamp;
     orientation=physics.integrateOrientation(orientation,angularVelocity,elapsed,40);
-    var decay=Math.exp(-0.00115*elapsed);
+    var decay=Math.exp(-0.00048*elapsed);
+    var targetY=automatic?idleVelocity:0;
     angularVelocity={
       x:angularVelocity.x*decay,
-      y:idleVelocity+(angularVelocity.y-idleVelocity)*decay,
+      y:targetY+(angularVelocity.y-targetY)*decay,
       z:angularVelocity.z*decay
     };
+    if(!automatic&&physics.velocityLength(angularVelocity)<idleVelocity*.35){gestureInertia=false;angularVelocity={x:0,y:0,z:0}}
     renderOrientation();
   }
   if('IntersectionObserver' in window){

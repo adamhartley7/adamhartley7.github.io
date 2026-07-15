@@ -2,6 +2,9 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
+assert.match(html, /class="mini-emblem"/);
+assert.match(html, /\.vcard input\[type=range\][^}]*min-width:0/);
+assert.match(html, /@media\(max-width:640px\)\{\.vcard \.vcontrols\{display:grid/);
 
 const forbiddenPatterns = [
   [/\bfetch\s*\(/, "fetch call"],
@@ -43,12 +46,18 @@ assert.match(html, /function setJourney\(/);
 assert.match(html, /assets\/analyzer-ocean-sunset\.webp/);
 assert.match(html, /Pok Rie \/ Pexels/);
 assert.ok(fs.existsSync(new URL("../assets/analyzer-ocean-sunset.webp", `file://${__dirname}/`)));
-assert.match(html, /assets\/nasa-sdo-sun-pia26681\.webp/);
+assert.doesNotMatch(html, /assets\/nasa-sdo-sun-pia26681\.webp/);
 assert.match(html, /assets\/nasa-lro-full-moon-2017\.webp/);
-assert.match(html, /NASA\/GSFC\/Solar Dynamics Observatory/);
+assert.doesNotMatch(html, /NASA\/GSFC\/Solar Dynamics Observatory/);
 assert.match(html, /NASA's Scientific Visualization Studio/);
-assert.ok(fs.existsSync(new URL("../assets/nasa-sdo-sun-pia26681.webp", `file://${__dirname}/`)));
 assert.ok(fs.existsSync(new URL("../assets/nasa-lro-full-moon-2017.webp", `file://${__dirname}/`)));
+assert.match(html, /\.journey-sun\{[^}]*radial-gradient/);
+assert.match(html, /--world-brightness/);
+assert.match(html, /--world-saturation/);
+assert.match(html, /--world-warmth/);
+assert.match(html, /--world-light/);
+assert.match(html, /viewBox="0 0 520 390"/);
+assert.match(html, /AI cost · output value · value left after cost/);
 assert.match(html, /Which Of These Applies To You\?/);
 assert.match(html, /Running Out Of Tokens/);
 assert.match(html, /Budgeting Tokens Feels Unclear/);
