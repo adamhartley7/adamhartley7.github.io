@@ -1,8 +1,13 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 const credits = fs.readFileSync(new URL("ASSET-CREDITS.md", `file://${__dirname}/`), "utf8");
+const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
+inlineScripts.forEach((source, index) => {
+  assert.doesNotThrow(() => new vm.Script(source, { filename: `index-inline-${index}.js` }));
+});
 assert.match(html, /The next-task estimate is still being tested/);
 assert.doesNotMatch(html, /forecasts the token and euro cost of an AI task before it runs/);
 assert.match(html, /Your past AI tasks should help price your next one/);
@@ -70,8 +75,16 @@ assert.match(html, /class="mobile-nav"/);
 assert.match(html, /class="face-labels"/);
 assert.match(html, /\.face-labels\{[^}]*translateZ\(19px\)[^}]*backface-visibility:hidden/);
 assert.match(html, /Why a cheaper task may not mean a smaller total bill/);
-assert.match(html, /AI cost · output value · value left after cost/);
+assert.match(html, /illustrative index, example only/);
 assert.match(html, /class="vm-layout"/);
+assert.match(html, /\.vm-layout\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+assert.match(html, /\.vm-plot svg\{[^}]*width:100%[^}]*height:auto/);
+assert.match(html, /data-vm-graph/);
+assert.match(html, /W:960,H:420/);
+assert.match(html, /W:760,H:460/);
+assert.match(html, /W:520,H:480/);
+assert.match(html, /lower-cost AI begins/);
+assert.doesNotMatch(html, /max-height:400px/);
 assert.match(html, /aria-valuetext/);
 assert.match(html, /Works now/);
 assert.match(html, /co-founded with Sam O'Connell/);
