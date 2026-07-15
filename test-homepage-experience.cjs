@@ -3,6 +3,8 @@ const fs = require("node:fs");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 const credits = fs.readFileSync(new URL("ASSET-CREDITS.md", `file://${__dirname}/`), "utf8");
+assert.match(html, /Forecasting and automatic spend limits are still being tested/);
+assert.doesNotMatch(html, /forecasts the token and euro cost of an AI task before it runs/);
 
 assert.match(html, /class="coast-world"/);
 assert.match(html, /class="black-hole"/);
