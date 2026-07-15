@@ -168,11 +168,9 @@ footer a:hover{color:var(--muted)}
 .hero-totem-link:hover,.hero-totem-link:focus-visible{transform:translateY(-4px);background:rgba(110,123,242,.1);box-shadow:0 20px 55px rgba(62,42,140,.25);outline:none}
 .hero-totem{display:block;width:100%;height:auto;filter:drop-shadow(0 0 34px rgba(124,77,255,.5))}
 .hero-totem-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 22px;border-radius:999px;background:linear-gradient(135deg,var(--iris),#8c5cff);color:#fff;font-size:15px;font-weight:700;box-shadow:0 10px 30px rgba(110,123,242,.35)}
-.hero-totem .gem-ring{transform-box:fill-box;transform-origin:center;will-change:transform}
-.hero-totem .gem-ring-a{animation:gemspin 18s linear infinite}
-.hero-totem .gem-ring-b{animation:gemspin 26s linear infinite reverse}
-@keyframes gemspin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.hero-totem .gem-ring{animation:none}}
+.hero-totem .gem-ring{filter:drop-shadow(0 0 5px currentColor)}
+.hero-totem .electron{filter:drop-shadow(0 0 7px currentColor)}
+@media (prefers-reduced-motion:reduce){.hero-totem animateMotion,.hero-totem .electron animate{display:none}}
 
 /* value model (interactive cost vs value) */
 .vm-stage{max-width:1000px;margin:0 auto;position:relative}
@@ -256,20 +254,32 @@ footer a:hover{color:var(--muted)}
 <header class="hero">
   <div class="wrap">
     <a class="hero-totem-link" href="/analyze/" aria-label="Analyze your usage with TOP">
-    <svg class="hero-totem" viewBox="0 0 200 200" role="img" aria-label="TOP hexagonal emblem with two orbiting rings">
-      <g class="gem-ring gem-ring-a">
-        <g transform="rotate(-22 100 102)">
-          <ellipse cx="100" cy="102" rx="94" ry="27" fill="none" stroke="#57c9ff" stroke-width="2" opacity=".5"/>
-          <circle cx="194" cy="102" r="4.5" fill="#57c9ff"/>
-          <circle cx="6" cy="102" r="4.5" fill="#57c9ff"/>
-        </g>
+    <svg class="hero-totem" viewBox="0 0 200 200" role="img" aria-label="TOP faceted emblem with fixed three-dimensional orbital rings and particles travelling around them">
+      <defs>
+        <radialGradient id="electronBlue"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#baf1ff"/><stop offset="1" stop-color="#38bdf8"/></radialGradient>
+        <radialGradient id="electronPink"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#ffd1ec"/><stop offset="1" stop-color="#f472b6"/></radialGradient>
+      </defs>
+      <g class="gem-ring gem-ring-a" transform="rotate(-22 100 102)" color="#38bdf8">
+        <ellipse cx="100" cy="102" rx="94" ry="27" fill="none" stroke="#57c9ff" stroke-width="2" opacity=".58"/>
+        <circle class="electron" r="4.8" fill="url(#electronBlue)">
+          <animateMotion dur="4.8s" repeatCount="indefinite" path="M194 102 A94 27 0 1 1 6 102 A94 27 0 1 1 194 102"/>
+          <animate attributeName="r" values="3.4;5.2;3.4" dur="2.4s" repeatCount="indefinite"/>
+        </circle>
+        <circle class="electron" r="3.7" fill="url(#electronBlue)" opacity=".9">
+          <animateMotion dur="4.8s" begin="-2.4s" repeatCount="indefinite" path="M194 102 A94 27 0 1 1 6 102 A94 27 0 1 1 194 102"/>
+          <animate attributeName="r" values="3;4.5;3" dur="2.4s" begin="-1.2s" repeatCount="indefinite"/>
+        </circle>
       </g>
-      <g class="gem-ring gem-ring-b">
-        <g transform="rotate(24 100 102)">
-          <ellipse cx="100" cy="102" rx="94" ry="27" fill="none" stroke="#ff8fd0" stroke-width="2" opacity=".5"/>
-          <circle cx="194" cy="102" r="4.5" fill="#ff8fd0"/>
-          <circle cx="6" cy="102" r="4.5" fill="#ff8fd0"/>
-        </g>
+      <g class="gem-ring gem-ring-b" transform="rotate(24 100 102)" color="#f472b6">
+        <ellipse cx="100" cy="102" rx="94" ry="27" fill="none" stroke="#ff8fd0" stroke-width="2" opacity=".58"/>
+        <circle class="electron" r="4.8" fill="url(#electronPink)">
+          <animateMotion dur="6.2s" repeatCount="indefinite" path="M194 102 A94 27 0 1 0 6 102 A94 27 0 1 0 194 102"/>
+          <animate attributeName="r" values="5.2;3.4;5.2" dur="3.1s" repeatCount="indefinite"/>
+        </circle>
+        <circle class="electron" r="3.7" fill="url(#electronPink)" opacity=".9">
+          <animateMotion dur="6.2s" begin="-3.1s" repeatCount="indefinite" path="M194 102 A94 27 0 1 0 6 102 A94 27 0 1 0 194 102"/>
+          <animate attributeName="r" values="4.5;3;4.5" dur="3.1s" begin="-1.55s" repeatCount="indefinite"/>
+        </circle>
       </g>
       <polygon points="100,100 40,100 70,48" fill="#6b49d6"/>
       <polygon points="100,100 70,48 130,48" fill="#8763f0"/>

@@ -4,92 +4,106 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
-<title>TOP Analyzer — your AI spend, parsed locally</title>
-<meta name="description" content="Drop your Claude usage in and see your token + euro spend — parsed 100% in your browser. Nothing is uploaded.">
+<title>TOP Analyzer: understand your AI usage locally</title>
+<meta name="description" content="Analyze Claude Code, Claude Chat, Claude Console, or ChatGPT exports locally. Nothing is uploaded automatically.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <style>
 :root{
-  --bg:#08080A;--bg1:#0C0C0F;--panel:#141418;--panel2:#191920;--border:#232329;--border2:#33333d;
-  --text:#F1F1F3;--muted:#9B9BA6;--faint:#6A6A74;--iris:#6E7BF2;--iris2:#9AA2F7;--glow:rgba(110,123,242,.30);
-  --mint:#3ECF8E;--amber:#E8B23A;--red:#F26D6D;
+  --bg:#eef6fb;--bg1:#e5f0f7;--panel:rgba(255,255,255,.88);--panel2:rgba(255,250,244,.94);--border:#c5d4df;--border2:#9db3c3;
+  --text:#14263a;--muted:#30465d;--faint:#536a80;--iris:#6556dd;--iris2:#4f43c7;--glow:rgba(101,86,221,.24);
+  --mint:#087f62;--amber:#9a5900;--red:#bd3f50;--coral:#f57f72;--sky:#79c8ef;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
-  background-image:radial-gradient(800px 460px at 72% -8%,rgba(110,123,242,.13),transparent 60%)}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(circle 180px at 70% 39%,rgba(255,242,178,.96) 0 18%,rgba(255,160,111,.40) 40%,transparent 68%),linear-gradient(180deg,#82cff1 0%,#cce8ef 27%,#f7b29a 47%,#486f83 48%,#214d68 71%,#12354f 100%);background-attachment:fixed}
+body::before{content:"";position:fixed;inset:48% 0 0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(177deg,rgba(255,255,255,.20) 0 2px,rgba(64,120,151,.16) 3px 8px,rgba(9,49,75,.15) 9px 15px);mix-blend-mode:screen}
 .mono{font-family:"JetBrains Mono",monospace}
 a{color:var(--iris2);text-decoration:none}
 .wrap{max-width:960px;margin:0 auto;padding:0 22px}
-nav{border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,10,.8);backdrop-filter:blur(10px);z-index:5}
+nav{border-bottom:1px solid rgba(255,255,255,.55);position:sticky;top:0;background:rgba(247,251,253,.76);backdrop-filter:blur(18px) saturate(1.3);z-index:5;box-shadow:0 8px 30px rgba(26,70,98,.08)}
 nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
 .logo{display:flex;align-items:center;gap:9px;font-weight:700}
 .logo .mk{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--iris),#4b56c9);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
 nav a.back{font-size:14px;color:var(--muted)}
-header{text-align:center;padding:48px 0 22px}
-.badge{display:inline-flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--mint);border:1px solid rgba(62,207,142,.3);background:rgba(62,207,142,.07);padding:6px 14px;border-radius:100px;margin-bottom:20px}
+header{text-align:center;padding:52px 0 24px}
+.badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#075f4b;border:1px solid rgba(8,127,98,.28);background:rgba(255,255,255,.78);padding:8px 16px;border-radius:100px;margin-bottom:20px;box-shadow:0 12px 34px rgba(27,73,99,.10)}
 .badge .lk{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 7px var(--mint)}
 h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-width:16ch;margin:0 auto 14px}
-.sub{color:var(--muted);max-width:56ch;margin:0 auto;font-size:17px}
+.sub{color:var(--text);max-width:60ch;margin:0 auto;font-size:18px;background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.82);border-radius:17px;padding:12px 18px;box-shadow:0 14px 34px rgba(25,66,92,.10);backdrop-filter:blur(8px)}
 .sub b{color:var(--text)}
-.tabs{display:flex;gap:8px;justify-content:center;margin:28px 0 8px;flex-wrap:wrap}
-.tab{font-family:"JetBrains Mono",monospace;font-size:13px;padding:9px 16px;border:1px solid var(--border2);border-radius:9px;background:var(--panel);color:var(--muted);cursor:pointer;transition:.2s}
-.tab.on{color:#fff;border-color:var(--iris);background:rgba(110,123,242,.12)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 8px}
+.tab{min-height:112px;font-family:"Inter",system-ui,sans-serif;font-size:17px;font-weight:750;padding:18px;border:1px solid rgba(255,255,255,.82);border-radius:22px;background:rgba(255,255,255,.78);color:var(--text);cursor:pointer;transition:.2s;box-shadow:0 16px 34px rgba(25,66,92,.10);text-align:left}
+.tab:nth-child(1){background:linear-gradient(145deg,#fff,#dff0ff)}.tab:nth-child(2){background:linear-gradient(145deg,#fff,#f9e2f0)}.tab:nth-child(3){background:linear-gradient(145deg,#fff,#e9e3ff)}.tab:nth-child(4){background:linear-gradient(145deg,#fff,#fff0d5)}
+.tab:hover{transform:translateY(-3px);border-color:rgba(101,86,221,.45)}
+.tab.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,#6253d7,#8d6de9);box-shadow:0 18px 42px rgba(101,86,221,.26)}
 .tab:focus-visible,.drop:focus-visible,.btn:focus-visible{outline:3px solid var(--iris2);outline-offset:3px}
-.tab .st{font-size:10px;display:block;margin-top:2px;letter-spacing:.05em}
-.tab.on .st{color:var(--iris2)}
+.tab .st{font-size:13px;font-weight:550;display:block;margin-top:7px;letter-spacing:0;color:var(--muted);line-height:1.35}
+.tab.on .st{color:#eeeaff}
 .hint{text-align:center;color:var(--faint);font-size:13.5px;margin:6px auto 18px;max-width:60ch}
 .hint code{color:var(--muted);background:var(--panel);padding:1px 6px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
-.drop{display:block;width:100%;border:1.5px dashed var(--border2);border-radius:16px;background:var(--panel);padding:clamp(26px,6vw,40px) 20px;text-align:center;cursor:pointer;transition:.2s}
+.drop{display:block;width:100%;border:2px dashed #728fa3;border-radius:22px;background:rgba(255,255,255,.82);padding:clamp(30px,6vw,48px) 20px;text-align:center;cursor:pointer;transition:.2s;box-shadow:0 18px 45px rgba(25,66,92,.09)}
 .drop .big{overflow-wrap:anywhere}
-.drop.over{border-color:var(--iris);background:rgba(110,123,242,.08)}
+.drop.over{border-color:var(--iris);background:#f0edff;transform:scale(1.01)}
 .drop .big{font-size:19px;font-weight:600;margin-bottom:6px}
-.drop .small{color:var(--muted);font-size:14px}
+.drop .small{color:var(--muted);font-size:15px;margin-top:4px}
 .drop input{display:none}
-.note{color:var(--faint);font-size:13px;text-align:center;margin:14px auto;max-width:64ch}
+.note{color:var(--muted);font-size:14px;text-align:center;margin:14px auto;max-width:70ch}
 .note.warn{color:var(--amber)}
 #err{display:none;color:var(--red);background:rgba(242,109,109,.08);border:1px solid rgba(242,109,109,.3);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:14.5px}
 #out{display:none;margin:28px 0 60px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:8px 0 22px}
-.mcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.mcard{background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.82);border-radius:18px;padding:20px;box-shadow:0 14px 34px rgba(25,66,92,.10)}
 .mcard .k{font-size:12px;color:var(--faint);font-family:"JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
 .mcard .v{font-size:clamp(22px,3.5vw,30px);font-weight:700;font-family:"JetBrains Mono",monospace;margin-top:6px}
 .mcard .v.g{color:var(--mint)}.mcard .v.a{color:var(--amber)}.mcard .v.i{color:var(--iris2)}
-h2{font-size:15px;font-family:"JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--iris2);margin:26px 0 12px}
+h2{font-size:clamp(22px,3vw,29px);font-family:"Inter",system-ui,sans-serif;letter-spacing:-.02em;text-transform:none;color:var(--text);margin:28px 0 12px}
 table{width:100%;border-collapse:collapse;font-size:14.5px}
 th,td{text-align:right;padding:9px 12px;border-bottom:1px solid var(--border)}
 th:first-child,td:first-child{text-align:left}
 th{color:var(--faint);font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
 td.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
 tfoot td{font-weight:700;border-top:1px solid var(--border2);border-bottom:none}
-.summbox{background:var(--panel2);border:1px solid var(--border2);border-radius:12px;padding:18px;margin:22px 0}
+.summbox{background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.84);border-radius:20px;padding:22px;margin:22px 0;box-shadow:0 16px 38px rgba(25,66,92,.10)}
 .summbox h3{font-size:15px;margin-bottom:6px}
 .summbox p{color:var(--muted);font-size:14px;margin-bottom:12px}
-textarea{width:100%;min-height:150px;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:12.5px;padding:14px;resize:vertical}
-.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;padding:11px 18px;border-radius:9px;border:1px solid var(--border2);background:var(--panel);color:var(--text);cursor:pointer;transition:.2s;margin-top:10px}
-.btn.p{background:var(--iris);border-color:transparent;color:#fff}
+textarea{width:100%;min-height:150px;background:#f7fbfd;border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:12.5px;padding:14px;resize:vertical}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;padding:13px 20px;border-radius:13px;border:1px solid var(--border2);background:#fff;color:var(--text);cursor:pointer;transition:.2s;margin-top:10px}
+.btn.p{background:linear-gradient(135deg,var(--iris),#8c6ee8);border-color:transparent;color:#fff;box-shadow:0 12px 28px rgba(101,86,221,.24)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .btn:hover{transform:translateY(-1px)}
 .pricerow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--faint);margin-top:10px}
 .pricerow input{width:64px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 7px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
 footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font-size:13px;text-align:center}
-.priv{display:flex;align-items:center;gap:8px;justify-content:center;color:var(--mint);font-size:13.5px;margin:2px 0 8px;font-family:"JetBrains Mono",monospace}
+.priv{display:flex;align-items:center;gap:8px;justify-content:center;color:#075f4b;font-size:14px;font-weight:750;margin:2px auto 12px;background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.82);border-radius:999px;padding:9px 16px;width:max-content;max-width:100%;box-shadow:0 12px 28px rgba(25,66,92,.10)}
 /* per-provider export steps */
-.steps{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:14px 0}
-.steps h4{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--iris2);margin-bottom:10px;font-weight:500}
+.steps{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.82);border-radius:18px;padding:20px 22px;margin:16px 0;box-shadow:0 14px 34px rgba(25,66,92,.08)}
+.steps h4{font-family:"Inter",system-ui,sans-serif;font-size:17px;letter-spacing:0;color:var(--text);margin-bottom:10px;font-weight:750}
 .steps ol{margin:0;padding-left:22px}
 .steps li{color:var(--muted);font-size:14px;margin:6px 0;padding-left:4px}
 .steps li::marker{color:var(--iris2);font-family:"JetBrains Mono",monospace}
 .steps li b{color:var(--text)}
 .steps code{color:var(--muted);background:var(--bg1);padding:1px 6px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
 .steps .tip{color:var(--faint);font-size:13px;margin-top:10px}
-/* usage survey (front-end only) */
-.survey{border-top:1px solid var(--border);margin:10px 0 60px;padding-top:26px}
-.survey .lead{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:62ch}
-.field{margin:20px 0}
-.flabel{display:block;font-weight:600;font-size:15px;margin-bottom:10px}
+/* guided flow and usage questionnaire */
+.flow-shell{background:rgba(246,251,253,.72);border:1px solid rgba(255,255,255,.74);border-radius:30px;padding:clamp(18px,4vw,34px);box-shadow:0 28px 70px rgba(12,52,78,.18);backdrop-filter:blur(14px);margin:10px 0 52px}
+.flow-kicker{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--iris),#8c6ee8);color:#fff;font-weight:800;margin-right:9px}
+.routechoices{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 8px}
+.routepick{min-height:132px;border:1px solid rgba(255,255,255,.84);border-radius:22px;background:rgba(255,255,255,.84);color:var(--text);padding:22px;text-align:left;cursor:pointer;box-shadow:0 16px 34px rgba(25,66,92,.10);transition:.2s}
+.routepick:hover{transform:translateY(-3px);border-color:rgba(101,86,221,.45)}
+.routepick.on{background:linear-gradient(145deg,#6656d9,#8f70e8);color:#fff;border-color:transparent}
+.routepick strong{font-size:19px;display:block;margin-bottom:6px}.routepick span{font-size:14px;line-height:1.45;color:var(--muted)}.routepick.on span{color:#f0edff}
+.routepanel[hidden],.survey[hidden]{display:none!important}
+.routebanner{padding:14px 17px;border-radius:15px;background:#fff7e8;border:1px solid #efc787;color:#654317;font-size:14px;margin:14px 0}
+.survey{display:flex;flex-direction:column;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.84);border-radius:24px;margin:28px 0 12px;padding:clamp(20px,4vw,32px);box-shadow:0 20px 48px rgba(25,66,92,.11)}
+.survey .lead{color:var(--muted);font-size:15px;margin:0 0 12px;max-width:70ch}
+.field{margin:15px 0;order:2}
+.field.taskfield{order:1}
+.flabel{display:block;font-weight:750;font-size:18px;margin-bottom:11px}
 .flabel .cap{color:var(--faint);font-weight:400;font-size:12px;font-family:"JetBrains Mono",monospace;letter-spacing:.04em}
-.chipgroup{display:flex;flex-wrap:wrap;gap:8px}
-.chip{font-family:"Inter",system-ui,sans-serif;font-size:13.5px;padding:9px 14px;border:1px solid var(--border2);border-radius:9px;background:var(--panel);color:var(--muted);cursor:pointer;transition:.2s}
+.chipgroup{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.chip{min-height:60px;font-family:"Inter",system-ui,sans-serif;font-size:15px;font-weight:650;padding:13px 16px;border:1px solid #bfd0dc;border-radius:16px;background:#fff;color:var(--text);cursor:pointer;transition:.2s;text-align:left}
 .chip:hover{border-color:var(--iris2);color:var(--text)}
-.chip.on{color:#fff;border-color:var(--iris);background:rgba(110,123,242,.12)}
+.chip.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--iris),#8b6ce8);box-shadow:0 12px 26px rgba(101,86,221,.20)}
 .chip.dim{opacity:.45}
 .otherwrap{margin-top:10px}
 .otherwrap input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:10px 12px;font-family:"Inter",system-ui,sans-serif;font-size:14px}
@@ -131,13 +145,14 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .fhelp{color:var(--faint);font-size:12.5px;line-height:1.5;margin:-4px 0 12px;max-width:70ch}
 .fhelp code{color:var(--muted);background:var(--panel);padding:1px 5px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:11.5px}
 .fhelp b{color:var(--muted)}
-.chipgroup.arch{display:grid;grid-template-columns:repeat(auto-fit,minmax(252px,1fr));gap:8px}
-.chip.arch{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;line-height:1.35;padding:10px 14px}
-.chip.arch .al{font-weight:600;font-size:13.5px}
-.chip.arch .ex{font-size:11px;color:var(--faint);font-family:"JetBrains Mono",monospace;line-height:1.4}
-.chip.arch.on .ex{color:var(--iris2)}
+.chipgroup.arch{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:12px}
+.chip.arch{min-height:96px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;line-height:1.35;padding:17px 18px}
+.chip.arch .al{font-weight:800;font-size:17px;text-transform:none}
+.chip.arch .ex{font-size:13px;color:var(--muted);font-family:"Inter",system-ui,sans-serif;line-height:1.4}
+.chip.arch.on .ex{color:#eeeaff}
+.survey-actions{order:3;margin-top:10px}
 /* route B: text-free file you build yourself */
-.routeb{border-top:1px solid var(--border);margin:34px 0 0;padding-top:26px}
+.routeb{margin:18px 0 0}
 .routeb .lead{color:var(--muted);font-size:14.5px;margin:0 0 16px;max-width:72ch}
 .routeb .lead b{color:var(--text)}
 .scriptbox{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:14px 0}
@@ -147,6 +162,8 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .privbox{background:rgba(62,207,142,.06);border:1px solid rgba(62,207,142,.3);border-radius:12px;padding:14px 16px;margin:14px 0;color:var(--muted);font-size:13.5px;line-height:1.6}
 .privbox b{color:var(--mint)}
 .dlrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+@media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.routechoices{grid-template-columns:1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.chipgroup.arch{grid-template-columns:1fr}}
+@media(max-width:430px){.tabs{grid-template-columns:1fr}.tab{min-height:82px}}
 </style>
 </head>
 <body>
@@ -156,36 +173,47 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 </div></nav>
 
 <header class="wrap">
-  <div class="badge"><span class="lk"></span> raw data never leaves your browser</div>
-  <h1>See what your AI actually costs.</h1>
-  <p class="sub">Drop your Claude usage in below. Files are parsed <b>entirely on your own machine</b>. Raw logs, prompts, content, and summaries stay in your browser unless you deliberately copy or download them.</p>
+  <div class="badge"><span class="lk"></span> Your raw data stays on your device</div>
+  <h1>See what your AI usage is really worth.</h1>
+  <p class="sub">Choose your AI, pick the privacy route that feels right, and get a clear breakdown on your own device. Nothing is submitted merely because you choose a file.</p>
 </header>
 
 <div class="wrap">
-  <div class="priv"><span>🔒</span> Parsed locally · nothing is sent automatically · inspect the complete summary before sharing</div>
+  <div class="priv"><span>🔒</span> Local analysis first. Review the aggregate package before you choose to share it.</div>
+  <div class="flow-shell">
+    <h2><span class="flow-kicker">1</span>Choose Your AI</h2>
+    <div class="tabs" id="tabs">
+      <button type="button" class="tab on" data-mode="cc">Claude Code<span class="st">Real token counts from local session logs</span></button>
+      <button type="button" class="tab" data-mode="chat">Claude Chat<span class="st">Conversation export, estimated tokens</span></button>
+      <button type="button" class="tab" data-mode="openai">ChatGPT<span class="st">OpenAI conversation export, estimated tokens</span></button>
+      <button type="button" class="tab" data-mode="csv">Claude Console<span class="st">Anthropic usage CSV with billed cost</span></button>
+    </div>
 
-  <h2 style="margin-top:22px">Route A · drop a file, instant on-screen summary</h2>
-  <p class="note" style="text-align:left;margin:2px 0 12px">Pick your source, drop the file, and read the aggregate summary right here. Nothing leaves this page automatically. If you would rather build a text-free file yourself and share it manually, see <b style="color:var(--text)">Route B</b> further down.</p>
+    <div id="routechooser">
+      <h2><span class="flow-kicker">2</span>Choose Your Privacy Route</h2>
+      <div class="routechoices">
+        <button type="button" class="routepick" data-route="a"><strong>Route A: Fast Local Analysis</strong><span>Choose the original export. It is read only inside this browser tab. Nothing is uploaded.</span></button>
+        <button type="button" class="routepick" data-route="b"><strong>Route B: Aggregate-Only Sharing</strong><span>Create or review a text-free package before anything is shared. Claude Code also has a pre-strip script.</span></button>
+      </div>
+      <p class="note" id="routehelp">Pick either route. Both require a separate, explicit sharing action after you see the result.</p>
+    </div>
 
-  <div class="tabs" id="tabs">
-    <button type="button" class="tab on" data-mode="cc">Claude Code<span class="st">deduplicated · local cost estimate</span></button>
-    <button type="button" class="tab" data-mode="csv">Console CSV<span class="st">real spend</span></button>
-    <button type="button" class="tab" data-mode="chat">Claude Chat<span class="st">estimate only</span></button>
-  </div>
+    <div class="routepanel" id="routea" hidden>
+      <h2><span class="flow-kicker">3</span>Choose Your Export</h2>
+      <div class="routebanner" id="routebanner">Route A reads the selected file locally. The file itself never leaves this page.</div>
+      <div class="hint" id="hint"></div>
 
-  <div class="hint" id="hint"></div>
+      <label class="drop" id="drop" tabindex="0" role="button">
+        <div class="big">Choose Your File or Files</div>
+        <div class="small" id="dropsmall">.jsonl session logs from ~/.claude/projects</div>
+        <input type="file" id="file" multiple>
+      </label>
 
-  <label class="drop" id="drop" tabindex="0" role="button">
-    <div class="big">Drop file(s) here, or click to choose</div>
-    <div class="small" id="dropsmall">.jsonl session logs from ~/.claude/projects</div>
-    <input type="file" id="file" multiple>
-  </label>
+      <div class="steps" id="exportsteps"></div>
+      <div class="note" id="modenote"></div>
+      <div id="err" role="alert" aria-live="polite"></div>
 
-  <div class="steps" id="exportsteps"></div>
-  <div class="note" id="modenote"></div>
-  <div id="err" role="alert" aria-live="polite"></div>
-
-  <div id="out">
+      <div id="out">
     <div class="cards" id="cards"></div>
     <h2>By model</h2>
     <div style="overflow-x:auto"><table id="modeltable"></table></div>
@@ -195,13 +223,13 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       <p class="vlead" id="vmlead"></p>
       <div class="vcard">
         <div class="vlegend">
-          <span style="color:var(--red)"><span class="sw" style="background:var(--red)"></span>token cost <em>(solid = measured)</em></span>
+          <span style="color:var(--red)"><span class="sw" style="background:var(--red)"></span>cost baseline <em>(source-labelled)</em></span>
           <span style="color:var(--red)"><span class="sd"></span>after right-sizing <em>(estimate)</em></span>
           <span><span class="sw" style="background:var(--mint)"></span>output value <em>(illustrative)</em></span>
           <span><span class="sq" style="background:rgba(62,207,142,.42)"></span>value surplus</span>
         </div>
         <div class="plot">
-          <svg id="vmsvg" viewBox="0 0 520 480" width="100%" role="img" aria-label="Your token cost against output value over a deployment. The solid red line is your measured spend baseline; after right-sizing to cheaper models the dashed red line bends down while the illustrative green output-value line keeps climbing, opening a value surplus."></svg>
+          <svg id="vmsvg" viewBox="0 0 520 480" width="100%" role="img" aria-label="Your usage-derived or billed cost baseline against illustrative output value. The after-right-sizing line is an estimate, not a measured saving."></svg>
         </div>
         <div class="vcontrols">
           <label for="vmg">how aggressively you route to cheaper models</label>
@@ -210,7 +238,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         </div>
         <p class="vcap" id="vmcap"></p>
         <div class="vcards">
-          <div class="vstat"><div class="k">your spend now <span class="tag measured">measured</span></div><div class="n" id="vmnow">$0</div></div>
+          <div class="vstat"><div class="k">current cost baseline <span class="tag measured">source-labelled</span></div><div class="n" id="vmnow">$0</div></div>
           <div class="vstat after"><div class="k">estimated spend after right-sizing <span class="tag est">estimate</span></div><div class="n" id="vmafter">$0</div></div>
           <div class="vstat save"><div class="k">estimated saving <span class="tag est">estimate</span></div><div class="n" id="vmsave">$0</div></div>
         </div>
@@ -228,17 +256,26 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         <button class="btn" id="dlbtn">Download .txt</button>
       </div>
     </div>
-    <div class="summbox">
-      <h3>Share only when you choose</h3>
-      <p>Review the summary first, then copy or download it if you want to share it. Direct submission is disabled while the consent and privacy controls are rebuilt.</p>
-    </div>
+        <div class="summbox">
+          <h3>Share Only When You Choose</h3>
+          <p>Review the aggregate summary and your questionnaire answers. The raw file, prompts, replies, and code are never included.</p>
+          <label style="display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-weight:650"><input type="checkbox" id="shareconsent" style="margin-top:5px;transform:scale(1.25)"> I have reviewed what will be included and I choose to create an aggregate sharing package.</label>
+          <button class="btn p" id="shareprep" disabled>Create My Sharing Package</button>
+          <div id="shareactions" style="display:none;margin-top:10px">
+            <button class="btn" id="sharedownload">Download Aggregate Package</button>
+            <button class="btn" id="shareemail">Open Email Draft</button>
+            <p class="note" style="text-align:left;margin:10px 0 0">The email opens as a draft. You still review it and press Send yourself.</p>
+          </div>
+          <div id="sharestatus" role="status" aria-live="polite" style="margin-top:10px;color:var(--mint);font-weight:650"></div>
+        </div>
     <div class="pricerow" id="prices"></div>
-    <p class="note">Prices are editable estimates (USD per million tokens) applied locally; adjust to match your plan. Cache-write is charged at 1.25× the input rate, cache-read at 0.1×. Cost is your figure, computed on your device.</p>
+    <p class="note">Prices are editable USD-per-million-token assumptions applied locally. Claude Code and chat exports produce API-equivalent estimates, not your Max, Pro, or ChatGPT subscription charge. Claude Console cost columns can provide billed spend.</p>
     <p class="note">Rates updated 6 Jul 2026 to current published list prices.</p>
-  </div>
+      </div>
+    </div>
 
-  <div class="routeb" id="routeb">
-    <h2>Route B · text-free file you build yourself</h2>
+    <div class="routeb routepanel" id="routeb" hidden>
+    <h2><span class="flow-kicker">3</span>Build a Text-Free File</h2>
     <p class="lead"><b>Maximum privacy.</b> You run a short, readable script on your own machine. It reads your Claude Code logs and writes ONE new file that holds only numbers and labels: model, the four token counts, timestamps, and permission mode (whether you were steering it live or it ran on its own). <b>No prompt text, no replies, no code, no file contents, ever.</b> That text is never copied into the file in the first place. Read the script first, run it, check the file it makes, then decide whether to share it. Your original logs are never touched.</p>
 
     <div class="steps">
@@ -399,9 +436,9 @@ if __name__ == "__main__":
     </div>
   </div>
 
-  <div class="survey" id="survey">
-    <h2>How you use your AI assistant</h2>
-    <p class="lead">Optional, and entirely front-end. It helps Adam calibrate TOP to real habits. None of this is needed to use the analyzer above, and your answers stay in your browser until you press send.</p>
+  <div class="survey" id="survey" hidden>
+    <h2><span class="flow-kicker">4</span>Tell Us What You Run</h2>
+    <p class="lead">These optional answers make the aggregate more useful. They stay in this browser until you deliberately create a sharing package.</p>
 
     <div class="field">
       <label class="flabel">How often do you use your AI assistant?</label>
@@ -428,22 +465,22 @@ if __name__ == "__main__":
       </div>
     </div>
 
-    <div class="field">
+    <div class="field taskfield">
       <label class="flabel">Which kinds of tasks do you run? <span class="cap">archetype, choose any</span></label>
       <p class="fhelp">An <b>archetype</b> is the kind of task you run, from a quick chat reply up to an unattended overnight build. The one-liners are just examples to steer you. Pick any that fit.</p>
       <div class="chipgroup arch" data-name="archetype" data-max="0">
-        <button type="button" class="chip arch" data-val="a quick steer/ack"><span class="al">a quick steer / ack</span><span class="ex">a one-line "ok" or "continue" inside a thread</span></button>
-        <button type="button" class="chip arch" data-val="chat Q&amp;A"><span class="al">chat Q and A</span><span class="ex">one question, one answer, no files or tools</span></button>
-        <button type="button" class="chip arch" data-val="chat thread"><span class="al">chat thread</span><span class="ex">a longer back-and-forth: advice, drafting, thinking aloud</span></button>
-        <button type="button" class="chip arch" data-val="code Q&amp;A"><span class="al">code Q and A</span><span class="ex">"how does this work?", answered by reading, no edits</span></button>
-        <button type="button" class="chip arch" data-val="repo ops"><span class="al">repo ops</span><span class="ex">commit, push, deploy, bump a version, run a command</span></button>
-        <button type="button" class="chip arch" data-val="single-file edit"><span class="al">single-file edit</span><span class="ex">change one function or file while you watch</span></button>
-        <button type="button" class="chip arch" data-val="debugging"><span class="al">debugging</span><span class="ex">hunt down and fix a bug of unknown depth</span></button>
-        <button type="button" class="chip arch" data-val="research/review"><span class="al">research or review</span><span class="ex">read docs or code and write up an answer, few writes</span></button>
-        <button type="button" class="chip arch" data-val="multi-file change"><span class="al">multi-file change</span><span class="ex">a refactor or feature spanning several files</span></button>
-        <button type="button" class="chip arch" data-val="build a feature"><span class="al">build a feature</span><span class="ex">a new page, component, or script from a short spec</span></button>
-        <button type="button" class="chip arch" data-val="bounded agent loop"><span class="al">bounded agent loop</span><span class="ex">a scripted agent loop with a turn cap (eval/checker harness)</span></button>
-        <button type="button" class="chip arch" data-val="overnight/automated run"><span class="al">overnight / automated run</span><span class="ex">an unattended overnight build, thousands of turns</span></button>
+        <button type="button" class="chip arch" data-val="a quick steer/ack"><span class="al">Quick Steer or Acknowledgement</span><span class="ex">A one-line "OK" or "continue" inside a thread</span></button>
+        <button type="button" class="chip arch" data-val="chat Q&amp;A"><span class="al">Chat Question and Answer</span><span class="ex">One question, one answer, no files or tools</span></button>
+        <button type="button" class="chip arch" data-val="chat thread"><span class="al">Longer Chat Thread</span><span class="ex">Advice, drafting, or thinking aloud over several turns</span></button>
+        <button type="button" class="chip arch" data-val="code Q&amp;A"><span class="al">Code Question and Answer</span><span class="ex">Read code and explain it, without editing</span></button>
+        <button type="button" class="chip arch" data-val="repo ops"><span class="al">Repository Operations</span><span class="ex">Commit, push, deploy, bump a version, or run a command</span></button>
+        <button type="button" class="chip arch" data-val="single-file edit"><span class="al">Single-File Edit</span><span class="ex">Change one function or file while you watch</span></button>
+        <button type="button" class="chip arch" data-val="debugging"><span class="al">Debugging</span><span class="ex">Find and fix a bug of unknown depth</span></button>
+        <button type="button" class="chip arch" data-val="research/review"><span class="al">Research or Review</span><span class="ex">Read sources or code and produce an evidence-based answer</span></button>
+        <button type="button" class="chip arch" data-val="multi-file change"><span class="al">Multi-File Change</span><span class="ex">A refactor or feature spanning several files</span></button>
+        <button type="button" class="chip arch" data-val="build a feature"><span class="al">Build a Feature</span><span class="ex">A new page, component, or script from a short specification</span></button>
+        <button type="button" class="chip arch" data-val="bounded agent loop"><span class="al">Bounded Agent Loop</span><span class="ex">A scripted agent loop with a fixed review or turn limit</span></button>
+        <button type="button" class="chip arch" data-val="overnight/automated run"><span class="al">Overnight or Automated Run</span><span class="ex">An unattended build or review lasting many cycles</span></button>
       </div>
     </div>
 
@@ -459,8 +496,31 @@ if __name__ == "__main__":
       </div>
     </div>
 
-    <p class="note" style="text-align:left;margin:14px 0">Same privacy rule as the analyzer: your selections stay in your browser. Copy the summary only if you decide to share it.</p>
-    <div><button class="btn p" id="surveysend">Copy survey summary</button> <span id="surveyok" style="color:var(--mint);font-size:13.5px;display:none">Copied.</span></div>
+    <div class="field">
+      <label class="flabel">What Would Make TOP Most Useful? <span class="cap">choose any</span></label>
+      <div class="chipgroup" data-name="goal" data-max="0">
+        <button type="button" class="chip">Predict cost before a task</button>
+        <button type="button" class="chip">Reduce model spend</button>
+        <button type="button" class="chip">Choose the right model</button>
+        <button type="button" class="chip">Catch runaway loops</button>
+        <button type="button" class="chip">Understand team usage</button>
+        <button type="button" class="chip">Protect private data</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="flabel">Which Kind of Account Do You Mainly Use?</label>
+      <div class="chipgroup" data-name="account" data-max="1">
+        <button type="button" class="chip">Free individual</button>
+        <button type="button" class="chip">Paid individual</button>
+        <button type="button" class="chip">Team or business</button>
+        <button type="button" class="chip">API or developer console</button>
+      </div>
+    </div>
+
+    <div class="survey-actions"><p class="note" style="text-align:left;margin:14px 0">Your selections are added only to the aggregate package you explicitly create. They are never sent automatically.</p>
+    <div><button class="btn p" id="surveysend">Copy My Answers</button> <span id="surveyok" style="color:var(--mint);font-size:13.5px;display:none">Copied.</span></div></div>
+  </div>
   </div>
 </div>
 
@@ -519,7 +579,7 @@ var MODES={
         "Each project you have used has its own folder of <code>.jsonl</code> session logs.",
         "Select the <code>.jsonl</code> files, or just pick the whole <code>projects</code> folder.",
         "Drop them into the box above."],
-      stepstip:"This mode reads the real per-turn token counts in the logs, so it is the only source that gives an actual cost forecast.",
+      stepstip:"This mode reads real per-turn token counts. The dollar figure is an API-equivalent estimate from editable rates, not your Claude Max subscription charge.",
       note:""},
   csv:{label:"Console CSV", small:"usage .csv exported from console.anthropic.com",
       hint:"On <code>console.anthropic.com</code>, open <b>Usage</b>, then export or download the CSV and drop it here.",
@@ -539,10 +599,21 @@ var MODES={
         "You'll get an email from Anthropic to download your data.",
         "Download the zip and take <code>conversations.json</code> out of it.",
         "Drop <code>conversations.json</code> into the analytics box above."],
-      stepstip:"A Claude Chat export shows how you use Claude, not what it costs. See the note just below.",
-      note:"About this export: a Claude Chat export (conversations.json) contains your message text, topics and timing, but not token or cost data. So it shows usage patterns and only rough token estimates from text length (about 4 characters per token), not real billing. For the actual cost forecast, use the Claude Code tab and its ~/.claude logs."}
+      stepstip:"A Claude Chat export shows how you use Claude, not your billed subscription cost.",
+      note:"This export has conversation text and timing but no billed tokens or subscription cost. TOP reads it only in this tab, estimates tokens from message length, and labels the dollar figure as an API-equivalent estimate."},
+  openai:{label:"ChatGPT", small:"conversations.json from your OpenAI data export",
+      hint:"In ChatGPT, open <b>Settings</b>, then <b>Data Controls</b>, then <b>Export</b>. Open the download and choose <code>conversations.json</code>. Large exports may contain numbered conversation JSON files, which you can select together.",
+      steps:[
+        "Sign in to ChatGPT and open your profile menu.",
+        "Choose <b>Settings</b>, then <b>Data Controls</b>.",
+        "Under Export Data, choose <b>Export</b> and confirm.",
+        "Download the ZIP from OpenAI's email or text message. The download link expires after 24 hours.",
+        "Unzip it, then choose <code>conversations.json</code>, or all numbered conversation JSON files if your export is split."],
+      stepstip:"OpenAI says exports may take up to seven days. TOP supports the conversation JSON, not the whole ZIP yet.",
+      note:"ChatGPT conversation exports do not provide a reliable subscription cost per chat. TOP estimates text tokens locally and clearly labels the dollar result as an editable API-equivalent estimate, not your ChatGPT plan charge."}
 };
 var mode="cc";
+var selectedRoute="";
 function renderSteps(m){
   var s=MODES[m].steps||[], tip=MODES[m].stepstip||"";
   var html='<h4>How to export your '+MODES[m].label+' data</h4><ol>'+s.map(function(x){return "<li>"+x+"</li>"}).join("")+"</ol>";
@@ -558,8 +629,33 @@ function setMode(m){
   var mn=document.getElementById("modenote"); mn.textContent=MODES[m].note; mn.className="note"+(MODES[m].note?" warn":"");
   document.getElementById("out").style.display="none";
   document.getElementById("err").style.display="none";
+  document.getElementById("file").value="";
+  if(selectedRoute) selectRoute(selectedRoute);
 }
 document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab"); if(t) setMode(t.dataset.mode)});
+function selectRoute(route){
+  selectedRoute=route;
+  document.querySelectorAll(".routepick").forEach(function(b){b.classList.toggle("on",b.dataset.route===route)});
+  var a=document.getElementById("routea"), b=document.getElementById("routeb"), survey=document.getElementById("survey");
+  survey.hidden=false;
+  if(route==="b"&&mode==="cc"){
+    a.hidden=true; b.hidden=false;
+    document.getElementById("routehelp").textContent="Claude Code Route B creates a numbers-and-labels-only file before analysis. You inspect it before sharing.";
+  }else{
+    a.hidden=false; b.hidden=true;
+    var banner=document.getElementById("routebanner");
+    if(route==="b"){
+      banner.textContent="Aggregate-only route: your original "+MODES[mode].label+" export is read inside this tab, then TOP creates a text-free aggregate package. The original file is never shared.";
+      document.getElementById("routehelp").textContent="For "+MODES[mode].label+", Route B means only the reviewed aggregate package can leave the browser. Nothing is sent automatically.";
+    }else{
+      banner.textContent="Route A reads the selected "+MODES[mode].label+" file locally. The file itself never leaves this page.";
+      document.getElementById("routehelp").textContent="Route A is the fastest path. Analysis is local and sharing remains a separate choice.";
+    }
+  }
+  var target=(route==="b"&&mode==="cc")?b:a;
+  target.scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.querySelector(".routechoices").addEventListener("click",function(e){var p=e.target.closest(".routepick");if(p) selectRoute(p.dataset.route)});
 
 // ---------- parsers ----------
 function parseClaudeCode(texts){
@@ -650,8 +746,52 @@ function parseChat(texts){
       });
     });
   });
-  return {by:by, turns:turns, sessions:convos, days:0, kind:"claude.ai", estimate:true,
-    estimateReason:"message length estimate; the export contains no billed token or cost data"};
+  return {by:by, turns:turns, sessions:convos, days:0, kind:"claude.ai", estimate:true, chatExport:true, costLabel:"API-equivalent estimate",
+    estimateReason:"message length estimate; the export contains no billed token or subscription cost data"};
+}
+function messageText(content){
+  if(content===null||content===undefined) return "";
+  if(typeof content==="string") return content;
+  if(Array.isArray(content)) return content.map(messageText).join(" ");
+  if(typeof content==="object"){
+    if(Array.isArray(content.parts)) return content.parts.map(messageText).join(" ");
+    if(typeof content.text==="string") return content.text;
+    if(typeof content.content==="string") return content.content;
+  }
+  return "";
+}
+function parseOpenAI(texts){
+  var by={}, turns=0, convos=0, days={};
+  function addMessage(m, fallbackModel, created){
+    if(!m||typeof m!=="object") return;
+    var role=(m.author&&m.author.role)||m.role||"";
+    if(role!=="user"&&role!=="assistant") return;
+    var text=messageText(m.content!==undefined?m.content:m.text);
+    var tokens=estTokens(text);
+    if(!tokens) return;
+    var metadata=m.metadata||{};
+    var model=metadata.model_slug||m.model_slug||fallbackModel||"ChatGPT export (est.)";
+    var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0});
+    if(role==="assistant") e.out+=tokens; else e.inp+=tokens;
+    e.turns++; turns++;
+    var ts=m.create_time||created; if(ts){var d=new Date(typeof ts==="number"?ts*1000:ts);if(!isNaN(d)) days[d.toISOString().slice(0,10)]=1;}
+  }
+  texts.forEach(function(txt){
+    var data; try{data=JSON.parse(txt)}catch(e){return}
+    var arr=Array.isArray(data)?data:(data.conversations||[data]);
+    arr.forEach(function(c){
+      if(!c||typeof c!=="object") return;
+      convos++;
+      var fallback=c.default_model_slug||c.model_slug||"ChatGPT export (est.)";
+      if(c.mapping&&typeof c.mapping==="object"){
+        Object.keys(c.mapping).forEach(function(k){var node=c.mapping[k];addMessage(node&&node.message,fallback,c.create_time)});
+      }else{
+        (c.messages||c.chat_messages||[]).forEach(function(m){addMessage(m,fallback,c.create_time)});
+      }
+    });
+  });
+  return {by:by, turns:turns, sessions:convos, days:Object.keys(days).length, kind:"ChatGPT export", estimate:true, chatExport:true, costLabel:"API-equivalent estimate",
+    estimateReason:"message length estimate; the export contains no billed token or ChatGPT subscription cost data"};
 }
 
 // ---------- render ----------
@@ -667,7 +807,7 @@ function render(res){
   var totTok=totInp+totOut+totCw+totCr;
   var cur = res.estimate? "~$" : "$";
   var cards=[
-    [res.estimate?"Estimated spend":"Total spend",(res.estimate?"~":"")+fmt$(totCost),"a"],
+    [res.estimate?(res.costLabel||"Estimated spend"):"Total spend",(res.estimate?"~":"")+fmt$(totCost),"a"],
     ["Total tokens",fmtN(totTok),"i"],
     ["Turns",fmtN(res.turns),""],
     [res.days?"Active days":(res.csv?"Rows":"Sessions"), fmtN(res.days||res.sessions),"g"]
@@ -684,7 +824,8 @@ function render(res){
   lines.push("TOP Analyzer — anonymised usage summary");
   lines.push("source: "+res.kind+(res.estimate?" (ESTIMATE: "+res.estimateReason+")":""));
   lines.push("");
-  lines.push("total_cost_usd: "+(res.estimate?"~":"")+totCost.toFixed(2));
+  lines.push("cost_provenance: "+(res.estimate?"api_equivalent_estimate":"billed_or_exported_cost"));
+  lines.push((res.estimate?"api_equivalent_cost_usd":"total_cost_usd")+": "+(res.estimate?"~":"")+totCost.toFixed(2));
   lines.push("total_tokens: "+fmtInt(totTok));
   lines.push("input_tokens: "+fmtInt(totInp)+" | output_tokens: "+fmtInt(totOut)+" | cache_write: "+fmtInt(totCw)+" | cache_read: "+fmtInt(totCr));
   lines.push("turns: "+fmtInt(res.turns)+(res.sessions?(" | sessions: "+fmtInt(res.sessions)):"")+(res.days?(" | active_days: "+fmtInt(res.days)):""));
@@ -696,8 +837,12 @@ function render(res){
   lines.push("[aggregates only — no prompts, completions, or message content included]");
   document.getElementById("summary").value=lines.join("\n");
   lastSummary=lines.join("\n");
+  document.getElementById("shareconsent").checked=false;
+  document.getElementById("shareprep").disabled=true;
+  document.getElementById("shareactions").style.display="none";
+  document.getElementById("sharestatus").textContent="";
   // price editors
-  document.getElementById("prices").innerHTML="Prices $/Mtok — "+["opus","sonnet","haiku","fable"].map(function(k){
+  document.getElementById("prices").innerHTML="Editable API rates $/Mtok: "+["opus","sonnet","haiku","fable","other"].map(function(k){
     return k+" in <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> out <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";
   }).join(" &nbsp;·&nbsp; ");
   document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
@@ -707,10 +852,11 @@ function render(res){
   document.getElementById("out").style.display="block";
 }
 
-// ---------- your value model (personalised: real cost anchor + illustrative right-sizing estimate) ----------
+// ---------- your value model (personalised source-labelled baseline + illustrative right-sizing estimate) ----------
 function renderValueModel(rows, totCost, res){
   var vm=document.getElementById("vm");
   if(!vm) return;
+  if(res.chatExport){vm.style.display="none";return;}
   if(!(totCost>0)){ vm.style.display="none"; return; }
   // real model mix -> frontier (right-sizable) vs mid vs already-cheap spend
   var fS=0, mS=0, cS=0;
@@ -835,9 +981,10 @@ function run(texts){
     var res;
     if(mode==="cc") res=parseClaudeCode(texts);
     else if(mode==="csv") res=parseCSV(texts);
-    else res=parseChat(texts);
+    else if(mode==="chat") res=parseChat(texts);
+    else res=parseOpenAI(texts);
     var n=Object.keys(res.by).length;
-    if(!n||res.turns===0){showErr("Couldn't find usage data in that file for this mode. Make sure you picked the right tab for your file type — Claude Code (.jsonl), Console CSV, or claude.ai export (conversations.json).");return;}
+    if(!n||res.turns===0){showErr("Couldn't find usage data in that file for this source. Check that you chose Claude Code JSONL, Claude Console CSV, Claude Chat conversations.json, or ChatGPT conversations.json.");return;}
     render(res);
     document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
   }catch(err){showErr("Something went wrong parsing that file: "+err.message+". Nothing was uploaded. Try a different file or tab.");}
@@ -865,10 +1012,10 @@ function surveyVal(name){
   return Array.prototype.map.call(g.querySelectorAll(".chip.on"),function(c){return c.dataset.val||c.textContent.trim()}).join(", ")||"(none)";
 }
 function surveyBlock(){
-  var freq=surveyVal("frequency"), prim=surveyVal("primary"), arch=surveyVal("archetype"), think=surveyVal("thinking");
+  var freq=surveyVal("frequency"), prim=surveyVal("primary"), arch=surveyVal("archetype"), think=surveyVal("thinking"), goal=surveyVal("goal"), account=surveyVal("account");
   var otherEl=document.getElementById("primaryother"), other=otherEl?otherEl.value.trim():"";
-  if(freq==="(none)"&&prim==="(none)"&&arch==="(none)"&&think==="(none)"&&!other) return "";
-  return "\n\nsurvey answers:\n  frequency: "+freq+"\n  primary_use: "+prim+(other?(" | other: "+other):"")+"\n  archetype_tasks: "+arch+"\n  thinking_level: "+think;
+  if(freq==="(none)"&&prim==="(none)"&&arch==="(none)"&&think==="(none)"&&goal==="(none)"&&account==="(none)"&&!other) return "";
+  return "\n\nquestionnaire answers:\n  provider_selected: "+MODES[mode].label+"\n  privacy_route: "+(selectedRoute||"not selected")+"\n  task_archetypes: "+arch+"\n  frequency: "+freq+"\n  primary_use: "+prim+(other?(" | other: "+other):"")+"\n  thinking_level: "+think+"\n  desired_outcomes: "+goal+"\n  account_type: "+account;
 }
 document.querySelectorAll("#survey .chipgroup").forEach(function(group){
   var max=parseInt(group.dataset.max,10)||0;
@@ -893,8 +1040,7 @@ document.querySelectorAll("#survey .chipgroup").forEach(function(group){
 });
 document.getElementById("surveysend").addEventListener("click",function(){
   var b=this;
-  var payload="How you use your AI assistant (survey)"+(surveyBlock()||"\n  (nothing selected)");
-  var combined=payload+"\n\nusage summary (if run):\n"+(lastSummary||"(none, no analysis run)");
+  var combined="TOP questionnaire"+(surveyBlock()||"\n  (nothing selected)");
   function done(){
     b.textContent="Copied";
     var s=document.getElementById("surveyok");
@@ -907,6 +1053,24 @@ document.getElementById("surveysend").addEventListener("click",function(){
     var t=document.createElement("textarea");
     t.value=combined; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); done();
   }
+});
+var sharePackage="";
+var shareConsent=document.getElementById("shareconsent");
+shareConsent.addEventListener("change",function(){document.getElementById("shareprep").disabled=!shareConsent.checked});
+document.getElementById("shareprep").addEventListener("click",function(){
+  if(!shareConsent.checked||!lastSummary) return;
+  sharePackage="TOP aggregate sharing package\ncreated_utc: "+new Date().toISOString()+"\nraw_file_included: no\nautomatic_submission: no\n"+lastSummary+(surveyBlock()||"\n\nquestionnaire answers:\n  (not provided)");
+  document.getElementById("shareactions").style.display="block";
+  document.getElementById("sharestatus").textContent="Package ready. Nothing has been sent.";
+});
+document.getElementById("sharedownload").addEventListener("click",function(){
+  if(sharePackage) dlFile("top-aggregate-sharing-package.txt",sharePackage,"text/plain");
+});
+document.getElementById("shareemail").addEventListener("click",function(){
+  if(!sharePackage) return;
+  var subject=encodeURIComponent("TOP aggregate usage package");
+  var body=encodeURIComponent(sharePackage);
+  window.location.href="mailto:adam1hartley@gmail.com?subject="+subject+"&body="+body;
 });
 // ---------- Route B: text-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;
