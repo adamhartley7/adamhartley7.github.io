@@ -303,9 +303,9 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 
     <div id="routechooser" hidden role="group" aria-labelledby="routeHeading">
       <h2 id="routeHeading" tabindex="-1"><span class="flow-kicker">3</span>What Do You Want To Do With Your Downloaded History?</h2>
-      <p class="route-intro">Both choices run on this device. Nothing is sent. Choose whether you only want to see your report, or also want a smaller summary you can inspect and download.</p>
+      <p class="route-intro">Both choices run on this device. Nothing is sent. Every successful report is followed by optional questions and a copy you can inspect and download.</p>
       <div class="routechoices">
-        <button type="button" class="routepick" data-route="a" aria-pressed="false"><span class="rlabel">Quickest</span><strong>Just Show My Report</strong><span class="rdesc">Like opening a spreadsheet on your own laptop. TOP opens the downloaded history inside this tab and shows your report. The file stays on this device.</span><span class="rbest">Best if: you only want your own results.</span></button>
+        <button type="button" class="routepick" data-route="a" aria-pressed="false"><span class="rlabel">Quickest</span><strong>Show My Report First</strong><span class="rdesc">Like opening a spreadsheet on your own laptop. TOP shows the report, then offers optional questions and a copy you can download. The original file stays on this device.</span><span class="rbest">Best if: you want the fastest route to your results.</span></button>
         <button type="button" class="routepick" data-route="b" aria-pressed="false"><span class="rlabel">Extra privacy for sharing later</span><strong>Make A Shareable Summary</strong><span class="rdesc">Like sharing a summary of a bank statement instead of the statement itself. The new copy keeps usage totals, AI version names and any optional answers you choose. It leaves out conversation text, code and file contents.</span><span class="rbest">Best if: you may want to share the summary later.</span></button>
       </div>
       <p class="note" id="routehelp">Choose either option. Nothing is sent anywhere.</p>
@@ -694,23 +694,23 @@ if __name__ == "__main__":
       </div>
     </div>
 
-    <div class="survey-actions"><p class="note" style="text-align:left;margin:14px 0">Your selections stay in this tab and can be added to the shareable summary you deliberately download. They are not sent to TOP.</p>
+    <div class="survey-actions"><p class="note" style="text-align:left;margin:14px 0">Your selections stay in this tab and can be added to the copy you deliberately download. They are not sent automatically.</p>
     <div><button class="btn p" id="surveydone">Finish This Step</button> <button class="btn" id="surveyskip">Skip This Step</button> <button class="btn" id="surveysend">Copy My Answers</button> <span id="surveyok" style="color:var(--mint);font-size:13.5px;display:none">Copied.</span></div></div>
   </div>
 
   <section class="share-stage" id="shareWithTop" hidden aria-labelledby="shareWithTopHeading">
     <div class="step-overline">Final Step</div>
-    <h2 id="shareWithTopHeading" tabindex="-1">Download A Shareable Summary</h2>
+    <h2 id="shareWithTopHeading" tabindex="-1">Download My Own Copy</h2>
     <p class="share-lead">Your original file stays on this device. The file below contains usage totals and AI version names. Optional answers appear only if you chose Finish This Step. It leaves out conversation text.</p>
-    <p class="share-hold" id="shareHold"><strong>Sending files to TOP is not open yet.</strong> We are finishing clear rules for permission, storage and deletion. Downloading this summary does not send it to TOP.</p>
+    <p class="share-hold" id="shareHold"><strong>Sending this to Adam and Sam is not live yet.</strong> A safe receiving service still needs to be connected. Downloading your own copy works now and does not send anything.</p>
     <div class="summbox">
       <h3>Exact File Prepared For Download</h3>
       <p>Read this before downloading. The downloaded text file will match this preview.</p>
       <textarea id="finalPackagePreview" readonly aria-label="Exact shareable file preview"></textarea>
     </div>
     <div class="share-buttons">
-      <button type="button" class="btn p" id="safeDownload">Download My Shareable Summary</button>
-      <button type="button" class="btn" id="shareTopPaused" disabled aria-describedby="shareHold">Share With TOP, Paused</button>
+      <button type="button" class="btn p" id="safeDownload">Download My Own Copy</button>
+      <button type="button" class="btn" id="shareTopPaused" disabled aria-describedby="shareHold">Submit To Adam And Sam, Setup Required</button>
     </div>
     <div class="share-status" id="shareStatus" role="status" aria-live="polite"></div>
   </section>
@@ -1019,7 +1019,7 @@ function selectRoute(route){
     a.hidden=false; b.hidden=true;
     var banner=document.getElementById("routebanner");
     banner.textContent=ROUTE_COPY[mode][route];
-    document.getElementById("routehelp").textContent=route==="b"?"This choice makes a new shareable summary for you to inspect and download. It leaves out your conversations.":"This is the fastest choice when you only want to understand your own usage.";
+    document.getElementById("routehelp").textContent=route==="b"?"This choice makes a new shareable summary for you to inspect and download. It leaves out your conversations.":"This is the fastest choice. Your report is followed by optional questions and a copy you can download.";
   }
   setJourney(.48,route==="a"?"Bright morning: choose your downloaded history for a private report.":"Bright morning: choose your downloaded history to make a shareable summary.");
   var target=(route==="b"&&mode==="cc")?b:a;
@@ -1210,6 +1210,14 @@ function resultCountLabels(res){
   if(res.chatExport) return {card:"Messages",table:"Messages",summary:"Messages"};
   return {card:"AI replies with usage data",table:"AI replies",summary:"AI replies with usage data"};
 }
+function revealStandardPostReport(){
+  document.getElementById("shareSummaryBox").hidden=false;
+  document.getElementById("survey").hidden=false;
+  document.getElementById("shareWithTop").hidden=true;
+  setJourney(.68,"Midday: your report is ready. Review it, then add context or skip the optional questions below.");
+  document.getElementById("out").scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("resultsHeading").focus({preventScroll:true});
+}
 function render(res){
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[];
   Object.keys(by).forEach(function(model){
@@ -1288,19 +1296,7 @@ function render(res){
   })});
   renderValueModel(rows, totCost, res);
   document.getElementById("out").style.display="block";
-  var wantsShare=selectedRoute==="b";
-  document.getElementById("shareSummaryBox").hidden=!wantsShare;
-  document.getElementById("survey").hidden=!wantsShare;
-  document.getElementById("shareWithTop").hidden=true;
-  if(wantsShare){
-    setJourney(.68,"Midday: your report and shareable summary are ready on this device. Add context, or skip.");
-    document.getElementById("survey").scrollIntoView({behavior:"smooth",block:"start"});
-    document.getElementById("surveyHeading").focus({preventScroll:true});
-  }else{
-    setJourney(1,"Report ready: your downloaded history stayed on this device.");
-    document.getElementById("out").scrollIntoView({behavior:"smooth",block:"start"});
-    document.getElementById("resultsHeading").focus({preventScroll:true});
-  }
+  revealStandardPostReport();
 }
 
 // ---------- your value model (personalised source-labelled baseline + illustrative right-sizing estimate) ----------
@@ -1671,7 +1667,7 @@ function surveyBlock(){
     var label=choice.querySelector('.choice-copy strong');return label?label.textContent.trim():choice.dataset.value;
   });
   var start=startChoices.join(", ")||"(none)", startOther=resonanceValues().indexOf("something else")>=0?document.getElementById("resonanceOtherText").value.trim():"";
-  var routeName=selectedRoute==="b"?"Make a shareable summary":(selectedRoute==="a"?"Just show my report":"Not selected");
+  var routeName=selectedRoute==="b"?"Make a shareable summary":(selectedRoute==="a"?"Show my report first":"Not selected");
   return "\n\nYour optional answers:\n  What you want to improve: "+start+(startOther?(". Something else: "+startOther):"")+"\n  AI selected: "+MODES[mode].label+"\n  Option selected: "+routeName+"\n  Kinds of AI work: "+arch+"\n  How often you use AI: "+freq+"\n  Main uses: "+prim+(other?(". Something else: "+other):"")+"\n  Usual effort level: "+think+"\n  What you want from TOP: "+goal+"\n  Account type: "+account;
 }
 document.querySelectorAll("#survey .chipgroup").forEach(function(group){
@@ -1719,7 +1715,7 @@ function finishSurvey(skipped){
   includeSurveyContext=!skipped;
   sharePackage=buildSafePackage();
   document.getElementById("finalPackagePreview").value=sharePackage;
-  var message=skipped?"Sunset: questions skipped. Your shareable summary is ready.":"Sunset: context added. Your shareable summary is ready.";
+  var message=skipped?"Sunset: questions skipped. Your own copy is ready.":"Sunset: context added. Your own copy is ready.";
   setJourney(.88,message);
   var share=document.getElementById("shareWithTop");
   share.hidden=false;
@@ -1731,14 +1727,14 @@ document.getElementById("surveyskip").addEventListener("click",function(){finish
 function buildSafePackage(){
   var body=lastSummary;
   if(!body) return "";
-  return "TOP Shareable Summary\nCreated: "+new Date().toISOString()+"\nOriginal history file included: No\nSent automatically: No\nSending to TOP: Paused\nOptional answers included: "+(includeSurveyContext?"Yes":"No")+"\n\n"+body+(includeSurveyContext?surveyBlock():"");
+  return "TOP Usage Summary\nCreated: "+new Date().toISOString()+"\nOriginal history file included: No\nSent automatically: No\nSubmitted to Adam and Sam: No\nOptional answers included: "+(includeSurveyContext?"Yes":"No")+"\n\n"+body+(includeSurveyContext?surveyBlock():"");
 }
 document.getElementById("safeDownload").addEventListener("click",function(){
   sharePackage=sharePackage||buildSafePackage();
   if(!sharePackage) return;
-  dlFile("top-shareable-summary.txt",sharePackage,"text/plain");
-  document.getElementById("shareStatus").textContent="Downloaded to this device. TOP has not received it.";
-  setJourney(1,"Moonrise: your shareable summary is downloaded. TOP has not received it.");
+  dlFile("top-usage-summary-my-copy.txt",sharePackage,"text/plain");
+  document.getElementById("shareStatus").textContent="Your copy was downloaded to this device. Nothing was submitted.";
+  setJourney(1,"Moonrise: your own copy is downloaded. Nothing was submitted.");
 });
 // ---------- Route B: content-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;
