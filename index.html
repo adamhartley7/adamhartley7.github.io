@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TOP: Your AI history should help price your next job</title>
-<meta name="description" content="TOP privately analyzes your existing Claude and ChatGPT usage. It is testing a personalized low, likely, and high cost forecast for your next AI job.">
+<title>TOP: Use your AI history to estimate your next task</title>
+<meta name="description" content="TOP creates a private report from your Claude and ChatGPT history on your device. It is testing a low, likely, and high cost estimate for your next AI task.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%238B5CF6'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
 :root{
   --bg:#08080A; --bg-1:#0C0C0F; --panel:#141418; --panel-2:#191920;
   --border:#232329; --border-2:#33333d;
-  --text:#F1F1F3; --muted:#9B9BA6; --faint:#6A6A74;
+  --text:#F1F1F3; --muted:#9B9BA6; --faint:#878791;
   --iris:#8B5CF6; --iris-2:#C4A7FF; --glow:rgba(139,92,246,.36);
   --mint:#3ECF8E; --amber:#E8B23A; --red:#F26D6D;
   --maxw:1120px;
@@ -35,6 +35,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .black-hole img{display:block;width:100%;height:auto;object-fit:contain;object-position:center}
 .mono{font-family:"JetBrains Mono",monospace}
 a{color:inherit;text-decoration:none}
+.skip-link{position:fixed;z-index:100;top:8px;left:8px;padding:10px 14px;border-radius:9px;background:#fff;color:#111;font-weight:700;transform:translateY(-150%)}
+.skip-link:focus{transform:translateY(0)}
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--iris-2);outline-offset:3px}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
 .eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--iris-2)}
 h1,h2,h3{letter-spacing:-.02em;line-height:1.08;font-weight:700}
@@ -91,6 +94,11 @@ nav>.wrap>.btn-primary{min-width:190px;justify-content:center;background:linear-
 .hero .sub{font-size:clamp(17px,2.1vw,21px);color:var(--muted);max-width:56ch;margin:0 auto 34px}
 .hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .hero .btn{padding:13px 24px;font-size:16px}
+@media(max-width:640px){
+  .hero .wrap{display:flex;flex-direction:column;align-items:center}
+  .hero .badge{order:1}.hero h1{order:2}.hero .sub{order:3}.hero .cta{order:4}
+  .hero-orbit-stage{order:5;margin-top:34px}.hero .stage{order:6;width:100%;margin-top:38px}
+}
 
 /* product card */
 .stage{max-width:900px;margin:56px auto 0;position:relative}
@@ -291,37 +299,32 @@ footer a:hover{color:var(--muted)}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
 <div class="coast-world" aria-hidden="true">
   <div class="coast-stars"></div>
   <div class="shooting-star s1"></div>
   <div class="shooting-star s2"></div>
   <div class="black-hole"><img src="assets/eht-m87-black-hole.webp" alt=""></div>
 </div>
-<nav>
+<nav aria-label="Main navigation">
   <div class="wrap">
     <a class="logo" href="#"><span class="mini-emblem" aria-hidden="true"><span>TOP<small>123</small></span></span> TOP</a>
     <div class="navlinks">
       <div class="navdrop">
-        <button type="button" aria-haspopup="true" aria-expanded="false">Explore <span class="car">▼</span></button>
-        <div class="dropdown">
-          <a href="#usp">Why TOP is different<small>Your history should help price your next job</small></a>
+        <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="explore-menu">Explore <span class="car">▼</span></button>
+        <div class="dropdown" id="explore-menu">
+          <a href="#usp">What TOP does<small>The receipt and quote idea</small></a>
           <a href="#suite">Meet TOP 1, 2 and 3<small>Icarus, Daedalus and Athena</small></a>
-          <a href="#problem">The problem<small>A price list is not a quote for the whole job</small></a>
-          <a href="#how">How TOP-1 should work<small>From a job description to a cost range</small></a>
-          <a href="/analyze/">Analyze past usage<small>Live now, private and on your device</small></a>
-          <a href="#status">What exists today<small>Live, testing and planned</small></a>
-          <a href="#valuemodel">The TOP-2 idea<small>Cheaper work, useful work and total spend</small></a>
-          <a href="#privacy">Privacy<small>Local analysis and user-controlled exports</small></a>
-          <a href="#partner">Founding partners<small>Calibrate it, shape it</small></a>
-          <a href="#about">About<small>Founder and contact details</small></a>
-          <a href="/pitch/">Value model detail<small>The full business case</small></a>
+          <a href="#valuemodel">Cost and useful work<small>A simple TOP-2 example</small></a>
+          <a href="#status">What works now<small>Available, being tested and later</small></a>
+          <a href="#about">About<small>Founders and contact details</small></a>
         </div>
       </div>
     </div>
     <details class="mobile-nav">
       <summary>Explore ▼</summary>
       <div class="mobile-menu">
-        <a href="#usp">Why TOP is different</a><a href="#suite">TOP 1, 2 and 3</a><a href="#problem">The problem</a><a href="#how">How TOP-1 should work</a><a href="/analyze/">Analyze past usage</a><a href="#status">What exists today</a><a href="#valuemodel">The TOP-2 idea</a><a href="#privacy">Privacy</a><a href="#partner">Founding partners</a><a href="#about">About</a><a href="/pitch/">Value model detail</a>
+        <a href="#usp">What TOP does</a><a href="#suite">TOP 1, 2 and 3</a><a href="#valuemodel">Cost and useful work</a><a href="#status">What works now</a><a href="#about">About</a>
       </div>
     </details>
     <a class="btn btn-primary" href="/analyze/">Analyze past usage</a>
@@ -329,6 +332,7 @@ footer a:hover{color:var(--muted)}
 </nav>
 
 <!-- HERO -->
+<main id="main-content">
 <header class="hero">
   <div class="wrap">
     <div class="hero-orbit-stage" id="topOrbitStage" aria-label="Interactive three-dimensional TOP emblem">
@@ -392,12 +396,12 @@ footer a:hover{color:var(--muted)}
 
       <a class="hero-analyze-cta" href="/analyze/">
         <strong>Analyze Past Usage</strong>
-        <small>Private on-device analysis, nothing sends itself</small>
+        <small>Your chosen history file is not sent to TOP</small>
       </a>
     </div>
-    <div class="badge"><span class="d"></span> TOP-1: Icarus, in development</div>
-    <h1>Your last AI jobs should help price your next one.</h1>
-    <p class="sub">TOP is testing a personalized forecast that learns from your own history and gives you a low, likely and high cost range before you start. Today, the local analyzer shows how you already use Claude and ChatGPT on your device. The pre-run forecast is still being tested.</p>
+    <div class="badge"><span class="d"></span> TOP-1: Icarus, being tested</div>
+    <h1>Your past AI tasks should help price your next one.</h1>
+    <p class="sub">TOP uses your past Claude and ChatGPT work to test a low, likely and high cost estimate for the next task. Today, you can privately turn a downloaded copy of your account history into a report on this device. The next-task estimate is still being tested.</p>
     <div class="cta">
       <a class="btn btn-primary" href="/analyze/">Analyze my past usage</a>
       <a class="btn btn-ghost" href="#suite">Meet TOP 1, 2 and 3</a>
@@ -406,7 +410,7 @@ footer a:hover{color:var(--muted)}
     <div class="stage reveal">
       <div class="card">
         <div class="cardtop"><span class="dt"></span><span class="dt"></span><span class="dt"></span><span class="lbl">THE TOP-1 VISION, NOT LIVE YET</span></div>
-        <div class="qline">Job: update sign-in and add tests</div>
+        <div class="qline">Task: update sign-in and add tests</div>
         <div class="band">
           <div class="bl"><span>lower estimate</span><span>most likely</span><span>higher estimate</span></div>
           <div class="track"><div class="fill"></div><div class="p50"></div></div>
@@ -415,14 +419,14 @@ footer a:hover{color:var(--muted)}
             <div class="fig mid"><div class="n">€0.42</div><div class="k">LIKELY</div></div>
             <div class="fig hi"><div class="n">€1.10</div><div class="k">HIGH</div></div>
           </div>
-          <div class="guard"><span class="chip">future idea</span> A later control could stop a job at your chosen limit. It is not live today.</div>
+          <div class="guard"><span class="chip">future idea</span> A later control could stop a task at your chosen spending limit. It does not work today.</div>
         </div>
       </div>
     </div>
   </div>
 </header>
 
-<div class="trust wrap">Tested on <b>real AI usage</b> &nbsp;·&nbsp; limitations shown clearly &nbsp;·&nbsp; your files stay on your device</div>
+<div class="trust wrap"><b>WORKS NOW:</b> see past usage &nbsp;·&nbsp; <b>BEING TESTED:</b> estimate the next task &nbsp;·&nbsp; <b>LATER:</b> help choose the right AI</div>
 
 <!-- USP -->
 <section class="blk" id="usp">
@@ -430,20 +434,20 @@ footer a:hover{color:var(--muted)}
     <div class="usp-panel reveal">
       <div class="usp-main">
         <div class="eyebrow">what makes TOP different</div>
-        <h2>A receipt tells you what happened. TOP aims to give you the quote first.</h2>
-        <p>A model price list tells you what one token costs. It cannot tell you how many attempts, tool calls or extra turns a whole job will need. TOP's bet is that your own completed jobs can make the next estimate more useful.</p>
+        <h2>A normal usage screen is a receipt. TOP aims to give you the quote first.</h2>
+        <p>AI companies publish prices for small pieces of text. That does not tell you the price of finishing a real task. The AI may need several attempts, use other software or continue the conversation. TOP is testing whether your previous work can make the next estimate more useful.</p>
         <div class="usp-analogy"><strong>Think of a taxi with no meter.</strong> AI work can feel like getting in without knowing the fare. TOP aims to show a sensible range before the journey starts.</div>
       </div>
       <div class="usp-side">
         <div class="usp-note live">
           <div class="k">live today</div>
-          <h3>Your private AI-usage mirror</h3>
-          <p>Choose an existing Claude or ChatGPT export and understand it on your own device. No code change or API key is needed.</p>
+          <h3>See how you have used AI</h3>
+          <p>Choose a downloaded copy of your Claude or ChatGPT history. The report is created on your device. You do not need to change code or connect a developer account.</p>
         </div>
         <div class="usp-note">
           <div class="k">the idea we are testing</div>
-          <h3>A forecast that learns from your work</h3>
-          <p>TOP is not the only product trying to forecast AI costs. Its intended difference is a personal low, likely and high range for a whole job, shaped by how your past jobs actually ran. We still need to prove that this improves accuracy.</p>
+          <h3>Estimate the next task before it starts</h3>
+          <p>TOP is not the only product trying to estimate AI costs. The difference we are testing is a personal low, likely and high amount for a complete task, shaped by what your past tasks actually used. We still need to prove that this makes the estimate more accurate.</p>
         </div>
       </div>
     </div>
@@ -455,33 +459,33 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="shead reveal">
       <div class="eyebrow">one system, three layers</div>
-      <h2 style="margin-top:14px">Know the cost. Choose the route. Improve the work.</h2>
-      <p>TOP stands for Token Optimization Protocol. Each layer has one clear job. TOP-1 is the active product lane. TOP-2 and TOP-3 are planned research, not finished products. Icarus, Daedalus and Athena are working names.</p>
+      <h2 style="margin-top:14px">Know the cost. Choose the right AI. Improve the work.</h2>
+      <p>TOP stands for Token Optimization Protocol, meaning a system for getting more useful work from your AI allowance. Tokens are the small pieces of text AI services count when measuring usage. TOP-1 is what we are building now. TOP-2 and TOP-3 are ideas for later. Icarus, Daedalus and Athena are temporary names.</p>
     </div>
     <div class="suite-grid">
       <article class="suite-card one reveal">
-        <div class="suite-tag">TOP-1 · Icarus · internal prototype</div>
+        <div class="suite-tag">TOP-1 · Icarus · being tested</div>
         <h3>Know before you fly.</h3>
         <div class="memory">Icarus is the warning.</div>
-        <p>In the myth, Icarus ignored the safe limit and flew too close to the sun. TOP-1 aims to show a low, likely and high cost before an AI job begins.</p>
-        <div class="analogy">Like a weather forecast for an AI job. It shows the likely range, not a fake promise of the exact bill.</div>
-        <div class="state"><b>Public today:</b> analysis of past usage. <b>In testing:</b> the pre-run forecast. It has not yet passed a clean public end-to-end demo.</div>
+        <p>In the myth, Icarus ignored the safe limit and flew too close to the sun. TOP-1 aims to show a low, likely and high cost before an AI task begins.</p>
+        <div class="analogy">Like a weather forecast for an AI task. It shows a likely range, not a promise of the exact bill.</div>
+        <div class="state"><b>Works today:</b> a report about past usage. <b>Being tested:</b> the next-task estimate. We have not yet shown the complete estimate working reliably in a public test.</div>
       </article>
       <article class="suite-card two reveal">
-        <div class="suite-tag">TOP-2 · Daedalus · planned research</div>
+        <div class="suite-tag">TOP-2 · Daedalus · idea for later</div>
         <h3>Choose a smarter route.</h3>
         <div class="memory">Daedalus is the inventor.</div>
-        <p>Daedalus built the wings and understood the safe way to fly. TOP-2 is planned to compare AI models and find the right balance of cost and quality for a job.</p>
+        <p>Daedalus built the wings and understood the safe way to fly. TOP-2 is an idea for comparing AI versions and finding the right balance of cost and quality for a task.</p>
         <div class="analogy">Like sat-nav choosing the route, not merely showing the fuel price.</div>
-        <div class="state"><b>Not shipped. Not benchmarked.</b> There is no verified savings claim yet.</div>
+        <div class="state"><b>Not available yet.</b> We have not proved that it saves money.</div>
       </article>
       <article class="suite-card three reveal">
-        <div class="suite-tag">TOP-3 · Athena · planned research</div>
+        <div class="suite-tag">TOP-3 · Athena · idea for later</div>
         <h3>Learn to work smarter.</h3>
         <div class="memory">Athena is the strategist.</div>
         <p>Athena represents wisdom and strategy. TOP-3 is planned as a personal coach that asks useful questions, learns how you work and helps turn a rough request into a better plan.</p>
-        <div class="analogy">Like a coach who knows your game, not a generic prompt template.</div>
-        <div class="state"><b>Not shipped. Not benchmarked.</b> This is a research direction, not a current feature.</div>
+        <div class="analogy">Like a coach who knows how you work, not the same set of instructions for everyone.</div>
+        <div class="state"><b>Not available yet.</b> We have not proved that it improves anyone's work.</div>
       </article>
     </div>
   </div>
@@ -492,13 +496,13 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="shead reveal">
       <div class="eyebrow">why it matters</div>
-      <h2 style="margin-top:14px">A token price is not a quote for the whole job.</h2>
-      <p>A price list for bricks cannot tell you what a whole house will cost. AI work has the same problem.</p>
+      <h2 style="margin-top:14px">The advertised AI price is not the price of finishing your task.</h2>
+      <p>A price list for bricks cannot tell you what a whole house will cost. An AI price list has the same problem.</p>
     </div>
     <div class="grid3">
-      <div class="tile reveal"><div class="ic">01</div><h3>One job hides many steps</h3><p>A short request can trigger planning, tool calls, retries and long conversations. The price per token does not reveal the final bill.</p></div>
-      <div class="tile reveal"><div class="ic">02</div><h3>Your habits change the cost</h3><p>Two people can ask for the same result and use AI very differently. A useful forecast should learn from how your work actually runs.</p></div>
-      <div class="tile reveal"><div class="ic">03</div><h3>The lesson arrives too late</h3><p>A bill is a rear-view mirror. By the time it shows an expensive job, the money and time have already been spent.</p></div>
+      <div class="tile reveal"><div class="ic">01</div><h3>One task can hide many steps</h3><p>A short request can lead to planning, extra software, repeated attempts and a long conversation. The advertised price does not reveal the final bill.</p></div>
+      <div class="tile reveal"><div class="ic">02</div><h3>Your habits change the cost</h3><p>Two people can ask for the same result and use AI very differently. A useful estimate should learn from how your work actually runs.</p></div>
+      <div class="tile reveal"><div class="ic">03</div><h3>The lesson arrives too late</h3><p>A bill is a rear-view mirror. By the time it shows an expensive task, the money and time have already been spent.</p></div>
     </div>
   </div>
 </section>
@@ -508,13 +512,13 @@ footer a:hover{color:var(--muted)}
   <div class="wrap">
     <div class="shead reveal">
       <div class="eyebrow">the TOP-1 goal</div>
-      <h2 style="margin-top:14px">From one job description to a sensible range.</h2>
-      <p>This is how Icarus is intended to work. The public analyzer does not forecast the next job yet.</p>
+      <h2 style="margin-top:14px">From one task description to a sensible range.</h2>
+      <p>This is how Icarus is intended to work. The report available today does not estimate your next task yet.</p>
     </div>
     <div class="grid3">
-      <div class="tile reveal"><div class="step-n">01</div><h3>Describe the job</h3><p>Say what you want in everyday words, such as fixing a sign-in bug, researching a market or drafting a report.</p></div>
-      <div class="tile reveal"><div class="step-n">02</div><h3>Compare it with the past</h3><p>TOP aims to find similar completed jobs and use your own history when enough useful history exists.</p></div>
-      <div class="tile reveal"><div class="step-n">03</div><h3>See the range and decide</h3><p>A low, likely and high figure should help you run the job, change the approach or wait. It is a forecast, not a guarantee.</p></div>
+      <div class="tile reveal"><div class="step-n">01</div><h3>Describe the task</h3><p>Say what you want in everyday words, such as fixing a sign-in bug, researching a market or drafting a report.</p></div>
+      <div class="tile reveal"><div class="step-n">02</div><h3>Compare it with the past</h3><p>TOP aims to find similar completed tasks and use your own history when enough useful history exists.</p></div>
+      <div class="tile reveal"><div class="step-n">03</div><h3>See the range and decide</h3><p>A low, likely and high figure should help you run the task, change the approach or wait. It is an estimate, not a guarantee.</p></div>
     </div>
   </div>
 </section>
@@ -525,29 +529,29 @@ footer a:hover{color:var(--muted)}
     <div class="analyse-band reveal">
       <div class="shead" style="margin-bottom:clamp(30px,4vw,44px)">
         <div class="eyebrow">available now</div>
-        <h2 style="margin-top:14px">Start with the rear-view mirror.</h2>
-        <p>Before TOP can forecast the road ahead, it needs to understand past trips. Choose an existing export and see a private breakdown on your device.</p>
+        <h2 style="margin-top:14px">Start with what already happened.</h2>
+        <p>Download a copy of your Claude or ChatGPT history and open it here. Your report is created on your device.</p>
       </div>
       <div class="atomic">
         <div class="acard reveal">
           <div class="atag priv"><span class="dot"></span>01 · bring your history</div>
-          <h3>Choose an export you own</h3>
-          <p>Start with an existing Claude or ChatGPT export. You do not need to change code or connect an API key.</p>
+          <h3>Choose a copy of your history</h3>
+          <p>Use a copy downloaded from Claude or ChatGPT. You do not need to change code or connect a developer account.</p>
         </div>
         <div class="acard reveal">
           <div class="atag how"><span class="dot"></span>02 · keep it private</div>
           <h3>Your file stays with you</h3>
-          <p>The browser reads it on your device. Nothing is uploaded to TOP or sent automatically.</p>
+          <p>The browser reads the history file on your device. That file is not uploaded or sent to TOP.</p>
         </div>
         <div class="acard reveal">
           <div class="atag val"><span class="dot"></span>03 · see the pattern</div>
           <h3>Understand how you use AI</h3>
-          <p>Review token activity and task patterns. Any spend estimate is clearly labelled so it is not mistaken for a recorded bill.</p>
+          <p>See how much AI you used, when you used it and which kinds of work used the most. Any cost estimate is labelled so it is not mistaken for a recorded bill.</p>
         </div>
       </div>
       <div class="acta reveal">
         <a class="btn btn-primary" href="/analyze/">Analyze my past usage →</a>
-        <div class="sub">No account · no code change · nothing sent automatically</div>
+        <div class="sub">No new account · no code change · your chosen file is not sent to TOP</div>
       </div>
     </div>
   </div>
@@ -559,14 +563,14 @@ footer a:hover{color:var(--muted)}
     <div class="shead reveal">
       <div class="eyebrow">where it stands</div>
       <h2 style="margin-top:14px">What is real today.</h2>
-      <p>One public tool, one internal prototype and two research plans.</p>
+      <p>One tool works now, one feature is being tested and two ideas are planned for later.</p>
     </div>
     <div class="status reveal">
-      <div class="m"><div class="n g">Live now</div><div class="k">A local analyzer for selected Claude and ChatGPT exports</div></div>
-      <div class="m"><div class="n a">Internal</div><div class="k">TOP-1 Icarus, a pre-run cost forecast being tested</div></div>
-      <div class="m"><div class="n w">Research</div><div class="k">TOP-2 Daedalus and TOP-3 Athena are planned, not shipped</div></div>
+      <div class="m"><div class="n g">Works now</div><div class="k">A report made from a downloaded copy of your Claude or ChatGPT history, without sending the file to TOP</div></div>
+      <div class="m"><div class="n a">Being tested</div><div class="k">TOP-1 Icarus, an estimate shown before the task begins</div></div>
+      <div class="m"><div class="n w">Later ideas</div><div class="k">TOP-2 Daedalus and TOP-3 Athena are not available yet</div></div>
     </div>
-    <p class="honest reveal"><b>The early forecast is not accurate enough yet.</b> In one internal test on a single founder's Claude Code history, 773 of 849 sessions were one repeated workflow. Among 63 later sessions outside that workflow, the typical estimate was about 3.3 times the actual API-equivalent cost. This is a single-user test, not proof that TOP works for everyone.</p>
+    <p class="honest reveal"><b>The early estimate is not accurate enough yet.</b> In a test using one founder's Claude Code history, most records came from the same repeated task. Across 63 later sessions from other work, the typical estimate was about 3.3 times what the same usage would have cost at standard developer prices, where each amount of AI use is billed separately. That tells us what to fix. It does not prove that TOP works for everyone.</p>
   </div>
 </section>
 
@@ -574,17 +578,17 @@ footer a:hover{color:var(--muted)}
 <section class="blk" id="valuemodel">
   <div class="wrap">
     <div class="shead reveal">
-      <div class="eyebrow">the TOP-2 thought experiment</div>
+      <div class="eyebrow">a simple example for TOP-2</div>
       <h2 style="margin-top:14px">Cheaper is not better if the work gets worse.</h2>
-      <p>Daedalus is planned to balance cost and quality, not blindly choose the cheapest model. This chart shows the idea with example numbers. It is not a measured customer result.</p>
+      <p>Daedalus is an idea for helping people choose which AI version to use for each task. The cheapest option is useless if it gives worse work. This chart uses made-up numbers to explain the idea. It is not a customer result.</p>
     </div>
     <div class="vm-stage reveal">
       <div class="vm-card">
         <div class="cardtop"><span class="dt"></span><span class="dt"></span><span class="dt"></span><span class="lbl">TOP-2 IDEA, EXAMPLE NUMBERS ONLY</span></div>
         <div class="vm-legend">
           <span><span class="sw" style="background:#F26D6D"></span>what the AI costs</span>
-          <span><span class="sw" style="background:#3ECF8E"></span>value of useful work</span>
-          <span><span class="sq" style="background:rgba(53,245,160,.42)"></span>value left after the cost</span>
+          <span><span class="sw" style="background:#3ECF8E"></span>invented example of useful work</span>
+          <span><span class="sq" style="background:rgba(53,245,160,.42)"></span>invented example after the cost</span>
         </div>
         <div class="vm-layout">
           <div class="vm-plot">
@@ -605,12 +609,12 @@ footer a:hover{color:var(--muted)}
             </div>
             <p class="vm-cap" id="vm_cap">Keep most of the saving while the value of the work keeps rising.</p>
             <div class="vm-cards">
-              <div class="vm-stat"><div class="k">value for each unit of cost, before</div><div class="n">~0.85</div></div>
-              <div class="vm-stat after"><div class="k">illustrative value for each unit of cost</div><div class="n"><span id="vm_vpa">5.4</span></div></div>
-              <div class="vm-stat imp"><div class="k">illustrative improvement</div><div class="n"><span id="vm_imp">6.3</span>×</div></div>
+              <div class="vm-stat"><div class="k">useful work for every €1 or $1 spent, before</div><div class="n">~0.85</div></div>
+              <div class="vm-stat after"><div class="k">invented example, useful work for every €1 or $1 spent</div><div class="n"><span id="vm_vpa">5.4</span></div></div>
+              <div class="vm-stat imp"><div class="k">invented example change</div><div class="n"><span id="vm_imp">6.3</span>×</div></div>
             </div>
             <p class="vm-illus">Illustrative, not measured. These are example figures, not a customer's results.</p>
-            <div class="jevons-note"><strong>Why a cheaper task may not mean a smaller total bill</strong>When each task costs less, teams may run more tasks. The price per task falls, but the total bill can still rise. Economists call this the Jevons effect.</div>
+            <div class="jevons-note"><strong>Why a cheaper task may not mean a smaller total bill</strong>When each task costs less, teams may run more tasks. The price per task falls, but the total bill can still rise. This pattern is sometimes called the Jevons effect.</div>
           </div>
         </div>
       </div>
@@ -624,13 +628,13 @@ footer a:hover{color:var(--muted)}
     <div class="shead reveal">
       <div class="eyebrow">privacy</div>
       <h2 style="margin-top:14px">Your files stay on your device.</h2>
-      <p>The analyzer reads them in your browser. Nothing is uploaded automatically.</p>
+      <p>The analyzer reads your chosen history file in your browser. That file is not uploaded to TOP.</p>
     </div>
     <div class="plist">
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Processed on your device.</b> <span>Your export is read locally in the browser.</span></div></div>
-      <div class="prow reveal"><span class="ck">✓</span><div><b>You decide what to share.</b> <span>TOP does not send anything automatically.</span></div></div>
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Raw content stays private.</b> <span>The shareable summary excludes prompts, replies, code, and raw identifiers.</span></div></div>
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Partner collection is not open yet.</b> <span>It stays paused until consent, deletion, and responsibility rules are agreed.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Opened only on your device.</b> <span>Your browser creates the report without sending the file to TOP.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>You decide what to share.</b> <span>The analyzer does not send your chosen history file to TOP.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Your conversations stay out of the shareable copy.</b> <span>The copy leaves out conversations, replies, code and internal ID numbers.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Partner collection is not open yet.</b> <span>We will not accept partner files until we have clear rules for permission, storage and deletion.</span></div></div>
     </div>
   </div>
 </section>
@@ -639,11 +643,11 @@ footer a:hover{color:var(--muted)}
 <section class="blk" id="partner">
   <div class="wrap">
     <div class="offer reveal">
-      <div class="eyebrow">founding partners</div>
-      <h2 style="margin-top:14px">Help us test TOP with real business workloads.</h2>
-      <p>We are preparing a small founding-partner programme to improve the forecast. External data collection has not opened yet.</p>
+      <div class="eyebrow">early test partners</div>
+      <h2 style="margin-top:14px">Help us test TOP with real work from businesses.</h2>
+      <p>We plan to invite a small group of businesses to help improve the estimate. We are not accepting their files yet.</p>
       <div class="exchange">
-        <div class="xc in"><div class="t">you share</div><p>If you choose to join later: a user-reviewed, content-free summary of usage totals and patterns, not raw prompts or code.</p></div>
+        <div class="xc in"><div class="t">you share</div><p>If you choose to join later: a summary you have checked yourself. It would show totals and broad patterns, but not your conversations or code.</p></div>
         <div class="xc out"><div class="t">you get</div><p>A private review of your AI spend, early product access, and a voice in what we build next.</p></div>
       </div>
     </div>
@@ -657,9 +661,11 @@ footer a:hover{color:var(--muted)}
       <div class="founder-avatars"><div class="av">AH</div><div class="av">SO</div></div>
       <div>
         <h3>Built by Adam Hartley, co-founded with Sam O'Connell</h3>
-        <p>Adam and Sam are building TOP to make AI spending easier to understand and control. TOP is an early-stage product. Sam's public profile links will be added after he provides and approves them.</p>
+        <p>Adam and Sam are building TOP to make AI spending easier to understand and control. Adam leads the current product build. Sam helps shape the business, challenge the claims and test whether the explanation makes sense to a new reader.</p>
         <div class="lk">
-          <a href="https://www.linkedin.com/in/adam-hartley-966a8741b/" target="_blank" rel="noopener">LinkedIn ↗</a>
+          <a href="https://www.linkedin.com/in/adam-hartley-966a8741b/" target="_blank" rel="noopener">Adam on LinkedIn ↗</a>
+          <a href="https://www.linkedin.com/in/sam-o-connell/" target="_blank" rel="noopener">Sam on LinkedIn ↗</a>
+          <a href="https://github.com/sam-oconnell77" target="_blank" rel="noopener">Sam on GitHub ↗</a>
           <a href="mailto:adam1hartley@gmail.com">adam1hartley@gmail.com</a>
           <a href="tel:+353852687653">+353 85 268 7653</a>
         </div>
@@ -671,14 +677,16 @@ footer a:hover{color:var(--muted)}
 <!-- FINAL CTA -->
 <section class="final">
   <div class="wrap reveal">
-    <h2>Start with the rear-view mirror. Help us build the forecast.</h2>
-    <p>Analyze your past usage privately, or tell us about the AI jobs you wish came with a quote.</p>
+    <h2>See what happened before. Help us estimate what comes next.</h2>
+    <p>Analyze your past usage privately, or tell us about the AI tasks you wish came with a quote.</p>
     <div class="cta" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
       <a class="btn btn-primary" style="padding:14px 28px;font-size:16px" href="/analyze/">Analyze past usage →</a>
       <a class="btn btn-ghost" style="padding:14px 28px;font-size:16px" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Talk to the founders</a>
     </div>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div class="wrap">
@@ -1004,6 +1012,5 @@ var els=document.querySelectorAll('.reveal');
 if(REDUCE||!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});}
 else{var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}})},{threshold:.12,rootMargin:'0px 0px -8% 0px'});els.forEach(function(e){io.observe(e)});}
 </script>
-<script data-goatcounter="https://adamhartley7.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

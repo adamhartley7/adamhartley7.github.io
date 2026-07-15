@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
-<title>TOP Analyzer: understand your AI usage locally</title>
-<meta name="description" content="Analyze Claude Code, Claude Chat, Claude Console, or ChatGPT exports locally. Nothing is uploaded automatically.">
+<title>TOP Usage Report: understand how you use AI on your device</title>
+<meta name="description" content="Open a downloaded copy of your Claude or ChatGPT history and create a private usage report on your device. Nothing is uploaded automatically.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -26,7 +26,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .journey-water{position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen;opacity:.52}
 .journey-stars{position:absolute;z-index:2;inset:0 0 48%;opacity:var(--star-alpha);transition:opacity 1.2s ease;background-image:radial-gradient(1.3px 1.3px at 9% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 26% 42%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 44% 14%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 62% 35%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 80% 18%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 41%,#fff 45%,transparent 55%)}
 .journey-sun,.journey-moon{position:absolute;left:var(--sun-x);top:var(--sun-y);width:clamp(64px,8.5vw,118px);aspect-ratio:1;border-radius:50%;overflow:hidden;transform:translate(-50%,-50%);transition:left 1s cubic-bezier(.2,.8,.2,1),top 1s cubic-bezier(.2,.8,.2,1),opacity 1s ease}
-.journey-sun{z-index:3;opacity:var(--sun-alpha);background:radial-gradient(circle at 36% 32%,#fffef5 0 8%,#fff8d6 20%,#ffe291 48%,#ffc45d 72%,#ed8c35 100%);border:1px solid rgba(255,248,210,.72);box-shadow:inset -12px -15px 22px rgba(202,91,24,.22),inset 8px 8px 15px rgba(255,255,238,.40),0 0 26px 9px rgba(255,221,145,.58),0 0 78px 28px rgba(255,146,61,.24)}
+.journey-sun{z-index:3;opacity:var(--sun-alpha);background:#110503 url("../assets/nasa-sdo-sun-pia26681.webp") center/cover no-repeat;border:1px solid rgba(255,248,210,.52);box-shadow:0 0 26px 9px rgba(255,221,145,.50),0 0 78px 28px rgba(255,146,61,.22)}
 .journey-moon{z-index:3;left:var(--moon-x);top:var(--moon-y);width:clamp(50px,6.5vw,84px);opacity:var(--moon-alpha);background:#020305 url("../assets/nasa-lro-full-moon-2017.webp") center/118% no-repeat;box-shadow:0 0 0 1px rgba(231,242,248,.38),0 0 26px rgba(213,240,246,.42)}
 .journey-rail{position:sticky;top:70px;z-index:4;margin:0 0 22px;padding:13px 16px;border:1px solid rgba(255,255,255,.86);border-radius:18px;background:rgba(255,255,255,.86);box-shadow:0 14px 34px rgba(25,66,92,.12);backdrop-filter:blur(16px)}
 .journey-meta{display:flex;justify-content:space-between;gap:16px;align-items:center;font-weight:750;font-size:14px}.journey-meta span{color:var(--muted);font-weight:650}.journey-meta strong{color:#087f62}
@@ -35,7 +35,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .intake-hold strong{font-size:15px}.intake-hold span{max-width:66ch}
 .resonance-step{margin:4px 0 30px;padding:clamp(20px,4vw,34px);border:1px solid rgba(255,255,255,.88);border-radius:27px;background:rgba(255,255,255,.88);box-shadow:0 22px 54px rgba(24,69,91,.13)}
 .resonance-step[hidden],#providerStep[hidden],#routechooser[hidden]{display:none!important}
-.resonance-step h1{font-size:clamp(28px,4.5vw,44px);max-width:18ch;margin:0 0 12px;text-align:left;line-height:1.08}
+.resonance-step h1,.resonance-step h2{font-size:clamp(28px,4.5vw,44px);max-width:18ch;margin:0 0 12px;text-align:left;line-height:1.08}
 .step-overline{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#087f62;font-weight:850;margin-bottom:8px}
 .step-lead{color:var(--muted);font-size:16px;margin:-2px 0 18px;max-width:66ch}
 .resonance-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -54,6 +54,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .step-back{display:inline-flex;margin:0 0 2px;padding:7px 10px;border:0;border-radius:10px;background:rgba(255,255,255,.72);color:var(--muted);font:inherit;font-size:13px;font-weight:750;cursor:pointer}.step-back:hover{background:#fff;color:var(--text)}.step-back:focus-visible{outline:3px solid #168c94;outline-offset:2px}
 .mono{font-family:"JetBrains Mono",monospace}
 a{color:var(--iris2);text-decoration:none}
+.skip-link{position:fixed;z-index:100;top:8px;left:8px;padding:10px 14px;border-radius:9px;background:#fff;color:#111;font-weight:700;transform:translateY(-150%)}
+.skip-link:focus{transform:translateY(0)}
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid #168c94;outline-offset:3px}
 .wrap{max-width:960px;margin:0 auto;padding:0 22px}
 nav{border-bottom:1px solid rgba(255,255,255,.55);position:sticky;top:0;background:rgba(247,251,253,.76);backdrop-filter:blur(18px) saturate(1.3);z-index:5;box-shadow:0 8px 30px rgba(26,70,98,.08)}
 nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
@@ -102,6 +105,7 @@ th{color:var(--faint);font-family:"JetBrains Mono",monospace;font-size:11px;lett
 td.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
 tfoot td{font-weight:700;border-top:1px solid var(--border2);border-bottom:none}
 .summbox{background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.84);border-radius:20px;padding:22px;margin:22px 0;box-shadow:0 16px 38px rgba(25,66,92,.10)}
+.summbox[hidden]{display:none!important}
 .summbox h3{font-size:15px;margin-bottom:6px}
 .summbox p{color:var(--muted);font-size:14px;margin-bottom:12px}
 textarea{width:100%;min-height:150px;background:#f7fbfd;border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:12.5px;padding:14px;resize:vertical}
@@ -222,6 +226,10 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .privbox{background:rgba(62,207,142,.06);border:1px solid rgba(62,207,142,.3);border-radius:12px;padding:14px 16px;margin:14px 0;color:var(--muted);font-size:13.5px;line-height:1.6}
 .privbox b{color:var(--mint)}
 .dlrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+.technical-details{margin:16px 0;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.72);overflow:hidden}
+.technical-details>summary{cursor:pointer;padding:14px 17px;color:var(--text);font-weight:750;list-style:none}
+.technical-details>summary::-webkit-details-marker{display:none}.technical-details>summary::after{content:"Show";float:right;color:var(--iris2);font-size:13px}.technical-details[open]>summary::after{content:"Hide"}
+.technical-details>.details-body{padding:0 17px 17px}
 @media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.routechoices,.resonance-grid{grid-template-columns:1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.chipgroup.arch{grid-template-columns:1fr}.resonance-choice{min-height:88px}.resonance-actions .btn{width:100%}}
 @media(max-width:640px){.vcard .vcontrols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 10px;width:100%}.vcard .vcontrols label{grid-column:1/-1;min-width:0}.vcard .gval{min-width:72px}.vcard .plot{overflow:hidden}.vcard .plot svg{display:block;width:100%;max-width:100%;height:auto}}
 @media(max-width:430px){.tabs{grid-template-columns:1fr}.tab{min-height:82px}}
@@ -229,69 +237,75 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to the usage report</a>
 <div class="journey-world" aria-hidden="true">
   <div class="journey-stars"></div>
   <div class="journey-sun"></div>
   <div class="journey-moon"></div>
 </div>
-<nav><div class="wrap">
+<nav aria-label="Analyzer navigation"><div class="wrap">
   <a class="logo" href="/"><span class="mini-emblem" aria-hidden="true"><span>TOP<small>123</small></span></span> TOP</a>
   <a class="back" href="/">← back to TOP</a>
 </div></nav>
 
-<div class="wrap">
+<main class="wrap" id="main-content">
+  <header>
+    <div class="badge"><span class="lk"></span>Your chosen history file stays on this device</div>
+    <h1>Turn your downloaded AI history into a private usage report.</h1>
+    <p class="sub">Choose a copy of your Claude or ChatGPT history, then follow five short steps. The report is made in this browser. Your chosen history file is not sent to TOP.</p>
+  </header>
   <div class="flow-shell">
     <div class="journey-rail" aria-live="polite">
       <div class="journey-meta"><span id="journeyLabel">Sunrise: tell us what you want to improve</span><strong id="journeyPercent">8%</strong></div>
       <div class="journey-track" aria-hidden="true"><span id="journeyFill"></span></div>
     </div>
 
-    <section class="resonance-step" id="resonanceStep">
-      <h1><span class="flow-kicker">1</span>Which Of These Applies To You?</h1>
-      <p class="step-lead">Select all that resonate. This helps TOP show you the most useful parts of your report first.</p>
+    <section class="resonance-step" id="resonanceStep" aria-labelledby="resonanceHeading">
+      <h2 id="resonanceHeading" tabindex="-1"><span class="flow-kicker">1</span>Which Of These Applies To You?</h2>
+      <p class="step-lead">Choose every statement that sounds like you. This helps TOP show the most useful parts of your report first.</p>
       <div class="resonance-grid" id="resonanceChoices">
-        <button type="button" class="resonance-choice" data-value="running out of tokens" aria-pressed="false"><span class="choice-icon">0%</span><span class="choice-copy"><strong>Running Out Of Tokens</strong><span>I hit my plan limit before the work is done.</span></span><span class="choice-check">✓</span></button>
-        <button type="button" class="resonance-choice" data-value="worried about budgeting tokens" aria-pressed="false"><span class="choice-icon">T$</span><span class="choice-copy"><strong>Budgeting Tokens Feels Unclear</strong><span>I do not know how much a task will consume.</span></span><span class="choice-check">✓</span></button>
-        <button type="button" class="resonance-choice" data-value="hard to optimize AI workflow" aria-pressed="false"><span class="choice-icon">AI</span><span class="choice-copy"><strong>My AI Workflow Is Hard To Optimize</strong><span>I am unsure which model, mode, or workflow to use.</span></span><span class="choice-check">✓</span></button>
-        <button type="button" class="resonance-choice" data-value="spending too much on AI" aria-pressed="false"><span class="choice-icon">€</span><span class="choice-copy"><strong>Spending Too Much On AI</strong><span>My subscriptions or API usage cost more than expected.</span></span><span class="choice-check">✓</span></button>
-        <button type="button" class="resonance-choice" data-value="worried about runaway tasks" aria-pressed="false"><span class="choice-icon">↻</span><span class="choice-copy"><strong>Worried About Runaway Tasks</strong><span>Long agents or loops can burn usage without enough warning.</span></span><span class="choice-check">✓</span></button>
-        <button type="button" class="resonance-choice" data-value="want more value from AI accounts" aria-pressed="false"><span class="choice-icon">×AI</span><span class="choice-copy"><strong>I Want More Value From My Accounts</strong><span>I want to divide work across models and plans more efficiently.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="running out of tokens" aria-pressed="false"><span class="choice-icon">0%</span><span class="choice-copy"><strong>Running Out Of AI Usage</strong><span>I use up my plan's allowance before my work is finished.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="worried about budgeting tokens" aria-pressed="false"><span class="choice-icon">T$</span><span class="choice-copy"><strong>I Cannot Predict How Much AI Allowance A Task Will Use</strong><span>I do not know how much of my plan or budget a task will use.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="hard to optimize AI workflow" aria-pressed="false"><span class="choice-icon">AI</span><span class="choice-copy"><strong>I Do Not Know Which AI Setup To Choose</strong><span>I am unsure which AI version, account or settings to use.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="spending too much on AI" aria-pressed="false"><span class="choice-icon">€</span><span class="choice-copy"><strong>Spending Too Much On AI</strong><span>My subscriptions or pay-as-you-go AI bills cost more than expected.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="worried about runaway tasks" aria-pressed="false"><span class="choice-icon">↻</span><span class="choice-copy"><strong>Worried About AI Tasks That Keep Running</strong><span>Long automated tasks can keep using my allowance without enough warning.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="want more value from AI accounts" aria-pressed="false"><span class="choice-icon">×AI</span><span class="choice-copy"><strong>I Want More Value From My Accounts</strong><span>I want to know which AI tool or account should handle each task.</span></span><span class="choice-check">✓</span></button>
         <button type="button" class="resonance-choice" data-value="something else" data-other="1" aria-pressed="false"><span class="choice-icon">+</span><span class="choice-copy"><strong>Something Else</strong><span>Add the AI usage problem that matters to you.</span></span><span class="choice-check">✓</span></button>
       </div>
       <div class="resonance-other" id="resonanceOther" hidden><input id="resonanceOtherText" aria-label="Something else that applies to you" placeholder="Tell us what else applies to you"></div>
-      <div class="intake-hold"><strong>Analysis is open. Data collection is paused.</strong><span>Your raw data stays on this device. Please do not send files to TOP yet while its consent, retention, and deletion process is finalized.</span></div>
+      <div class="intake-hold"><strong>You can make your report now. TOP is not accepting files yet.</strong><span>Your original file stays on this device. Please do not send files to TOP while we finish clear rules for permission, storage and deletion.</span></div>
       <div class="resonance-actions"><button type="button" class="btn p" id="resonanceContinue" disabled>Continue</button></div>
     </section>
 
-    <section class="provider-step" id="providerStep" hidden>
+    <section class="provider-step" id="providerStep" hidden aria-labelledby="providerHeading">
       <button type="button" class="step-back" id="changeResonance">← Change Answers</button>
-      <h2><span class="flow-kicker">2</span>Choose Your AI</h2>
-      <div class="tabs" id="tabs">
-        <button type="button" class="tab" data-mode="cc">Claude Code<span class="st">Uses recorded token counts when those fields are present</span></button>
-        <button type="button" class="tab" data-mode="chat">Claude Chat<span class="st">How you use Claude, with estimated tokens</span></button>
-        <button type="button" class="tab" data-mode="openai">ChatGPT<span class="st">How you use ChatGPT, with estimated tokens</span></button>
-        <button type="button" class="tab" data-mode="csv">Claude Console<span class="st">Billed API usage and recorded cost</span></button>
+      <h2 id="providerHeading" tabindex="-1"><span class="flow-kicker">2</span>Choose Your AI</h2>
+      <div class="tabs" id="tabs" role="group" aria-label="AI source">
+        <button type="button" class="tab" data-mode="cc" aria-pressed="false">Claude Code<span class="st">Uses the usage numbers saved by Claude Code</span></button>
+        <button type="button" class="tab" data-mode="chat" aria-pressed="false">Claude Chat<span class="st">Estimates usage from the length of your Claude conversations</span></button>
+        <button type="button" class="tab" data-mode="openai" aria-pressed="false">ChatGPT<span class="st">Estimates usage from the length of your ChatGPT conversations</span></button>
+        <button type="button" class="tab" data-mode="csv" aria-pressed="false">Claude Console<span class="st">Shows pay-as-you-go usage and costs recorded by Anthropic</span></button>
       </div>
     </section>
 
-    <div id="routechooser" hidden>
-      <h2><span class="flow-kicker">3</span>What Do You Want To Do With Your Export?</h2>
-      <p class="route-intro">Both choices keep the original file on this device. The difference is whether you only want to see your report, or also want a new content-free usage copy to inspect and download.</p>
+    <div id="routechooser" hidden role="group" aria-labelledby="routeHeading">
+      <h2 id="routeHeading" tabindex="-1"><span class="flow-kicker">3</span>What Do You Want To Do With Your Downloaded History?</h2>
+      <p class="route-intro">Both choices run on this device. Nothing is sent. Choose whether you only want to see your report, or also want a smaller summary you can inspect and download.</p>
       <div class="routechoices">
-        <button type="button" class="routepick" data-route="a"><span class="rlabel">Route A, fastest</span><strong>Analyze It Here</strong><span class="rdesc">Like opening a spreadsheet on your own laptop. TOP reads the original export inside this tab and shows you the report. Nothing is uploaded or sent.</span><span class="rbest">Best if: you only want your own results.</span></button>
-        <button type="button" class="routepick" data-route="b"><span class="rlabel">Route B, content-free copy</span><strong>Prepare A Safer Copy</strong><span class="rdesc">Like sharing a labelled summary of a bank statement instead of the statement itself. You inspect and download a new report with usage, time, model, and optional questionnaire labels, but no prompts or replies. Nothing is sent.</span><span class="rbest">Best if: you may want to share the summary later.</span></button>
+        <button type="button" class="routepick" data-route="a" aria-pressed="false"><span class="rlabel">Quickest</span><strong>Just Show My Report</strong><span class="rdesc">Like opening a spreadsheet on your own laptop. TOP opens the downloaded history inside this tab and shows your report. The file stays on this device.</span><span class="rbest">Best if: you only want your own results.</span></button>
+        <button type="button" class="routepick" data-route="b" aria-pressed="false"><span class="rlabel">Extra privacy for sharing later</span><strong>Make A Shareable Summary</strong><span class="rdesc">Like sharing a summary of a bank statement instead of the statement itself. The new copy keeps usage totals, AI version names and any optional answers you choose. It leaves out conversation text, code and file contents.</span><span class="rbest">Best if: you may want to share the summary later.</span></button>
       </div>
-      <p class="note" id="routehelp">Pick either route. Nothing uploads, emails, or submits itself.</p>
+      <p class="note" id="routehelp">Choose either option. Nothing is sent anywhere.</p>
     </div>
 
     <div class="routepanel" id="routea" hidden>
-      <h2><span class="flow-kicker">4</span>Choose Your Export</h2>
-      <div class="routebanner" id="routebanner">Route A reads the selected file locally. The file itself never leaves this page.</div>
+      <h2 id="routeAHeading" tabindex="-1"><span class="flow-kicker">4</span>Choose The History File You Downloaded</h2>
+      <div class="routebanner" id="routebanner">This page opens the file on your device. It does not send the file anywhere.</div>
       <div class="hint" id="hint"></div>
 
       <label class="drop" id="drop" tabindex="0" role="button">
         <div class="big">Choose Your File or Files</div>
-        <div class="small" id="dropsmall">.jsonl session logs from ~/.claude/projects</div>
+        <div class="small" id="dropsmall">Claude Code history files (.jsonl)</div>
         <input type="file" id="file" multiple>
       </label>
 
@@ -301,32 +315,34 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 
       <div id="out">
     <div class="cards" id="cards"></div>
-    <h2>By model</h2>
+    <p class="note" id="tokenhelp">Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.</p>
+    <h2 id="resultsHeading" tabindex="-1">Usage By AI Version</h2>
     <div style="overflow-x:auto"><table id="modeltable"></table></div>
 
     <div class="vm" id="vm">
-      <h2>Your cost and value picture <span class="vm-sub">· based on the numbers in your file</span></h2>
+      <h2>A Simple Example Of Price And Quality <span class="vm-sub">· cost information, plus invented example values</span></h2>
       <p class="vlead" id="vmlead"></p>
+      <p class="note">The green lines are invented only to explain the idea. TOP does not calculate what your work is worth.</p>
       <div class="vcard">
         <div class="vlegend">
-          <span style="color:var(--red)"><span class="sw" style="background:var(--red)"></span>what you spend now <em>(from your file)</em></span>
-          <span style="color:var(--red)"><span class="sd"></span>possible spend after a change <em>(estimate)</em></span>
-          <span><span class="sw" style="background:var(--mint)"></span>value of completed work <em>(example)</em></span>
-          <span><span class="sq" style="background:rgba(62,207,142,.42)"></span>value left after cost <em>(example)</em></span>
+          <span style="color:var(--red)" id="vmCurrentLegend"><span class="sw" style="background:var(--red)"></span>cost recorded in your file</span>
+          <span style="color:var(--red)"><span class="sd"></span>possible spend after changing AI versions <em>(estimate)</em></span>
+          <span><span class="sw" style="background:var(--mint)"></span>invented example of useful work <em>(not calculated)</em></span>
+          <span><span class="sq" style="background:rgba(62,207,142,.42)"></span>invented example after paying the AI cost <em>(not calculated)</em></span>
         </div>
         <div class="vbody">
           <div class="plot">
-            <svg id="vmsvg" viewBox="0 0 520 390" width="100%" role="img" aria-label="AI cost, example output value, and example value left after cost. Any lower-cost line is an estimate, not a measured saving."></svg>
+            <svg id="vmsvg" viewBox="0 0 520 390" width="100%" role="img" aria-label="AI cost, invented example of useful work, and invented example of value left after cost. Any lower-cost line is an estimate, not a measured saving."></svg>
           </div>
           <div class="vside">
             <div class="vcontrols">
-              <label for="vmg">How much work could move to cheaper models?</label>
+              <label for="vmg">How much simple work might you try with a cheaper AI version?</label>
               <input id="vmg" type="range" min="0" max="1" step="0.01" value="0.4">
               <span class="gval" id="vmgout">middle ground</span>
             </div>
             <p class="vcap" id="vmcap"></p>
             <div class="vcards">
-              <div class="vstat"><div class="k">Your cost now <span class="tag measured">from your file</span></div><div class="n" id="vmnow">$0</div></div>
+              <div class="vstat"><div class="k" id="vmNowLabel">Cost recorded in your file</div><div class="n" id="vmnow">$0</div></div>
               <div class="vstat after"><div class="k">Possible cost after changes <span class="tag est">estimate</span></div><div class="n" id="vmafter">$0</div></div>
               <div class="vstat save"><div class="k">Possible saving <span class="tag est">estimate</span></div><div class="n" id="vmsave">$0</div></div>
             </div>
@@ -337,31 +353,31 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       <p class="vnote" id="vmnote"></p>
     </div>
 
-    <div class="summbox">
-      <h3>Content-free summary <span style="color:var(--faint);font-weight:400;font-size:13px">usage and category labels, with no prompts or replies</span></h3>
-      <p id="sentline">This is the complete summary available to copy or download. Nothing is sent automatically.</p>
+    <div class="summbox" id="shareSummaryBox" hidden>
+      <h3>Shareable Summary <span style="color:var(--faint);font-weight:400;font-size:13px">usage totals and categories, without your conversation text</span></h3>
+      <p id="sentline">This report contains usage totals without conversation text. Optional answers are added to the final file only after you choose Finish This Step. Nothing is sent automatically.</p>
       <textarea id="summary" readonly></textarea>
       <div>
         <button class="btn p" id="copybtn">Copy summary</button>
         <button class="btn" id="dlbtn">Download .txt</button>
       </div>
     </div>
-    <div class="pricerow" id="prices"></div>
-    <p class="note">Editable comparison rates are checked against official provider pages on 15 Jul 2026. Rates vary by exact model, provider, cache duration, service tier, and effective date. Unrecognized models are not priced automatically. A token estimate is not your Max, Pro, or ChatGPT subscription charge.</p>
-    <p class="note">The cache-write estimate assumes Anthropic's five-minute cache rate at 1.25 times input. A one-hour cache write is 2 times input. Claude Sonnet 5 uses its introductory $2 input and $10 output rate through 31 Aug 2026.</p>
+    <p class="note">Pay-as-you-go means each amount of AI use is billed separately. Estimates use provider prices checked on 15 Jul 2026 and may differ from your bill. Claude Max, Claude Pro and ChatGPT subscriptions are not charged using the dollar estimate shown here.</p>
+    <details class="technical-details"><summary>Advanced Pricing Details</summary><div class="details-body"><div class="pricerow" id="prices"></div><p class="note">Prices vary by exact AI version, provider, reused input, service tier and date. AI versions we cannot match are not priced automatically.</p><p class="note">The reused-input estimate assumes Anthropic's five-minute rate at 1.25 times normal input. A one-hour reuse write is 2 times normal input. Claude Sonnet 5 uses its introductory $2 input and $10 output rate through 31 Aug 2026.</p></div></details>
       </div>
     </div>
 
     <div class="routeb routepanel" id="routeb" hidden>
-    <h2><span class="flow-kicker">4</span>Build A Content-Free File First</h2>
-    <p class="lead">Run the readable privacy tool on your own machine before this page sees anything. It creates a new file with model names, token counts, timestamps, locally generated session numbers, and permission modes. <b>It does not copy prompts, replies, code, file contents, or raw session, message, request, or event IDs.</b> Read the script, run it, and inspect the new file before choosing it here.</p>
+    <h2 id="routeBHeading" tabindex="-1"><span class="flow-kicker">4</span>Remove The Conversation Before Making A Copy</h2>
+    <p class="lead">This advanced Claude Code option creates a new file on your computer. It keeps AI version names, usage numbers, dates and times, new numbered sessions made on your computer, and Claude Code access settings. <b>It leaves out prompts, replies, code, file contents and the internal ID numbers from your original file.</b> Read the tool, run it, and inspect the new file before choosing it here.</p>
 
+    <details class="technical-details"><summary>Show The Advanced Claude Code Instructions</summary><div class="details-body">
     <div class="steps">
-      <h4>How Route B works</h4>
+      <h4>Advanced option for Claude Code</h4>
       <ol>
         <li>Copy the script below and save it as <code>strip_claude_logs.py</code>.</li>
         <li>On Windows, run <code>py strip_claude_logs.py</code>. On macOS or Linux, run <code>python3 strip_claude_logs.py</code>. It writes <code>claude-usage-only.jsonl</code> next to it.</li>
-        <li>Open that file and check it yourself. It is content-free: no prompts, replies, code, file contents, or raw session IDs. It can include timestamps, model labels, permission modes, and locally generated session numbers.</li>
+        <li>Open that file and check it yourself. It should contain no prompts, replies, code, file contents or original internal ID numbers. It can include dates, AI version names, Claude Code access settings and new numbered sessions.</li>
         <li>Drop that file into the box below to see it parsed locally on your device.</li>
         <li>Download a CSV or JSON copy for yourself. TOP is not accepting external files yet.</li>
       </ol>
@@ -512,23 +528,24 @@ if __name__ == "__main__":
 </textarea>
     </div>
 
-    <div class="privbox"><b>What is in the file this tool creates:</b> model names, input / output / cache-read / cache-write token counts, timestamps, locally generated session numbers, permission mode, and turn counts. <b>What is never in it:</b> your prompts, the assistant's replies, code, file contents, or raw session, message, request, or event IDs. You can read both the script and its output before choosing the file here.</div>
+    <div class="privbox"><b>What the new file keeps:</b> AI version names, usage numbers, dates, new numbered sessions, Claude Code access settings and the number of AI replies. <b>What it leaves out:</b> your prompts, the assistant's replies, code, file contents and the original internal ID numbers. You can read both the tool and its output before choosing the new file here.</div>
+    </div></details>
 
     <label class="drop" id="dropb" tabindex="0" role="button">
       <div class="big">Drop your <code>claude-usage-only.jsonl</code> here, or click to choose</div>
-      <div class="small">the content-free file the script above produced, parsed locally, never uploaded</div>
+      <div class="small">the cleaned file the tool above produced, opened on this device and never uploaded</div>
       <input type="file" id="fileb" multiple>
     </label>
     <div id="errb" role="alert" aria-live="polite"></div>
 
     <div id="outb" style="display:none">
       <div class="cards" id="cardsb"></div>
-      <h2>By model</h2>
+      <h2>Usage By AI Version</h2>
       <div style="overflow-x:auto"><table id="modeltableb"></table></div>
       <p class="note" id="permb" style="text-align:left"></p>
       <div class="summbox">
-        <h3>Download Your Content-Free Copy</h3>
-        <p>Built entirely on your device from the file you chose. It contains usage, model, time, permission, and locally generated session labels, but no prompts, replies, code, file contents, or raw identifiers. Nothing is uploaded or sent, and TOP is not accepting external files yet.</p>
+        <h3>Download Your Cleaned Copy</h3>
+        <p>Built entirely on your device from the file you chose. It contains usage numbers, AI version names, dates, Claude Code access settings and new numbered sessions. It leaves out prompts, replies, code, file contents and internal ID numbers. Nothing is uploaded or sent, and TOP is not accepting external files yet.</p>
         <div class="dlrow">
           <button class="btn p" id="dlcsvb">Download CSV</button>
           <button class="btn" id="dljsonb">Download JSON</button>
@@ -538,12 +555,12 @@ if __name__ == "__main__":
   </div>
 
   <div class="survey" id="survey" hidden>
-    <h2><span class="flow-kicker">5</span>Add Context To Your Report, Optional</h2>
+    <h2 id="surveyHeading" tabindex="-1"><span class="flow-kicker">5</span>Add Context To Your Report, Optional</h2>
     <p class="lead">We can explain the numbers better if you tell us what kind of work you do. Your answers stay in this tab. Skip any question, or skip the whole step.</p>
 
     <div class="field">
-      <label class="flabel">How often do you use your AI assistant?</label>
-      <div class="chipgroup" data-name="frequency" data-max="1">
+      <div class="flabel" id="frequencyLabel">How often do you use your AI assistant?</div>
+      <div class="chipgroup" data-name="frequency" data-max="1" role="group" aria-labelledby="frequencyLabel">
         <button type="button" class="chip">6+ hours a day</button>
         <button type="button" class="chip">3+ hours a day</button>
         <button type="button" class="chip">1+ hours a day</button>
@@ -553,8 +570,8 @@ if __name__ == "__main__":
     </div>
 
     <div class="field">
-      <label class="flabel">What do you primarily use your AI assistant for? <span class="cap">choose any</span></label>
-      <div class="chipgroup" data-name="primary" data-max="0">
+      <div class="flabel" id="primaryLabel">What do you primarily use your AI assistant for? <span class="cap">choose any</span></div>
+      <div class="chipgroup" data-name="primary" data-max="0" role="group" aria-labelledby="primaryLabel">
         <button type="button" class="chip">Coding problems</button>
         <button type="button" class="chip">Business development or decisions</button>
         <button type="button" class="chip">General questions</button>
@@ -567,28 +584,28 @@ if __name__ == "__main__":
     </div>
 
     <div class="field taskfield">
-      <label class="flabel">Which kinds of tasks do you run? <span class="cap">archetype, choose any</span></label>
-      <p class="fhelp">An <b>archetype</b> is the kind of task you run, from a quick chat reply up to an unattended overnight build. The one-liners are just examples to steer you. Pick any that fit.</p>
-      <div class="chipgroup arch" data-name="archetype" data-max="0">
-        <button type="button" class="chip arch" data-val="a quick steer/ack"><span class="al">Quick Steer or Acknowledgement</span><span class="ex">A one-line "OK" or "continue" inside a thread</span></button>
+      <div class="flabel" id="taskKindsLabel">What Kinds Of AI Work Do You Do? <span class="cap">choose any</span></div>
+      <p class="fhelp">Choose every example that sounds like work you do.</p>
+      <div class="chipgroup arch" data-name="archetype" data-max="0" role="group" aria-labelledby="taskKindsLabel">
+        <button type="button" class="chip arch" data-val="a quick steer/ack"><span class="al">Quick Reply Or Direction</span><span class="ex">A one-line "OK" or "continue" inside a conversation</span></button>
         <button type="button" class="chip arch" data-val="chat Q&amp;A"><span class="al">Chat Question and Answer</span><span class="ex">One question, one answer, no files or tools</span></button>
-        <button type="button" class="chip arch" data-val="chat thread"><span class="al">Longer Chat Thread</span><span class="ex">Advice, drafting, or thinking aloud over several turns</span></button>
+        <button type="button" class="chip arch" data-val="chat thread"><span class="al">Longer AI Conversation</span><span class="ex">Advice, drafting or thinking aloud over several replies</span></button>
         <button type="button" class="chip arch" data-val="code Q&amp;A"><span class="al">Code Question and Answer</span><span class="ex">Read code and explain it, without editing</span></button>
-        <button type="button" class="chip arch" data-val="repo ops"><span class="al">Repository Operations</span><span class="ex">Commit, push, deploy, bump a version, or run a command</span></button>
-        <button type="button" class="chip arch" data-val="single-file edit"><span class="al">Single-File Edit</span><span class="ex">Change one function or file while you watch</span></button>
-        <button type="button" class="chip arch" data-val="debugging"><span class="al">Debugging</span><span class="ex">Find and fix a bug of unknown depth</span></button>
-        <button type="button" class="chip arch" data-val="research/review"><span class="al">Research or Review</span><span class="ex">Read sources or code and produce an evidence-based answer</span></button>
-        <button type="button" class="chip arch" data-val="multi-file change"><span class="al">Multi-File Change</span><span class="ex">A refactor or feature spanning several files</span></button>
-        <button type="button" class="chip arch" data-val="build a feature"><span class="al">Build a Feature</span><span class="ex">A new page, component, or script from a short specification</span></button>
-        <button type="button" class="chip arch" data-val="bounded agent loop"><span class="al">Bounded Agent Loop</span><span class="ex">A scripted agent loop with a fixed review or turn limit</span></button>
-        <button type="button" class="chip arch" data-val="overnight/automated run"><span class="al">Overnight or Automated Run</span><span class="ex">An unattended build or review lasting many cycles</span></button>
+        <button type="button" class="chip arch" data-val="repo ops"><span class="al">Manage A Coding Project</span><span class="ex">Save code changes, publish them, update a version or run a command</span></button>
+        <button type="button" class="chip arch" data-val="single-file edit"><span class="al">Change One File</span><span class="ex">Change one part of a coding project while you watch</span></button>
+        <button type="button" class="chip arch" data-val="debugging"><span class="al">Find And Fix A Problem</span><span class="ex">Investigate why something is broken, then repair it</span></button>
+        <button type="button" class="chip arch" data-val="research/review"><span class="al">Research Or Review</span><span class="ex">Read sources or code and give an answer supported by evidence</span></button>
+        <button type="button" class="chip arch" data-val="multi-file change"><span class="al">Change Several Files</span><span class="ex">Improve or add something that changes several files</span></button>
+        <button type="button" class="chip arch" data-val="build a feature"><span class="al">Build Something New</span><span class="ex">Create a new page or tool from short instructions</span></button>
+        <button type="button" class="chip arch" data-val="bounded agent loop"><span class="al">Repeated Automated Task With A Limit</span><span class="ex">The AI repeats work until it reaches a set time or number of attempts</span></button>
+        <button type="button" class="chip arch" data-val="overnight/automated run"><span class="al">Overnight Or Automated Task</span><span class="ex">The AI works by itself for a long time</span></button>
       </div>
     </div>
 
     <div class="field">
-      <label class="flabel">What thinking level do you usually run at?</label>
-      <p class="fhelp">Roughly how much reasoning budget you give it per turn: <b>ultracode</b> is the deepest (most thinking, multi-agent, slowest and priciest), then <b>max</b> and <b>high</b> for hard work, <b>medium</b> for everyday tasks, and <b>low</b> for quick shallow answers.</p>
-      <div class="chipgroup" data-name="thinking" data-max="1">
+      <div class="flabel" id="thinkingLabel">How Much Effort Do You Usually Ask The AI To Use?</div>
+      <p class="fhelp">Choose the label you normally select. Higher levels may take longer and use more of your allowance.</p>
+      <div class="chipgroup" data-name="thinking" data-max="1" role="group" aria-labelledby="thinkingLabel">
         <button type="button" class="chip">ultracode</button>
         <button type="button" class="chip">max</button>
         <button type="button" class="chip">high</button>
@@ -598,46 +615,51 @@ if __name__ == "__main__":
     </div>
 
     <div class="field">
-      <label class="flabel">What Would Make TOP Most Useful? <span class="cap">choose any</span></label>
-      <div class="chipgroup" data-name="goal" data-max="0">
+      <div class="flabel" id="goalLabel">What Would Make TOP Most Useful? <span class="cap">choose any</span></div>
+      <div class="chipgroup" data-name="goal" data-max="0" role="group" aria-labelledby="goalLabel">
         <button type="button" class="chip">Predict cost before a task</button>
-        <button type="button" class="chip">Reduce model spend</button>
-        <button type="button" class="chip">Choose the right model</button>
-        <button type="button" class="chip">Catch runaway loops</button>
+        <button type="button" class="chip">Spend less on AI</button>
+        <button type="button" class="chip">Choose the right AI version</button>
+        <button type="button" class="chip">Stop automated tasks using too much allowance</button>
         <button type="button" class="chip">Understand team usage</button>
         <button type="button" class="chip">Protect private data</button>
       </div>
     </div>
 
     <div class="field">
-      <label class="flabel">Which Kind of Account Do You Mainly Use?</label>
-      <div class="chipgroup" data-name="account" data-max="1">
+      <div class="flabel" id="accountLabel">Which Kind of Account Do You Mainly Use?</div>
+      <div class="chipgroup" data-name="account" data-max="1" role="group" aria-labelledby="accountLabel">
         <button type="button" class="chip">Free individual</button>
         <button type="button" class="chip">Paid individual</button>
         <button type="button" class="chip">Team or business</button>
-        <button type="button" class="chip">API or developer console</button>
+        <button type="button" class="chip">Pay-as-you-go developer account</button>
       </div>
     </div>
 
-    <div class="survey-actions"><p class="note" style="text-align:left;margin:14px 0">Your selections stay in this tab and can be added to the content-free copy you deliberately download. They are never sent.</p>
+    <div class="survey-actions"><p class="note" style="text-align:left;margin:14px 0">Your selections stay in this tab and can be added to the shareable summary you deliberately download. They are not sent to TOP.</p>
     <div><button class="btn p" id="surveydone">Finish This Step</button> <button class="btn" id="surveyskip">Skip This Step</button> <button class="btn" id="surveysend">Copy My Answers</button> <span id="surveyok" style="color:var(--mint);font-size:13.5px;display:none">Copied.</span></div></div>
   </div>
 
   <section class="share-stage" id="shareWithTop" hidden aria-labelledby="shareWithTopHeading">
     <div class="step-overline">Final Step</div>
-    <h2 id="shareWithTopHeading">Share With TOP</h2>
-    <p class="share-lead">Your original export stays on this device. You can prepare a content-free copy containing usage numbers, model labels, and the optional answers you chose.</p>
-    <p class="share-hold" id="shareHold"><strong>Sharing is not open yet.</strong> TOP has paused external data collection until its consent, retention, and deletion terms are ready. Downloading this copy does not send it to TOP.</p>
+    <h2 id="shareWithTopHeading" tabindex="-1">Download A Shareable Summary</h2>
+    <p class="share-lead">Your original file stays on this device. The file below contains usage totals and AI version names. Optional answers appear only if you chose Finish This Step. It leaves out conversation text.</p>
+    <p class="share-hold" id="shareHold"><strong>Sending files to TOP is not open yet.</strong> We are finishing clear rules for permission, storage and deletion. Downloading this summary does not send it to TOP.</p>
+    <div class="summbox">
+      <h3>Exact File Prepared For Download</h3>
+      <p>Read this before downloading. The downloaded text file will match this preview.</p>
+      <textarea id="finalPackagePreview" readonly aria-label="Exact shareable file preview"></textarea>
+    </div>
     <div class="share-buttons">
-      <button type="button" class="btn p" id="safeDownload">Download My Safe Copy</button>
+      <button type="button" class="btn p" id="safeDownload">Download My Shareable Summary</button>
       <button type="button" class="btn" id="shareTopPaused" disabled aria-describedby="shareHold">Share With TOP, Paused</button>
     </div>
     <div class="share-status" id="shareStatus" role="status" aria-live="polite"></div>
   </section>
   </div>
-</div>
+</main>
 
-<footer><div class="wrap">TOP Analyzer · built by <a href="/">Adam Hartley</a> · everything above happens in your browser, <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a><span class="media-credit">Background photo: <a href="https://www.pexels.com/photo/shoreline-under-blue-sky-166193/" target="_blank" rel="noopener">Pok Rie / Pexels</a>. Moon: <a href="https://svs.gsfc.nasa.gov/4538/" target="_blank" rel="noopener">NASA's Scientific Visualization Studio</a>.</span></div></footer>
+<footer><div class="wrap">TOP Usage Report · built by <a href="/">Adam Hartley</a> · your chosen history file stays in this browser, <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a><span class="media-credit">Background photo: <a href="https://www.pexels.com/photo/shoreline-under-blue-sky-166193/" target="_blank" rel="noopener">Pok Rie / Pexels</a>. Sun: <a href="https://science.nasa.gov/photojournal/image-of-sun-from-nasas-solar-dynamics-observatory/" target="_blank" rel="noopener">NASA/GSFC/Solar Dynamics Observatory</a>. Moon: <a href="https://svs.gsfc.nasa.gov/4538/" target="_blank" rel="noopener">NASA's Scientific Visualization Studio</a>.</span></div></footer>
 
 <script>
 "use strict";
@@ -706,10 +728,13 @@ function resetDownstream(){
   lastSummary='';
   document.getElementById('out').style.display='none';
   document.getElementById('outb').style.display='none';
+  document.getElementById('shareSummaryBox').hidden=true;
   document.getElementById('survey').hidden=true;
   document.getElementById('file').value='';
   document.getElementById('fileb').value='';
   document.getElementById('shareWithTop').hidden=true;
+  document.getElementById('finalPackagePreview').value='';
+  includeSurveyContext=false;
   document.getElementById('shareStatus').textContent='';
   sharePackage='';
   ROUTEB=null;
@@ -735,20 +760,22 @@ resonanceContinue.addEventListener('click',function(){
   document.getElementById('routechooser').hidden=true;
   setJourney(.2,'Early morning: choose the AI account you want to understand.');
   document.getElementById('providerStep').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('providerHeading').focus({preventScroll:true});
 });
 document.getElementById('changeResonance').addEventListener('click',function(){
   document.getElementById('resonanceStep').hidden=false;
   document.getElementById('providerStep').hidden=true;
   document.getElementById('routechooser').hidden=true;
-  document.querySelectorAll('.tab').forEach(function(tab){tab.classList.remove('on')});
+  document.querySelectorAll('.tab').forEach(function(tab){tab.classList.remove('on');tab.setAttribute('aria-pressed','false')});
   providerChosen=false;
   selectedRoute='';
-  document.querySelectorAll('.routepick').forEach(function(route){route.classList.remove('on')});
+  document.querySelectorAll('.routepick').forEach(function(route){route.classList.remove('on');route.setAttribute('aria-pressed','false')});
   document.getElementById('routea').hidden=true;
   document.getElementById('routeb').hidden=true;
   resetDownstream();
   setJourney(.08,'Sunrise: tell us what you want to improve.');
   document.getElementById('resonanceStep').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('resonanceHeading').focus({preventScroll:true});
 });
 // ---- editable comparison pricing, USD per 1M tokens ----
 // Checked 15 Jul 2026. Cache write assumes Anthropic's 5-minute rate (1.25x); cache read = 0.1x.
@@ -811,14 +838,14 @@ function tierOf(model){
 var VM={built:false};
 
 var MODES={
-  cc:{label:"Claude Code", small:".jsonl session logs from ~/.claude/projects (choose one or more files)",
-      hint:"On your machine, your Claude Code logs live in <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>). Drop the <code>.jsonl</code> files in. TOP uses recorded token counts when those fields are present.",
+  cc:{label:"Claude Code", small:"Claude Code history files (.jsonl), choose one or more",
+      hint:"Claude Code saves history files in <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>). Choose the <code>.jsonl</code> files there. TOP uses the usage numbers Claude Code saved in them.",
       steps:[
         "Find your Claude Code logs at <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>).",
         "Each project you have used has its own folder of <code>.jsonl</code> session logs.",
         "Select one or more <code>.jsonl</code> session files.",
         "Drop them into the box above."],
-      stepstip:"This mode reads real per-turn token counts. The dollar figure is an API-equivalent estimate from editable rates, not your Claude Max subscription charge.",
+      stepstip:"Claude Code records usage numbers for many AI replies. Any dollar figure is a pay-as-you-go comparison estimate, not your Claude Max subscription bill.",
       note:""},
   csv:{label:"Console CSV", small:"usage or cost .csv exported from console.anthropic.com",
       hint:"On <code>console.anthropic.com</code>, export either a Usage CSV for token data or a Cost CSV for recorded billed cost, then choose it here.",
@@ -827,7 +854,7 @@ var MODES={
         "Open <b>Usage</b> for token data, or <b>Cost</b> for recorded billed cost.",
         "Export or download the CSV you need.",
         "Drop the CSV into the box above."],
-      stepstip:"A Usage CSV provides token data. A Cost CSV provides recorded billed cost. If the selected file lacks a valid cost on any row, TOP labels the dollar total as an estimate.",
+      stepstip:"A Usage CSV has usage numbers. A Cost CSV has costs Anthropic recorded. If any record has no valid cost, TOP clearly labels the dollar total as an estimate.",
       note:""},
   chat:{label:"Claude Chat", small:"conversations.json from your Claude Chat data export",
       hint:"In the Claude desktop app, open Settings, then Privacy, then Export Data, and drop the <code>conversations.json</code> from the email export here.",
@@ -838,8 +865,8 @@ var MODES={
         "You'll get an email from Anthropic to download your data.",
         "Download the zip and take <code>conversations.json</code> out of it.",
         "Drop <code>conversations.json</code> into the analytics box above."],
-      stepstip:"A Claude Chat export shows how you use Claude, not your billed subscription cost.",
-      note:"This export has conversation text and timing but no billed tokens or subscription cost. TOP reads it only in this tab and estimates token counts from message length. It does not invent a dollar charge."},
+      stepstip:"A Claude Chat download shows how you use Claude, not what your subscription costs.",
+      note:"This download has conversation text and dates, but it does not contain a cost for each chat. TOP reads it only in this tab and estimates usage from message length. It does not invent a dollar charge."},
   openai:{label:"ChatGPT", small:"conversations.json from your OpenAI data export",
       hint:"In ChatGPT, open <b>Settings</b>, then <b>Data Controls</b>, then <b>Export</b>. Open the download and choose <code>conversations.json</code>. Large exports may contain numbered conversation JSON files, which you can select together.",
       steps:[
@@ -848,22 +875,22 @@ var MODES={
         "Under Export Data, choose <b>Export</b> and confirm.",
         "Download the ZIP from OpenAI's email or text message. The download link expires after 24 hours.",
         "Unzip it, then choose <code>conversations.json</code>, or all numbered conversation JSON files if your export is split."],
-      stepstip:"OpenAI says exports may take up to seven days. TOP supports the conversation JSON, not the whole ZIP yet.",
-      note:"ChatGPT conversation exports do not provide billed token counts or a reliable subscription cost per chat. TOP estimates text tokens locally and does not invent a dollar charge."}
+      stepstip:"OpenAI says downloads may take up to seven days. TOP supports the conversation file, not the whole ZIP yet.",
+      note:"ChatGPT history downloads do not provide a reliable cost for each conversation. TOP estimates usage from message length on this device and does not invent a dollar charge."}
 };
 var ROUTE_COPY={
   cc:{
-    a:"Choose your original Claude Code session logs. This tab reads the real token counts locally. Your prompts, replies, code, and files are not uploaded.",
-    b:"Run the readable privacy tool first. It creates a new content-free file before this page sees anything. That file can contain model names, token counts, timestamps, locally generated session numbers, and permission modes, but not prompts, replies, code, file contents, or raw session IDs."},
+    a:"Choose your Claude Code history files. This tab reads the usage numbers on your device. Your prompts, replies, code and files are not uploaded.",
+    b:"Use the readable privacy tool first. It creates a new file that keeps usage numbers, dates, AI version names, Claude Code access settings and new numbered sessions. It leaves out prompts, replies, code, file contents and the original internal ID numbers."},
   chat:{
-    a:"Choose conversations.json. This tab reads the conversation text locally so it can estimate tokens. The text never leaves this tab. Your export does not contain billed subscription cost.",
-    b:"Choose conversations.json. This tab reads it locally, then prepares a new report containing totals and optional answers, not conversation text. You inspect and download that report yourself."},
+    a:"Choose conversations.json. This tab reads the conversation text on your device to estimate usage. The text stays in this tab. The download does not contain a cost for each chat.",
+    b:"Choose conversations.json. This tab reads it on your device, then prepares a new summary containing totals and optional answers, not conversation text. You inspect and download that summary yourself."},
   openai:{
-    a:"Choose your OpenAI conversation export. This tab reads the conversation text locally so it can estimate tokens. The text is not uploaded. The export does not contain a reliable per-chat dollar charge, so TOP does not show one.",
-    b:"Choose your OpenAI conversation export. This tab reads it locally, then prepares a new report containing totals and optional answers, not conversation text. You inspect and download that report yourself."},
+    a:"Choose your ChatGPT history download. This tab reads the conversation text on your device to estimate usage. The text is not uploaded. The download does not contain a reliable cost for each chat, so TOP does not show one.",
+    b:"Choose your ChatGPT history download. This tab reads it on your device, then prepares a new summary containing totals and optional answers, not conversation text. You inspect and download that summary yourself."},
   csv:{
-    a:"Choose either an Anthropic Usage CSV for token data or a Cost CSV for recorded billed cost. This tab reads the selected file locally. It is not uploaded.",
-    b:"Choose either an Anthropic Usage CSV or Cost CSV. This tab prepares a smaller report from the fields that export actually contains. You inspect and download it yourself."}
+    a:"Choose either an Anthropic Usage CSV for usage numbers or a Cost CSV for recorded cost. This tab reads the selected file on your device. It is not uploaded.",
+    b:"Choose either an Anthropic Usage CSV or Cost CSV. This tab prepares a smaller summary from the information that file contains. You inspect and download it yourself."}
 };
 var mode="cc";
 var selectedRoute="";
@@ -880,12 +907,12 @@ function setMode(m){
   mode=m;
   if(changed){
     selectedRoute="";
-    document.querySelectorAll(".routepick").forEach(function(b){b.classList.remove("on")});
+    document.querySelectorAll(".routepick").forEach(function(b){b.classList.remove("on");b.setAttribute("aria-pressed","false")});
     document.getElementById("routea").hidden=true;
     document.getElementById("routeb").hidden=true;
     resetDownstream();
   }
-  document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("on",t.dataset.mode===m)});
+  document.querySelectorAll(".tab").forEach(function(t){var on=t.dataset.mode===m;t.classList.toggle("on",on);t.setAttribute("aria-pressed",on?"true":"false")});
   document.getElementById("dropsmall").textContent=MODES[m].small;
   document.getElementById("hint").innerHTML=MODES[m].hint;
   renderSteps(m);
@@ -896,15 +923,16 @@ function setMode(m){
   document.getElementById("routechooser").hidden=false;
   if(selectedRoute) selectRoute(selectedRoute);
   else {
-    setJourney(.32,MODES[m].label+" selected. Now choose what you want to do with the export.");
+    setJourney(.32,MODES[m].label+" selected. Now choose what you want to do with the downloaded history.");
     document.getElementById("routechooser").scrollIntoView({behavior:"smooth",block:"start"});
+    document.getElementById("routeHeading").focus({preventScroll:true});
   }
 }
 document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab"); if(t) setMode(t.dataset.mode)});
 function selectRoute(route){
   selectedRoute=route;
   resetDownstream();
-  document.querySelectorAll(".routepick").forEach(function(b){b.classList.toggle("on",b.dataset.route===route)});
+  document.querySelectorAll(".routepick").forEach(function(b){var on=b.dataset.route===route;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false")});
   var a=document.getElementById("routea"), b=document.getElementById("routeb"), survey=document.getElementById("survey");
   survey.hidden=true;
   if(route==="b"&&mode==="cc"){
@@ -914,11 +942,12 @@ function selectRoute(route){
     a.hidden=false; b.hidden=true;
     var banner=document.getElementById("routebanner");
     banner.textContent=ROUTE_COPY[mode][route];
-    document.getElementById("routehelp").textContent=route==="b"?"This route makes a new content-free copy for you to inspect and download. Nothing is sent.":"This is the fastest route when you only want to understand your own usage.";
+    document.getElementById("routehelp").textContent=route==="b"?"This choice makes a new shareable summary for you to inspect and download. It leaves out your conversations.":"This is the fastest choice when you only want to understand your own usage.";
   }
-  setJourney(.48,route==="a"?"Bright morning: choose your export for private analysis.":"Bright morning: choose your export to prepare a content-free copy.");
+  setJourney(.48,route==="a"?"Bright morning: choose your downloaded history for a private report.":"Bright morning: choose your downloaded history to make a shareable summary.");
   var target=(route==="b"&&mode==="cc")?b:a;
   target.scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById(route==="b"&&mode==="cc"?"routeBHeading":"routeAHeading").focus({preventScroll:true});
 }
 document.querySelector(".routechoices").addEventListener("click",function(e){var p=e.target.closest(".routepick");if(p) selectRoute(p.dataset.route)});
 
@@ -1084,6 +1113,11 @@ function resolveCostRow(model,e,res){
 function valueModelAllowed(rows,costAvailable){
   return costAvailable&&rows.length>0&&rows.every(function(r){return !!priceKeyFor(r.model);});
 }
+function resultCountLabels(res){
+  if(res.csv) return {card:"Records",table:"Records",summary:"Records"};
+  if(res.chatExport) return {card:"Messages",table:"Messages",summary:"Messages"};
+  return {card:"AI replies with usage data",table:"AI replies",summary:"AI replies with usage data"};
+}
 function render(res){
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[];
   Object.keys(by).forEach(function(model){
@@ -1100,50 +1134,81 @@ function render(res){
   res.partialCost=!res.chatExport&&!allCostsAvailable&&totCost>0;
   res.valueModelEligible=valueModelAllowed(rows,res.costAvailable);
   var costCard=res.chatExport?["Dollar cost","Not in export",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):"Recorded spend",(res.estimate?"~":"")+fmt$(totCost),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""]));
+  var countLabels=resultCountLabels(res), tokenPrefix=res.chatExport?"about ":"";
   var cards=[costCard,
-    ["Total tokens",fmtN(totTok),"i"],
-    ["Turns",fmtN(res.turns),""],
-    [res.days?"Active days":(res.csv?"Rows":"Sessions"), fmtN(res.days||res.sessions),"g"]
+    [res.chatExport?"Estimated AI usage":"Total AI usage",tokenPrefix+fmtN(totTok)+" tokens","i"],
+    [countLabels.card,fmtN(res.turns),""]
   ];
+  if(res.days) cards.push(["Days used",fmtN(res.days),"g"]);
+  else if(res.chatExport) cards.push(["Conversations",fmtN(res.sessions),"g"]);
+  else if(!res.csv) cards.push(["Work sessions",fmtN(res.sessions),"g"]);
   document.getElementById("cards").innerHTML=cards.map(function(c){return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div></div>'}).join("");
-  var th='<thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cache w/r</th><th>Turns</th><th>Cost</th></tr></thead>';
-  var tb=rows.map(function(r){var shown=r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost)));return '<tr><td>'+esc(r.model)+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
+  document.getElementById("tokenhelp").textContent=res.chatExport
+    ?"This download does not contain token counts. TOP estimates them from message length using a rough rule of one token for every four characters. Treat every token number below as approximate."
+    :"Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.";
+  var estimateWord=res.chatExport?"Estimated ":"";
+  var th='<thead><tr><th>AI version</th><th>'+estimateWord+'text sent to the AI</th><th>'+estimateWord+'text returned by the AI</th><th>'+estimateWord+'previously saved text: added / reused</th><th>'+countLabels.table+'</th><th>Cost</th></tr></thead>';
+  var tb=rows.map(function(r){var shown=res.chatExport?"Not in export":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(r.model)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
   var totalShown=res.chatExport?"Not in export":(res.costAvailable?((res.estimate?"~":"")+fmt$(totCost)):(res.partialCost?("Partial "+fmt$(totCost)):"Not available"));
-  var tf='<tfoot><tr><td>Total</td><td class="n">'+fmtN(totInp)+'</td><td class="n">'+fmtN(totOut)+'</td><td class="n">'+fmtN(totCw)+' / '+fmtN(totCr)+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
+  var tf='<tfoot><tr><td>Total</td><td class="n">'+tokenPrefix+fmtN(totInp)+'</td><td class="n">'+tokenPrefix+fmtN(totOut)+'</td><td class="n">'+(res.chatExport?"Not in export":(fmtN(totCw)+' / '+fmtN(totCr)))+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
   document.getElementById("modeltable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
-  // avg cost/turn
+  // Average cost per reply is shown only when the source contains enough cost data.
   var perTurn=res.turns&&res.costAvailable?totCost/res.turns:null;
-  // Content-free summary. It can include model labels and user-selected questionnaire labels.
+  // Plain-English, content-free summary. It can include AI-version labels, but never prompt or reply text.
   var lines=[];
-  lines.push("TOP Analyzer: content-free usage summary");
-  lines.push("source: "+res.kind+(res.estimate?" (ESTIMATE: "+res.estimateReason+")":""));
+  lines.push("TOP Usage Report");
   lines.push("");
-  if(res.chatExport){lines.push("cost_provenance: unavailable_in_export");lines.push("cost_usd: not_available");}
-  else if(res.costAvailable){lines.push("cost_provenance: "+(res.estimate?"editable_api_equivalent_estimate":"recorded_billed_cost"));lines.push((res.estimate?"api_equivalent_cost_usd":"total_cost_usd")+": "+(res.estimate?"~":"")+totCost.toFixed(4));}
-  else{lines.push("cost_provenance: "+(res.estimate?"partial_estimate_or_unavailable":"partial_recorded_or_unavailable"));lines.push((res.estimate?"priced_estimate_usd":"known_recorded_cost_usd")+": "+totCost.toFixed(4));lines.push("unpriced_models: "+unpriced.join(" | "));}
-  lines.push("total_tokens: "+fmtInt(totTok));
-  lines.push("input_tokens: "+fmtInt(totInp)+" | output_tokens: "+fmtInt(totOut)+" | cache_write: "+fmtInt(totCw)+" | cache_read: "+fmtInt(totCr));
-  lines.push("turns: "+fmtInt(res.turns)+(res.sessions?(" | sessions: "+fmtInt(res.sessions)):"")+(res.days?(" | active_days: "+fmtInt(res.days)):""));
-  lines.push("avg_cost_per_turn_usd: "+(perTurn===null?"not_available":perTurn.toFixed(4)));
+  lines.push("Where this came from: "+res.kind+".");
+  if(res.estimate&&!res.chatExport) lines.push("About the dollar figures: They are estimates based on the usage numbers in your file and checked pay-as-you-go prices, where each amount of AI use is billed separately. They are not your subscription bill.");
   lines.push("");
-  lines.push("by_model:");
-  rows.forEach(function(r){lines.push("  "+r.model+": cost="+(r.cost===null?"not_available":(!r.complete?("partial_"+r.cost.toFixed(4)):((res.estimate?"~":"")+r.cost.toFixed(4))))+" in="+fmtInt(r.e.inp)+" out="+fmtInt(r.e.out)+" cw="+fmtInt(r.e.cw)+" cr="+fmtInt(r.e.cr)+" turns="+fmtInt(r.e.turns))});
+  if(res.chatExport) lines.push("Cost information: This download does not include a reliable dollar cost, so TOP has not guessed one.");
+  else if(res.costAvailable) lines.push("Cost information: "+(res.estimate?"Estimated pay-as-you-go cost: about ":"Cost recorded in the file: ")+fmt$(totCost)+".");
+  else if(res.partialCost) lines.push("Cost information: TOP could price only part of the usage. The "+(res.estimate?"estimated":"recorded")+" amount for the rows it could price is "+fmt$(totCost)+".");
+  else lines.push("Cost information: TOP could not calculate a reliable dollar cost.");
+  if(unpriced.length) lines.push("AI versions without a checked price: "+unpriced.join(", ")+".");
   lines.push("");
-  lines.push("[content-free copy: no prompts, replies, code, file contents, or raw identifiers included]");
+  lines.push((res.chatExport?"Estimated AI usage: about ":"Total AI usage: ")+fmtInt(totTok)+" tokens.");
+  lines.push("Tokens are small pieces of text that AI companies use to measure usage.");
+  if(res.chatExport) lines.push("TOP estimated the token numbers from message length because this download does not contain token counts.");
+  lines.push((res.chatExport?"Estimated text sent to the AI: about ":"Text sent to the AI: ")+fmtInt(totInp)+" tokens.");
+  lines.push((res.chatExport?"Estimated text returned by the AI: about ":"Text returned by the AI: ")+fmtInt(totOut)+" tokens.");
+  lines.push(res.chatExport?"Previously saved text: Not included in this download.":("Previously saved text: "+fmtInt(totCw)+" tokens added, "+fmtInt(totCr)+" tokens reused."));
+  lines.push(countLabels.summary+": "+fmtInt(res.turns)+".");
+  if(res.chatExport&&res.sessions) lines.push("Conversations: "+fmtInt(res.sessions)+".");
+  else if(!res.csv&&res.sessions) lines.push("Work sessions: "+fmtInt(res.sessions)+".");
+  if(res.days) lines.push("Days used: "+fmtInt(res.days)+".");
+  if(perTurn!==null) lines.push("Average cost per "+(res.csv?"record":"AI reply")+": "+fmt$(perTurn)+".");
+  lines.push("");
+  lines.push("Usage by AI version:");
+  rows.forEach(function(r){
+    var rowCost=r.cost===null?"cost not available":(!r.complete?("partial cost "+fmt$(r.cost)):((res.estimate?"estimated cost about ":"cost ")+fmt$(r.cost)));
+    lines.push("  "+r.model+": "+(res.chatExport?"about ":"")+fmtInt(r.e.inp+r.e.out+r.e.cw+r.e.cr)+" tokens, "+fmtInt(r.e.turns)+" "+countLabels.table.toLowerCase()+", "+rowCost+".");
+  });
+  lines.push("");
+  lines.push("Privacy note: This summary contains no conversation text, AI reply text, code, file contents or original internal ID numbers.");
   document.getElementById("summary").value=lines.join("\n");
   lastSummary=lines.join("\n");
   document.getElementById("shareStatus").textContent="";
   var priceKeys=Object.keys(usedPriceKeys);
-  document.getElementById("prices").innerHTML=res.chatExport?"No dollar rate is applied to chat exports.":(priceKeys.length?("Editable recognized rates $/Mtok: "+priceKeys.map(function(k){return esc(PRICES[k].label)+" in <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> out <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";}).join(" &nbsp;|&nbsp; ")):"No recognized model rate was found, so no dollar cost was calculated.");
+  document.getElementById("prices").innerHTML=res.chatExport?"No dollar cost is guessed for chat-history downloads.":(priceKeys.length?("Prices used for this estimate, in dollars per 1 million tokens: "+priceKeys.map(function(k){return esc(PRICES[k].label)+" input <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> output <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";}).join(" &nbsp;|&nbsp; ")):"TOP could not match an AI version to a checked price, so it did not calculate a dollar cost.");
   document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
     var v=parseFloat(inp.value); if(!isNaN(v)) PRICES[inp.dataset.k][inp.dataset.f]=v; render(res);
   })});
   renderValueModel(rows, totCost, res);
   document.getElementById("out").style.display="block";
-  document.getElementById("survey").hidden=false;
-  document.getElementById("shareWithTop").hidden=false;
-  setJourney(.68,"Midday: your export is ready on this device. Add context, or skip.");
-  document.getElementById("survey").scrollIntoView({behavior:"smooth",block:"start"});
+  var wantsShare=selectedRoute==="b";
+  document.getElementById("shareSummaryBox").hidden=!wantsShare;
+  document.getElementById("survey").hidden=!wantsShare;
+  document.getElementById("shareWithTop").hidden=true;
+  if(wantsShare){
+    setJourney(.68,"Midday: your report and shareable summary are ready on this device. Add context, or skip.");
+    document.getElementById("survey").scrollIntoView({behavior:"smooth",block:"start"});
+    document.getElementById("surveyHeading").focus({preventScroll:true});
+  }else{
+    setJourney(1,"Report ready: your downloaded history stayed on this device.");
+    document.getElementById("out").scrollIntoView({behavior:"smooth",block:"start"});
+    document.getElementById("resultsHeading").focus({preventScroll:true});
+  }
 }
 
 // ---------- your value model (personalised source-labelled baseline + illustrative right-sizing estimate) ----------
@@ -1166,17 +1231,25 @@ function renderValueModel(rows, totCost, res){
   VM.RATIO_LO=RATIO_LO; VM.RATIO_HI=RATIO_HI; VM.MOVE_LO=MOVE_LO; VM.MOVE_HI=MOVE_HI;
   VM.est = !!(res && res.estimate);
   var pre = VM.est?"~":"";
-  var spendKind = VM.est?"an estimated cost based on the token counts":"a cost recorded in your file";
+  document.getElementById("vmCurrentLegend").innerHTML=VM.est
+    ?'<span class="sw" style="background:var(--red)"></span>estimated pay-as-you-go cost of this usage <em>(calculated estimate)</em>'
+    :'<span class="sw" style="background:var(--red)"></span>cost recorded in your file';
+  document.getElementById("vmNowLabel").innerHTML=VM.est
+    ?'Estimated pay-as-you-go cost <span class="tag est">calculated estimate</span>'
+    :'Cost recorded in your file <span class="tag measured">from your file</span>';
+  var opening=VM.est
+    ?"TOP calculated <b>"+pre+fmt$(totCost)+"</b> from the usage counts in your file and the checked pay-as-you-go prices."
+    :"Your file records <b>"+fmt$(totCost)+"</b> of cost.";
   var pct = Math.round(fFrac*100);
   var lead;
   if(fS<=0){
-    lead="Your file shows <b>"+pre+fmt$(totCost)+"</b>, "+spendKind+". Most of this already uses lower-cost models, so there may be little room to cut costs by switching models. That is a good sign. The chart still shows the idea, but the possible saving is small.";
+    lead=opening+" Most of this already uses lower-cost AI versions, so there may be little room to cut costs by switching versions. That is a good sign. The chart still shows the idea, but the possible saving is small.";
   } else {
-    lead="Your file shows <b>"+pre+fmt$(totCost)+"</b>, "+spendKind+". About <b>"+pre+fmt$(fS)+" ("+pct+"%)</b> was spent on the most expensive recognized models. This illustrative scenario moves 25% to 50% of that work to a model priced at one fifth of the token rate. It would imply <b>"+pre+fmt$(saveLo)+" to "+pre+fmt$(saveHi)+"</b> less spend, but only if quality stayed acceptable. TOP has not validated that assumption or measured customer savings.";
+    lead=opening+" About <b>"+pre+fmt$(fS)+" ("+pct+"%)</b> was used by the most expensive AI versions we could match. This example moves some simpler work to an AI version that costs one fifth as much. That could mean <b>"+pre+fmt$(saveLo)+" to "+pre+fmt$(saveHi)+"</b> less spend, but only if the cheaper option still does the work well. We have not tested that yet.";
   }
   document.getElementById("vmlead").innerHTML=lead;
-  document.getElementById("vmillus").innerHTML="Illustrative routing scenario, not measured savings. Your current cost comes from "+(VM.est?"the token counts and recognized model rates":"the cost data")+" in your file. The lower-cost line assumes some tasks can move to a cheaper model without unacceptable quality loss.";
-  document.getElementById("vmnote").innerHTML="<b>What this means.</b> Your files are read on this device. Nothing here proves that a cheaper model will do the job as well. TOP still needs to test that on real work, so treat every saving as a possibility, not a promise.";
+  document.getElementById("vmillus").innerHTML="Example only, not a measured saving. Your current cost comes from "+(VM.est?"the usage numbers and checked AI prices":"the cost data")+" in your file. The lower-cost line assumes some tasks can move to a cheaper AI version without making the work worse.";
+  document.getElementById("vmnote").innerHTML="<b>What this means.</b> Your files are read on this device. Nothing here proves that a cheaper AI version will do the job as well. TOP still needs to test that on real work, so treat every saving as a possibility, not a promise.";
   buildVMChart();
   updateVM();
   vm.style.display="block";
@@ -1198,14 +1271,14 @@ function buildVMChart(){
   [0.5,1,1.5].forEach(function(v){ svg.appendChild(vmMk("line",{x1:g.X0,y1:yToPx(v),x2:g.X1,y2:yToPx(v),stroke:"rgba(20,38,58,.10)","stroke-width":1})); });
   svg.appendChild(vmMk("line",{x1:g.X0,y1:yToPx(0),x2:g.X1,y2:yToPx(0),stroke:"rgba(20,38,58,.24)","stroke-width":1}));
   var t0=vmMk("text",{x:g.X0-6,y:yToPx(0)+4,"text-anchor":"end","font-size":11,fill:"#536A80","font-family":"JetBrains Mono,monospace"}); t0.textContent="$0"; svg.appendChild(t0);
-  var yl=vmMk("text",{x:18,y:(g.YT+g.YB)/2,"text-anchor":"middle","font-size":10,fill:"#536A80","font-family":"Inter,system-ui,sans-serif",transform:"rotate(-90 18 "+((g.YT+g.YB)/2)+")"}); yl.textContent="AI cost · output value · value left after cost"; svg.appendChild(yl);
+  var yl=vmMk("text",{x:18,y:(g.YT+g.YB)/2,"text-anchor":"middle","font-size":10,fill:"#536A80","font-family":"Inter,system-ui,sans-serif",transform:"rotate(-90 18 "+((g.YT+g.YB)/2)+")"}); yl.textContent="AI cost · invented useful work · invented value after cost"; svg.appendChild(yl);
   var xl=vmMk("text",{x:g.X1,y:g.YB+18,"text-anchor":"end","font-size":11,fill:"#536A80","font-family":"Inter,system-ui,sans-serif"}); xl.textContent="work completed over time →"; svg.appendChild(xl);
   // measured-spend baseline (at relative 1.0) + label (text set in updateVM)
   svg.appendChild(vmMk("line",{x1:g.X0,y1:yToPx(1),x2:g.X1,y2:yToPx(1),stroke:"rgba(242,109,109,.28)","stroke-width":1,"stroke-dasharray":"2 5"}));
   VM.baseLbl=vmMk("text",{x:g.X0+8,y:yToPx(1)-7,"text-anchor":"start","font-size":11,fill:"#9B9BA6","font-family":"JetBrains Mono,monospace"}); svg.appendChild(VM.baseLbl);
   // right-size marker
   svg.appendChild(vmMk("line",{x1:xToPx(g.BEND),y1:g.YB,x2:xToPx(g.BEND),y2:g.YT+14,stroke:"#3ECF8E","stroke-width":1.2,"stroke-dasharray":"4 5","stroke-opacity":.55}));
-  var mlbl=vmMk("text",{x:xToPx(g.BEND)+6,y:g.YT+9,"text-anchor":"start","font-size":11,fill:"#087F62","font-family":"Inter,system-ui,sans-serif"}); mlbl.textContent="try a cheaper model"; svg.appendChild(mlbl);
+  var mlbl=vmMk("text",{x:xToPx(g.BEND)+6,y:g.YT+9,"text-anchor":"start","font-size":11,fill:"#087F62","font-family":"Inter,system-ui,sans-serif"}); mlbl.textContent="try a cheaper AI version"; svg.appendChild(mlbl);
   // dynamic shapes (created once, updated on slider / price edits)
   VM.valueArea=vmMk("polygon",{fill:"url(#vmValGrad)"}); svg.appendChild(VM.valueArea);
   VM.surplus=vmMk("polygon",{fill:"#35F5A0","fill-opacity":.30}); svg.appendChild(VM.surplus);
@@ -1245,16 +1318,16 @@ function updateVM(){
   VM.surplus.setAttribute("points", poly);
   VM.costDot.setAttribute("cx",xToPx(g.spanX)); VM.costDot.setAttribute("cy",yToPx(costAt(g.spanX)));
   VM.valDot.setAttribute("cx",xToPx(g.spanX)); VM.valDot.setAttribute("cy",yToPx(valAt(g.spanX)));
-  VM.baseLbl.textContent="your cost now "+pre+fmt$(VM.C);
+  VM.baseLbl.textContent=(VM.est?"estimated cost of this usage ":"cost recorded in your file ")+pre+fmt$(VM.C);
   document.getElementById("vmnow").textContent=pre+fmt$(VM.C);
   document.getElementById("vmafter").textContent=pre+fmt$(after);
   document.getElementById("vmsave").textContent=pre+fmt$(saving);
   document.getElementById("vmgout").textContent = a<=0.33?"change less":(a>=0.66?"change more":"middle ground");
-  document.getElementById("vmg").setAttribute("aria-valuetext",document.getElementById("vmgout").textContent+" model changes");
+  document.getElementById("vmg").setAttribute("aria-valuetext",document.getElementById("vmgout").textContent+" AI version changes");
   var cap;
-  if(a<=0.33) cap="<b>Change less.</b> Move only the simplest work to cheaper models. This gives up some possible saving to protect quality.";
-  else if(a>=0.66) cap="<b>Change more.</b> Move more work to cheaper models, then use the freed budget for extra work. This may save more, but it carries more quality risk.";
-  else cap="<b>Middle ground.</b> Move obvious low-risk work to cheaper models and keep the strongest model for tasks where quality matters most.";
+  if(a<=0.33) cap="<b>Change less.</b> Move only the simplest work to cheaper AI versions. This gives up some possible saving to protect quality.";
+  else if(a>=0.66) cap="<b>Change more.</b> Move more work to cheaper AI versions, then use the freed budget for extra work. This may save more, but it carries more quality risk.";
+  else cap="<b>Middle ground.</b> Move obvious low-risk work to cheaper AI versions and keep the strongest version for tasks where quality matters most.";
   document.getElementById("vmcap").innerHTML=cap;
 }
 
@@ -1282,7 +1355,7 @@ function run(texts){
     if(!n||res.turns===0){showErr("Couldn't find usage data in that file for this source. Check that you chose Claude Code JSONL, Claude Console CSV, Claude Chat conversations.json, or ChatGPT conversations.json.");return;}
     render(res);
     document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
-  }catch(err){showErr("Something went wrong parsing that file: "+err.message+". Nothing was uploaded. Try a different file or tab.");}
+  }catch(err){showErr("TOP could not read that file: "+err.message+". The file was not uploaded. Try a different file or AI source.");}
 }
 var drop=document.getElementById("drop"), fileInput=document.getElementById("file");
 fileInput.addEventListener("change",function(){handle(fileInput.files)});
@@ -1304,23 +1377,32 @@ document.getElementById("dlbtn").addEventListener("click",function(){
 function surveyVal(name){
   var g=document.querySelector('#survey .chipgroup[data-name="'+name+'"]');
   if(!g) return "(none)";
-  return Array.prototype.map.call(g.querySelectorAll(".chip.on"),function(c){return c.dataset.val||c.textContent.trim()}).join(", ")||"(none)";
+  return Array.prototype.map.call(g.querySelectorAll(".chip.on"),function(c){
+    var shortLabel=c.querySelector(".al");
+    return shortLabel?shortLabel.textContent.trim():c.textContent.trim();
+  }).join(", ")||"(none)";
 }
 function surveyBlock(){
   var freq=surveyVal("frequency"), prim=surveyVal("primary"), arch=surveyVal("archetype"), think=surveyVal("thinking"), goal=surveyVal("goal"), account=surveyVal("account");
   var otherEl=document.getElementById("primaryother"), other=otherEl?otherEl.value.trim():"";
-  var startValues=resonanceValues(), start=startValues.join(", ")||"(none)", startOther=startValues.indexOf("something else")>=0?document.getElementById("resonanceOtherText").value.trim():"";
-  return "\n\nquestionnaire answers:\n  starting_challenges: "+start+(startOther?(" | other: "+startOther):"")+"\n  provider_selected: "+MODES[mode].label+"\n  privacy_route: "+(selectedRoute||"not selected")+"\n  task_archetypes: "+arch+"\n  frequency: "+freq+"\n  primary_use: "+prim+(other?(" | other: "+other):"")+"\n  thinking_level: "+think+"\n  desired_outcomes: "+goal+"\n  account_type: "+account;
+  var startChoices=Array.prototype.map.call(document.querySelectorAll('#resonanceChoices .resonance-choice.on'),function(choice){
+    var label=choice.querySelector('.choice-copy strong');return label?label.textContent.trim():choice.dataset.value;
+  });
+  var start=startChoices.join(", ")||"(none)", startOther=resonanceValues().indexOf("something else")>=0?document.getElementById("resonanceOtherText").value.trim():"";
+  var routeName=selectedRoute==="b"?"Make a shareable summary":(selectedRoute==="a"?"Just show my report":"Not selected");
+  return "\n\nYour optional answers:\n  What you want to improve: "+start+(startOther?(". Something else: "+startOther):"")+"\n  AI selected: "+MODES[mode].label+"\n  Option selected: "+routeName+"\n  Kinds of AI work: "+arch+"\n  How often you use AI: "+freq+"\n  Main uses: "+prim+(other?(". Something else: "+other):"")+"\n  Usual effort level: "+think+"\n  What you want from TOP: "+goal+"\n  Account type: "+account;
 }
 document.querySelectorAll("#survey .chipgroup").forEach(function(group){
   var max=parseInt(group.dataset.max,10)||0;
+  group.querySelectorAll(".chip").forEach(function(c){c.setAttribute("aria-pressed","false")});
   group.addEventListener("click",function(e){
     var chip=e.target.closest(".chip"); if(!chip) return;
     if(max===1){
-      group.querySelectorAll(".chip").forEach(function(c){c.classList.toggle("on",c===chip)});
+      group.querySelectorAll(".chip").forEach(function(c){var on=c===chip;c.classList.toggle("on",on);c.setAttribute("aria-pressed",on?"true":"false")});
     } else {
       if(!chip.classList.contains("on") && max>0 && group.querySelectorAll(".chip.on").length>=max) return;
       chip.classList.toggle("on");
+      chip.setAttribute("aria-pressed",chip.classList.contains("on")?"true":"false");
     }
     if(max>1){
       var full=group.querySelectorAll(".chip.on").length>=max;
@@ -1349,27 +1431,32 @@ document.getElementById("surveysend").addEventListener("click",function(){
     t.value=combined; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); done();
   }
 });
+var includeSurveyContext=false;
+var sharePackage="";
 function finishSurvey(skipped){
-  var message=skipped?"Sunset: questions skipped. Your safe-copy step is ready.":"Sunset: context added. Your safe-copy step is ready.";
+  includeSurveyContext=!skipped;
+  sharePackage=buildSafePackage();
+  document.getElementById("finalPackagePreview").value=sharePackage;
+  var message=skipped?"Sunset: questions skipped. Your shareable summary is ready.":"Sunset: context added. Your shareable summary is ready.";
   setJourney(.88,message);
   var share=document.getElementById("shareWithTop");
   share.hidden=false;
   share.scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("shareWithTopHeading").focus({preventScroll:true});
 }
 document.getElementById("surveydone").addEventListener("click",function(){finishSurvey(false)});
 document.getElementById("surveyskip").addEventListener("click",function(){finishSurvey(true)});
-var sharePackage="";
 function buildSafePackage(){
-  var body=selectedRoute==="b"&&mode==="cc"&&ROUTEB?buildBJSON():lastSummary;
+  var body=lastSummary;
   if(!body) return "";
-  return "TOP content-free copy\ncreated_utc: "+new Date().toISOString()+"\nraw_file_included: no\nautomatic_submission: no\nintake_status: paused\n"+body+(surveyBlock()||"\n\nquestionnaire answers:\n  (not provided)");
+  return "TOP Shareable Summary\nCreated: "+new Date().toISOString()+"\nOriginal history file included: No\nSent automatically: No\nSending to TOP: Paused\nOptional answers included: "+(includeSurveyContext?"Yes":"No")+"\n\n"+body+(includeSurveyContext?surveyBlock():"");
 }
 document.getElementById("safeDownload").addEventListener("click",function(){
-  sharePackage=buildSafePackage();
+  sharePackage=sharePackage||buildSafePackage();
   if(!sharePackage) return;
-  dlFile("top-content-free-copy.txt",sharePackage,"text/plain");
+  dlFile("top-shareable-summary.txt",sharePackage,"text/plain");
   document.getElementById("shareStatus").textContent="Downloaded to this device. TOP has not received it.";
-  setJourney(1,"Moonrise: your safe copy is downloaded. Nothing was sent.");
+  setJourney(1,"Moonrise: your shareable summary is downloaded. TOP has not received it.");
 });
 // ---------- Route B: content-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;
@@ -1419,7 +1506,7 @@ function parseStripped(texts){
       var rowCost=costOf(model,inp,out,cw,cr);if(rowCost===null)s.costAvailable=false;else s.cost+=rowCost;
       if(row.timestamp){ if(!s.first||row.timestamp<s.first) s.first=row.timestamp; if(!s.last||row.timestamp>s.last) s.last=row.timestamp; }
   });
-  return {by:by, turns:calls.size, sessions:Object.keys(sessions).length, days:Object.keys(days).length, perm:perm, sess:sess, kind:"Claude Code (content-free export)"};
+  return {by:by, turns:calls.size, sessions:Object.keys(sessions).length, days:Object.keys(days).length, perm:perm, sess:sess, kind:"Claude Code cleaned usage file"};
 }
 function renderB(res){
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],costAvailable=true;
@@ -1427,20 +1514,29 @@ function renderB(res){
     totInp+=e.inp;totOut+=e.out;totCw+=e.cw;totCr+=e.cr;if(c===null)costAvailable=false;else totCost+=c;rows.push({model:m,e:e,cost:c});});
   rows.sort(function(a,b){return (b.cost===null?-1:b.cost)-(a.cost===null?-1:a.cost)});
   var totTok=totInp+totOut+totCw+totCr;
-  var cards=[[costAvailable?"Estimated spend":"Dollar cost",costAvailable?("~"+fmt$(totCost)):"Not available",costAvailable?"a":""],["Total tokens",fmtN(totTok),"i"],["Turns",fmtN(res.turns),""],[res.days?"Active days":"Sessions",fmtN(res.days||res.sessions),"g"]];
+  var cards=[[costAvailable?"Estimated pay-as-you-go cost":"Dollar cost",costAvailable?("~"+fmt$(totCost)):"Not available",costAvailable?"a":""],["Total AI usage",fmtN(totTok)+" tokens","i"],["AI replies with usage data",fmtN(res.turns),""],[res.days?"Days used":"Work sessions",fmtN(res.days||res.sessions),"g"]];
   document.getElementById("cardsb").innerHTML=cards.map(function(c){return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div></div>'}).join("");
-  var th='<thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cache w/r</th><th>Turns</th><th>Est. cost</th></tr></thead>';
+  var th='<thead><tr><th>AI version</th><th>Text sent to the AI</th><th>Text returned by the AI</th><th>Previously saved text: added / reused</th><th>AI replies</th><th>Estimated cost</th></tr></thead>';
   var tb=rows.map(function(r){return '<tr><td>'+esc(r.model)+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+(r.cost===null?"Not priced":("~"+fmt$(r.cost)))+'</td></tr>'}).join("");
   var tf='<tfoot><tr><td>Total</td><td class="n">'+fmtN(totInp)+'</td><td class="n">'+fmtN(totOut)+'</td><td class="n">'+fmtN(totCw)+' / '+fmtN(totCr)+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+(costAvailable?("~"+fmt$(totCost)):"Not available")+'</td></tr></tfoot>';
   document.getElementById("modeltableb").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
   var pm=res.perm||{}, keys=Object.keys(pm).sort(function(a,b){return pm[b]-pm[a]});
-  document.getElementById("permb").textContent = keys.length? ("permission mode (turns): "+keys.map(function(k){return k+"="+fmtInt(pm[k])}).join("  ·  ")) : "";
+  document.getElementById("permb").textContent = keys.length? ("Claude Code access setting, with number of AI replies: "+keys.map(function(k){return k+"="+fmtInt(pm[k])}).join("  ·  ")) : "";
+  var bLines=["TOP Usage Report","","Where this came from: a cleaned Claude Code usage file.","About the dollar figures: They are estimates based on the usage numbers in the file and checked pay-as-you-go prices, where each amount of AI use is billed separately. They are not your subscription bill.",""];
+  bLines.push(costAvailable?"Cost information: Estimated pay-as-you-go cost: about "+fmt$(totCost)+".":"Cost information: TOP could not calculate a reliable dollar cost for every AI version.");
+  bLines.push("","Total AI usage: "+fmtInt(totTok)+" tokens.","Tokens are small pieces of text that AI companies use to measure usage.","Text sent to the AI: "+fmtInt(totInp)+" tokens.","Text returned by the AI: "+fmtInt(totOut)+" tokens.","Previously saved text: "+fmtInt(totCw)+" tokens added, "+fmtInt(totCr)+" tokens reused.","AI replies with usage data: "+fmtInt(res.turns)+".","Work sessions: "+fmtInt(res.sessions)+".");
+  if(res.days) bLines.push("Days used: "+fmtInt(res.days)+".");
+  bLines.push("","Usage by AI version:");
+  rows.forEach(function(r){bLines.push("  "+r.model+": "+fmtInt(r.e.inp+r.e.out+r.e.cw+r.e.cr)+" tokens, "+fmtInt(r.e.turns)+" AI replies, "+(r.cost===null?"cost not available":"estimated cost about "+fmt$(r.cost))+".");});
+  bLines.push("","Privacy note: This summary contains no conversation text, AI reply text, code, file contents or original internal ID numbers.");
+  lastSummary=bLines.join("\n");
   ROUTEB={rows:rows,res:res,totInp:totInp,totOut:totOut,totCw:totCw,totCr:totCr,totCost:totCost,totTok:totTok,costAvailable:costAvailable};
   document.getElementById("outb").style.display="block";
   document.getElementById("survey").hidden=false;
-  document.getElementById("shareWithTop").hidden=false;
-  setJourney(.68,"Midday: your content-free file is ready on this device. Add context, or skip.");
+  document.getElementById("shareWithTop").hidden=true;
+  setJourney(.68,"Midday: your cleaned file is ready on this device. Add context, or skip.");
   document.getElementById("survey").scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("surveyHeading").focus({preventScroll:true});
 }
 function showErrB(msg){var e=document.getElementById("errb");
   e.textContent=msg;
@@ -1450,10 +1546,10 @@ function runB(texts){
   document.getElementById("errb").style.display="none";
   try{
     var res=parseStripped(texts);
-    if(!Object.keys(res.by).length||res.turns===0){ showErrB("Couldn't find content-free usage data in that file. Make sure you dropped claude-usage-only.jsonl, the file strip_claude_logs.py produced."); return; }
+    if(!Object.keys(res.by).length||res.turns===0){ showErrB("TOP could not find cleaned usage data in that file. Make sure you chose claude-usage-only.jsonl, the file the privacy tool produced."); return; }
     renderB(res);
     document.getElementById("outb").scrollIntoView({behavior:"smooth",block:"nearest"});
-  }catch(err){ showErrB("Couldn't parse that file: "+err.message+". Nothing was uploaded."); }
+  }catch(err){ showErrB("TOP could not read that file: "+err.message+". The file was not uploaded."); }
 }
 function handleB(files){
   document.getElementById("errb").style.display="none";
@@ -1500,9 +1596,9 @@ function buildBCSV(){
 function buildBJSON(){
   var r=ROUTEB;
   return JSON.stringify({
-    source:"Claude Code content-free export (TOP Analyzer Route B)",
+    source:"Claude Code cleaned usage file (TOP shareable-summary option)",
     generated:new Date().toISOString(),
-    note:"content-free usage copy: model, usage, time, permission, and locally generated session labels; no prompts, replies, code, file contents, or raw identifiers",
+    note:"shareable usage summary: AI version, usage, dates, Claude Code access setting, and locally generated session labels; no prompts, replies, code, file contents, or original internal ID numbers",
     totals:{est_cost_usd:r.costAvailable?+r.totCost.toFixed(6):null,total_tokens:r.totTok,input_tokens:r.totInp,output_tokens:r.totOut,cache_write_tokens:r.totCw,cache_read_tokens:r.totCr,turns:r.res.turns,sessions:r.res.sessions,active_days:r.res.days},
     permission_modes:r.res.perm,
     by_model:r.rows.map(function(x){return {model:x.model,input_tokens:x.e.inp,output_tokens:x.e.out,cache_write_tokens:x.e.cw,cache_read_tokens:x.e.cr,turns:x.e.turns,est_cost_usd:x.cost===null?null:+x.cost.toFixed(6)};}),
@@ -1510,8 +1606,8 @@ function buildBJSON(){
   },null,2);
 }
 function dlFile(name,text,type){var blob=new Blob([text],{type:type});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();}
-document.getElementById("dlcsvb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-content-free-data.csv",buildBCSV(),"text/csv"); });
-document.getElementById("dljsonb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-content-free-data.json",buildBJSON(),"application/json"); });
+document.getElementById("dlcsvb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-shareable-usage-data.csv",buildBCSV(),"text/csv"); });
+document.getElementById("dljsonb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-shareable-usage-data.json",buildBJSON(),"application/json"); });
 
 renderSteps("cc");
 setJourney(.08,"Sunrise: tell us what you want to improve.");

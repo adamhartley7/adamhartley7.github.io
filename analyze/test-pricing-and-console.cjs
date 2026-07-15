@@ -4,7 +4,11 @@ const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 assert.match(html, /"Partial estimate"/);
-assert.match(html, /"priced_estimate_usd"/);
+assert.match(html, /Estimated pay-as-you-go cost/);
+assert.doesNotMatch(html, /cost_provenance:/,
+  "the person-facing report must not expose internal machine labels");
+assert.match(html, /res\.csv\?"record":"AI reply"/,
+  "the average-cost label must match the source's counted unit");
 const pricingStart = html.indexOf("var PRICES =");
 const pricingEnd = html.indexOf("function fmt$", pricingStart);
 assert.ok(pricingStart >= 0 && pricingEnd > pricingStart, "could not locate pricing logic");
