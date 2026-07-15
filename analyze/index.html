@@ -34,6 +34,25 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .journey-track{height:7px;margin-top:9px;border-radius:999px;background:#d6e3e8;overflow:hidden}.journey-track span{display:block;width:8%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#f2ad63,#23b6ae,#6253d7);transition:width .75s cubic-bezier(.2,.8,.2,1)}
 .intake-hold{display:flex;gap:8px 16px;align-items:center;justify-content:center;flex-wrap:wrap;color:#6d3900;font-size:14px;margin:2px auto 12px;background:rgba(255,248,222,.94);border:1px solid rgba(151,91,0,.28);border-radius:18px;padding:11px 17px;width:max-content;max-width:100%;box-shadow:0 12px 28px rgba(25,66,92,.10)}
 .intake-hold strong{font-size:15px}.intake-hold span{max-width:66ch}
+.resonance-step{margin:4px 0 30px;padding:clamp(20px,4vw,34px);border:1px solid rgba(255,255,255,.88);border-radius:27px;background:rgba(255,255,255,.88);box-shadow:0 22px 54px rgba(24,69,91,.13)}
+.resonance-step[hidden],#providerStep[hidden],#routechooser[hidden]{display:none!important}
+.resonance-step h1{font-size:clamp(28px,4.5vw,44px);max-width:18ch;margin:0 0 12px;text-align:left;line-height:1.08}
+.step-overline{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#087f62;font-weight:850;margin-bottom:8px}
+.step-lead{color:var(--muted);font-size:16px;margin:-2px 0 18px;max-width:66ch}
+.resonance-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.resonance-choice{display:grid;grid-template-columns:52px 1fr 28px;gap:14px;align-items:center;min-height:94px;padding:15px 17px;border:1px solid #c7d8df;border-radius:22px;background:rgba(250,253,254,.96);color:var(--text);font:inherit;text-align:left;cursor:pointer;box-shadow:0 9px 24px rgba(31,75,95,.07);transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease}
+.resonance-choice:hover{transform:translateY(-2px);border-color:#64aeb2;box-shadow:0 14px 30px rgba(31,75,95,.12)}
+.resonance-choice:focus-visible{outline:3px solid #168c94;outline-offset:3px}
+.resonance-choice.on{border-color:#168c94;background:linear-gradient(135deg,#edfffb,#e8f8fb);box-shadow:0 14px 32px rgba(13,126,130,.14)}
+.choice-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:16px;background:linear-gradient(145deg,#e9faf8,#bfe9e5);color:#087f75;font-size:17px;font-weight:900;letter-spacing:-.04em;box-shadow:inset 0 1px 0 #fff}
+.resonance-choice:nth-child(2) .choice-icon{background:linear-gradient(145deg,#fff4dd,#f7d79a);color:#8a5600}.resonance-choice:nth-child(3) .choice-icon{background:linear-gradient(145deg,#eaf1ff,#c8d4ff);color:#4258aa}.resonance-choice:nth-child(4) .choice-icon{background:linear-gradient(145deg,#ffeceb,#ffc5bc);color:#a84739}.resonance-choice:nth-child(5) .choice-icon{background:linear-gradient(145deg,#f1ebff,#d9c8ff);color:#6550a5}.resonance-choice:nth-child(6) .choice-icon{background:linear-gradient(145deg,#e9f8ff,#bfe8f8);color:#176b8d}.resonance-choice:nth-child(7) .choice-icon{background:linear-gradient(145deg,#f3f5f6,#d9e1e5);color:#4f6470}
+.choice-copy strong{display:block;font-size:16px;line-height:1.25;margin-bottom:4px}.choice-copy span{display:block;color:var(--muted);font-size:13.5px;line-height:1.35}
+.choice-check{display:flex;align-items:center;justify-content:center;width:27px;height:27px;border:2px solid #b9cbd2;border-radius:50%;color:transparent;font-size:16px;font-weight:900;transition:.18s}
+.resonance-choice.on .choice-check{border-color:#0d9588;background:#0d9588;color:#fff;box-shadow:0 5px 13px rgba(13,149,136,.24)}
+.resonance-other{margin:14px 0 0}.resonance-other[hidden]{display:none}.resonance-other input{width:100%;padding:14px 16px;border:1px solid #b8cdd5;border-radius:15px;background:#fff;color:var(--text);font:inherit}
+.resonance-actions{display:flex;justify-content:flex-end;margin-top:18px}.resonance-actions .btn{min-width:220px;justify-content:center}
+.provider-step{padding-top:2px}
+.step-back{display:inline-flex;margin:0 0 2px;padding:7px 10px;border:0;border-radius:10px;background:rgba(255,255,255,.72);color:var(--muted);font:inherit;font-size:13px;font-weight:750;cursor:pointer}.step-back:hover{background:#fff;color:var(--text)}.step-back:focus-visible{outline:3px solid #168c94;outline-offset:2px}
 .mono{font-family:"JetBrains Mono",monospace}
 a{color:var(--iris2);text-decoration:none}
 .wrap{max-width:960px;margin:0 auto;padding:0 22px}
@@ -182,7 +201,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .privbox{background:rgba(62,207,142,.06);border:1px solid rgba(62,207,142,.3);border-radius:12px;padding:14px 16px;margin:14px 0;color:var(--muted);font-size:13.5px;line-height:1.6}
 .privbox b{color:var(--mint)}
 .dlrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
-@media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.routechoices{grid-template-columns:1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.chipgroup.arch{grid-template-columns:1fr}}
+@media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.routechoices,.resonance-grid{grid-template-columns:1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.chipgroup.arch{grid-template-columns:1fr}.resonance-choice{min-height:88px}.resonance-actions .btn{width:100%}}
 @media(max-width:430px){.tabs{grid-template-columns:1fr}.tab{min-height:82px}}
 @media(prefers-reduced-motion:reduce){.journey-world,.journey-sun,.journey-moon,.journey-track span{transition:none!important}}
 </style>
@@ -202,29 +221,43 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
   <a class="back" href="/">← back to TOP</a>
 </div></nav>
 
-<header class="wrap">
-  <div class="badge"><span class="lk"></span> Your raw data stays on your device</div>
-  <h1>Understand your AI use without handing over your conversations.</h1>
-  <p class="sub">Everything happens on this device. Choose an export, see your results, then decide whether to make a text-free copy for yourself. Nothing is uploaded or sent.</p>
-</header>
-
 <div class="wrap">
-  <div class="intake-hold"><strong>Analysis is open. Data collection is paused.</strong><span>You can analyze your export and download a copy for yourself. Please do not send files to TOP yet while the consent, retention, and deletion process is finalized.</span></div>
   <div class="flow-shell">
     <div class="journey-rail" aria-live="polite">
-      <div class="journey-meta"><span id="journeyLabel">Sunrise: choose your AI to begin</span><strong id="journeyPercent">8%</strong></div>
+      <div class="journey-meta"><span id="journeyLabel">Sunrise: tell us what you want to improve</span><strong id="journeyPercent">8%</strong></div>
       <div class="journey-track" aria-hidden="true"><span id="journeyFill"></span></div>
     </div>
-    <h2><span class="flow-kicker">1</span>Choose Your AI</h2>
-    <div class="tabs" id="tabs">
-      <button type="button" class="tab on" data-mode="cc">Claude Code<span class="st">Most accurate, with real token counts</span></button>
-      <button type="button" class="tab" data-mode="chat">Claude Chat<span class="st">How you use Claude, with estimated tokens</span></button>
-      <button type="button" class="tab" data-mode="openai">ChatGPT<span class="st">How you use ChatGPT, with estimated tokens</span></button>
-      <button type="button" class="tab" data-mode="csv">Claude Console<span class="st">Billed API usage and recorded cost</span></button>
-    </div>
 
-    <div id="routechooser">
-      <h2><span class="flow-kicker">2</span>What Do You Want To Do With Your Export?</h2>
+    <section class="resonance-step" id="resonanceStep">
+      <h1><span class="flow-kicker">1</span>Which Of These Applies To You?</h1>
+      <p class="step-lead">Select all that resonate. This helps TOP show you the most useful parts of your report first.</p>
+      <div class="resonance-grid" id="resonanceChoices">
+        <button type="button" class="resonance-choice" data-value="running out of tokens" aria-pressed="false"><span class="choice-icon">0%</span><span class="choice-copy"><strong>Running Out Of Tokens</strong><span>I hit my plan limit before the work is done.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="worried about budgeting tokens" aria-pressed="false"><span class="choice-icon">T$</span><span class="choice-copy"><strong>Budgeting Tokens Feels Unclear</strong><span>I do not know how much a task will consume.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="hard to optimize AI workflow" aria-pressed="false"><span class="choice-icon">AI</span><span class="choice-copy"><strong>My AI Workflow Is Hard To Optimize</strong><span>I am unsure which model, mode, or workflow to use.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="spending too much on AI" aria-pressed="false"><span class="choice-icon">€</span><span class="choice-copy"><strong>Spending Too Much On AI</strong><span>My subscriptions or API usage cost more than expected.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="worried about runaway tasks" aria-pressed="false"><span class="choice-icon">↻</span><span class="choice-copy"><strong>Worried About Runaway Tasks</strong><span>Long agents or loops can burn usage without enough warning.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="want more value from AI accounts" aria-pressed="false"><span class="choice-icon">×AI</span><span class="choice-copy"><strong>I Want More Value From My Accounts</strong><span>I want to divide work across models and plans more efficiently.</span></span><span class="choice-check">✓</span></button>
+        <button type="button" class="resonance-choice" data-value="something else" data-other="1" aria-pressed="false"><span class="choice-icon">+</span><span class="choice-copy"><strong>Something Else</strong><span>Add the AI usage problem that matters to you.</span></span><span class="choice-check">✓</span></button>
+      </div>
+      <div class="resonance-other" id="resonanceOther" hidden><input id="resonanceOtherText" aria-label="Something else that applies to you" placeholder="Tell us what else applies to you"></div>
+      <div class="intake-hold"><strong>Analysis is open. Data collection is paused.</strong><span>Your raw data stays on this device. Please do not send files to TOP yet while its consent, retention, and deletion process is finalized.</span></div>
+      <div class="resonance-actions"><button type="button" class="btn p" id="resonanceContinue" disabled>Continue</button></div>
+    </section>
+
+    <section class="provider-step" id="providerStep" hidden>
+      <button type="button" class="step-back" id="changeResonance">← Change Answers</button>
+      <h2><span class="flow-kicker">2</span>Choose Your AI</h2>
+      <div class="tabs" id="tabs">
+        <button type="button" class="tab" data-mode="cc">Claude Code<span class="st">Most accurate, with real token counts</span></button>
+        <button type="button" class="tab" data-mode="chat">Claude Chat<span class="st">How you use Claude, with estimated tokens</span></button>
+        <button type="button" class="tab" data-mode="openai">ChatGPT<span class="st">How you use ChatGPT, with estimated tokens</span></button>
+        <button type="button" class="tab" data-mode="csv">Claude Console<span class="st">Billed API usage and recorded cost</span></button>
+      </div>
+    </section>
+
+    <div id="routechooser" hidden>
+      <h2><span class="flow-kicker">3</span>What Do You Want To Do With Your Export?</h2>
       <p class="route-intro">Both choices keep the original file on this device. The difference is whether you only want to see your report, or also want a new text-free copy to inspect and download.</p>
       <div class="routechoices">
         <button type="button" class="routepick" data-route="a"><span class="rlabel">Route A, fastest</span><strong>Analyze It Here</strong><span class="rdesc">Like opening a spreadsheet on your own laptop. TOP reads the original export inside this tab and shows you the report. Nothing is uploaded or sent.</span><span class="rbest">Best if: you only want your own results.</span></button>
@@ -234,7 +267,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     </div>
 
     <div class="routepanel" id="routea" hidden>
-      <h2><span class="flow-kicker">3</span>Choose Your Export</h2>
+      <h2><span class="flow-kicker">4</span>Choose Your Export</h2>
       <div class="routebanner" id="routebanner">Route A reads the selected file locally. The file itself never leaves this page.</div>
       <div class="hint" id="hint"></div>
 
@@ -308,7 +341,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     </div>
 
     <div class="routeb routepanel" id="routeb" hidden>
-    <h2><span class="flow-kicker">3</span>Build A Text-Free File First</h2>
+    <h2><span class="flow-kicker">4</span>Build A Text-Free File First</h2>
     <p class="lead">Run the readable privacy tool on your own machine before this page sees anything. It creates a new file with model names, token counts, timestamps, session identifiers, and permission modes. <b>It does not copy prompts, replies, code, or file contents.</b> Read the script, run it, and inspect the new file before choosing it here.</p>
 
     <div class="steps">
@@ -470,7 +503,7 @@ if __name__ == "__main__":
   </div>
 
   <div class="survey" id="survey" hidden>
-    <h2><span class="flow-kicker">4</span>Add Context To Your Report, Optional</h2>
+    <h2><span class="flow-kicker">5</span>Add Context To Your Report, Optional</h2>
     <p class="lead">We can explain the numbers better if you tell us what kind of work you do. Your answers stay in this tab. Skip any question, or skip the whole step.</p>
 
     <div class="field">
@@ -600,6 +633,42 @@ function resetDownstream(){
   document.getElementById('shareactions').style.display='none';
   document.getElementById('sharestatus').textContent='';
 }
+function resonanceValues(){
+  return Array.prototype.map.call(document.querySelectorAll('#resonanceChoices .resonance-choice.on'),function(choice){return choice.dataset.value}).filter(Boolean);
+}
+var resonanceChoices=document.getElementById('resonanceChoices');
+var resonanceContinue=document.getElementById('resonanceContinue');
+resonanceChoices.addEventListener('click',function(event){
+  var choice=event.target.closest('.resonance-choice');
+  if(!choice) return;
+  var selected=!choice.classList.contains('on');
+  choice.classList.toggle('on',selected);
+  choice.setAttribute('aria-pressed',selected?'true':'false');
+  if(choice.dataset.other){document.getElementById('resonanceOther').hidden=!selected}
+  resonanceContinue.disabled=resonanceValues().length===0;
+});
+resonanceContinue.addEventListener('click',function(){
+  if(!resonanceValues().length) return;
+  document.getElementById('resonanceStep').hidden=true;
+  document.getElementById('providerStep').hidden=false;
+  document.getElementById('routechooser').hidden=true;
+  setJourney(.2,'Early morning: choose the AI account you want to understand.');
+  document.getElementById('providerStep').scrollIntoView({behavior:'smooth',block:'start'});
+});
+document.getElementById('changeResonance').addEventListener('click',function(){
+  document.getElementById('resonanceStep').hidden=false;
+  document.getElementById('providerStep').hidden=true;
+  document.getElementById('routechooser').hidden=true;
+  document.querySelectorAll('.tab').forEach(function(tab){tab.classList.remove('on')});
+  providerChosen=false;
+  selectedRoute='';
+  document.querySelectorAll('.routepick').forEach(function(route){route.classList.remove('on')});
+  document.getElementById('routea').hidden=true;
+  document.getElementById('routeb').hidden=true;
+  resetDownstream();
+  setJourney(.08,'Sunrise: tell us what you want to improve.');
+  document.getElementById('resonanceStep').scrollIntoView({behavior:'smooth',block:'start'});
+});
 // ---- editable pricing (USD per 1M tokens); cache write = 1.25x input, cache read = 0.1x input ----
 // Rates updated 6 Jul 2026 to current published list prices.
 var PRICES = {
@@ -698,6 +767,7 @@ var ROUTE_COPY={
 };
 var mode="cc";
 var selectedRoute="";
+var providerChosen=false;
 function renderSteps(m){
   var s=MODES[m].steps||[], tip=MODES[m].stepstip||"";
   var html='<h4>How to export your '+MODES[m].label+' data</h4><ol>'+s.map(function(x){return "<li>"+x+"</li>"}).join("")+"</ol>";
@@ -705,7 +775,8 @@ function renderSteps(m){
   document.getElementById("exportsteps").innerHTML=html;
 }
 function setMode(m){
-  var changed=mode!==m;
+  var changed=providerChosen&&mode!==m;
+  providerChosen=true;
   mode=m;
   if(changed){
     selectedRoute="";
@@ -722,8 +793,12 @@ function setMode(m){
   document.getElementById("out").style.display="none";
   document.getElementById("err").style.display="none";
   document.getElementById("file").value="";
+  document.getElementById("routechooser").hidden=false;
   if(selectedRoute) selectRoute(selectedRoute);
-  else setJourney(.2,MODES[m].label+" selected. Now choose what you want to do with the export.");
+  else {
+    setJourney(.32,MODES[m].label+" selected. Now choose what you want to do with the export.");
+    document.getElementById("routechooser").scrollIntoView({behavior:"smooth",block:"start"});
+  }
 }
 document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab"); if(t) setMode(t.dataset.mode)});
 function selectRoute(route){
@@ -741,7 +816,7 @@ function selectRoute(route){
     banner.textContent=ROUTE_COPY[mode][route];
     document.getElementById("routehelp").textContent=route==="b"?"This route makes a new text-free copy for you to inspect and download. Nothing is sent.":"This is the fastest route when you only want to understand your own usage.";
   }
-  setJourney(.4,route==="a"?"Morning: choose your export for private analysis.":"Morning: choose your export to prepare a text-free copy.");
+  setJourney(.48,route==="a"?"Bright morning: choose your export for private analysis.":"Bright morning: choose your export to prepare a text-free copy.");
   var target=(route==="b"&&mode==="cc")?b:a;
   target.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1108,8 +1183,8 @@ function surveyVal(name){
 function surveyBlock(){
   var freq=surveyVal("frequency"), prim=surveyVal("primary"), arch=surveyVal("archetype"), think=surveyVal("thinking"), goal=surveyVal("goal"), account=surveyVal("account");
   var otherEl=document.getElementById("primaryother"), other=otherEl?otherEl.value.trim():"";
-  if(freq==="(none)"&&prim==="(none)"&&arch==="(none)"&&think==="(none)"&&goal==="(none)"&&account==="(none)"&&!other) return "";
-  return "\n\nquestionnaire answers:\n  provider_selected: "+MODES[mode].label+"\n  privacy_route: "+(selectedRoute||"not selected")+"\n  task_archetypes: "+arch+"\n  frequency: "+freq+"\n  primary_use: "+prim+(other?(" | other: "+other):"")+"\n  thinking_level: "+think+"\n  desired_outcomes: "+goal+"\n  account_type: "+account;
+  var startValues=resonanceValues(), start=startValues.join(", ")||"(none)", startOther=startValues.indexOf("something else")>=0?document.getElementById("resonanceOtherText").value.trim():"";
+  return "\n\nquestionnaire answers:\n  starting_challenges: "+start+(startOther?(" | other: "+startOther):"")+"\n  provider_selected: "+MODES[mode].label+"\n  privacy_route: "+(selectedRoute||"not selected")+"\n  task_archetypes: "+arch+"\n  frequency: "+freq+"\n  primary_use: "+prim+(other?(" | other: "+other):"")+"\n  thinking_level: "+think+"\n  desired_outcomes: "+goal+"\n  account_type: "+account;
 }
 document.querySelectorAll("#survey .chipgroup").forEach(function(group){
   var max=parseInt(group.dataset.max,10)||0;
@@ -1292,8 +1367,8 @@ function dlFile(name,text,type){var blob=new Blob([text],{type:type});var a=docu
 document.getElementById("dlcsvb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-textfree-data.csv",buildBCSV(),"text/csv"); });
 document.getElementById("dljsonb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-textfree-data.json",buildBJSON(),"application/json"); });
 
-setMode("cc");
-setJourney(.08,"Sunrise: choose your AI to begin.");
+renderSteps("cc");
+setJourney(.08,"Sunrise: tell us what you want to improve.");
 </script>
 </body>
 </html>

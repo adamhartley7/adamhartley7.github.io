@@ -40,10 +40,24 @@ assert.match(html, /openai:\{[\s\S]*?a:"Choose your OpenAI conversation export[\
 assert.match(html, /csv:\{[\s\S]*?a:"Choose your Anthropic usage CSV[\s\S]*?b:"Choose your Anthropic usage CSV/);
 assert.match(html, /class="journey-world"/);
 assert.match(html, /function setJourney\(/);
+assert.match(html, /Which Of These Applies To You\?/);
+assert.match(html, /Running Out Of Tokens/);
+assert.match(html, /Budgeting Tokens Feels Unclear/);
+assert.match(html, /My AI Workflow Is Hard To Optimize/);
+assert.match(html, /Spending Too Much On AI/);
+assert.match(html, /Select all that resonate/);
+assert.match(html, /id="providerStep" hidden/);
+assert.match(html, /id="routechooser" hidden/);
+assert.match(html, /aria-pressed="false"/);
+assert.match(html, /starting_challenges:/);
 
 const holdPosition = html.indexOf("Analysis is open. Data collection is paused.");
 const routePosition = html.indexOf('id="routechooser"');
 assert.ok(holdPosition >= 0 && routePosition >= 0 && holdPosition < routePosition,
   "the intake pause must be visible before route selection");
+const questionPosition = html.indexOf("Which Of These Applies To You?");
+const providerPosition = html.indexOf('id="providerStep"');
+assert.ok(questionPosition >= 0 && providerPosition > questionPosition && routePosition > providerPosition,
+  "the multi-select problem screen must come before provider and route selection");
 
 console.log("TOP Analyzer privacy regression tests passed");
