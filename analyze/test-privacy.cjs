@@ -21,6 +21,8 @@ const forbiddenPatterns = [
   [/send Adam/i, "instruction to send a file to Adam"],
   [/send us/i, "instruction to send a file to TOP"],
   [/\banonym(?:ised|ized|ous)\b/i, "unsupported anonymous-data claim"],
+  [/showDirectoryPicker|createWritable|requestPermission\s*\(\s*\{[^}]*readwrite/i, "vault write permission"],
+  [/indexedDB|localStorage/, "persistent browser storage"],
 ];
 
 for (const [pattern, label] of forbiddenPatterns) {
@@ -28,7 +30,8 @@ for (const [pattern, label] of forbiddenPatterns) {
 }
 
 assert.match(html, /Nothing is sent automatically\./);
-assert.match(html, /Your chosen history file is not sent to TOP\./);
+assert.match(html, /Your chosen files stay on this device/);
+assert.match(html, /The files stay in this browser and are not sent to TOP\./);
 assert.match(html, /<main class="wrap" id="main-content">/);
 assert.match(html, /connect-src 'none'/);
 assert.match(html, /Copy summary/);
@@ -66,6 +69,13 @@ assert.match(html, /Running Out Of AI Usage/);
 assert.match(html, /I Cannot Predict How Much AI Allowance A Task Will Use/);
 assert.match(html, /I Do Not Know Which AI Setup To Choose/);
 assert.match(html, /Spending Too Much On AI/);
+assert.match(html, /My AI Cannot Use My Obsidian Memory/);
+assert.match(html, /data-mode="obsidian"/);
+assert.match(html, /Your vault is memory, not a bill\./);
+assert.match(html, /it does not connect to, change or copy your vault/i);
+assert.match(html, /id="vaultFolder" webkitdirectory directory multiple/);
+assert.match(html, /id="vaultFiles" accept="\.json,\.jsonl,\.csv,application\/json,text\/csv" multiple/);
+assert.match(html, /does not read your Markdown notes, settings or attachments/);
 assert.match(html, /Choose every statement that sounds like you/);
 assert.match(html, /id="providerStep" hidden/);
 assert.match(html, /id="routechooser" hidden/);

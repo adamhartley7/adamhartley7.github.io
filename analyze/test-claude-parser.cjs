@@ -3,9 +3,9 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
-const start = html.indexOf("function parseClaudeCode");
+const start = html.indexOf("function createClaudeCodeAccumulator");
 const end = html.indexOf("function splitCSV", start);
-assert.ok(start >= 0 && end > start, "could not locate parseClaudeCode in analyze/index.html");
+assert.ok(start >= 0 && end > start, "could not locate Claude Code parser in analyze/index.html");
 
 const context = {};
 vm.createContext(context);

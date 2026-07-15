@@ -118,4 +118,21 @@ assert.equal(context.valueModelAllowed([
   assert.equal(result.missingCostRows, 1);
 }
 
+{
+  const result = context.parseCSV([
+    "# Obsidian project note\nkey, value\nproject, active",
+  ]);
+  assert.equal(result.turns, 0,
+    "a comma-containing Markdown note must not be accepted as a Console CSV");
+  assert.deepEqual(Object.keys(result.by), []);
+}
+
+{
+  const result = context.parseCSV([
+    "model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,0,0,",
+  ]);
+  assert.equal(result.turns, 0,
+    "a CSV row with no usage or recorded cost must not create a fake record");
+}
+
 console.log("TOP Analyzer pricing and Console CSV regression tests passed");
