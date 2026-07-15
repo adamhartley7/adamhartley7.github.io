@@ -1221,6 +1221,7 @@ function updateVM(){
   document.getElementById("vmafter").textContent=pre+fmt$(after);
   document.getElementById("vmsave").textContent=pre+fmt$(saving);
   document.getElementById("vmgout").textContent = a<=0.33?"change less":(a>=0.66?"change more":"middle ground");
+  document.getElementById("vmg").setAttribute("aria-valuetext",document.getElementById("vmgout").textContent+" model changes");
   var cap;
   if(a<=0.33) cap="<b>Change less.</b> Move only the simplest work to cheaper models. This gives up some possible saving to protect quality.";
   else if(a>=0.66) cap="<b>Change more.</b> Move more work to cheaper models, then use the freed budget for extra work. This may save more, but it carries more quality risk.";

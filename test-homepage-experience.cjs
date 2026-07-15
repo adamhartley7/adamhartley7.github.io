@@ -57,6 +57,7 @@ assert.match(html, /\.face-labels\{[^}]*translateZ\(19px\)[^}]*backface-visibili
 assert.match(html, /The Jevons effect, in plain English/);
 assert.match(html, /AI cost · output value · value left after cost/);
 assert.match(html, /class="vm-layout"/);
+assert.match(html, /aria-valuetext/);
 assert.match(html, /Available now/);
 assert.match(html, /co-founded with Sam O'Connell/);
 assert.doesNotMatch(html, /📉|🔀|🔥/);

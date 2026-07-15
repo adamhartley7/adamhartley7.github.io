@@ -5,6 +5,7 @@ const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf
 assert.match(html, /class="mini-emblem"/);
 assert.match(html, /\.vcard input\[type=range\][^}]*min-width:0/);
 assert.match(html, /@media\(max-width:640px\)\{\.vcard \.vcontrols\{display:grid/);
+assert.match(html, /aria-valuetext/);
 
 const forbiddenPatterns = [
   [/\bfetch\s*\(/, "fetch call"],

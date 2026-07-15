@@ -676,6 +676,7 @@ footer a:hover{color:var(--muted)}
     vpaEl.textContent=vpa.toFixed(1);
     impEl.textContent=imp.toFixed(1);
     goutEl.textContent = g<=0.25?'low':(g>=0.7?'high':'medium');
+    gEl.setAttribute('aria-valuetext',goutEl.textContent+' extra AI work after tasks get cheaper');
     var cap;
     if(g<=0.35) cap='<b>Keep most of the saving.</b> AI cost flattens while the value of the work keeps rising.';
     else if(g>=0.7) cap='<b>Run more useful work.</b> A similar budget now buys more output. Total spend can still rise.';
