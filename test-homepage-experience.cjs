@@ -3,8 +3,18 @@ const fs = require("node:fs");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 const credits = fs.readFileSync(new URL("ASSET-CREDITS.md", `file://${__dirname}/`), "utf8");
-assert.match(html, /Forecasting and automatic spend limits are still being tested/);
+assert.match(html, /The pre-run forecast is still being tested/);
 assert.doesNotMatch(html, /forecasts the token and euro cost of an AI task before it runs/);
+assert.match(html, /Your last AI jobs should help price your next one/);
+assert.match(html, /A receipt tells you what happened\. TOP aims to give you the quote first/);
+assert.match(html, /TOP is not the only product trying to forecast AI costs/);
+assert.match(html, /We still need to prove that this improves accuracy/);
+assert.match(html, /No code change or API key is needed/);
+assert.match(html, /TOP-1 · Icarus · internal prototype/);
+assert.match(html, /TOP-2 · Daedalus · planned research/);
+assert.match(html, /TOP-3 · Athena · planned research/);
+assert.match(html, /Not shipped\. Not benchmarked/);
+assert.doesNotMatch(html, /the first (?:AI )?cost forecast|the only (?:AI )?cost forecast|guaranteed savings/i);
 
 assert.match(html, /class="coast-world"/);
 assert.match(html, /class="black-hole"/);
@@ -54,11 +64,11 @@ assert.match(html, /class="mini-emblem"/);
 assert.match(html, /class="mobile-nav"/);
 assert.match(html, /class="face-labels"/);
 assert.match(html, /\.face-labels\{[^}]*translateZ\(19px\)[^}]*backface-visibility:hidden/);
-assert.match(html, /The Jevons effect, in plain English/);
+assert.match(html, /Why a cheaper task may not mean a smaller total bill/);
 assert.match(html, /AI cost · output value · value left after cost/);
 assert.match(html, /class="vm-layout"/);
 assert.match(html, /aria-valuetext/);
-assert.match(html, /Available now/);
+assert.match(html, /Live now/);
 assert.match(html, /co-founded with Sam O'Connell/);
 assert.doesNotMatch(html, /📉|🔀|🔥/);
 assert.match(html, /overflow-x:clip/);
@@ -68,11 +78,25 @@ assert.doesNotMatch(credits, /spacecraft/i);
 assert.match(html, /max-height:calc\(100dvh - 88px\)/);
 assert.match(html, /mobileNav\.open=false/);
 assert.match(html, /@media\(max-width:360px\)\{\.logo\{font-size:0/);
+assert.match(html, /\.mobile-menu\{position:fixed;top:82px;left:14px;right:14px;width:auto/);
+assert.match(html, /\.motion-hint\{width:min\(280px,88vw\)[^}]*white-space:normal/);
 
 const back = html.indexOf('class="orbit-layer orbit-back"');
 const prism = html.indexOf('class="totem-tilt"');
 const front = html.indexOf('class="orbit-layer orbit-front"');
 assert.ok(back >= 0 && prism > back && front > prism,
   "the 3D prism must sit between the back and front orbit layers");
+
+const usp = html.indexOf('id="usp"');
+const suite = html.indexOf('id="suite"');
+const problem = html.indexOf('id="problem"');
+const how = html.indexOf('id="how"');
+const analyze = html.indexOf('id="analyse"');
+const status = html.indexOf('id="status"');
+const valueModel = html.indexOf('id="valuemodel"');
+assert.ok(usp >= 0 && suite > usp && problem > suite,
+  "the USP and TOP 1, 2, 3 explanation must appear before the problem detail");
+assert.ok(how > problem && analyze > how && status > analyze && valueModel > status,
+  "the live TOP-1 path and honest status must appear before the TOP-2 thought experiment");
 
 console.log("TOP homepage experience regression tests passed");
