@@ -3,12 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>TOP Analyzer — your AI spend, parsed locally</title>
 <meta name="description" content="Drop your Claude usage in and see your token + euro spend — parsed 100% in your browser. Nothing is uploaded.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#08080A;--bg1:#0C0C0F;--panel:#141418;--panel2:#191920;--border:#232329;--border2:#33333d;
@@ -35,6 +33,7 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .tabs{display:flex;gap:8px;justify-content:center;margin:28px 0 8px;flex-wrap:wrap}
 .tab{font-family:"JetBrains Mono",monospace;font-size:13px;padding:9px 16px;border:1px solid var(--border2);border-radius:9px;background:var(--panel);color:var(--muted);cursor:pointer;transition:.2s}
 .tab.on{color:#fff;border-color:var(--iris);background:rgba(110,123,242,.12)}
+.tab:focus-visible,.drop:focus-visible,.btn:focus-visible{outline:3px solid var(--iris2);outline-offset:3px}
 .tab .st{font-size:10px;display:block;margin-top:2px;letter-spacing:.05em}
 .tab.on .st{color:var(--iris2)}
 .hint{text-align:center;color:var(--faint);font-size:13.5px;margin:6px auto 18px;max-width:60ch}
@@ -72,6 +71,82 @@ textarea{width:100%;min-height:150px;background:var(--bg);border:1px solid var(-
 .pricerow input{width:64px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 7px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
 footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font-size:13px;text-align:center}
 .priv{display:flex;align-items:center;gap:8px;justify-content:center;color:var(--mint);font-size:13.5px;margin:2px 0 8px;font-family:"JetBrains Mono",monospace}
+/* per-provider export steps */
+.steps{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:14px 0}
+.steps h4{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--iris2);margin-bottom:10px;font-weight:500}
+.steps ol{margin:0;padding-left:22px}
+.steps li{color:var(--muted);font-size:14px;margin:6px 0;padding-left:4px}
+.steps li::marker{color:var(--iris2);font-family:"JetBrains Mono",monospace}
+.steps li b{color:var(--text)}
+.steps code{color:var(--muted);background:var(--bg1);padding:1px 6px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
+.steps .tip{color:var(--faint);font-size:13px;margin-top:10px}
+/* usage survey (front-end only) */
+.survey{border-top:1px solid var(--border);margin:10px 0 60px;padding-top:26px}
+.survey .lead{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:62ch}
+.field{margin:20px 0}
+.flabel{display:block;font-weight:600;font-size:15px;margin-bottom:10px}
+.flabel .cap{color:var(--faint);font-weight:400;font-size:12px;font-family:"JetBrains Mono",monospace;letter-spacing:.04em}
+.chipgroup{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:"Inter",system-ui,sans-serif;font-size:13.5px;padding:9px 14px;border:1px solid var(--border2);border-radius:9px;background:var(--panel);color:var(--muted);cursor:pointer;transition:.2s}
+.chip:hover{border-color:var(--iris2);color:var(--text)}
+.chip.on{color:#fff;border-color:var(--iris);background:rgba(110,123,242,.12)}
+.chip.dim{opacity:.45}
+.otherwrap{margin-top:10px}
+.otherwrap input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:10px 12px;font-family:"Inter",system-ui,sans-serif;font-size:14px}
+/* your value model (personalised, seeded from the real parse) */
+.vm{display:none;margin:30px 0 10px}
+.vm .vm-sub{color:var(--faint);font-weight:400;font-size:12px;font-family:"Inter",system-ui,sans-serif;letter-spacing:0;text-transform:none}
+.vlead{color:var(--muted);font-size:14.5px;margin:2px 0 16px;max-width:72ch}
+.vlead b{color:var(--text)}
+.vcard{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border2);border-radius:16px;padding:clamp(16px,3vw,26px)}
+.vcard .vlegend{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:center;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted);margin-bottom:6px}
+.vcard .vlegend span{display:flex;align-items:center;gap:7px}
+.vcard .vlegend em{color:var(--faint);font-style:normal}
+.vcard .vlegend .sw{width:16px;height:3px;border-radius:2px}
+.vcard .vlegend .sd{width:16px;height:0;border-top:3px dashed currentColor;border-radius:2px}
+.vcard .vlegend .sq{width:12px;height:12px;border-radius:3px}
+.vcard .plot{position:relative;background:rgba(255,255,255,.014);border:1px solid var(--border);border-radius:12px;padding:6px 10px 2px;max-width:600px;margin:0 auto}
+.vcard .vcontrols{display:flex;align-items:center;gap:14px;margin:18px auto 6px;max-width:640px}
+.vcard .vcontrols label{font-size:13.5px;color:var(--muted);min-width:214px}
+.vcard input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:100px;background:linear-gradient(90deg,var(--mint) 0%,var(--amber) 55%,var(--red) 100%);outline:none;flex:1}
+.vcard input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.vcard input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer}
+.vcard .gval{font-family:"JetBrains Mono",monospace;font-size:13px;min-width:92px;text-align:right;color:var(--iris2)}
+.vcap{font-size:14px;color:var(--muted);margin:2px auto 16px;min-height:22px;max-width:640px;text-align:center}
+.vcap b{color:var(--text)}
+.vcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:640px){.vcards{grid-template-columns:1fr}}
+.vcards .vstat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.vcards .vstat .k{font-size:12px;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;line-height:1.35}
+.vcards .vstat .n{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:500;font-variant-numeric:tabular-nums}
+.vcards .vstat.after .n{color:var(--mint)}
+.vcards .vstat.save .n{color:var(--iris2)}
+.tag{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:5px;font-weight:500;white-space:nowrap}
+.tag.measured{color:var(--mint);background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3)}
+.tag.est{color:var(--amber);background:rgba(232,178,58,.1);border:1px solid rgba(232,178,58,.3)}
+.villus{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--faint);margin:14px 2px 0;text-align:center;line-height:1.55}
+.vnote{max-width:100%;margin:16px 0 0;border:1px solid var(--border2);background:var(--panel);border-radius:12px;padding:14px 18px;color:var(--faint);font-size:13px;line-height:1.55}
+.vnote b{color:var(--muted)}
+/* survey helpers + varied archetype chips */
+.fhelp{color:var(--faint);font-size:12.5px;line-height:1.5;margin:-4px 0 12px;max-width:70ch}
+.fhelp code{color:var(--muted);background:var(--panel);padding:1px 5px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:11.5px}
+.fhelp b{color:var(--muted)}
+.chipgroup.arch{display:grid;grid-template-columns:repeat(auto-fit,minmax(252px,1fr));gap:8px}
+.chip.arch{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;line-height:1.35;padding:10px 14px}
+.chip.arch .al{font-weight:600;font-size:13.5px}
+.chip.arch .ex{font-size:11px;color:var(--faint);font-family:"JetBrains Mono",monospace;line-height:1.4}
+.chip.arch.on .ex{color:var(--iris2)}
+/* route B: text-free file you build yourself */
+.routeb{border-top:1px solid var(--border);margin:34px 0 0;padding-top:26px}
+.routeb .lead{color:var(--muted);font-size:14.5px;margin:0 0 16px;max-width:72ch}
+.routeb .lead b{color:var(--text)}
+.scriptbox{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:14px 0}
+.scripthead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.scripthead .fn{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--iris2)}
+.scriptbox textarea{min-height:240px;font-size:12px;color:var(--muted)}
+.privbox{background:rgba(62,207,142,.06);border:1px solid rgba(62,207,142,.3);border-radius:12px;padding:14px 16px;margin:14px 0;color:var(--muted);font-size:13.5px;line-height:1.6}
+.privbox b{color:var(--mint)}
+.dlrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
 </style>
 </head>
 <body>
@@ -83,36 +158,70 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 <header class="wrap">
   <div class="badge"><span class="lk"></span> raw data never leaves your browser</div>
   <h1>See what your AI actually costs.</h1>
-  <p class="sub">Drop your Claude usage in below. Files are parsed <b>entirely on your own machine</b> — <b>your raw logs, prompts and content never leave your browser.</b> When you analyze, the <b>anonymised summary</b> (aggregates only — exactly what you'll see on screen, nothing more) is shared with Adam to calibrate TOP.</p>
+  <p class="sub">Drop your Claude usage in below. Files are parsed <b>entirely on your own machine</b>. Raw logs, prompts, content, and summaries stay in your browser unless you deliberately copy or download them.</p>
 </header>
 
 <div class="wrap">
-  <div class="priv"><span>🔒</span> Raw files parsed locally · only the aggregate summary is shared · view source and check</div>
+  <div class="priv"><span>🔒</span> Parsed locally · nothing is sent automatically · inspect the complete summary before sharing</div>
+
+  <h2 style="margin-top:22px">Route A · drop a file, instant on-screen summary</h2>
+  <p class="note" style="text-align:left;margin:2px 0 12px">Pick your source, drop the file, and read the aggregate summary right here. Nothing leaves this page automatically. If you would rather build a text-free file yourself and share it manually, see <b style="color:var(--text)">Route B</b> further down.</p>
 
   <div class="tabs" id="tabs">
-    <div class="tab on" data-mode="cc">Claude Code<span class="st">verified · full cost</span></div>
-    <div class="tab" data-mode="csv">Console CSV<span class="st">real spend</span></div>
-    <div class="tab" data-mode="chat">claude.ai export<span class="st">estimate only</span></div>
+    <button type="button" class="tab on" data-mode="cc">Claude Code<span class="st">deduplicated · local cost estimate</span></button>
+    <button type="button" class="tab" data-mode="csv">Console CSV<span class="st">real spend</span></button>
+    <button type="button" class="tab" data-mode="chat">Claude Chat<span class="st">estimate only</span></button>
   </div>
 
   <div class="hint" id="hint"></div>
 
-  <label class="drop" id="drop">
+  <label class="drop" id="drop" tabindex="0" role="button">
     <div class="big">Drop file(s) here, or click to choose</div>
     <div class="small" id="dropsmall">.jsonl session logs from ~/.claude/projects</div>
     <input type="file" id="file" multiple>
   </label>
 
+  <div class="steps" id="exportsteps"></div>
   <div class="note" id="modenote"></div>
-  <div id="err"></div>
+  <div id="err" role="alert" aria-live="polite"></div>
 
   <div id="out">
     <div class="cards" id="cards"></div>
     <h2>By model</h2>
     <div style="overflow-x:auto"><table id="modeltable"></table></div>
+
+    <div class="vm" id="vm">
+      <h2>Your value model <span class="vm-sub">· cost against value, seeded with your real numbers</span></h2>
+      <p class="vlead" id="vmlead"></p>
+      <div class="vcard">
+        <div class="vlegend">
+          <span style="color:var(--red)"><span class="sw" style="background:var(--red)"></span>token cost <em>(solid = measured)</em></span>
+          <span style="color:var(--red)"><span class="sd"></span>after right-sizing <em>(estimate)</em></span>
+          <span><span class="sw" style="background:var(--mint)"></span>output value <em>(illustrative)</em></span>
+          <span><span class="sq" style="background:rgba(62,207,142,.42)"></span>value surplus</span>
+        </div>
+        <div class="plot">
+          <svg id="vmsvg" viewBox="0 0 520 480" width="100%" role="img" aria-label="Your token cost against output value over a deployment. The solid red line is your measured spend baseline; after right-sizing to cheaper models the dashed red line bends down while the illustrative green output-value line keeps climbing, opening a value surplus."></svg>
+        </div>
+        <div class="vcontrols">
+          <label for="vmg">how aggressively you route to cheaper models</label>
+          <input id="vmg" type="range" min="0" max="1" step="0.01" value="0.4">
+          <span class="gval" id="vmgout">balanced</span>
+        </div>
+        <p class="vcap" id="vmcap"></p>
+        <div class="vcards">
+          <div class="vstat"><div class="k">your spend now <span class="tag measured">measured</span></div><div class="n" id="vmnow">$0</div></div>
+          <div class="vstat after"><div class="k">estimated spend after right-sizing <span class="tag est">estimate</span></div><div class="n" id="vmafter">$0</div></div>
+          <div class="vstat save"><div class="k">estimated saving <span class="tag est">estimate</span></div><div class="n" id="vmsave">$0</div></div>
+        </div>
+        <p class="villus" id="vmillus"></p>
+      </div>
+      <p class="vnote" id="vmnote"></p>
+    </div>
+
     <div class="summbox">
       <h3>Anonymised summary <span style="color:var(--faint);font-weight:400;font-size:13px">— aggregates only (no prompts, no content)</span></h3>
-      <p id="sentline">This summary — exactly as shown, nothing more — was shared with Adam to calibrate TOP's cost model.</p>
+      <p id="sentline">This is the complete summary available to copy or download. Nothing is sent automatically.</p>
       <textarea id="summary" readonly></textarea>
       <div>
         <button class="btn p" id="copybtn">Copy summary</button>
@@ -120,16 +229,238 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       </div>
     </div>
     <div class="summbox">
-      <h3>Want your back-test / results?</h3>
-      <p>Leave a contact and Adam will send back where TOP lands on your usage — coverage, bias and spread on your real numbers.</p>
-      <input id="cname" placeholder="Name / handle (e.g. Discord)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:12px 14px;font-family:'Inter',sans-serif;font-size:14px;margin-bottom:10px">
-      <input id="ccontact" placeholder="Email or Discord tag" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:12px 14px;font-family:'Inter',sans-serif;font-size:14px;margin-bottom:10px">
-      <textarea id="cmsg" style="min-height:80px" placeholder="Anything you want to say — how you use Claude, what you'd want from TOP…"></textarea>
-      <div><button class="btn p" id="sendbtn">Send to Adam</button> <span id="sendok" style="color:var(--mint);font-size:13.5px;display:none">Sent ✓ — Adam will get back to you</span></div>
+      <h3>Share only when you choose</h3>
+      <p>Review the summary first, then copy or download it if you want to share it. Direct submission is disabled while the consent and privacy controls are rebuilt.</p>
     </div>
     <div class="pricerow" id="prices"></div>
     <p class="note">Prices are editable estimates (USD per million tokens) applied locally; adjust to match your plan. Cache-write is charged at 1.25× the input rate, cache-read at 0.1×. Cost is your figure, computed on your device.</p>
     <p class="note">Rates updated 6 Jul 2026 to current published list prices.</p>
+  </div>
+
+  <div class="routeb" id="routeb">
+    <h2>Route B · text-free file you build yourself</h2>
+    <p class="lead"><b>Maximum privacy.</b> You run a short, readable script on your own machine. It reads your Claude Code logs and writes ONE new file that holds only numbers and labels: model, the four token counts, timestamps, and permission mode (whether you were steering it live or it ran on its own). <b>No prompt text, no replies, no code, no file contents, ever.</b> That text is never copied into the file in the first place. Read the script first, run it, check the file it makes, then decide whether to share it. Your original logs are never touched.</p>
+
+    <div class="steps">
+      <h4>How Route B works</h4>
+      <ol>
+        <li>Copy the script below and save it as <code>strip_claude_logs.py</code>.</li>
+        <li>Run <code>python3 strip_claude_logs.py</code>. It writes <code>claude-usage-only.jsonl</code> next to it.</li>
+        <li>Open that file and check it yourself: every line is just numbers and labels, no text.</li>
+        <li>Drop that file into the box below to see it parsed locally on your device.</li>
+        <li>Press <b>download your text-free data</b> and send Adam the small CSV or JSON.</li>
+      </ol>
+      <div class="tip">Nothing here uploads on its own. Route B never auto-sends: you download the file and send it yourself, only if you want to.</div>
+    </div>
+
+    <div class="scriptbox">
+      <div class="scripthead"><span class="fn">strip_claude_logs.py</span><button class="btn" id="copyscript" style="margin-top:0">Copy script</button></div>
+      <textarea id="scripttext" readonly spellcheck="false">#!/usr/bin/env python3
+"""
+strip_claude_logs.py
+
+Reads every Claude Code session log under ~/.claude/projects and writes ONE
+new file, claude-usage-only.jsonl, in the folder you run this from.
+
+What goes IN the output file: timestamps, model IDs, token counts (input,
+output, cache read, cache write), role (user/assistant), permission mode,
+stop reason, a message id (for de-duplicating multi-part turns), and the
+TYPE of each message part (for example "text", "thinking", "tool_use"),
+never the text, code, or file contents inside those parts.
+
+What never gets read into the output file: prompt text, response text,
+tool inputs and outputs, file contents, code.
+
+This script is about 90 lines including comments. Read it before you run it.
+
+Usage:
+    python3 strip_claude_logs.py
+        Numbers and labels only. No project names.
+
+    python3 strip_claude_logs.py --with-projects
+        Same as above, plus a "project" field per line: the folder name
+        Claude Code created for that project. This can reveal your local
+        folder structure and any internal codenames, so it is off by
+        default. Only use it if you're fine sharing that.
+"""
+import json
+import os
+import sys
+import glob
+
+INCLUDE_PROJECT = "--with-projects" in sys.argv
+SRC = os.path.expanduser("~/.claude/projects")
+OUT = "claude-usage-only.jsonl"
+
+KEEP_TOP = {
+    "type", "timestamp", "sessionId", "uuid", "permissionMode", "requestId",
+    "isSidechain", "agentName", "attributionSkill", "attributionMcpServer",
+    "attributionMcpTool", "promptSource", "entrypoint",
+}
+KEEP_USAGE = {
+    "input_tokens", "output_tokens",
+    "cache_read_input_tokens", "cache_creation_input_tokens",
+    "cache_creation", "server_tool_use", "service_tier",
+}
+
+
+def strip_line(raw, project_name):
+    try:
+        rec = json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(rec, dict):
+        return None
+
+    out = {k: rec[k] for k in KEEP_TOP if k in rec}
+
+    msg = rec.get("message")
+    if isinstance(msg, dict):
+        if "id" in msg:
+            out["message_id"] = msg["id"]
+        if "role" in msg:
+            out["role"] = msg["role"]
+        if "model" in msg:
+            out["model"] = msg["model"]
+        if "stop_reason" in msg:
+            out["stop_reason"] = msg["stop_reason"]
+
+        usage = msg.get("usage")
+        if isinstance(usage, dict):
+            out["usage"] = {k: v for k, v in usage.items() if k in KEEP_USAGE}
+
+        content = msg.get("content")
+        if isinstance(content, list):
+            out["content_types"] = [
+                b.get("type") for b in content
+                if isinstance(b, dict) and "type" in b
+            ]
+
+    if INCLUDE_PROJECT and project_name:
+        out["project"] = project_name
+
+    return out if out else None
+
+
+def main():
+    if not os.path.isdir(SRC):
+        print(f"No Claude Code logs found at {SRC}")
+        return
+
+    n_in = n_out = 0
+    with open(OUT, "w", encoding="utf-8") as f_out:
+        pattern = os.path.join(SRC, "**", "*.jsonl")
+        for path in glob.glob(pattern, recursive=True):
+            project_name = os.path.basename(os.path.dirname(path))
+            with open(path, encoding="utf-8", errors="ignore") as f_in:
+                for line in f_in:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    n_in += 1
+                    stripped = strip_line(line, project_name)
+                    if stripped:
+                        f_out.write(json.dumps(stripped) + "\n")
+                        n_out += 1
+
+    print(f"Read {n_in} log lines, wrote {n_out} stripped lines to {OUT}")
+    print("Open that file and check it before you send it. It should")
+    print("contain no prompt text, no code, and no file contents,")
+    print("only numbers and labels.")
+
+
+if __name__ == "__main__":
+    main()
+</textarea>
+    </div>
+
+    <div class="privbox"><b>What is in the file you would send:</b> model names, input / output / cache-read / cache-write token counts, timestamps, session ids, permission mode, and turn counts. <b>What is never in it:</b> your prompts, the assistant's replies, any code, any file contents. You can read both the script and the file it produces before anything is shared.</div>
+
+    <label class="drop" id="dropb" tabindex="0" role="button">
+      <div class="big">Drop your <code>claude-usage-only.jsonl</code> here, or click to choose</div>
+      <div class="small">the text-free file the script above produced, parsed locally, never uploaded</div>
+      <input type="file" id="fileb" multiple>
+    </label>
+    <div id="errb" role="alert" aria-live="polite"></div>
+
+    <div id="outb" style="display:none">
+      <div class="cards" id="cardsb"></div>
+      <h2>By model</h2>
+      <div style="overflow-x:auto"><table id="modeltableb"></table></div>
+      <p class="note" id="permb" style="text-align:left"></p>
+      <div class="summbox">
+        <h3>Download your text-free data <span style="color:var(--faint);font-weight:400;font-size:13px">· to send to Adam yourself</span></h3>
+        <p>Built entirely on your device from the file you dropped in. Small, numbers and labels only. Nothing is uploaded from this page; you send it whenever you are happy with it.</p>
+        <div class="dlrow">
+          <button class="btn p" id="dlcsvb">Download CSV</button>
+          <button class="btn" id="dljsonb">Download JSON</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="survey" id="survey">
+    <h2>How you use your AI assistant</h2>
+    <p class="lead">Optional, and entirely front-end. It helps Adam calibrate TOP to real habits. None of this is needed to use the analyzer above, and your answers stay in your browser until you press send.</p>
+
+    <div class="field">
+      <label class="flabel">How often do you use your AI assistant?</label>
+      <div class="chipgroup" data-name="frequency" data-max="1">
+        <button type="button" class="chip">6+ hours a day</button>
+        <button type="button" class="chip">3+ hours a day</button>
+        <button type="button" class="chip">1+ hours a day</button>
+        <button type="button" class="chip">every day</button>
+        <button type="button" class="chip">a couple times a week</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="flabel">What do you primarily use your AI assistant for? <span class="cap">choose any</span></label>
+      <div class="chipgroup" data-name="primary" data-max="0">
+        <button type="button" class="chip">Coding problems</button>
+        <button type="button" class="chip">Business development or decisions</button>
+        <button type="button" class="chip">General questions</button>
+        <button type="button" class="chip">Web development</button>
+        <button type="button" class="chip" data-other="1">Other</button>
+      </div>
+      <div class="otherwrap" id="primaryotherwrap" style="display:none">
+        <input id="primaryother" placeholder="Tell us what else you use it for">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="flabel">Which kinds of tasks do you run? <span class="cap">archetype, choose any</span></label>
+      <p class="fhelp">An <b>archetype</b> is the kind of task you run, from a quick chat reply up to an unattended overnight build. The one-liners are just examples to steer you. Pick any that fit.</p>
+      <div class="chipgroup arch" data-name="archetype" data-max="0">
+        <button type="button" class="chip arch" data-val="a quick steer/ack"><span class="al">a quick steer / ack</span><span class="ex">a one-line "ok" or "continue" inside a thread</span></button>
+        <button type="button" class="chip arch" data-val="chat Q&amp;A"><span class="al">chat Q and A</span><span class="ex">one question, one answer, no files or tools</span></button>
+        <button type="button" class="chip arch" data-val="chat thread"><span class="al">chat thread</span><span class="ex">a longer back-and-forth: advice, drafting, thinking aloud</span></button>
+        <button type="button" class="chip arch" data-val="code Q&amp;A"><span class="al">code Q and A</span><span class="ex">"how does this work?", answered by reading, no edits</span></button>
+        <button type="button" class="chip arch" data-val="repo ops"><span class="al">repo ops</span><span class="ex">commit, push, deploy, bump a version, run a command</span></button>
+        <button type="button" class="chip arch" data-val="single-file edit"><span class="al">single-file edit</span><span class="ex">change one function or file while you watch</span></button>
+        <button type="button" class="chip arch" data-val="debugging"><span class="al">debugging</span><span class="ex">hunt down and fix a bug of unknown depth</span></button>
+        <button type="button" class="chip arch" data-val="research/review"><span class="al">research or review</span><span class="ex">read docs or code and write up an answer, few writes</span></button>
+        <button type="button" class="chip arch" data-val="multi-file change"><span class="al">multi-file change</span><span class="ex">a refactor or feature spanning several files</span></button>
+        <button type="button" class="chip arch" data-val="build a feature"><span class="al">build a feature</span><span class="ex">a new page, component, or script from a short spec</span></button>
+        <button type="button" class="chip arch" data-val="bounded agent loop"><span class="al">bounded agent loop</span><span class="ex">a scripted agent loop with a turn cap (eval/checker harness)</span></button>
+        <button type="button" class="chip arch" data-val="overnight/automated run"><span class="al">overnight / automated run</span><span class="ex">an unattended overnight build, thousands of turns</span></button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="flabel">What thinking level do you usually run at?</label>
+      <p class="fhelp">Roughly how much reasoning budget you give it per turn: <b>ultracode</b> is the deepest (most thinking, multi-agent, slowest and priciest), then <b>max</b> and <b>high</b> for hard work, <b>medium</b> for everyday tasks, and <b>low</b> for quick shallow answers.</p>
+      <div class="chipgroup" data-name="thinking" data-max="1">
+        <button type="button" class="chip">ultracode</button>
+        <button type="button" class="chip">max</button>
+        <button type="button" class="chip">high</button>
+        <button type="button" class="chip">medium</button>
+        <button type="button" class="chip">low</button>
+      </div>
+    </div>
+
+    <p class="note" style="text-align:left;margin:14px 0">Same privacy rule as the analyzer: your selections stay in your browser. Copy the summary only if you decide to share it.</p>
+    <div><button class="btn p" id="surveysend">Copy survey summary</button> <span id="surveyok" style="color:var(--mint);font-size:13.5px;display:none">Copied.</span></div>
   </div>
 </div>
 
@@ -137,15 +468,8 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 
 <script>
 "use strict";
-// ---- delivery: Web3Forms relay (free, no server). Replace the key below with the one from web3forms.com (tied to adam1hartley@gmail.com). Until then, sends are queued silently and skipped. ----
-var W3F_KEY="abe6c200-2d49-434b-b575-2c00b18367a9";
-function relay(subject,payload){
-  if(!W3F_KEY||W3F_KEY.indexOf("REPLACE")>=0) return Promise.resolve(false);
-  return fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
-    body:JSON.stringify(Object.assign({access_key:W3F_KEY,subject:subject,from_name:"TOP Analyzer"},payload))
-  }).then(function(r){return r.ok}).catch(function(){return false});
-}
-var lastSummary="", autoSent=false;
+// No network delivery is configured. Analysis and exports remain local.
+var lastSummary="";
 // ---- editable pricing (USD per 1M tokens); cache write = 1.25x input, cache read = 0.1x input ----
 // Rates updated 6 Jul 2026 to current published list prices.
 var PRICES = {
@@ -169,24 +493,68 @@ function costOf(model,inp,out,cw,cr){
 }
 function fmt$(x){return "$"+(x<0.01&&x>0?x.toFixed(4):x.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}))}
 function fmtN(x){return Math.round(x).toLocaleString()}
+// plain ASCII integer for the emailed/downloaded text (no locale separators, no float noise)
+function fmtInt(x){return String(Math.round(Number(x)||0))}
+function esc(value){
+  return String(value).replace(/[&<>"']/g,function(ch){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];
+  });
+}
+// ---- model tiering for the value model: which spend is frontier-class (right-sizable) vs already cheap ----
+function tierOf(model){
+  var m=(model||"").toLowerCase();
+  if(m.indexOf("opus")>=0||m.indexOf("fable")>=0) return "frontier";
+  if(/gpt-?4|gpt-?5|gemini.*(pro|ultra)|grok/.test(m)) return "frontier"; // flagship-class from other vendors, if present
+  if(m.indexOf("haiku")>=0||m.indexOf("mini")>=0||m.indexOf("flash")>=0||m.indexOf("lite")>=0) return "cheap";
+  return "mid"; // sonnet / unknown -> not counted as right-sizable frontier spend (conservative)
+}
+// value-model state, seeded from the real parse and updated on price edits
+var VM={built:false};
 
 var MODES={
-  cc:{small:".jsonl session logs from ~/.claude/projects (drop one, many, or your whole projects folder)",
-      hint:"On your machine, your Claude Code logs live in <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>). Drop the <code>.jsonl</code> files in. This is the most accurate mode — real token counts per turn.",
+  cc:{label:"Claude Code", small:".jsonl session logs from ~/.claude/projects (drop one, many, or your whole projects folder)",
+      hint:"On your machine, your Claude Code logs live in <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>). Drop the <code>.jsonl</code> files in. This is the most accurate mode, with real token counts per turn.",
+      steps:[
+        "Find your Claude Code logs at <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>).",
+        "Each project you have used has its own folder of <code>.jsonl</code> session logs.",
+        "Select the <code>.jsonl</code> files, or just pick the whole <code>projects</code> folder.",
+        "Drop them into the box above."],
+      stepstip:"This mode reads the real per-turn token counts in the logs, so it is the only source that gives an actual cost forecast.",
       note:""},
-  csv:{small:"usage .csv exported from console.anthropic.com",
-      hint:"On <code>console.anthropic.com</code> → <b>Usage</b> → export/download the CSV, then drop it here.",
+  csv:{label:"Console CSV", small:"usage .csv exported from console.anthropic.com",
+      hint:"On <code>console.anthropic.com</code>, open <b>Usage</b>, then export or download the CSV and drop it here.",
+      steps:[
+        "Go to <code>console.anthropic.com</code> and sign in.",
+        "Open the <b>Usage</b> page.",
+        "Export or download the usage CSV.",
+        "Drop the CSV into the box above."],
+      stepstip:"This uses the real billed spend recorded in your console, so the cost figures are exact.",
       note:""},
-  chat:{small:"conversations.json from your claude.ai data export",
-      hint:"claude.ai → Settings → Privacy → Export data → drop <code>conversations.json</code> here.",
-      note:"⚠️ claude.ai exports contain NO token counts or costs — everything here is a rough estimate from text length (chars ÷ 4). Treat it as ballpark, not billing."}
+  chat:{label:"Claude Chat", small:"conversations.json from your Claude Chat data export",
+      hint:"In the Claude desktop app, open Settings, then Privacy, then Export Data, and drop the <code>conversations.json</code> from the email export here.",
+      steps:[
+        "Open Settings in the Claude desktop app.",
+        "Select Privacy.",
+        "Export Data.",
+        "You'll get an email from Anthropic to download your data.",
+        "Download the zip and take <code>conversations.json</code> out of it.",
+        "Drop <code>conversations.json</code> into the analytics box above."],
+      stepstip:"A Claude Chat export shows how you use Claude, not what it costs. See the note just below.",
+      note:"About this export: a Claude Chat export (conversations.json) contains your message text, topics and timing, but not token or cost data. So it shows usage patterns and only rough token estimates from text length (about 4 characters per token), not real billing. For the actual cost forecast, use the Claude Code tab and its ~/.claude logs."}
 };
 var mode="cc";
+function renderSteps(m){
+  var s=MODES[m].steps||[], tip=MODES[m].stepstip||"";
+  var html='<h4>How to export your '+MODES[m].label+' data</h4><ol>'+s.map(function(x){return "<li>"+x+"</li>"}).join("")+"</ol>";
+  if(tip) html+='<div class="tip">'+tip+'</div>';
+  document.getElementById("exportsteps").innerHTML=html;
+}
 function setMode(m){
   mode=m;
   document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("on",t.dataset.mode===m)});
   document.getElementById("dropsmall").textContent=MODES[m].small;
   document.getElementById("hint").innerHTML=MODES[m].hint;
+  renderSteps(m);
   var mn=document.getElementById("modenote"); mn.textContent=MODES[m].note; mn.className="note"+(MODES[m].note?" warn":"");
   document.getElementById("out").style.display="none";
   document.getElementById("err").style.display="none";
@@ -195,23 +563,39 @@ document.getElementById("tabs").addEventListener("click",function(e){var t=e.tar
 
 // ---------- parsers ----------
 function parseClaudeCode(texts){
-  var by={}, turns=0, sessions={}, days={};
-  texts.forEach(function(txt){
-    txt.split(/\r?\n/).forEach(function(line){
+  var by={}, sessions={}, days={}, calls=new Map();
+  function idPart(v){return v===undefined||v===null||v===""?null:String(v)}
+  function tokenCount(v){v=Number(v);return Number.isFinite(v)&&v>0?v:0}
+  texts.forEach(function(txt,fileIndex){
+    txt.split(/\r?\n/).forEach(function(line,lineIndex){
       line=line.trim(); if(!line) return;
       var r; try{r=JSON.parse(line)}catch(e){return}
       if(r.type!=="assistant"||!r.message) return;
       var u=r.message.usage; if(!u) return;
+      var mid=idPart(r.message.id), rid=idPart(r.requestId);
+      var key=mid!==null||rid!==null
+        ?JSON.stringify(["call",mid,rid])
+        :JSON.stringify(["line",fileIndex,lineIndex]);
       var model=r.message.model||"unknown";
-      var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0});
-      e.inp+=u.input_tokens||0; e.out+=u.output_tokens||0;
-      e.cw+=u.cache_creation_input_tokens||0; e.cr+=u.cache_read_input_tokens||0;
-      e.turns++; turns++;
+      var row={model:model,inp:tokenCount(u.input_tokens),out:tokenCount(u.output_tokens),
+        cw:tokenCount(u.cache_creation_input_tokens),cr:tokenCount(u.cache_read_input_tokens)};
+      var prev=calls.get(key);
+      if(prev){
+        if(prev.model==="unknown"&&model!=="unknown") prev.model=model;
+        prev.inp=Math.max(prev.inp,row.inp); prev.out=Math.max(prev.out,row.out);
+        prev.cw=Math.max(prev.cw,row.cw); prev.cr=Math.max(prev.cr,row.cr);
+      }else calls.set(key,row);
       if(r.sessionId) sessions[r.sessionId]=1;
       if(r.timestamp) days[String(r.timestamp).slice(0,10)]=1;
     });
   });
-  return {by:by, turns:turns, sessions:Object.keys(sessions).length||texts.length, days:Object.keys(days).length, kind:"Claude Code", estimate:false};
+  calls.forEach(function(row){
+    var e=by[row.model]||(by[row.model]={inp:0,out:0,cw:0,cr:0,turns:0});
+    e.inp+=row.inp; e.out+=row.out; e.cw+=row.cw; e.cr+=row.cr; e.turns++;
+  });
+  var turns=calls.size;
+  return {by:by, turns:turns, sessions:Object.keys(sessions).length||texts.length, days:Object.keys(days).length, kind:"Claude Code", estimate:true,
+    estimateReason:"real token counts priced at editable public API rates; subscription charges may differ"};
 }
 function splitCSV(line){
   var out=[],cur="",q=false;
@@ -242,7 +626,9 @@ function parseCSV(texts){
       e.turns++; rows++;
     }
   });
-  return {by:by, turns:rows, sessions:rows, days:0, kind:"Console CSV", estimate:false, csv:true};
+  var allRowsHaveCost=Object.keys(by).length>0&&Object.keys(by).every(function(model){return by[model].hasCost});
+  return {by:by, turns:rows, sessions:rows, days:0, kind:"Console CSV", estimate:!allRowsHaveCost, csv:true,
+    estimateReason:allRowsHaveCost?"":"one or more rows lacked billed cost and were priced at editable public API rates"};
 }
 function estTokens(s){return Math.ceil((s||"").length/4)}
 function parseChat(texts){
@@ -264,7 +650,8 @@ function parseChat(texts){
       });
     });
   });
-  return {by:by, turns:turns, sessions:convos, days:0, kind:"claude.ai (estimated)", estimate:true};
+  return {by:by, turns:turns, sessions:convos, days:0, kind:"claude.ai", estimate:true,
+    estimateReason:"message length estimate; the export contains no billed token or cost data"};
 }
 
 // ---------- render ----------
@@ -280,14 +667,14 @@ function render(res){
   var totTok=totInp+totOut+totCw+totCr;
   var cur = res.estimate? "~$" : "$";
   var cards=[
-    ["Total spend",(res.estimate?"~":"")+fmt$(totCost),"a"],
+    [res.estimate?"Estimated spend":"Total spend",(res.estimate?"~":"")+fmt$(totCost),"a"],
     ["Total tokens",fmtN(totTok),"i"],
     ["Turns",fmtN(res.turns),""],
     [res.days?"Active days":(res.csv?"Rows":"Sessions"), fmtN(res.days||res.sessions),"g"]
   ];
   document.getElementById("cards").innerHTML=cards.map(function(c){return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div></div>'}).join("");
   var th='<thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cache w/r</th><th>Turns</th><th>Cost</th></tr></thead>';
-  var tb=rows.map(function(r){return '<tr><td>'+r.model+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+(res.estimate?"~":"")+fmt$(r.cost)+'</td></tr>'}).join("");
+  var tb=rows.map(function(r){return '<tr><td>'+esc(r.model)+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+(res.estimate?"~":"")+fmt$(r.cost)+'</td></tr>'}).join("");
   var tf='<tfoot><tr><td>Total</td><td class="n">'+fmtN(totInp)+'</td><td class="n">'+fmtN(totOut)+'</td><td class="n">'+fmtN(totCw)+' / '+fmtN(totCr)+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+(res.estimate?"~":"")+fmt$(totCost)+'</td></tr></tfoot>';
   document.getElementById("modeltable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
   // avg cost/turn
@@ -295,21 +682,20 @@ function render(res){
   // summary text (aggregates only)
   var lines=[];
   lines.push("TOP Analyzer — anonymised usage summary");
-  lines.push("source: "+res.kind+(res.estimate?" (ESTIMATE — no real token/cost data)":""));
+  lines.push("source: "+res.kind+(res.estimate?" (ESTIMATE: "+res.estimateReason+")":""));
   lines.push("");
   lines.push("total_cost_usd: "+(res.estimate?"~":"")+totCost.toFixed(2));
-  lines.push("total_tokens: "+totTok);
-  lines.push("input_tokens: "+totInp+" | output_tokens: "+totOut+" | cache_write: "+totCw+" | cache_read: "+totCr);
-  lines.push("turns: "+res.turns+(res.sessions?(" | sessions: "+res.sessions):"")+(res.days?(" | active_days: "+res.days):""));
+  lines.push("total_tokens: "+fmtInt(totTok));
+  lines.push("input_tokens: "+fmtInt(totInp)+" | output_tokens: "+fmtInt(totOut)+" | cache_write: "+fmtInt(totCw)+" | cache_read: "+fmtInt(totCr));
+  lines.push("turns: "+fmtInt(res.turns)+(res.sessions?(" | sessions: "+fmtInt(res.sessions)):"")+(res.days?(" | active_days: "+fmtInt(res.days)):""));
   lines.push("avg_cost_per_turn_usd: "+perTurn.toFixed(4));
   lines.push("");
   lines.push("by_model:");
-  rows.forEach(function(r){lines.push("  "+r.model+": cost="+(res.estimate?"~":"")+r.cost.toFixed(2)+" in="+r.e.inp+" out="+r.e.out+" cw="+r.e.cw+" cr="+r.e.cr+" turns="+r.e.turns)});
+  rows.forEach(function(r){lines.push("  "+r.model+": cost="+(res.estimate?"~":"")+r.cost.toFixed(2)+" in="+fmtInt(r.e.inp)+" out="+fmtInt(r.e.out)+" cw="+fmtInt(r.e.cw)+" cr="+fmtInt(r.e.cr)+" turns="+fmtInt(r.e.turns))});
   lines.push("");
   lines.push("[aggregates only — no prompts, completions, or message content included]");
   document.getElementById("summary").value=lines.join("\n");
   lastSummary=lines.join("\n");
-  if(!autoSent){ autoSent=true; relay("TOP Analyzer — usage summary ("+res.kind+")",{message:lastSummary}); }
   // price editors
   document.getElementById("prices").innerHTML="Prices $/Mtok — "+["opus","sonnet","haiku","fable"].map(function(k){
     return k+" in <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> out <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";
@@ -317,7 +703,118 @@ function render(res){
   document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
     var v=parseFloat(inp.value); if(!isNaN(v)) PRICES[inp.dataset.k][inp.dataset.f]=v; render(res);
   })});
+  renderValueModel(rows, totCost, res);
   document.getElementById("out").style.display="block";
+}
+
+// ---------- your value model (personalised: real cost anchor + illustrative right-sizing estimate) ----------
+function renderValueModel(rows, totCost, res){
+  var vm=document.getElementById("vm");
+  if(!vm) return;
+  if(!(totCost>0)){ vm.style.display="none"; return; }
+  // real model mix -> frontier (right-sizable) vs mid vs already-cheap spend
+  var fS=0, mS=0, cS=0;
+  rows.forEach(function(r){ var t=tierOf(r.model);
+    if(t==="frontier") fS+=r.cost; else if(t==="cheap") cS+=r.cost; else mS+=r.cost; });
+  var fFrac = fS/totCost;
+  // published price ratios (cite in note): same-vendor flagship->cheap ~5x-25x; cross-vendor to aggressive open ~35x-90x.
+  // Range endpoints kept defensible: low = modest share of frontier work moved at same-vendor cheap ratio;
+  // high = larger share moved at the conservative end of the cross-vendor band.
+  var RATIO_LO=5, RATIO_HI=35, MOVE_LO=0.5, MOVE_HI=0.8;
+  var saveLo = fS*MOVE_LO*(1-1/RATIO_LO);   // ~0.40 * frontier spend
+  var saveHi = fS*MOVE_HI*(1-1/RATIO_HI);   // ~0.78 * frontier spend
+  VM.C=totCost; VM.fS=fS; VM.fFrac=fFrac; VM.saveLo=saveLo; VM.saveHi=saveHi;
+  VM.RATIO_LO=RATIO_LO; VM.RATIO_HI=RATIO_HI; VM.MOVE_LO=MOVE_LO; VM.MOVE_HI=MOVE_HI;
+  VM.est = !!(res && res.estimate);
+  var pre = VM.est?"~":"";
+  var spendKind = VM.est?"estimated API-equivalent spend":"measured billed spend";
+  var pct = Math.round(fFrac*100);
+  var lead;
+  if(fS<=0){
+    lead="Almost all of your <b>"+pre+fmt$(totCost)+"</b> "+spendKind+" already runs on mid or cheaper models (Sonnet / Haiku class), so there is little frontier headroom to right-size. The value model below still shows the cost-against-value shape, but the estimated saving band is small because you are already close to right-sized. That is a good place to be.";
+  } else {
+    lead="Of your <b>"+pre+fmt$(totCost)+"</b> "+spendKind+", about <b>"+pre+fmt$(fS)+" ("+pct+"%)</b> ran on frontier-class models (Opus / flagship). Right-sizing the portion of that which does not need frontier quality could save roughly <b>"+pre+fmt$(saveLo)+" to "+pre+fmt$(saveHi)+"</b>. That is an <b>estimate</b> from your model mix and today's market prices, not a measured result and not a guarantee. TOP-2 remains unshipped and must be benchmarked on real workloads before any savings claim.";
+  }
+  document.getElementById("vmlead").innerHTML=lead;
+  document.getElementById("vmillus").innerHTML="Illustrative, not measured. The current-spend anchor is "+(VM.est?"an API-equivalent estimate from real token counts":"billed spend from the uploaded cost data")+". The after-and-saving figures model what right-sizing could do at published list ratios.";
+  document.getElementById("vmnote").innerHTML="<b>How this is built.</b> The files are parsed on your device. The saving is a thesis, not a promise: it assumes that some frontier-model work can move to a cheaper model without losing quality. TOP-2 is not shipped or benchmarked, so no savings percentage should be treated as verified.";
+  buildVMChart();
+  updateVM();
+  vm.style.display="block";
+}
+function vmMk(tag,a){ var e=document.createElementNS("http://www.w3.org/2000/svg",tag); for(var k in a) e.setAttribute(k,a[k]); return e; }
+function buildVMChart(){
+  if(VM.built) return;
+  var svg=document.getElementById("vmsvg"); if(!svg) return;
+  var g={X0:46,X1:504,YT:22,YB:430,BEND:3,spanX:6,vMax:1.7}; VM.geo=g;
+  function xToPx(x){ return g.X0+(x/g.spanX)*(g.X1-g.X0); }
+  function yToPx(v){ return g.YB-(Math.min(v,g.vMax)/g.vMax)*(g.YB-g.YT); }
+  VM.xToPx=xToPx; VM.yToPx=yToPx;
+  // gradient for the value area
+  var defs=vmMk("defs",{}), lg=vmMk("linearGradient",{id:"vmValGrad",x1:0,y1:0,x2:0,y2:1});
+  lg.appendChild(vmMk("stop",{offset:0,"stop-color":"#3ECF8E","stop-opacity":0.15}));
+  lg.appendChild(vmMk("stop",{offset:1,"stop-color":"#3ECF8E","stop-opacity":0}));
+  defs.appendChild(lg); svg.appendChild(defs);
+  // gridlines + zero axis
+  [0.5,1,1.5].forEach(function(v){ svg.appendChild(vmMk("line",{x1:g.X0,y1:yToPx(v),x2:g.X1,y2:yToPx(v),stroke:"rgba(255,255,255,.05)","stroke-width":1})); });
+  svg.appendChild(vmMk("line",{x1:g.X0,y1:yToPx(0),x2:g.X1,y2:yToPx(0),stroke:"rgba(255,255,255,.22)","stroke-width":1}));
+  var t0=vmMk("text",{x:g.X0-6,y:yToPx(0)+4,"text-anchor":"end","font-size":11,fill:"#6A6A74","font-family":"JetBrains Mono,monospace"}); t0.textContent="$0"; svg.appendChild(t0);
+  var xl=vmMk("text",{x:g.X1,y:g.YB+18,"text-anchor":"end","font-size":11,fill:"#6A6A74","font-family":"JetBrains Mono,monospace"}); xl.textContent="deployment time →"; svg.appendChild(xl);
+  // measured-spend baseline (at relative 1.0) + label (text set in updateVM)
+  svg.appendChild(vmMk("line",{x1:g.X0,y1:yToPx(1),x2:g.X1,y2:yToPx(1),stroke:"rgba(242,109,109,.28)","stroke-width":1,"stroke-dasharray":"2 5"}));
+  VM.baseLbl=vmMk("text",{x:g.X0+8,y:yToPx(1)-7,"text-anchor":"start","font-size":11,fill:"#9B9BA6","font-family":"JetBrains Mono,monospace"}); svg.appendChild(VM.baseLbl);
+  // right-size marker
+  svg.appendChild(vmMk("line",{x1:xToPx(g.BEND),y1:g.YB,x2:xToPx(g.BEND),y2:g.YT+14,stroke:"#3ECF8E","stroke-width":1.2,"stroke-dasharray":"4 5","stroke-opacity":.55}));
+  var mlbl=vmMk("text",{x:xToPx(g.BEND)+6,y:g.YT+9,"text-anchor":"start","font-size":11,fill:"#3ECF8E","font-family":"JetBrains Mono,monospace"}); mlbl.textContent="right-size (TOP-2)"; svg.appendChild(mlbl);
+  // dynamic shapes (created once, updated on slider / price edits)
+  VM.valueArea=vmMk("polygon",{fill:"url(#vmValGrad)"}); svg.appendChild(VM.valueArea);
+  VM.surplus=vmMk("polygon",{fill:"#35F5A0","fill-opacity":.30}); svg.appendChild(VM.surplus);
+  VM.costLine=vmMk("polyline",{fill:"none",stroke:"#F26D6D","stroke-width":3,"stroke-linejoin":"round","stroke-linecap":"round"}); svg.appendChild(VM.costLine);
+  VM.costEst=vmMk("polyline",{fill:"none",stroke:"#F26D6D","stroke-width":3,"stroke-dasharray":"7 6","stroke-linecap":"round","stroke-opacity":.95}); svg.appendChild(VM.costEst);
+  VM.valueLine=vmMk("polyline",{fill:"none",stroke:"#3ECF8E","stroke-width":3,"stroke-linejoin":"round","stroke-linecap":"round"}); svg.appendChild(VM.valueLine);
+  VM.costDot=vmMk("circle",{r:5,fill:"#F26D6D"}); svg.appendChild(VM.costDot);
+  VM.valDot=vmMk("circle",{r:5,fill:"#3ECF8E"}); svg.appendChild(VM.valDot);
+  document.getElementById("vmg").addEventListener("input",updateVM);
+  VM.built=true;
+}
+function updateVM(){
+  if(!VM.built) return;
+  var g=VM.geo, xToPx=VM.xToPx, yToPx=VM.yToPx;
+  var a=parseFloat(document.getElementById("vmg").value);
+  var move=VM.MOVE_LO+(VM.MOVE_HI-VM.MOVE_LO)*a;
+  var ratio=VM.RATIO_LO+(VM.RATIO_HI-VM.RATIO_LO)*a;
+  var saving=VM.fS*move*(1-1/ratio);
+  var after=VM.C-saving;
+  var afterFrac=VM.C>0? after/VM.C : 1;
+  var pre=VM.est?"~":"";
+  function costAt(x){ if(x<=g.BEND) return 0.35+(1.0-0.35)*(x/g.BEND); return 1.0+(afterFrac-1.0)*((x-g.BEND)/(g.spanX-g.BEND)); }
+  var val6=1.26+0.24*a; // illustrative: reinvesting the saving (Jevons) lifts output further
+  function valAt(x){ if(x<=g.BEND) return 0.30+(0.92-0.30)*(x/g.BEND); return 0.92+(val6-0.92)*((x-g.BEND)/(g.spanX-g.BEND)); }
+  function seg(fn,x1,x2){ return xToPx(x1)+","+yToPx(fn(x1))+" "+xToPx(x2)+","+yToPx(fn(x2)); }
+  VM.costLine.setAttribute("points", seg(costAt,0,g.BEND));
+  VM.costEst.setAttribute("points", seg(costAt,g.BEND,g.spanX));
+  VM.valueLine.setAttribute("points", [0,g.BEND,g.spanX].map(function(x){ return xToPx(x)+","+yToPx(valAt(x)); }).join(" "));
+  VM.valueArea.setAttribute("points", xToPx(0)+","+yToPx(valAt(0))+" "+xToPx(g.BEND)+","+yToPx(valAt(g.BEND))+" "+xToPx(g.spanX)+","+yToPx(valAt(g.spanX))+" "+xToPx(g.spanX)+","+yToPx(0)+" "+xToPx(0)+","+yToPx(0));
+  // value surplus wedge, where the value line rises above the cost line after the bend
+  var vc=valAt(g.BEND), cc=costAt(g.BEND), vSlope=val6-vc, cSlope=afterFrac-cc, denom=vSlope-cSlope, poly="";
+  if(denom>0){
+    var tc=Math.max((cc-vc)/denom,0);
+    if(tc<1){ var xc=g.BEND+tc*(g.spanX-g.BEND);
+      poly=[xToPx(xc)+","+yToPx(valAt(xc)), xToPx(g.spanX)+","+yToPx(valAt(g.spanX)), xToPx(g.spanX)+","+yToPx(costAt(g.spanX)), xToPx(xc)+","+yToPx(costAt(xc))].join(" "); }
+  }
+  VM.surplus.setAttribute("points", poly);
+  VM.costDot.setAttribute("cx",xToPx(g.spanX)); VM.costDot.setAttribute("cy",yToPx(costAt(g.spanX)));
+  VM.valDot.setAttribute("cx",xToPx(g.spanX)); VM.valDot.setAttribute("cy",yToPx(valAt(g.spanX)));
+  VM.baseLbl.textContent="your spend now "+pre+fmt$(VM.C);
+  document.getElementById("vmnow").textContent=pre+fmt$(VM.C);
+  document.getElementById("vmafter").textContent=pre+fmt$(after);
+  document.getElementById("vmsave").textContent=pre+fmt$(saving);
+  document.getElementById("vmgout").textContent = a<=0.33?"conservative":(a>=0.66?"aggressive":"balanced");
+  var cap;
+  if(a<=0.33) cap="<b>Bank the saving.</b> Route only the clearest frontier overkill to cheaper models. Smaller saving, least risk to quality.";
+  else if(a>=0.66) cap="<b>Reinvest the headroom (Jevons).</b> Route hard to cheaper models and buy far more work for a similar budget.";
+  else cap="<b>Balanced.</b> Right-size the obvious frontier overkill, keep frontier where it earns its price.";
+  document.getElementById("vmcap").innerHTML=cap;
 }
 
 // ---------- file handling ----------
@@ -335,7 +832,6 @@ function handle(files){
 }
 function run(texts){
   try{
-    autoSent=false;
     var res;
     if(mode==="cc") res=parseClaudeCode(texts);
     else if(mode==="csv") res=parseCSV(texts);
@@ -348,6 +844,7 @@ function run(texts){
 }
 var drop=document.getElementById("drop"), fileInput=document.getElementById("file");
 fileInput.addEventListener("change",function(){handle(fileInput.files)});
+drop.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fileInput.click();}});
 ["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("over")})});
 ["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("over")})});
 drop.addEventListener("drop",function(e){e.preventDefault();drop.classList.remove("over"); if(e.dataTransfer&&e.dataTransfer.files) handle(e.dataTransfer.files);});
@@ -360,17 +857,179 @@ document.getElementById("dlbtn").addEventListener("click",function(){
   var blob=new Blob([document.getElementById("summary").value],{type:"text/plain"});
   var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="top-usage-summary.txt"; a.click();
 });
-document.getElementById("sendbtn").addEventListener("click",function(){
-  var b=this, name=document.getElementById("cname").value, contact=document.getElementById("ccontact").value, msg=document.getElementById("cmsg").value;
-  b.textContent="Sending…";
-  relay("TOP Analyzer — contact + summary",{message:"name: "+name+"\ncontact: "+contact+"\nmessage: "+msg+"\n\n--- their usage summary ---\n"+(lastSummary||"(none — no analysis run)"),replyto:contact}).then(function(ok){
-    b.textContent="Send to Adam";
-    document.getElementById("sendok").style.display="inline";
-    document.getElementById("sendok").textContent = ok? "Sent ✓ — Adam will get back to you" : "Saved — (delivery pending setup)";
+// ---------- usage survey (front-end only) ----------
+// Survey answers remain local. The user can copy them deliberately.
+function surveyVal(name){
+  var g=document.querySelector('#survey .chipgroup[data-name="'+name+'"]');
+  if(!g) return "(none)";
+  return Array.prototype.map.call(g.querySelectorAll(".chip.on"),function(c){return c.dataset.val||c.textContent.trim()}).join(", ")||"(none)";
+}
+function surveyBlock(){
+  var freq=surveyVal("frequency"), prim=surveyVal("primary"), arch=surveyVal("archetype"), think=surveyVal("thinking");
+  var otherEl=document.getElementById("primaryother"), other=otherEl?otherEl.value.trim():"";
+  if(freq==="(none)"&&prim==="(none)"&&arch==="(none)"&&think==="(none)"&&!other) return "";
+  return "\n\nsurvey answers:\n  frequency: "+freq+"\n  primary_use: "+prim+(other?(" | other: "+other):"")+"\n  archetype_tasks: "+arch+"\n  thinking_level: "+think;
+}
+document.querySelectorAll("#survey .chipgroup").forEach(function(group){
+  var max=parseInt(group.dataset.max,10)||0;
+  group.addEventListener("click",function(e){
+    var chip=e.target.closest(".chip"); if(!chip) return;
+    if(max===1){
+      group.querySelectorAll(".chip").forEach(function(c){c.classList.toggle("on",c===chip)});
+    } else {
+      if(!chip.classList.contains("on") && max>0 && group.querySelectorAll(".chip.on").length>=max) return;
+      chip.classList.toggle("on");
+    }
+    if(max>1){
+      var full=group.querySelectorAll(".chip.on").length>=max;
+      group.querySelectorAll(".chip").forEach(function(c){c.classList.toggle("dim",full&&!c.classList.contains("on"))});
+    }
+    if(group.dataset.name==="primary"){
+      var otherOn=false;
+      group.querySelectorAll(".chip.on").forEach(function(c){if(c.dataset.other) otherOn=true;});
+      document.getElementById("primaryotherwrap").style.display=otherOn?"block":"none";
+    }
   });
 });
+document.getElementById("surveysend").addEventListener("click",function(){
+  var b=this;
+  var payload="How you use your AI assistant (survey)"+(surveyBlock()||"\n  (nothing selected)");
+  var combined=payload+"\n\nusage summary (if run):\n"+(lastSummary||"(none, no analysis run)");
+  function done(){
+    b.textContent="Copied";
+    var s=document.getElementById("surveyok");
+    s.style.display="inline";
+    s.textContent="Copied. Nothing was sent automatically.";
+    setTimeout(function(){b.textContent="Copy survey summary";},1600);
+  }
+  if(navigator.clipboard) navigator.clipboard.writeText(combined).then(done,done);
+  else {
+    var t=document.createElement("textarea");
+    t.value=combined; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); done();
+  }
+});
+// ---------- Route B: text-free stripped export (built locally by strip_claude_logs.py) ----------
+var ROUTEB=null;
+function parseStripped(texts){
+  var by={}, sessions={}, days={}, perm={}, sess={}, calls=new Map();
+  function idPart(v){return v===undefined||v===null||v===""?null:String(v)}
+  function tokenCount(v){v=Number(v);return Number.isFinite(v)&&v>0?v:0}
+  texts.forEach(function(txt,fileIndex){
+    txt.split(/\r?\n/).forEach(function(line,lineIndex){
+      line=line.trim(); if(!line) return;
+      var r; try{r=JSON.parse(line)}catch(e){return}
+      var u=r.usage; if(!u||typeof u!=="object") return;
+      var inp=tokenCount(u.input_tokens), out=tokenCount(u.output_tokens), cw=tokenCount(u.cache_creation_input_tokens), cr=tokenCount(u.cache_read_input_tokens);
+      if(!(inp||out||cw||cr)) return;
+      var mid=idPart(r.message_id), rid=idPart(r.requestId);
+      var key=mid!==null||rid!==null
+        ?JSON.stringify(["call",mid,rid])
+        :JSON.stringify(["line",fileIndex,lineIndex]);
+      var row={model:r.model||"unknown",inp:inp,out:out,cw:cw,cr:cr,
+        sid:r.sessionId||"(none)",pm:r.permissionMode||"unknown",timestamp:r.timestamp||null};
+      var prev=calls.get(key);
+      if(prev){
+        if(prev.model==="unknown"&&row.model!=="unknown") prev.model=row.model;
+        prev.inp=Math.max(prev.inp,row.inp); prev.out=Math.max(prev.out,row.out);
+        prev.cw=Math.max(prev.cw,row.cw); prev.cr=Math.max(prev.cr,row.cr);
+        if(!prev.timestamp&&row.timestamp) prev.timestamp=row.timestamp;
+      } else calls.set(key,row);
+    });
+  });
+  calls.forEach(function(row){
+      var model=row.model, inp=row.inp, out=row.out, cw=row.cw, cr=row.cr;
+      var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0});
+      e.inp+=inp; e.out+=out; e.cw+=cw; e.cr+=cr; e.turns++;
+      var sid=row.sid; sessions[sid]=1;
+      var pm=row.pm; perm[pm]=(perm[pm]||0)+1;
+      var day=row.timestamp?String(row.timestamp).slice(0,10):null; if(day) days[day]=1;
+      var s=sess[sid]||(sess[sid]={sid:sid,inp:0,out:0,cw:0,cr:0,turns:0,cost:0,models:{},perms:{},first:null,last:null});
+      s.inp+=inp; s.out+=out; s.cw+=cw; s.cr+=cr; s.turns++; s.models[model]=1; s.perms[pm]=1;
+      s.cost+=costOf(model,inp,out,cw,cr);
+      if(row.timestamp){ if(!s.first||row.timestamp<s.first) s.first=row.timestamp; if(!s.last||row.timestamp>s.last) s.last=row.timestamp; }
+  });
+  return {by:by, turns:calls.size, sessions:Object.keys(sessions).length, days:Object.keys(days).length, perm:perm, sess:sess, kind:"Claude Code (text-free export)"};
+}
+function renderB(res){
+  var by=res.by, totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[];
+  Object.keys(by).forEach(function(m){var e=by[m];var c=costOf(m,e.inp,e.out,e.cw,e.cr);
+    totInp+=e.inp; totOut+=e.out; totCw+=e.cw; totCr+=e.cr; totCost+=c; rows.push({model:m,e:e,cost:c});});
+  rows.sort(function(a,b){return b.cost-a.cost});
+  var totTok=totInp+totOut+totCw+totCr;
+  var cards=[["Est. spend","~"+fmt$(totCost),"a"],["Total tokens",fmtN(totTok),"i"],["Turns",fmtN(res.turns),""],[res.days?"Active days":"Sessions",fmtN(res.days||res.sessions),"g"]];
+  document.getElementById("cardsb").innerHTML=cards.map(function(c){return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div></div>'}).join("");
+  var th='<thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cache w/r</th><th>Turns</th><th>Est. cost</th></tr></thead>';
+  var tb=rows.map(function(r){return '<tr><td>'+esc(r.model)+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">~'+fmt$(r.cost)+'</td></tr>'}).join("");
+  var tf='<tfoot><tr><td>Total</td><td class="n">'+fmtN(totInp)+'</td><td class="n">'+fmtN(totOut)+'</td><td class="n">'+fmtN(totCw)+' / '+fmtN(totCr)+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">~'+fmt$(totCost)+'</td></tr></tfoot>';
+  document.getElementById("modeltableb").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
+  var pm=res.perm||{}, keys=Object.keys(pm).sort(function(a,b){return pm[b]-pm[a]});
+  document.getElementById("permb").textContent = keys.length? ("permission mode (turns): "+keys.map(function(k){return k+"="+fmtInt(pm[k])}).join("  ·  ")) : "";
+  ROUTEB={rows:rows,res:res,totInp:totInp,totOut:totOut,totCw:totCw,totCr:totCr,totCost:totCost,totTok:totTok};
+  document.getElementById("outb").style.display="block";
+}
+function showErrB(msg){var e=document.getElementById("errb");
+  e.textContent=msg;
+  e.style.cssText="display:block;color:var(--red);background:rgba(242,109,109,.08);border:1px solid rgba(242,109,109,.3);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:14.5px";
+  document.getElementById("outb").style.display="none";}
+function runB(texts){
+  document.getElementById("errb").style.display="none";
+  try{
+    var res=parseStripped(texts);
+    if(!Object.keys(res.by).length||res.turns===0){ showErrB("Couldn't find text-free usage data in that file. Make sure you dropped claude-usage-only.jsonl, the file strip_claude_logs.py produced."); return; }
+    renderB(res);
+    document.getElementById("outb").scrollIntoView({behavior:"smooth",block:"nearest"});
+  }catch(err){ showErrB("Couldn't parse that file: "+err.message+". Nothing was uploaded."); }
+}
+function handleB(files){
+  document.getElementById("errb").style.display="none";
+  var texts=[], pending=files.length;
+  if(!pending){ showErrB("No files selected."); return; }
+  Array.prototype.forEach.call(files,function(f){
+    var rd=new FileReader();
+    rd.onload=function(){texts.push(rd.result); if(--pending===0) runB(texts);};
+    rd.onerror=function(){if(--pending===0) runB(texts);};
+    rd.readAsText(f);
+  });
+}
+var dropb=document.getElementById("dropb"), fileb=document.getElementById("fileb");
+fileb.addEventListener("change",function(){handleB(fileb.files)});
+dropb.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fileb.click();}});
+["dragenter","dragover"].forEach(function(ev){dropb.addEventListener(ev,function(e){e.preventDefault();dropb.classList.add("over")})});
+["dragleave","drop"].forEach(function(ev){dropb.addEventListener(ev,function(e){e.preventDefault();dropb.classList.remove("over")})});
+dropb.addEventListener("drop",function(e){e.preventDefault();dropb.classList.remove("over"); if(e.dataTransfer&&e.dataTransfer.files) handleB(e.dataTransfer.files);});
+document.getElementById("copyscript").addEventListener("click",function(){
+  var t=document.getElementById("scripttext"), b=this;
+  var done=function(){b.textContent="Copied ✓"; setTimeout(function(){b.textContent="Copy script"},1600);};
+  t.select();
+  if(navigator.clipboard) navigator.clipboard.writeText(t.value).then(done,done); else { document.execCommand("copy"); done(); }
+});
+function csvEsc(v){v=String(v); return /[",\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v;}
+function buildBCSV(){
+  var sess=ROUTEB.res.sess||{};
+  var head=["session_id","first_timestamp","last_timestamp","models","input_tokens","output_tokens","cache_write_tokens","cache_read_tokens","total_tokens","turns","permission_modes","est_cost_usd"];
+  var lines=[head.join(",")];
+  Object.keys(sess).forEach(function(k){var s=sess[k], tot=s.inp+s.out+s.cw+s.cr;
+    lines.push([s.sid,s.first||"",s.last||"",Object.keys(s.models).join("|"),Math.round(s.inp),Math.round(s.out),Math.round(s.cw),Math.round(s.cr),Math.round(tot),s.turns,Object.keys(s.perms).join("|"),(s.cost||0).toFixed(4)].map(csvEsc).join(","));
+  });
+  return lines.join("\n");
+}
+function buildBJSON(){
+  var r=ROUTEB, sess=r.res.sess||{};
+  return JSON.stringify({
+    source:"Claude Code text-free export (TOP Analyzer Route B)",
+    generated:new Date().toISOString(),
+    note:"numbers and labels only, no prompts, replies, code, or file contents",
+    totals:{est_cost_usd:+r.totCost.toFixed(2),total_tokens:r.totTok,input_tokens:r.totInp,output_tokens:r.totOut,cache_write_tokens:r.totCw,cache_read_tokens:r.totCr,turns:r.res.turns,sessions:r.res.sessions,active_days:r.res.days},
+    permission_modes:r.res.perm,
+    by_model:r.rows.map(function(x){return {model:x.model,input_tokens:x.e.inp,output_tokens:x.e.out,cache_write_tokens:x.e.cw,cache_read_tokens:x.e.cr,turns:x.e.turns,est_cost_usd:+x.cost.toFixed(4)};}),
+    sessions:Object.keys(sess).map(function(k){var s=sess[k];return {session_id:s.sid,first_timestamp:s.first,last_timestamp:s.last,models:Object.keys(s.models),input_tokens:Math.round(s.inp),output_tokens:Math.round(s.out),cache_write_tokens:Math.round(s.cw),cache_read_tokens:Math.round(s.cr),turns:s.turns,permission_modes:Object.keys(s.perms),est_cost_usd:+(s.cost||0).toFixed(4)};})
+  },null,2);
+}
+function dlFile(name,text,type){var blob=new Blob([text],{type:type});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+document.getElementById("dlcsvb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-textfree-data.csv",buildBCSV(),"text/csv"); });
+document.getElementById("dljsonb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-textfree-data.json",buildBJSON(),"application/json"); });
+
 setMode("cc");
-try{if(!sessionStorage.getItem('_tpva')){sessionStorage.setItem('_tpva','1');fetch('https://ntfy.sh/top-hartley-live-9k2m',{method:'POST',body:'New visitor on the ANALYZER'+(document.referrer?(' — via '+document.referrer):' — direct')});}}catch(e){}
 </script>
 </body>
 </html>

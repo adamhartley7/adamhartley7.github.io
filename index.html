@@ -42,16 +42,16 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px
 .logo .mk{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--iris),#4b56c9);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;box-shadow:0 0 18px var(--glow)}
 .navlinks{display:flex;align-items:center;gap:4px;font-size:14px;color:var(--muted)}
 .navlinks>a,.navdrop>button{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9999px;color:var(--muted);background:none;border:none;font:inherit;font-size:14px;cursor:pointer;transition:.18s}
-.navlinks>a:hover,.navdrop>button:hover,.navdrop:focus-within>button{color:var(--text);background:rgba(255,255,255,.08)}
+.navlinks>a:hover,.navdrop>button:hover,.navdrop.open>button{color:var(--text);background:rgba(255,255,255,.08)}
 .navdrop{position:relative}
 .navdrop .car{font-size:9px;opacity:.7;transition:transform .18s}
-.navdrop:hover .car,.navdrop:focus-within .car{transform:rotate(180deg)}
+.navdrop:hover .car,.navdrop.open .car{transform:rotate(180deg)}
 .dropdown{position:absolute;left:50%;transform:translate(-50%,6px);top:calc(100% + 10px);min-width:230px;padding:7px;
   background:rgba(18,18,24,.72);backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);
   border:1px solid rgba(255,255,255,.12);border-radius:18px;
   box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 24px 60px -16px rgba(0,0,0,.7);
   opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s,transform .18s}
-.navdrop:hover .dropdown,.navdrop:focus-within .dropdown{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0)}
+.navdrop:hover .dropdown,.navdrop.open .dropdown{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0)}
 .dropdown a{display:block;padding:9px 13px;border-radius:11px;color:var(--text);font-size:14px}
 .dropdown a:hover{background:rgba(255,255,255,.08)}
 .dropdown a small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
@@ -160,6 +160,65 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:2
 footer .contact{display:flex;gap:22px;flex-wrap:wrap;font-family:"JetBrains Mono",monospace;font-size:13px}
 footer a:hover{color:var(--muted)}
 
+/* nav dropdown hover-bridge (keeps the menu open while the cursor crosses the gap) */
+.navdrop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);width:240px;max-width:82vw;height:16px;pointer-events:auto}
+
+/* hero gem totem */
+.hero-totem-link{display:flex;width:min(280px,70vw);margin:6px auto 30px;flex-direction:column;align-items:center;gap:8px;border-radius:24px;padding:8px 10px 12px;transition:transform .2s ease,background .2s ease,box-shadow .2s ease}
+.hero-totem-link:hover,.hero-totem-link:focus-visible{transform:translateY(-4px);background:rgba(110,123,242,.1);box-shadow:0 20px 55px rgba(62,42,140,.25);outline:none}
+.hero-totem{display:block;width:100%;height:auto;filter:drop-shadow(0 0 34px rgba(124,77,255,.5))}
+.hero-totem-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 22px;border-radius:999px;background:linear-gradient(135deg,var(--iris),#8c5cff);color:#fff;font-size:15px;font-weight:700;box-shadow:0 10px 30px rgba(110,123,242,.35)}
+.hero-totem .gem-ring{transform-box:fill-box;transform-origin:center;will-change:transform}
+.hero-totem .gem-ring-a{animation:gemspin 18s linear infinite}
+.hero-totem .gem-ring-b{animation:gemspin 26s linear infinite reverse}
+@keyframes gemspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.hero-totem .gem-ring{animation:none}}
+
+/* value model (interactive cost vs value) */
+.vm-stage{max-width:1000px;margin:0 auto;position:relative}
+.vm-stage::before{content:"";position:absolute;inset:-1px;border-radius:20px;background:linear-gradient(180deg,rgba(110,123,242,.5),transparent 42%);opacity:.55;filter:blur(2px)}
+.vm-card{position:relative;background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--border-2);border-radius:18px;padding:clamp(18px,3vw,30px);box-shadow:0 40px 90px -40px rgba(0,0,0,.9)}
+.vm-legend{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:center;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.vm-legend span{display:flex;align-items:center;gap:7px}
+.vm-legend .sw{width:16px;height:3px;border-radius:2px}
+.vm-legend .sq{width:12px;height:12px;border-radius:3px}
+.vm-plot{position:relative;background:rgba(255,255,255,.014);border:1px solid var(--border);border-radius:12px;padding:6px 10px 2px;max-width:580px;margin:0 auto}
+.vm-controls{display:flex;align-items:center;gap:14px;margin:18px auto 6px;max-width:640px}
+.vm-controls label{font-size:13.5px;color:var(--muted);min-width:190px}
+.vm-controls input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:100px;background:linear-gradient(90deg,var(--mint) 0%,var(--amber) 55%,var(--red) 100%);outline:none;flex:1}
+.vm-controls input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.vm-controls input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer}
+.vm-controls .gval{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:500;min-width:64px;text-align:right;color:var(--iris-2)}
+.vm-cap{font-size:14px;color:var(--muted);margin:2px auto 18px;min-height:22px;max-width:640px;text-align:center}
+.vm-cap b{color:var(--text);font-weight:600}
+.vm-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:640px){.vm-cards{grid-template-columns:1fr}}
+.vm-stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.vm-stat .k{font-size:12.5px;color:var(--muted);margin-bottom:7px}
+.vm-stat .n{font-family:"JetBrains Mono",monospace;font-size:26px;font-weight:500;font-variant-numeric:tabular-nums}
+.vm-stat.after .n{color:var(--mint)}.vm-stat.imp .n{color:var(--iris-2)}
+.vm-illus{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);margin:12px 2px 0;letter-spacing:.02em;text-align:center}
+#vm_pv .ln{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.8s cubic-bezier(.33,0,.15,1)}
+#vm_pv.drawn .ln{stroke-dashoffset:0}
+#vm_pv .fx{opacity:0;transition:opacity .75s ease .95s}
+#vm_pv.drawn .fx{opacity:1}
+
+/* analyse-your-usage atomic section */
+.analyse-band{position:relative;background:linear-gradient(180deg,rgba(110,123,242,.11),var(--panel));border:1px solid var(--border-2);border-radius:22px;padding:clamp(30px,4.5vw,56px);box-shadow:0 40px 90px -50px rgba(0,0,0,.9)}
+.atomic{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1000px;margin:0 auto}
+@media(max-width:840px){.atomic{grid-template-columns:1fr}}
+.acard{position:relative;background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--border-2);border-radius:16px;padding:26px}
+.acard .atag{display:inline-flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}
+.acard .atag .dot{width:8px;height:8px;border-radius:50%}
+.acard .atag.priv{color:var(--mint)}.acard .atag.priv .dot{background:var(--mint);box-shadow:0 0 8px var(--mint)}
+.acard .atag.how{color:var(--iris-2)}.acard .atag.how .dot{background:var(--iris-2);box-shadow:0 0 8px var(--glow)}
+.acard .atag.val{color:var(--amber)}.acard .atag.val .dot{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.acard h3{font-size:20px;margin-bottom:10px}
+.acard p{font-size:15.5px;color:var(--muted)}
+.acta{margin-top:34px;text-align:center}
+.acta .btn{padding:15px 34px;font-size:17px}
+.acta .sub{margin-top:14px;color:var(--faint);font-family:"JetBrains Mono",monospace;font-size:13px}
+
 .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
 .reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.reveal{opacity:1!important;transform:none!important}.track .fill{transform:scaleX(1)!important}}
@@ -171,35 +230,67 @@ footer a:hover{color:var(--muted)}
     <a class="logo" href="#"><span class="mk">T</span> TOP</a>
     <div class="navlinks">
       <div class="navdrop">
-        <button type="button" aria-haspopup="true">Product <span class="car">▼</span></button>
+        <button type="button" aria-haspopup="true" aria-expanded="false">Product <span class="car">▼</span></button>
         <div class="dropdown">
+          <a href="/analyze/">Analyze your usage<small>Your numbers, parsed locally</small></a>
           <a href="#how">How it works<small>The cost band, before you run</small></a>
           <a href="#privacy">Privacy<small>Aggregates only, by design</small></a>
-          <a href="#partner">Founding partners<small>Calibrate it, shape it</small></a>
         </div>
       </div>
+      <a href="#valuemodel">The value model</a>
       <div class="navdrop">
-        <button type="button" aria-haspopup="true">More <span class="car">▼</span></button>
+        <button type="button" aria-haspopup="true" aria-expanded="false">More <span class="car">▼</span></button>
         <div class="dropdown">
           <a href="#status">Where it stands<small>Honest status and numbers</small></a>
+          <a href="#partner">Founding partners<small>Calibrate it, shape it</small></a>
+          <a href="/pitch/">Value model detail<small>The full business case</small></a>
         </div>
       </div>
-      <a href="/pitch/">The value model</a>
       <a class="nav-analyze" href="/analyze/">Analyze your usage →</a>
     </div>
-    <a class="btn btn-primary" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Book a call</a>
+    <a class="btn btn-primary" href="/analyze/">Analyze your usage</a>
   </div>
 </nav>
 
 <!-- HERO -->
 <header class="hero">
   <div class="wrap">
+    <a class="hero-totem-link" href="/analyze/" aria-label="Analyze your usage with TOP">
+    <svg class="hero-totem" viewBox="0 0 200 200" role="img" aria-label="TOP hexagonal emblem with two orbiting rings">
+      <g class="gem-ring gem-ring-a">
+        <g transform="rotate(-22 100 102)">
+          <ellipse cx="100" cy="102" rx="94" ry="27" fill="none" stroke="#57c9ff" stroke-width="2" opacity=".5"/>
+          <circle cx="194" cy="102" r="4.5" fill="#57c9ff"/>
+          <circle cx="6" cy="102" r="4.5" fill="#57c9ff"/>
+        </g>
+      </g>
+      <g class="gem-ring gem-ring-b">
+        <g transform="rotate(24 100 102)">
+          <ellipse cx="100" cy="102" rx="94" ry="27" fill="none" stroke="#ff8fd0" stroke-width="2" opacity=".5"/>
+          <circle cx="194" cy="102" r="4.5" fill="#ff8fd0"/>
+          <circle cx="6" cy="102" r="4.5" fill="#ff8fd0"/>
+        </g>
+      </g>
+      <polygon points="100,100 40,100 70,48" fill="#6b49d6"/>
+      <polygon points="100,100 70,48 130,48" fill="#8763f0"/>
+      <polygon points="100,100 130,48 160,100" fill="#5b3fd6"/>
+      <polygon points="100,100 40,100 70,152" fill="#4c31ad"/>
+      <polygon points="100,100 70,152 130,152" fill="#3f2896"/>
+      <polygon points="100,100 130,152 160,100" fill="#4c31ad"/>
+      <polygon points="160,100 130,152 70,152 40,100 70,48 130,48" fill="none" stroke="#d9ccff" stroke-width="1.5" opacity=".5"/>
+      <g fill="#fff" font-family="Inter,sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central">
+        <text x="70" y="82" font-size="20">T</text><text x="100" y="66" font-size="20">O</text><text x="130" y="82" font-size="20">P</text>
+        <text x="70" y="118" font-size="18">1</text><text x="100" y="135" font-size="18">2</text><text x="130" y="118" font-size="18">3</text>
+      </g>
+    </svg>
+    <span class="hero-totem-cta">Analyze your usage →</span>
+    </a>
     <div class="badge"><span class="d"></span> Token Optimization Protocol</div>
-    <h1>Know what your AI costs, before you run it.</h1>
-    <p class="sub">TOP forecasts the token and euro cost of an AI task from its description, as a calibrated P10 / P50 / P90 band, so your team can budget, cap and route spend per request instead of learning it from the bill.</p>
+    <h1>Know what your AI really costs, on your own usage.</h1>
+    <p class="sub">See your real AI spend, then a calibrated forecast of what each task costs before it runs. Drop in your usage export, parsed privately in your browser, and get your number in minutes.</p>
     <div class="cta">
-      <a class="btn btn-primary" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Book a call →</a>
-      <a class="btn btn-ghost" href="#how">See how it works</a>
+      <a class="btn btn-primary" href="/analyze/">Analyze your usage →</a>
+      <a class="btn btn-ghost" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Book a call</a>
     </div>
 
     <div class="stage reveal">
@@ -214,14 +305,14 @@ footer a:hover{color:var(--muted)}
             <div class="fig mid"><div class="n">€0.42</div><div class="k">P50</div></div>
             <div class="fig hi"><div class="n">€1.10</div><div class="k">P90</div></div>
           </div>
-          <div class="guard"><span class="chip">spend-guard</span> fails closed at P90, this request can't exceed <b class="mono" style="color:var(--text)">€1.10</b></div>
+          <div class="guard"><span class="chip">design target</span> a future spend guard would fail closed at P90. Enforcement is not shipped.</div>
         </div>
       </div>
     </div>
   </div>
 </header>
 
-<div class="trust wrap">Calibrated on <b>real agent traces</b> &nbsp;·&nbsp; research collaboration with <b>University College Cork</b> &nbsp;·&nbsp; privacy-first by design</div>
+<div class="trust wrap">Built from <b>historical agent traces</b> &nbsp;·&nbsp; current accuracy limits stated openly &nbsp;·&nbsp; privacy-first by design</div>
 
 <!-- PROBLEM -->
 <section class="blk" id="problem">
@@ -250,7 +341,84 @@ footer a:hover{color:var(--muted)}
     <div class="grid3">
       <div class="tile reveal"><div class="step-n">01</div><h3>Classify the task</h3><p>An ensemble sorts the request into an archetype, code, refactor, research, chat, each carrying a cost distribution learned from real logged history. Never an invented number.</p></div>
       <div class="tile reveal"><div class="step-n">02</div><h3>Blend with your usage</h3><p>It blends that shared prior with your own logged actuals (empirical-Bayes, in log-space), sensible on day one, sharper the more you run.</p></div>
-      <div class="tile reveal"><div class="step-n">03</div><h3>Forecast &amp; guard</h3><p>You get a P10 / P50 / P90 band. A spend-guard takes the P90 and enforces a hard ceiling, the design fails closed rather than advising and hoping.</p></div>
+      <div class="tile reveal"><div class="step-n">03</div><h3>Forecast, then validate</h3><p>The prototype returns a P10 / P50 / P90 band. A hard P90 spend guard is the intended control layer, but it is not yet shipped or production-validated.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUE MODEL -->
+<section class="blk" id="valuemodel">
+  <div class="wrap">
+    <div class="shead reveal">
+      <div class="eyebrow">the value model</div>
+      <h2 style="margin-top:14px">Cost is only half the picture.</h2>
+      <p>Every dashboard shows spend. This shows what the spend is worth: cost against output value across the life of a deployment. Drag the slider to bank the saving or reinvest it.</p>
+    </div>
+    <div class="vm-stage reveal">
+      <div class="vm-card">
+        <div class="cardtop"><span class="dt"></span><span class="dt"></span><span class="dt"></span><span class="lbl">top · exhibit 1 · cost vs value</span></div>
+        <div class="vm-legend">
+          <span><span class="sw" style="background:#F26D6D"></span>token cost</span>
+          <span><span class="sw" style="background:#3ECF8E"></span>output value</span>
+          <span><span class="sq" style="background:rgba(53,245,160,.42)"></span>value surplus</span>
+        </div>
+        <div class="vm-plot">
+        <svg id="vm_pv" viewBox="0 0 520 500" width="100%" role="img" aria-label="Illustrative token cost and output value over time. The TOP-2 curve is an unshipped research hypothesis, not a measured result.">
+          <defs>
+            <linearGradient id="vm_valGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#3ECF8E" stop-opacity="0.16"/>
+              <stop offset="1" stop-color="#3ECF8E" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        </div>
+        <div class="vm-controls">
+          <label for="vm_g">illustrative token spend under TOP-2 R&amp;D</label>
+          <input id="vm_g" type="range" min="0.05" max="1" step="0.01" value="0.2">
+          <span class="gval" id="vm_gout">low</span>
+        </div>
+        <p class="vm-cap" id="vm_cap">Cutting the bill: token cost flattens while output value keeps climbing.</p>
+        <div class="vm-cards">
+          <div class="vm-stat"><div class="k">value per unit cost, before</div><div class="n">~0.85</div></div>
+          <div class="vm-stat after"><div class="k">illustrative value per unit cost</div><div class="n"><span id="vm_vpa">5.4</span></div></div>
+          <div class="vm-stat imp"><div class="k">improvement in value per unit cost</div><div class="n"><span id="vm_imp">6.3</span>×</div></div>
+        </div>
+        <p class="vm-illus">Illustrative, not measured. These figures model how the ratio moves; they are not a real customer's numbers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ANALYZE YOUR USAGE -->
+<section class="blk" id="analyse">
+  <div class="wrap">
+    <div class="analyse-band reveal">
+      <div class="shead" style="margin-bottom:clamp(30px,4vw,44px)">
+        <div class="eyebrow">analyze your usage</div>
+        <h2 style="margin-top:14px">Point it at your own AI usage.</h2>
+        <p>No mystery. Three parts, then your real number.</p>
+      </div>
+      <div class="atomic">
+        <div class="acard reveal">
+          <div class="atag priv"><span class="dot"></span>01 · private</div>
+          <h3>It never sees your prompts or code</h3>
+          <p>Your export is parsed locally, in your browser. Nothing is sent automatically. You can inspect and copy an aggregate summary if you choose.</p>
+        </div>
+        <div class="acard reveal">
+          <div class="atag how"><span class="dot"></span>02 · how</div>
+          <h3>Two or three steps</h3>
+          <p>Pick your AI, follow the short export steps for it, and drop your file in. That is the whole flow. No account, nothing to install.</p>
+        </div>
+        <div class="acard reveal">
+          <div class="atag val"><span class="dot"></span>03 · value</div>
+          <h3>Your real spend, and the saving</h3>
+          <p>See what you are actually spending, plus an estimate of what right-sizing each task could save. On your numbers, not a generic demo.</p>
+        </div>
+      </div>
+      <div class="acta reveal">
+        <a class="btn btn-primary" href="/analyze/">Analyze your usage →</a>
+        <div class="sub">Parsed in your browser · aggregates only · a couple of minutes</div>
+      </div>
     </div>
   </div>
 </section>
@@ -264,9 +432,9 @@ footer a:hover{color:var(--muted)}
       <p>No overclaiming, these are the measured figures, gaps included.</p>
     </div>
     <div class="status reveal">
-      <div class="m"><div class="n a">766</div><div class="k">real sessions calibrated on</div></div>
-      <div class="m"><div class="n g">~11.7%</div><div class="k">median error, given the turn count</div></div>
-      <div class="m"><div class="n w">P90</div><div class="k">the fail-closed spend ceiling</div></div>
+      <div class="m"><div class="n a">91%</div><div class="k">of the historic benchmark was one repeated loop</div></div>
+      <div class="m"><div class="n g">~3.3× high</div><div class="k">forward-test bias on varied real work</div></div>
+      <div class="m"><div class="n w">R&amp;D</div><div class="k">TOP-2 and the hard spend guard are not shipped</div></div>
     </div>
     <p class="honest reveal">The open problem is predicting <b>how many back-and-forth turns</b> a task takes from its description alone, so end-to-end, we're still sharpening accuracy. That's exactly what more real-world partner data unlocks, which is why the founding-partner programme below exists.</p>
   </div>
@@ -281,10 +449,10 @@ footer a:hover{color:var(--muted)}
       <p>Data handling is the centre of the arrangement, not an afterthought.</p>
     </div>
     <div class="plist">
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Local parse.</b> <span>Your session logs are featurised on your machine. Only anonymised, aggregate numbers ever leave your environment.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Local parse.</b> <span>Your session logs are processed on your machine. Nothing is sent automatically.</span></div></div>
       <div class="prow reveal"><span class="ck">✓</span><div><b>Aggregates only.</b> <span>Counts, distributions, log-token statistics and cost totals, never the underlying prompts or completions.</span></div></div>
       <div class="prow reveal"><span class="ck">✓</span><div><b>Inspectable.</b> <span>The parsing script contains no network code. Read it, search it for <code class="mono">fetch(</code>, run it yourself.</span></div></div>
-      <div class="prow reveal"><span class="ck">✓</span><div><b>Consent &amp; NDA.</b> <span>Opt-in, revocable, with an auditable manifest of exactly which fields leave the machine, all under a signed NDA.</span></div></div>
+      <div class="prow reveal"><span class="ck">✓</span><div><b>Consent before collection.</b> <span>External data collection stays paused until retention, withdrawal, deletion, legal responsibility, and agreement terms are approved.</span></div></div>
     </div>
   </div>
 </section>
@@ -311,7 +479,7 @@ footer a:hover{color:var(--muted)}
       <div class="av">AH</div>
       <div>
         <h3>Built by Adam Hartley</h3>
-        <p>Medical student at Trinity College Dublin, building TOP and CheckpointKM, a scientific-reproducibility tool. The research core is a collaboration with two University College Cork academics working on uncertainty-aware forecasting and privacy.</p>
+        <p>Medical student at Trinity College Dublin, building TOP and CheckpointKM, a scientific-reproducibility tool. Outreach for academic collaboration on uncertainty-aware forecasting and privacy is prepared, not yet a confirmed partnership.</p>
         <div class="lk">
           <a href="https://www.linkedin.com/in/adam-hartley-966a8741b/" target="_blank" rel="noopener">LinkedIn ↗</a>
           <a href="mailto:adam1hartley@gmail.com">adam1hartley@gmail.com</a>
@@ -327,7 +495,10 @@ footer a:hover{color:var(--muted)}
   <div class="wrap reveal">
     <h2>Stop finding out from the bill.</h2>
     <p>See where TOP lands on your real usage.</p>
-    <a class="btn btn-primary" style="padding:14px 28px;font-size:16px" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Book a call →</a>
+    <div class="cta" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a class="btn btn-primary" style="padding:14px 28px;font-size:16px" href="/analyze/">Analyze your usage →</a>
+      <a class="btn btn-ghost" style="padding:14px 28px;font-size:16px" href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Book a call</a>
+    </div>
   </div>
 </section>
 
@@ -343,12 +514,115 @@ footer a:hover{color:var(--muted)}
 </footer>
 
 <script>
+(function(){
+  var NS='http://www.w3.org/2000/svg';
+  var C={X0:44,X1:504,YT:26,YB:456,vMax:9,spanX:6,BEND:3.3,UP:2.55,IMP:3.3,
+         c0:0.5,cs1:1.15,v0:0.3,vs1:1.0};
+  function xToPx(x){ return C.X0 + (x/C.spanX)*(C.X1-C.X0); }
+  function yToPx(v){ v=Math.min(v,C.vMax); return C.YB - (v/C.vMax)*(C.YB-C.YT); }
+  function costAt(x,g){ return x<=C.BEND ? C.c0+C.cs1*x : (C.c0+C.cs1*C.BEND)+g*(x-C.BEND); }
+  function vs2f(g){ return 0.84 + 1.16*g; }
+  function valAt(x,g){ return x<=C.BEND ? C.v0+C.vs1*x : (C.v0+C.vs1*C.BEND)+vs2f(g)*(x-C.BEND); }
+  function el(id){ return document.getElementById(id); }
+  function mk(tag,a){ var e=document.createElementNS(NS,tag); for(var k in a){ e.setAttribute(k,a[k]); } return e; }
+  function pts(fn,g){ return [0,C.BEND,6].map(function(x){ return xToPx(x)+','+yToPx(fn(x,g)); }).join(' '); }
+
+  var pv=el('vm_pv');
+  if(!pv) return;
+  // static: gridlines + labels
+  [2,4,6,8].forEach(function(v){ pv.appendChild(mk('line',{x1:C.X0,y1:yToPx(v),x2:C.X1,y2:yToPx(v),stroke:'rgba(255,255,255,.045)','stroke-width':1})); });
+  pv.appendChild(mk('line',{x1:C.X0,y1:yToPx(0),x2:C.X1,y2:yToPx(0),stroke:'rgba(255,255,255,.24)','stroke-width':1}));
+  [[0,'0'],[4,'4'],[8,'8']].forEach(function(p){ var t=mk('text',{x:C.X0-8,y:yToPx(p[0])+4,'text-anchor':'end','font-size':11,fill:'#6A6A74','font-family':'JetBrains Mono,monospace'}); t.textContent=p[1]; pv.appendChild(t); });
+  var xl=mk('text',{x:C.X1,y:C.YB+20,'text-anchor':'end','font-size':11,fill:'#6A6A74','font-family':'JetBrains Mono,monospace'}); xl.textContent='time →'; pv.appendChild(xl);
+  // static: markers (fx)
+  var mg=mk('g',{'class':'fx'});
+  mg.appendChild(mk('line',{x1:xToPx(C.UP),y1:C.YB,x2:xToPx(C.UP),y2:C.YT+16,stroke:'#6E7BF2','stroke-width':1.2,'stroke-dasharray':'4 5','stroke-opacity':.6}));
+  mg.appendChild(mk('line',{x1:xToPx(C.IMP),y1:C.YB,x2:xToPx(C.IMP),y2:C.YT+16,stroke:'#3ECF8E','stroke-width':1.2,'stroke-dasharray':'4 5','stroke-opacity':.6}));
+  var lu=mk('text',{x:xToPx(C.UP)-6,y:C.YT+10,'text-anchor':'end','font-size':11.5,fill:'#9AA2F7','font-family':'JetBrains Mono,monospace'}); lu.textContent='upload'; mg.appendChild(lu);
+  var li=mk('text',{x:xToPx(C.IMP)+6,y:C.YT+10,'text-anchor':'start','font-size':11.5,fill:'#3ECF8E','font-family':'JetBrains Mono,monospace'}); li.textContent='implementation'; mg.appendChild(li);
+  pv.appendChild(mg);
+  // dynamic elements (created once, updated)
+  var valueArea=mk('polygon',{'class':'fx',fill:'url(#vm_valGrad)'}); pv.appendChild(valueArea);
+  var surplus=mk('polygon',{'class':'fx',fill:'#35F5A0','fill-opacity':.32}); pv.appendChild(surplus);
+  var costLine=mk('polyline',{'class':'ln',pathLength:1,fill:'none',stroke:'#F26D6D','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'}); pv.appendChild(costLine);
+  var valueLine=mk('polyline',{'class':'ln',pathLength:1,fill:'none',stroke:'#3ECF8E','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'}); pv.appendChild(valueLine);
+  // moment dots on top (fx), static positions
+  var mdg=mk('g',{'class':'fx'}), uy=yToPx(costAt(C.UP,0)), iy=yToPx(costAt(C.IMP,0));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.UP),cy:uy,r:9.5,fill:'#6E7BF2','fill-opacity':.22}));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.UP),cy:uy,r:4.6,fill:'#6E7BF2',stroke:'#EAECFF','stroke-width':1.5}));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.IMP),cy:iy,r:9.5,fill:'#3ECF8E','fill-opacity':.24}));
+  mdg.appendChild(mk('circle',{cx:xToPx(C.IMP),cy:iy,r:4.6,fill:'#3ECF8E',stroke:'#E6FFF2','stroke-width':1.5}));
+  pv.appendChild(mdg);
+  var costDot=mk('circle',{'class':'fx',r:5,fill:'#F26D6D'}); pv.appendChild(costDot);
+  var valDot=mk('circle',{'class':'fx',r:5,fill:'#3ECF8E'}); pv.appendChild(valDot);
+
+  var gEl=el('vm_g'), vpaEl=el('vm_vpa'), impEl=el('vm_imp'), goutEl=el('vm_gout'), capEl=el('vm_cap');
+  function update(){
+    var g=parseFloat(gEl.value);
+    costLine.setAttribute('points', pts(costAt,g));
+    valueLine.setAttribute('points', pts(valAt,g));
+    valueArea.setAttribute('points',
+      xToPx(0)+','+yToPx(valAt(0,g))+' '+xToPx(C.BEND)+','+yToPx(valAt(C.BEND,g))+' '+xToPx(6)+','+yToPx(valAt(6,g))+' '+xToPx(6)+','+C.YB+' '+xToPx(0)+','+C.YB);
+    var vs2=vs2f(g), poly='';
+    if(vs2>g){
+      var gap=(C.c0+C.cs1*C.BEND)-(C.v0+C.vs1*C.BEND);
+      var tc=gap/(vs2-g), xc=C.BEND+Math.min(Math.max(tc,0),6-C.BEND);
+      if(xc<6){ poly=[xToPx(xc)+','+yToPx(valAt(xc,g)),xToPx(6)+','+yToPx(valAt(6,g)),xToPx(6)+','+yToPx(costAt(6,g)),xToPx(xc)+','+yToPx(costAt(xc,g))].join(' '); }
+    }
+    surplus.setAttribute('points', poly);
+    var vpa=vs2/g, imp=vpa/0.85;
+    vpaEl.textContent=vpa.toFixed(1);
+    impEl.textContent=imp.toFixed(1);
+    goutEl.textContent = g<=0.25?'low':(g>=0.7?'high':'medium');
+    var cap;
+    if(g<=0.35) cap='<b>Cutting the bill.</b> Token cost flattens while output value keeps climbing.';
+    else if(g>=0.7) cap='<b>Reinvesting the saving (Jevons).</b> A similar spend now buys far more output.';
+    else cap='<b>Balanced.</b> Part of the saving is a lower bill, part is reinvested into more output.';
+    capEl.innerHTML=cap;
+    costDot.setAttribute('cx',xToPx(6)); costDot.setAttribute('cy',yToPx(costAt(6,g)));
+    valDot.setAttribute('cx',xToPx(6)); valDot.setAttribute('cy',yToPx(valAt(6,g)));
+  }
+  gEl.addEventListener('input',update);
+  update();
+  setTimeout(function(){ pv.classList.add('drawn'); }, 90);
+})();
+(function(){
+  document.querySelectorAll('.navdrop').forEach(function(drop){
+    var button=drop.querySelector('button');
+    var closeTimer;
+    function openMenu(){
+      clearTimeout(closeTimer);
+      drop.classList.add('open');
+      button.setAttribute('aria-expanded','true');
+    }
+    function closeMenu(){
+      drop.classList.remove('open');
+      button.setAttribute('aria-expanded','false');
+    }
+    function scheduleClose(){
+      clearTimeout(closeTimer);
+      closeTimer=setTimeout(closeMenu,320);
+    }
+    drop.addEventListener('pointerenter',openMenu);
+    drop.addEventListener('pointerleave',scheduleClose);
+    drop.addEventListener('focusin',openMenu);
+    drop.addEventListener('focusout',function(event){
+      if(!drop.contains(event.relatedTarget)) scheduleClose();
+    });
+    button.addEventListener('click',openMenu);
+    drop.addEventListener('keydown',function(event){
+      if(event.key==='Escape'){
+        closeMenu();
+        button.focus();
+      }
+    });
+  });
+})();
 var REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
 var els=document.querySelectorAll('.reveal');
 if(REDUCE||!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});}
 else{var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}})},{threshold:.12,rootMargin:'0px 0px -8% 0px'});els.forEach(function(e){io.observe(e)});}
 </script>
 <script data-goatcounter="https://adamhartley7.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-<script>try{if(!sessionStorage.getItem('_tpv')){sessionStorage.setItem('_tpv','1');fetch('https://ntfy.sh/top-hartley-live-9k2m',{method:'POST',body:'New visitor on landing page'+(document.referrer?(' via '+document.referrer):', direct')});}}catch(e){}</script>
 </body>
 </html>
