@@ -43,5 +43,3 @@ TOP serves these compressed image files locally. They are genuine photographs or
 - Credit: NASA's Scientific Visualization Studio
 - Source: https://svs.gsfc.nasa.gov/4538/
 - Usage guidance: https://www.nasa.gov/nasa-brand-center/images-and-media/
-
-The small spacecraft on the homepage is an original CSS silhouette. It is decorative and is not presented as a real spacecraft photograph.

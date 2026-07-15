@@ -328,13 +328,13 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 
     <div class="routeb routepanel" id="routeb" hidden>
     <h2><span class="flow-kicker">4</span>Build A Text-Free File First</h2>
-    <p class="lead">Run the readable privacy tool on your own machine before this page sees anything. It creates a new file with model names, token counts, timestamps, session identifiers, and permission modes. <b>It does not copy prompts, replies, code, or file contents.</b> Read the script, run it, and inspect the new file before choosing it here.</p>
+    <p class="lead">Run the readable privacy tool on your own machine before this page sees anything. It creates a new file with model names, token counts, timestamps, locally generated session numbers, and permission modes. <b>It does not copy prompts, replies, code, file contents, or raw session, message, request, or event IDs.</b> Read the script, run it, and inspect the new file before choosing it here.</p>
 
     <div class="steps">
       <h4>How Route B works</h4>
       <ol>
         <li>Copy the script below and save it as <code>strip_claude_logs.py</code>.</li>
-        <li>Run <code>python3 strip_claude_logs.py</code>. It writes <code>claude-usage-only.jsonl</code> next to it.</li>
+        <li>On Windows, run <code>py strip_claude_logs.py</code>. On macOS or Linux, run <code>python3 strip_claude_logs.py</code>. It writes <code>claude-usage-only.jsonl</code> next to it.</li>
         <li>Open that file and check it yourself: every line is just numbers and labels, no text.</li>
         <li>Drop that file into the box below to see it parsed locally on your device.</li>
         <li>Download a CSV or JSON copy for yourself. TOP is not accepting external files yet.</li>
@@ -352,21 +352,22 @@ Reads every Claude Code session log under ~/.claude/projects and writes ONE
 new file, claude-usage-only.jsonl, in the folder you run this from.
 
 What goes IN the output file: timestamps, model IDs, token counts (input,
-output, cache read, cache write), role (user/assistant), permission mode,
-stop reason, a message id (for de-duplicating multi-part turns), and the
-TYPE of each message part (for example "text", "thinking", "tool_use"),
-never the text, code, or file contents inside those parts.
+output, cache read, cache write), role, permission mode, stop reason,
+locally generated session numbers, and the TYPE of each message part
+(for example "text", "thinking", "tool_use").
 
 What never gets read into the output file: prompt text, response text,
-tool inputs and outputs, file contents, code.
+tool inputs and outputs, file contents, code, and raw session, message,
+request, or event IDs. Raw IDs are used only in memory to de-duplicate
+multi-part turns, then discarded before the new file is written.
 
-This script is about 90 lines including comments. Read it before you run it.
+The script is deliberately readable. Read it before you run it.
 
 Usage:
-    python3 strip_claude_logs.py
+    py strip_claude_logs.py
         Numbers and labels only. No project names.
 
-    python3 strip_claude_logs.py --with-projects
+    py strip_claude_logs.py --with-projects
         Same as above, plus a "project" field per line: the folder name
         Claude Code created for that project. This can reveal your local
         folder structure and any internal codenames, so it is off by
@@ -382,7 +383,7 @@ SRC = os.path.expanduser("~/.claude/projects")
 OUT = "claude-usage-only.jsonl"
 
 KEEP_TOP = {
-    "type", "timestamp", "sessionId", "uuid", "permissionMode", "requestId",
+    "type", "timestamp", "permissionMode",
     "isSidechain", "agentName", "attributionSkill", "attributionMcpServer",
     "attributionMcpTool", "promptSource", "entrypoint",
 }
@@ -393,7 +394,7 @@ KEEP_USAGE = {
 }
 
 
-def strip_line(raw, project_name):
+def strip_line(raw, project_name, session_number, line_number):
     try:
         rec = json.loads(raw)
     except json.JSONDecodeError:
@@ -401,34 +402,62 @@ def strip_line(raw, project_name):
     if not isinstance(rec, dict):
         return None
 
-    out = {k: rec[k] for k in KEEP_TOP if k in rec}
-
     msg = rec.get("message")
-    if isinstance(msg, dict):
-        if "id" in msg:
-            out["message_id"] = msg["id"]
-        if "role" in msg:
-            out["role"] = msg["role"]
-        if "model" in msg:
-            out["model"] = msg["model"]
-        if "stop_reason" in msg:
-            out["stop_reason"] = msg["stop_reason"]
+    if not isinstance(msg, dict):
+        return None
+    usage = msg.get("usage")
+    if not isinstance(usage, dict):
+        return None
 
-        usage = msg.get("usage")
-        if isinstance(usage, dict):
-            out["usage"] = {k: v for k, v in usage.items() if k in KEEP_USAGE}
+    safe_usage = {k: v for k, v in usage.items() if k in KEEP_USAGE}
+    if not safe_usage:
+        return None
 
-        content = msg.get("content")
-        if isinstance(content, list):
-            out["content_types"] = [
-                b.get("type") for b in content
-                if isinstance(b, dict) and "type" in b
-            ]
+    out = {k: rec[k] for k in KEEP_TOP if k in rec}
+    out["session_number"] = session_number
+    if "role" in msg:
+        out["role"] = msg["role"]
+    if "model" in msg:
+        out["model"] = msg["model"]
+    if "stop_reason" in msg:
+        out["stop_reason"] = msg["stop_reason"]
+    out["usage"] = safe_usage
+
+    content = msg.get("content")
+    if isinstance(content, list):
+        out["content_types"] = [
+            b.get("type") for b in content
+            if isinstance(b, dict) and "type" in b
+        ]
 
     if INCLUDE_PROJECT and project_name:
         out["project"] = project_name
 
-    return out if out else None
+    message_id = msg.get("id")
+    request_id = rec.get("requestId")
+    event_id = rec.get("uuid")
+    if message_id or request_id:
+        private_key = ("call", str(message_id or ""), str(request_id or ""))
+    elif event_id:
+        private_key = ("event", str(event_id))
+    else:
+        private_key = ("line", session_number, line_number)
+    return private_key, out
+
+
+def merge_duplicate(existing, incoming):
+    for key, value in incoming.get("usage", {}).items():
+        old = existing["usage"].get(key)
+        if isinstance(value, (int, float)) and isinstance(old, (int, float)):
+            existing["usage"][key] = max(old, value)
+        elif key not in existing["usage"]:
+            existing["usage"][key] = value
+    if incoming.get("model") and not existing.get("model"):
+        existing["model"] = incoming["model"]
+    if incoming.get("content_types"):
+        existing["content_types"] = list(dict.fromkeys(
+            existing.get("content_types", []) + incoming["content_types"]
+        ))
 
 
 def main():
@@ -436,26 +465,39 @@ def main():
         print(f"No Claude Code logs found at {SRC}")
         return
 
-    n_in = n_out = 0
-    with open(OUT, "w", encoding="utf-8") as f_out:
-        pattern = os.path.join(SRC, "**", "*.jsonl")
-        for path in glob.glob(pattern, recursive=True):
-            project_name = os.path.basename(os.path.dirname(path))
-            with open(path, encoding="utf-8", errors="ignore") as f_in:
-                for line in f_in:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    n_in += 1
-                    stripped = strip_line(line, project_name)
-                    if stripped:
-                        f_out.write(json.dumps(stripped) + "\n")
-                        n_out += 1
+    n_in = 0
+    safe_calls = {}
+    call_order = []
+    pattern = os.path.join(SRC, "**", "*.jsonl")
+    paths = sorted(glob.glob(pattern, recursive=True))
+    for session_number, path in enumerate(paths, start=1):
+        project_name = os.path.basename(os.path.dirname(path))
+        with open(path, encoding="utf-8", errors="ignore") as f_in:
+            for line_number, line in enumerate(f_in, start=1):
+                line = line.strip()
+                if not line:
+                    continue
+                n_in += 1
+                stripped = strip_line(
+                    line, project_name, session_number, line_number
+                )
+                if not stripped:
+                    continue
+                private_key, safe_row = stripped
+                if private_key in safe_calls:
+                    merge_duplicate(safe_calls[private_key], safe_row)
+                else:
+                    safe_calls[private_key] = safe_row
+                    call_order.append(private_key)
 
-    print(f"Read {n_in} log lines, wrote {n_out} stripped lines to {OUT}")
+    with open(OUT, "w", encoding="utf-8") as f_out:
+        for private_key in call_order:
+            f_out.write(json.dumps(safe_calls[private_key]) + "\n")
+
+    print(f"Read {n_in} log lines, wrote {len(call_order)} safe calls to {OUT}")
     print("Open that file and check it before you use it. It should")
     print("contain no prompt text, no code, and no file contents,")
-    print("only numbers and labels.")
+    print("and no raw session, message, request, or event IDs.")
 
 
 if __name__ == "__main__":
@@ -463,7 +505,7 @@ if __name__ == "__main__":
 </textarea>
     </div>
 
-    <div class="privbox"><b>What is in the file this tool creates:</b> model names, input / output / cache-read / cache-write token counts, timestamps, session ids, permission mode, and turn counts. <b>What is never in it:</b> your prompts, the assistant's replies, code, or file contents. You can read both the script and its output before choosing the file here.</div>
+    <div class="privbox"><b>What is in the file this tool creates:</b> model names, input / output / cache-read / cache-write token counts, timestamps, locally generated session numbers, permission mode, and turn counts. <b>What is never in it:</b> your prompts, the assistant's replies, code, file contents, or raw session, message, request, or event IDs. You can read both the script and its output before choosing the file here.</div>
 
     <label class="drop" id="dropb" tabindex="0" role="button">
       <div class="big">Drop your <code>claude-usage-only.jsonl</code> here, or click to choose</div>
@@ -711,12 +753,12 @@ function tierOf(model){
 var VM={built:false};
 
 var MODES={
-  cc:{label:"Claude Code", small:".jsonl session logs from ~/.claude/projects (drop one, many, or your whole projects folder)",
+  cc:{label:"Claude Code", small:".jsonl session logs from ~/.claude/projects (choose one or more files)",
       hint:"On your machine, your Claude Code logs live in <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>). Drop the <code>.jsonl</code> files in. This is the most accurate mode, with real token counts per turn.",
       steps:[
         "Find your Claude Code logs at <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>).",
         "Each project you have used has its own folder of <code>.jsonl</code> session logs.",
-        "Select the <code>.jsonl</code> files, or just pick the whole <code>projects</code> folder.",
+        "Select one or more <code>.jsonl</code> session files.",
         "Drop them into the box above."],
       stepstip:"This mode reads real per-turn token counts. The dollar figure is an API-equivalent estimate from editable rates, not your Claude Max subscription charge.",
       note:""},
@@ -1246,9 +1288,17 @@ document.getElementById("safeDownload").addEventListener("click",function(){
 // ---------- Route B: text-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;
 function parseStripped(texts){
-  var by={}, sessions={}, days={}, perm={}, sess={}, calls=new Map();
+  var by={}, sessions={}, days={}, perm={}, sess={}, calls=new Map(), sessionAliases=new Map();
   function idPart(v){return v===undefined||v===null||v===""?null:String(v)}
   function tokenCount(v){v=Number(v);return Number.isFinite(v)&&v>0?v:0}
+  function safeSessionNumber(r,fileIndex){
+    var generated=idPart(r.session_number), legacy=idPart(r.sessionId), key;
+    if(generated!==null) key="generated:"+fileIndex+":"+generated;
+    else if(legacy!==null) key="legacy:"+legacy;
+    else key="file:"+fileIndex;
+    if(!sessionAliases.has(key)) sessionAliases.set(key,sessionAliases.size+1);
+    return sessionAliases.get(key);
+  }
   texts.forEach(function(txt,fileIndex){
     txt.split(/\r?\n/).forEach(function(line,lineIndex){
       line=line.trim(); if(!line) return;
@@ -1261,7 +1311,7 @@ function parseStripped(texts){
         ?JSON.stringify(["call",mid,rid])
         :JSON.stringify(["line",fileIndex,lineIndex]);
       var row={model:r.model||"unknown",inp:inp,out:out,cw:cw,cr:cr,
-        sid:r.sessionId||"(none)",pm:r.permissionMode||"unknown",timestamp:r.timestamp||null};
+        sid:safeSessionNumber(r,fileIndex),pm:r.permissionMode||"unknown",timestamp:r.timestamp||null};
       var prev=calls.get(key);
       if(prev){
         if(prev.model==="unknown"&&row.model!=="unknown") prev.model=row.model;
@@ -1343,17 +1393,26 @@ document.getElementById("copyscript").addEventListener("click",function(){
   if(navigator.clipboard) navigator.clipboard.writeText(t.value).then(done,done); else { document.execCommand("copy"); done(); }
 });
 function csvEsc(v){v=String(v); return /[",\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v;}
-function buildBCSV(){
+function buildBSessionRows(){
   var sess=ROUTEB.res.sess||{};
-  var head=["session_id","first_timestamp","last_timestamp","models","input_tokens","output_tokens","cache_write_tokens","cache_read_tokens","total_tokens","turns","permission_modes","est_cost_usd"];
+  return Object.keys(sess).map(function(k,index){var s=sess[k];return {
+    session_number:index+1,first_timestamp:s.first,last_timestamp:s.last,models:Object.keys(s.models),
+    input_tokens:Math.round(s.inp),output_tokens:Math.round(s.out),cache_write_tokens:Math.round(s.cw),
+    cache_read_tokens:Math.round(s.cr),turns:s.turns,permission_modes:Object.keys(s.perms),
+    est_cost_usd:+(s.cost||0).toFixed(4)
+  };});
+}
+function buildBCSV(){
+  var rows=buildBSessionRows();
+  var head=["session_number","first_timestamp","last_timestamp","models","input_tokens","output_tokens","cache_write_tokens","cache_read_tokens","total_tokens","turns","permission_modes","est_cost_usd"];
   var lines=[head.join(",")];
-  Object.keys(sess).forEach(function(k){var s=sess[k], tot=s.inp+s.out+s.cw+s.cr;
-    lines.push([s.sid,s.first||"",s.last||"",Object.keys(s.models).join("|"),Math.round(s.inp),Math.round(s.out),Math.round(s.cw),Math.round(s.cr),Math.round(tot),s.turns,Object.keys(s.perms).join("|"),(s.cost||0).toFixed(4)].map(csvEsc).join(","));
+  rows.forEach(function(s){var tot=s.input_tokens+s.output_tokens+s.cache_write_tokens+s.cache_read_tokens;
+    lines.push([s.session_number,s.first_timestamp||"",s.last_timestamp||"",s.models.join("|"),s.input_tokens,s.output_tokens,s.cache_write_tokens,s.cache_read_tokens,tot,s.turns,s.permission_modes.join("|"),s.est_cost_usd.toFixed(4)].map(csvEsc).join(","));
   });
   return lines.join("\n");
 }
 function buildBJSON(){
-  var r=ROUTEB, sess=r.res.sess||{};
+  var r=ROUTEB;
   return JSON.stringify({
     source:"Claude Code text-free export (TOP Analyzer Route B)",
     generated:new Date().toISOString(),
@@ -1361,7 +1420,7 @@ function buildBJSON(){
     totals:{est_cost_usd:+r.totCost.toFixed(2),total_tokens:r.totTok,input_tokens:r.totInp,output_tokens:r.totOut,cache_write_tokens:r.totCw,cache_read_tokens:r.totCr,turns:r.res.turns,sessions:r.res.sessions,active_days:r.res.days},
     permission_modes:r.res.perm,
     by_model:r.rows.map(function(x){return {model:x.model,input_tokens:x.e.inp,output_tokens:x.e.out,cache_write_tokens:x.e.cw,cache_read_tokens:x.e.cr,turns:x.e.turns,est_cost_usd:+x.cost.toFixed(4)};}),
-    sessions:Object.keys(sess).map(function(k){var s=sess[k];return {session_id:s.sid,first_timestamp:s.first,last_timestamp:s.last,models:Object.keys(s.models),input_tokens:Math.round(s.inp),output_tokens:Math.round(s.out),cache_write_tokens:Math.round(s.cw),cache_read_tokens:Math.round(s.cr),turns:s.turns,permission_modes:Object.keys(s.perms),est_cost_usd:+(s.cost||0).toFixed(4)};})
+    sessions:buildBSessionRows()
   },null,2);
 }
 function dlFile(name,text,type){var blob=new Blob([text],{type:type});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();}
