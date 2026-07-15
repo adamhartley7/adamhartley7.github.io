@@ -101,4 +101,13 @@ function modelRow(result, model = "claude-opus-4-8") {
   assert.equal(modelRow(result).out, 24);
 }
 
+{
+  const result = context.parseClaudeCode([[
+    line({ messageId: "msg-zero", requestId: "req-zero", input: 0, output: 0, cacheWrite: 0, cacheRead: 0 }),
+    line({ messageId: "msg-real", requestId: "req-real", output: 9 }),
+  ].join("\n")]);
+  assert.equal(result.turns, 1, "zero-token bookkeeping records must not count as billable turns");
+  assert.equal(modelRow(result).out, 9);
+}
+
 console.log("TOP Analyzer Claude parser regression tests passed");

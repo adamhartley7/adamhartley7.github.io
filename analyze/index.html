@@ -675,6 +675,7 @@ function parseClaudeCode(texts){
       var model=r.message.model||"unknown";
       var row={model:model,inp:tokenCount(u.input_tokens),out:tokenCount(u.output_tokens),
         cw:tokenCount(u.cache_creation_input_tokens),cr:tokenCount(u.cache_read_input_tokens)};
+      if(!(row.inp||row.out||row.cw||row.cr)) return;
       var prev=calls.get(key);
       if(prev){
         if(prev.model==="unknown"&&model!=="unknown") prev.model=model;
