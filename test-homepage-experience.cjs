@@ -5,6 +5,12 @@ const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf
 
 assert.match(html, /class="coast-world"/);
 assert.match(html, /class="black-hole"/);
+assert.match(html, /assets\/home-cosmic-cliffs\.webp/);
+assert.match(html, /assets\/eht-m87-black-hole\.webp/);
+assert.match(html, /NASA, ESA, CSA, STScI/);
+assert.match(html, /EHT Collaboration/);
+assert.ok(fs.existsSync(new URL("assets/home-cosmic-cliffs.webp", `file://${__dirname}/`)));
+assert.ok(fs.existsSync(new URL("assets/eht-m87-black-hole.webp", `file://${__dirname}/`)));
 assert.match(html, /class="interstellar-scout"/);
 assert.match(html, /class="orbit-layer orbit-back"/);
 assert.match(html, /class="orbit-layer orbit-front"/);

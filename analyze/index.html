@@ -12,23 +12,19 @@
   --bg:#eef6fb;--bg1:#e5f0f7;--panel:rgba(255,255,255,.88);--panel2:rgba(255,250,244,.94);--border:#c5d4df;--border2:#9db3c3;
   --text:#14263a;--muted:#30465d;--faint:#536a80;--iris:#6556dd;--iris2:#4f43c7;--glow:rgba(101,86,221,.24);
   --mint:#087f62;--amber:#9a5900;--red:#bd3f50;--coral:#f57f72;--sky:#79c8ef;
-  --sun-x:8%;--sun-y:70%;--sun-alpha:1;--moon-x:8%;--moon-y:78%;--moon-alpha:0;--star-alpha:0;
-  --sky-top:#0b4968;--sky-mid:#f0a270;--sky-low:#ffd5a2;
+  --sun-x:8%;--sun-y:52%;--sun-alpha:1;--moon-x:8%;--moon-y:56%;--moon-alpha:0;--star-alpha:0;
+  --journey-tint:linear-gradient(rgba(255,181,111,.10),rgba(4,35,55,.18));
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{background:#b9dde8}
 body{min-height:100vh;background:transparent;color:var(--text);font-family:"Inter",system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(8,44,62,.04) 48%,rgba(5,42,55,.22) 100%)}
-.journey-world{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 36%,var(--sky-low) 52%,#2c90a4 52.5%,#09536c 75%,#06394f 100%);transition:background 1.2s ease}
-.journey-stars{position:absolute;inset:0 0 48%;opacity:var(--star-alpha);transition:opacity 1.2s ease;background-image:radial-gradient(1.3px 1.3px at 9% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 26% 42%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 44% 14%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 62% 35%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 80% 18%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 41%,#fff 45%,transparent 55%)}
+.journey-world{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:#174d65 url("../assets/analyzer-ocean-sunset.webp") center center/cover no-repeat}
+.journey-world::after{content:"";position:absolute;inset:0;z-index:0;background:var(--journey-tint);transition:background 1.2s ease}
+.journey-stars{position:absolute;z-index:1;inset:0 0 48%;opacity:var(--star-alpha);transition:opacity 1.2s ease;background-image:radial-gradient(1.3px 1.3px at 9% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 26% 42%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 44% 14%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 62% 35%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 80% 18%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 41%,#fff 45%,transparent 55%)}
 .journey-sun,.journey-moon{position:absolute;left:var(--sun-x);top:var(--sun-y);width:clamp(82px,10vw,142px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);transition:left 1s cubic-bezier(.2,.8,.2,1),top 1s cubic-bezier(.2,.8,.2,1),opacity 1s ease}
-.journey-sun{opacity:var(--sun-alpha);background:#ffefaa;box-shadow:0 0 38px 18px rgba(255,214,126,.58),0 0 110px 42px rgba(255,130,82,.25)}
-.journey-moon{left:var(--moon-x);top:var(--moon-y);width:clamp(58px,7vw,98px);opacity:var(--moon-alpha);background:radial-gradient(circle at 36% 32%,#fff 0 8%,#dbe8e8 9% 54%,#a8bec4 56% 100%);box-shadow:0 0 30px rgba(213,240,246,.5)}
-.journey-ocean{position:absolute;inset:52% 0 0;background:repeating-linear-gradient(177deg,rgba(255,255,255,.24) 0 2px,rgba(67,158,177,.13) 3px 8px,rgba(3,57,80,.16) 9px 15px);mix-blend-mode:screen}
-.journey-island{position:absolute;left:-4%;bottom:12%;width:48%;height:25%;background:linear-gradient(180deg,#2e6f54 0 14%,#b58b55 17% 100%);clip-path:polygon(0 66%,12% 54%,25% 47%,37% 51%,53% 38%,69% 44%,82% 56%,100% 71%,100% 100%,0 100%);filter:drop-shadow(0 -6px 8px rgba(1,38,42,.18));opacity:.92}
-.journey-beach{position:absolute;left:-8%;right:-8%;bottom:-15%;height:35%;background:radial-gradient(ellipse at 50% 0%,#f5d18b 0 28%,#d2a363 58%,#8e6845 100%);clip-path:polygon(0 54%,15% 30%,35% 17%,56% 27%,78% 9%,100% 34%,100% 100%,0 100%)}
-.journey-palm{position:absolute;left:13%;bottom:25%;width:9px;height:110px;background:#493a28;border-radius:60% 25% 30% 60%;transform:rotate(-8deg);transform-origin:bottom}
-.journey-palm::before{content:"";position:absolute;left:-47px;top:-23px;width:100px;height:58px;background:#246b4f;clip-path:polygon(50% 50%,0 25%,42% 42%,19% 0,47% 39%,51% 0,54% 39%,88% 4%,58% 43%,100% 35%,60% 50%,83% 88%,55% 57%,40% 100%,49% 56%,0 77%)}
+.journey-sun{z-index:1;opacity:var(--sun-alpha);background:#fff1ae;box-shadow:0 0 38px 18px rgba(255,214,126,.58),0 0 110px 42px rgba(255,130,82,.25)}
+.journey-moon{z-index:1;left:var(--moon-x);top:var(--moon-y);width:clamp(58px,7vw,98px);opacity:var(--moon-alpha);background:radial-gradient(circle at 36% 32%,#fff 0 8%,#dbe8e8 9% 54%,#a8bec4 56% 100%);box-shadow:0 0 30px rgba(213,240,246,.5)}
 .journey-rail{position:sticky;top:70px;z-index:4;margin:0 0 22px;padding:13px 16px;border:1px solid rgba(255,255,255,.86);border-radius:18px;background:rgba(255,255,255,.86);box-shadow:0 14px 34px rgba(25,66,92,.12);backdrop-filter:blur(16px)}
 .journey-meta{display:flex;justify-content:space-between;gap:16px;align-items:center;font-weight:750;font-size:14px}.journey-meta span{color:var(--muted);font-weight:650}.journey-meta strong{color:#087f62}
 .journey-track{height:7px;margin-top:9px;border-radius:999px;background:#d6e3e8;overflow:hidden}.journey-track span{display:block;width:8%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#f2ad63,#23b6ae,#6253d7);transition:width .75s cubic-bezier(.2,.8,.2,1)}
@@ -110,6 +106,8 @@ textarea{width:100%;min-height:150px;background:#f7fbfd;border:1px solid var(--b
 .pricerow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--faint);margin-top:10px}
 .pricerow input{width:64px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 7px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
 footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font-size:13px;text-align:center}
+.media-credit{display:block;margin-top:7px;font-size:11px;color:#3e5870}
+.media-credit a{text-decoration:underline;text-underline-offset:2px}
 .priv{display:flex;align-items:center;gap:8px;justify-content:center;color:#075f4b;font-size:14px;font-weight:750;margin:2px auto 12px;background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.82);border-radius:999px;padding:9px 16px;width:max-content;max-width:100%;box-shadow:0 12px 28px rgba(25,66,92,.10)}
 /* per-provider export steps */
 .steps{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.82);border-radius:18px;padding:20px 22px;margin:16px 0;box-shadow:0 14px 34px rgba(25,66,92,.08)}
@@ -211,10 +209,6 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
   <div class="journey-stars"></div>
   <div class="journey-sun"></div>
   <div class="journey-moon"></div>
-  <div class="journey-ocean"></div>
-  <div class="journey-island"></div>
-  <div class="journey-palm"></div>
-  <div class="journey-beach"></div>
 </div>
 <nav><div class="wrap">
   <a class="logo" href="/"><span class="mk">T</span> TOP</a>
@@ -590,7 +584,7 @@ if __name__ == "__main__":
   </div>
 </div>
 
-<footer><div class="wrap">TOP Analyzer · built by <a href="/">Adam Hartley</a> · everything above happens in your browser, <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a></div></footer>
+<footer><div class="wrap">TOP Analyzer · built by <a href="/">Adam Hartley</a> · everything above happens in your browser, <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a><span class="media-credit">Background photo: <a href="https://www.pexels.com/photo/shoreline-under-blue-sky-166193/" target="_blank" rel="noopener">Pok Rie / Pexels</a>.</span></div></footer>
 
 <script>
 "use strict";
@@ -600,11 +594,11 @@ function setJourney(progress,label){
   var p=Math.max(0,Math.min(1,progress));
   var root=document.documentElement;
   var sunX=7+86*p;
-  var sunY=70-Math.sin(Math.PI*p)*52;
+  var sunY=58-Math.sin(Math.PI*p)*43;
   var sunAlpha=p<.82?1:Math.max(0,1-(p-.82)/.16);
   var moonP=Math.max(0,(p-.68)/.32);
   var moonX=8+76*moonP;
-  var moonY=70-Math.sin(Math.PI*.72*moonP)*45;
+  var moonY=58-Math.sin(Math.PI*.72*moonP)*43;
   root.style.setProperty('--sun-x',sunX.toFixed(1)+'%');
   root.style.setProperty('--sun-y',sunY.toFixed(1)+'%');
   root.style.setProperty('--sun-alpha',sunAlpha.toFixed(2));
@@ -612,10 +606,10 @@ function setJourney(progress,label){
   root.style.setProperty('--moon-y',moonY.toFixed(1)+'%');
   root.style.setProperty('--moon-alpha',Math.min(1,moonP*1.35).toFixed(2));
   root.style.setProperty('--star-alpha',Math.max(0,(p-.72)/.28).toFixed(2));
-  if(p<.34){root.style.setProperty('--sky-top','#0b4968');root.style.setProperty('--sky-mid','#f0a270');root.style.setProperty('--sky-low','#ffd5a2')}
-  else if(p<.68){root.style.setProperty('--sky-top','#44a7cf');root.style.setProperty('--sky-mid','#96d8e3');root.style.setProperty('--sky-low','#f5e0ad')}
-  else if(p<.88){root.style.setProperty('--sky-top','#235d8b');root.style.setProperty('--sky-mid','#e98e68');root.style.setProperty('--sky-low','#ffd09a')}
-  else{root.style.setProperty('--sky-top','#07162e');root.style.setProperty('--sky-mid','#354b76');root.style.setProperty('--sky-low','#d96f67')}
+  if(p<.34){root.style.setProperty('--journey-tint','linear-gradient(rgba(255,181,111,.10),rgba(4,35,55,.18))')}
+  else if(p<.68){root.style.setProperty('--journey-tint','linear-gradient(rgba(195,233,247,.03),rgba(12,72,91,.06))')}
+  else if(p<.88){root.style.setProperty('--journey-tint','linear-gradient(rgba(244,119,76,.16),rgba(35,34,68,.24))')}
+  else{root.style.setProperty('--journey-tint','linear-gradient(rgba(4,13,43,.58),rgba(2,9,30,.68))')}
   var fill=document.getElementById('journeyFill');
   var pct=document.getElementById('journeyPercent');
   var text=document.getElementById('journeyLabel');

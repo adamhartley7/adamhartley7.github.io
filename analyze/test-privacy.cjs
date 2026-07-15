@@ -40,6 +40,9 @@ assert.match(html, /openai:\{[\s\S]*?a:"Choose your OpenAI conversation export[\
 assert.match(html, /csv:\{[\s\S]*?a:"Choose your Anthropic usage CSV[\s\S]*?b:"Choose your Anthropic usage CSV/);
 assert.match(html, /class="journey-world"/);
 assert.match(html, /function setJourney\(/);
+assert.match(html, /assets\/analyzer-ocean-sunset\.webp/);
+assert.match(html, /Pok Rie \/ Pexels/);
+assert.ok(fs.existsSync(new URL("../assets/analyzer-ocean-sunset.webp", `file://${__dirname}/`)));
 assert.match(html, /Which Of These Applies To You\?/);
 assert.match(html, /Running Out Of Tokens/);
 assert.match(html, /Budgeting Tokens Feels Unclear/);
