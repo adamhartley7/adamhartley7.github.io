@@ -43,6 +43,12 @@ assert.match(html, /function setJourney\(/);
 assert.match(html, /assets\/analyzer-ocean-sunset\.webp/);
 assert.match(html, /Pok Rie \/ Pexels/);
 assert.ok(fs.existsSync(new URL("../assets/analyzer-ocean-sunset.webp", `file://${__dirname}/`)));
+assert.match(html, /assets\/nasa-sdo-sun-pia26681\.webp/);
+assert.match(html, /assets\/nasa-lro-full-moon-2017\.webp/);
+assert.match(html, /NASA\/GSFC\/Solar Dynamics Observatory/);
+assert.match(html, /NASA's Scientific Visualization Studio/);
+assert.ok(fs.existsSync(new URL("../assets/nasa-sdo-sun-pia26681.webp", `file://${__dirname}/`)));
+assert.ok(fs.existsSync(new URL("../assets/nasa-lro-full-moon-2017.webp", `file://${__dirname}/`)));
 assert.match(html, /Which Of These Applies To You\?/);
 assert.match(html, /Running Out Of Tokens/);
 assert.match(html, /Budgeting Tokens Feels Unclear/);
@@ -53,6 +59,15 @@ assert.match(html, /id="providerStep" hidden/);
 assert.match(html, /id="routechooser" hidden/);
 assert.match(html, /aria-pressed="false"/);
 assert.match(html, /starting_challenges:/);
+assert.match(html, /id="shareWithTop" hidden/);
+assert.match(html, /<h2 id="shareWithTopHeading">Share With TOP<\/h2>/);
+assert.match(html, /Sharing is not open yet\./);
+assert.match(html, /Download My Safe Copy/);
+assert.match(html, /id="shareTopPaused" disabled aria-describedby="shareHold"/);
+assert.match(html, /selectedRoute==="b"&&mode==="cc"&&ROUTEB\?buildBJSON\(\):lastSummary/);
+assert.match(html, /share\.scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
+assert.match(html, /document\.getElementById\('shareWithTop'\)\.hidden=true/);
+assert.match(html, /ROUTEB=null/);
 
 const holdPosition = html.indexOf("Analysis is open. Data collection is paused.");
 const routePosition = html.indexOf('id="routechooser"');
@@ -62,5 +77,10 @@ const questionPosition = html.indexOf("Which Of These Applies To You?");
 const providerPosition = html.indexOf('id="providerStep"');
 assert.ok(questionPosition >= 0 && providerPosition > questionPosition && routePosition > providerPosition,
   "the multi-select problem screen must come before provider and route selection");
+const surveyPosition = html.indexOf('id="survey"');
+const sharePosition = html.indexOf('id="shareWithTop"');
+const footerPosition = html.indexOf("<footer>");
+assert.ok(surveyPosition >= 0 && sharePosition > surveyPosition && footerPosition > sharePosition,
+  "the shared safe-copy step must appear after the questionnaire and before the footer");
 
 console.log("TOP Analyzer privacy regression tests passed");

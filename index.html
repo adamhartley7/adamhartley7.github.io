@@ -19,20 +19,20 @@
   --maxw:1120px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth;background:#031521}
+html{scroll-behavior:smooth;background:#02040a}
 body{background:transparent;color:var(--text);font-family:"Inter",system-ui,sans-serif;
   font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(1,8,18,.28),rgba(2,10,20,.50) 48%,rgba(2,8,16,.94) 82%,#07090d 100%)}
-.coast-world{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:#020611 url("assets/home-cosmic-cliffs.webp") center top/cover no-repeat}
-.coast-world::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 58% 23%,transparent 0 18%,rgba(0,5,16,.16) 48%,rgba(0,4,12,.64) 100%)}
-.coast-world::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,5,15,.05),rgba(2,8,17,.18) 52%,rgba(2,7,14,.72) 100%)}
-.coast-stars{position:absolute;inset:0 0 45%;opacity:.34;mix-blend-mode:screen;background-image:radial-gradient(1.3px 1.3px at 8% 22%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 22% 48%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 43% 16%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 61% 37%,#fff 45%,transparent 55%),radial-gradient(1.3px 1.3px at 79% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 42%,#fff 45%,transparent 55%)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(0,2,8,.08),rgba(1,4,12,.34) 45%,rgba(2,5,12,.86) 82%,#07090d 100%)}
+.coast-world{--cosmos-y:0px;position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:#000}
+.coast-world::before{content:"";position:absolute;z-index:0;inset:-7%;background:#000 url("assets/hubble-c1-starfield.webp") center 42%/cover no-repeat;transform:translate3d(0,var(--cosmos-y),0) scale(1.08);filter:saturate(.42) brightness(.78) contrast(1.18);will-change:transform}
+.coast-world::after{content:"";position:absolute;z-index:1;inset:0;background:radial-gradient(circle at 52% 18%,transparent 0 22%,rgba(0,2,8,.14) 55%,rgba(0,2,8,.54) 100%),linear-gradient(180deg,rgba(0,2,8,.02),rgba(2,5,12,.28) 58%,rgba(2,5,12,.78) 100%)}
+.coast-stars{position:absolute;z-index:2;inset:0;opacity:.14;mix-blend-mode:screen;background-image:radial-gradient(1.3px 1.3px at 8% 22%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 22% 48%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 43% 16%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 61% 37%,#fff 45%,transparent 55%),radial-gradient(1.3px 1.3px at 79% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 42%,#fff 45%,transparent 55%)}
 .shooting-star{position:absolute;width:90px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.92));transform:rotate(-24deg);opacity:0;animation:shoot 8s ease-in-out infinite}
-.shooting-star.s1{top:15%;left:34%;animation-delay:1.4s}.shooting-star.s2{top:27%;left:72%;width:62px;animation-delay:5.2s}
+.shooting-star{z-index:2}.shooting-star.s1{top:15%;left:34%;animation-delay:1.4s}.shooting-star.s2{top:27%;left:72%;width:62px;animation-delay:5.2s}
 @keyframes shoot{0%,72%,100%{opacity:0;transform:translate(0,0) rotate(-24deg)}76%{opacity:1}88%{opacity:0;transform:translate(150px,64px) rotate(-24deg)}}
-.black-hole{position:absolute;right:7%;top:14%;width:clamp(92px,9vw,142px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(255,226,166,.60),0 0 28px 8px rgba(255,126,46,.34),0 0 70px 22px rgba(76,174,212,.10);opacity:.82}
+.black-hole{position:absolute;z-index:2;right:7%;top:14%;width:clamp(92px,9vw,142px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(255,226,166,.46),0 0 24px 7px rgba(255,126,46,.25),0 0 58px 18px rgba(121,93,220,.10);opacity:.68}
 .black-hole img{width:100%;height:100%;object-fit:cover;object-position:center;transform:scale(1.22)}
-.interstellar-scout{position:absolute;right:23%;top:39%;width:92px;height:22px;background:linear-gradient(90deg,transparent 0 5%,#7ed5df 7% 12%,#eaf8f8 13% 67%,#6b94a0 68% 79%,#203b49 80%);clip-path:polygon(0 50%,18% 22%,68% 8%,100% 50%,68% 92%,18% 78%);opacity:.48;filter:drop-shadow(-14px 0 8px rgba(102,227,235,.65));transform:rotate(-8deg) scale(.72);animation:scout-drift 9s ease-in-out infinite}
+.interstellar-scout{position:absolute;z-index:2;right:23%;top:39%;width:92px;height:22px;background:linear-gradient(90deg,transparent 0 5%,#8f6cff 7% 12%,#f2edff 13% 64%,#9d7bf0 65% 80%,#39256e 81%);clip-path:polygon(0 50%,18% 22%,68% 8%,100% 50%,68% 92%,18% 78%);opacity:.55;filter:drop-shadow(-14px 0 8px rgba(132,89,255,.72));transform:rotate(-8deg) scale(.72);animation:scout-drift 9s ease-in-out infinite}
 @keyframes scout-drift{0%,100%{transform:translate(0,0) rotate(-8deg) scale(.72)}50%{transform:translate(14px,-8px) rotate(-5deg) scale(.76)}}
 .mono{font-family:"JetBrains Mono",monospace}
 a{color:inherit;text-decoration:none}
@@ -177,10 +177,11 @@ footer a:hover{color:var(--muted)}
 
 /* interactive hero prism */
 .hero-orbit-stage{position:relative;width:min(660px,calc(100vw - 28px));height:clamp(360px,43vw,500px);margin:-18px auto 8px;perspective:900px;isolation:isolate}
-.orbit-layer{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 10px rgba(64,203,224,.36));pointer-events:none}
+.orbit-layer{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 10px rgba(126,99,235,.32));pointer-events:none}
 .orbit-back{z-index:1}.orbit-front{z-index:4}
 .orbit-layer .ring{fill:none;stroke-width:2.4;vector-effect:non-scaling-stroke}.orbit-layer .electron{filter:drop-shadow(0 0 7px currentColor)}
-.totem-tilt{position:absolute;left:50%;top:46%;width:clamp(210px,28vw,300px);aspect-ratio:1.1547;z-index:3;transform-style:preserve-3d;transform:translate(-50%,-50%) rotateX(-8deg);transition:transform .16s ease-out;pointer-events:none}
+.totem-tilt{position:absolute;left:50%;top:46%;width:clamp(210px,28vw,300px);aspect-ratio:1.1547;z-index:3;transform-style:preserve-3d;transform:translate(-50%,-50%);pointer-events:auto;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;outline:none}
+.totem-tilt.dragging{cursor:grabbing}.totem-tilt:focus-visible{outline:3px solid rgba(255,255,255,.94);outline-offset:10px;border-radius:24px}
 .totem-spin{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
 .hex-depth,.hex-face{position:absolute;inset:0;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);backface-visibility:hidden}
 .hex-depth{background:linear-gradient(125deg,#142e49,#07111d 58%,#2b655f);border:1px solid rgba(174,235,238,.16)}
@@ -192,8 +193,11 @@ footer a:hover{color:var(--muted)}
 .hero-analyze-cta strong{font-size:clamp(20px,2.7vw,27px);line-height:1.1}.hero-analyze-cta small{font-size:12px;font-weight:600;opacity:.88;margin-top:4px}
 .hero-analyze-cta:hover,.hero-analyze-cta:focus-visible{transform:translate(-50%,-4px) scale(1.025);filter:saturate(1.12) brightness(1.08);outline:3px solid #fff;outline-offset:5px}
 .hero-analyze-cta{transform:translateX(-50%)}
-@media(max-width:640px){.hero-orbit-stage{height:370px}.totem-tilt{top:43%;width:230px}.hero-analyze-cta{min-height:68px;bottom:5%}}
-@media (prefers-reduced-motion:reduce){.shooting-star{display:none}.totem-tilt{transition:none}.orbit-layer animateMotion,.orbit-layer .electron animate{display:none}}
+.motion-controls{position:absolute;z-index:8;left:50%;top:1%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:10px;width:max-content;max-width:94%;font-size:12px;color:#d9d4ee}
+.motion-toggle{border:1px solid rgba(177,157,255,.48);border-radius:999px;padding:7px 12px;background:rgba(16,10,34,.72);color:#f4f0ff;font:inherit;font-weight:750;cursor:pointer;backdrop-filter:blur(14px)}
+.motion-toggle:hover,.motion-toggle:focus-visible{background:rgba(71,47,133,.88);outline:2px solid #fff;outline-offset:2px}.motion-hint{white-space:nowrap;text-shadow:0 2px 8px #000}
+@media(max-width:640px){.hero-orbit-stage{height:370px}.totem-tilt{top:43%;width:230px}.hero-analyze-cta{min-height:68px;bottom:5%}.motion-controls{top:0;flex-direction:column;gap:3px}.motion-hint{font-size:10.5px}}
+@media (prefers-reduced-motion:reduce){.shooting-star{display:none}}
 
 /* value model (interactive cost vs value) */
 .vm-stage{max-width:1000px;margin:0 auto;position:relative}
@@ -283,27 +287,30 @@ footer a:hover{color:var(--muted)}
 <!-- HERO -->
 <header class="hero">
   <div class="wrap">
-    <div class="hero-orbit-stage" id="topOrbitStage" aria-label="Interactive three-dimensional TOP emblem. Move the pointer across it to change the spin.">
+    <div class="hero-orbit-stage" id="topOrbitStage" aria-label="Interactive three-dimensional TOP emblem">
+      <div class="motion-controls">
+        <button type="button" class="motion-toggle" id="topMotionToggle" aria-pressed="true">Pause Motion</button>
+        <span class="motion-hint" id="topMotionHint">Drag or flick in any direction.</span>
+      </div>
       <svg class="orbit-layer orbit-back" viewBox="0 0 400 330" aria-hidden="true">
         <defs>
           <clipPath id="orbitBackA"><rect x="0" y="0" width="400" height="150"/></clipPath>
           <clipPath id="orbitBackB"><rect x="0" y="0" width="400" height="150"/></clipPath>
-          <radialGradient id="electronTeal"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#c8ffff"/><stop offset="1" stop-color="#31d8d0"/></radialGradient>
-          <radialGradient id="electronCoral"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#ffe1c7"/><stop offset="1" stop-color="#ff8a62"/></radialGradient>
+          <radialGradient id="electronTeal"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#e0d9ff"/><stop offset="1" stop-color="#8f72ff"/></radialGradient>
+          <radialGradient id="electronCoral"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#ffd0ad"/><stop offset="1" stop-color="#e85a24"/></radialGradient>
         </defs>
-        <g transform="rotate(-18 200 150)" clip-path="url(#orbitBackA)" color="#31d8d0">
-          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#5ee4df" opacity=".42"/>
+        <g transform="rotate(-18 200 150)" clip-path="url(#orbitBackA)" color="#8f72ff">
+          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#9e8aff" opacity=".34"/>
           <circle class="electron" r="5" fill="url(#electronTeal)"><animateMotion dur="5.2s" repeatCount="indefinite" path="M380 150 A180 47 0 1 1 20 150 A180 47 0 1 1 380 150"/><animate attributeName="r" values="3;6.5;3" dur="2.6s" repeatCount="indefinite"/></circle>
           <circle class="electron" r="4" fill="url(#electronTeal)"><animateMotion dur="5.2s" begin="-2.6s" repeatCount="indefinite" path="M380 150 A180 47 0 1 1 20 150 A180 47 0 1 1 380 150"/></circle>
         </g>
-        <g transform="rotate(20 200 150)" clip-path="url(#orbitBackB)" color="#ff8a62">
-          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#ff9d74" opacity=".38"/>
+        <g transform="rotate(20 200 150)" clip-path="url(#orbitBackB)" color="#e85a24">
           <circle class="electron" r="5" fill="url(#electronCoral)"><animateMotion dur="6.4s" repeatCount="indefinite" path="M380 150 A180 47 0 1 0 20 150 A180 47 0 1 0 380 150"/><animate attributeName="r" values="6.5;3;6.5" dur="3.2s" repeatCount="indefinite"/></circle>
           <circle class="electron" r="4" fill="url(#electronCoral)"><animateMotion dur="6.4s" begin="-3.2s" repeatCount="indefinite" path="M380 150 A180 47 0 1 0 20 150 A180 47 0 1 0 380 150"/></circle>
         </g>
       </svg>
 
-      <div class="totem-tilt" id="topTotemTilt" aria-hidden="true">
+      <div class="totem-tilt" id="topTotemTilt" tabindex="0" role="group" aria-label="Drag the TOP emblem in any direction to spin it in 3D. Use arrow keys for smaller turns.">
         <div class="totem-spin" id="topTotemSpin">
           <div class="hex-back hex-face">TOP</div>
           <svg class="hex-face front" viewBox="0 0 200 174">
@@ -326,16 +333,15 @@ footer a:hover{color:var(--muted)}
         <defs>
           <clipPath id="orbitFrontA"><rect x="0" y="150" width="400" height="180"/></clipPath>
           <clipPath id="orbitFrontB"><rect x="0" y="150" width="400" height="180"/></clipPath>
-          <radialGradient id="electronTealFront"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#c8ffff"/><stop offset="1" stop-color="#31d8d0"/></radialGradient>
-          <radialGradient id="electronCoralFront"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#ffe1c7"/><stop offset="1" stop-color="#ff8a62"/></radialGradient>
+          <radialGradient id="electronTealFront"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#e0d9ff"/><stop offset="1" stop-color="#8f72ff"/></radialGradient>
+          <radialGradient id="electronCoralFront"><stop offset="0" stop-color="#fff"/><stop offset=".32" stop-color="#ffd0ad"/><stop offset="1" stop-color="#e85a24"/></radialGradient>
         </defs>
-        <g transform="rotate(-18 200 150)" clip-path="url(#orbitFrontA)" color="#31d8d0">
-          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#8cfff7" opacity=".86"/>
+        <g transform="rotate(-18 200 150)" clip-path="url(#orbitFrontA)" color="#8f72ff">
+          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#c1b4ff" opacity=".70"/>
           <circle class="electron" r="5" fill="url(#electronTealFront)"><animateMotion dur="5.2s" repeatCount="indefinite" path="M380 150 A180 47 0 1 1 20 150 A180 47 0 1 1 380 150"/><animate attributeName="r" values="3;6.5;3" dur="2.6s" repeatCount="indefinite"/></circle>
           <circle class="electron" r="4" fill="url(#electronTealFront)"><animateMotion dur="5.2s" begin="-2.6s" repeatCount="indefinite" path="M380 150 A180 47 0 1 1 20 150 A180 47 0 1 1 380 150"/></circle>
         </g>
-        <g transform="rotate(20 200 150)" clip-path="url(#orbitFrontB)" color="#ff8a62">
-          <ellipse class="ring" cx="200" cy="150" rx="180" ry="47" stroke="#ffc199" opacity=".82"/>
+        <g transform="rotate(20 200 150)" clip-path="url(#orbitFrontB)" color="#e85a24">
           <circle class="electron" r="5" fill="url(#electronCoralFront)"><animateMotion dur="6.4s" repeatCount="indefinite" path="M380 150 A180 47 0 1 0 20 150 A180 47 0 1 0 380 150"/><animate attributeName="r" values="6.5;3;6.5" dur="3.2s" repeatCount="indefinite"/></circle>
           <circle class="electron" r="4" fill="url(#electronCoralFront)"><animateMotion dur="6.4s" begin="-3.2s" repeatCount="indefinite" path="M380 150 A180 47 0 1 0 20 150 A180 47 0 1 0 380 150"/></circle>
         </g>
@@ -571,10 +577,11 @@ footer a:hover{color:var(--muted)}
       <a href="https://cal.eu/adamhartley7" target="_blank" rel="noopener">Book a call</a>
       <a href="mailto:adam1hartley@gmail.com">Email</a>
     </div>
-    <div class="media-credit">Cosmic Cliffs image: <a href="https://science.nasa.gov/asset/webb/cosmic-cliffs-in-the-carina-nebula-nircam-image/" target="_blank" rel="noopener">NASA, ESA, CSA, STScI</a>. M87* image: <a href="https://www.eso.org/public/images/eso1907a/" target="_blank" rel="noopener">EHT Collaboration</a>. Spacecraft silhouette is an original decorative element.</div>
+    <div class="media-credit">Star field: <a href="https://science.nasa.gov/image-detail/c1-wfc3/" target="_blank" rel="noopener">NASA, ESA, and L. Dressel (STScI); processing by Gladys Kober</a>. M87* image: <a href="https://www.eso.org/public/images/eso1907a/" target="_blank" rel="noopener">EHT Collaboration</a>. Spacecraft silhouette is an original decorative element.</div>
   </div>
 </footer>
 
+<script src="assets/top-spin-physics.js"></script>
 <script>
 (function(){
   var NS='http://www.w3.org/2000/svg';
@@ -684,7 +691,11 @@ footer a:hover{color:var(--muted)}
   var stage=document.getElementById('topOrbitStage');
   var tilt=document.getElementById('topTotemTilt');
   var spin=document.getElementById('topTotemSpin');
-  if(!stage||!tilt||!spin) return;
+  var toggle=document.getElementById('topMotionToggle');
+  var hint=document.getElementById('topMotionHint');
+  var world=document.querySelector('.coast-world');
+  var physics=window.TopSpinPhysics;
+  if(!stage||!tilt||!spin||!toggle||!hint||!physics) return;
   var front=spin.querySelector('.front');
   for(var z=-24;z<=24;z+=2){
     var layer=document.createElement('div');
@@ -693,35 +704,154 @@ footer a:hover{color:var(--muted)}
     layer.style.opacity=String(.58+((z+24)/48)*.34);
     spin.insertBefore(layer,front);
   }
-  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce){
-    spin.style.transform='rotateY(-12deg)';
-    document.querySelectorAll('.orbit-layer').forEach(function(svg){if(svg.pauseAnimations) svg.pauseAnimations()});
-    return;
+
+  var motionQuery=matchMedia('(prefers-reduced-motion: reduce)');
+  var userMode='system';
+  try{userMode=sessionStorage.getItem('top-motion-mode')||'system'}catch(ignore){}
+  var idleVelocity=0.00016;
+  var maxVelocity=0.022;
+  var orientation=physics.multiplyQuaternions(
+    physics.quaternionFromAxisAngle({x:1,y:0,z:0},-0.14),
+    physics.quaternionFromAxisAngle({x:0,y:1,z:0},-0.20)
+  );
+  var angularVelocity={x:0,y:idleVelocity,z:0};
+  var dragging=false;
+  var pointerId=null;
+  var lastVector=null;
+  var lastPointerTime=0;
+  var dragRect=null;
+  var inView=true;
+  var lastFrame=0;
+  var parallaxFrame=0;
+
+  function motionEnabled(){
+    return userMode==='on'||(userMode==='system'&&!motionQuery.matches);
   }
-  var motion=spin.animate([{transform:'rotateY(0deg)'},{transform:'rotateY(360deg)'}],{duration:26000,iterations:Infinity,easing:'linear'});
-  motion.playbackRate=.22;
-  var coarse=matchMedia('(pointer: coarse)').matches;
-  if(!coarse){
-    stage.addEventListener('pointermove',function(event){
-      var rect=stage.getBoundingClientRect();
-      var px=Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width));
-      var py=Math.max(0,Math.min(1,(event.clientY-rect.top)/rect.height));
-      var rx=(.5-py)*20-7;
-      var ry=(px-.5)*20;
-      tilt.style.transform='translate(-50%,-50%) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg)';
-      var rate=(px-.5)*7;
-      motion.playbackRate=Math.abs(rate)<.28?(rate<0?-.28:.28):rate;
+  function renderOrientation(){
+    spin.style.transform=physics.quaternionToMatrix3d(orientation);
+  }
+  function setOrbitPaused(paused){
+    document.querySelectorAll('.orbit-layer').forEach(function(svg){
+      if(paused&&svg.pauseAnimations) svg.pauseAnimations();
+      if(!paused&&svg.unpauseAnimations) svg.unpauseAnimations();
     });
-    stage.addEventListener('pointerleave',function(){
-      tilt.style.transform='translate(-50%,-50%) rotateX(-8deg)';
-      motion.playbackRate=.22;
+  }
+  function updateParallax(){
+    parallaxFrame=0;
+    if(!world) return;
+    var shift=motionEnabled()?-Math.min(54,window.scrollY*.022):0;
+    world.style.setProperty('--cosmos-y',shift.toFixed(1)+'px');
+  }
+  function scheduleParallax(){
+    if(!parallaxFrame) parallaxFrame=requestAnimationFrame(updateParallax);
+  }
+  function syncMotionState(){
+    var active=motionEnabled();
+    toggle.setAttribute('aria-pressed',active?'true':'false');
+    toggle.textContent=active?'Pause Motion':(motionQuery.matches&&userMode==='system'?'Enable Full Motion':'Resume Motion');
+    hint.textContent=active?'Drag or flick in any direction.':(motionQuery.matches&&userMode==='system'?'Windows motion is off. Dragging still works.':'Motion is paused. Dragging still works.');
+    if(active&&physics.velocityLength(angularVelocity)<idleVelocity*.5) angularVelocity={x:0,y:idleVelocity,z:0};
+    if(!active) angularVelocity={x:0,y:0,z:0};
+    setOrbitPaused(!active||!inView||document.hidden);
+    updateParallax();
+  }
+  function rememberMode(mode){
+    userMode=mode;
+    try{sessionStorage.setItem('top-motion-mode',mode)}catch(ignore){}
+    syncMotionState();
+  }
+  toggle.addEventListener('click',function(){
+    rememberMode(motionEnabled()?'off':'on');
+  });
+  function onMotionPreferenceChange(){
+    if(userMode==='system') syncMotionState();
+  }
+  if(motionQuery.addEventListener) motionQuery.addEventListener('change',onMotionPreferenceChange);
+  else if(motionQuery.addListener) motionQuery.addListener(onMotionPreferenceChange);
+
+  function updateFromPointer(event){
+    var points=event.getCoalescedEvents?event.getCoalescedEvents():[event];
+    if(!points.length) points=[event];
+    points.forEach(function(point){
+      var next=physics.projectToTrackball(point.clientX,point.clientY,dragRect);
+      var delta=physics.quaternionFromUnitVectors(lastVector,next);
+      orientation=physics.multiplyQuaternions(delta,orientation);
+      var elapsed=Math.max(1,point.timeStamp-lastPointerTime);
+      var sample=physics.clampAngularVelocity(physics.angularVelocityFromQuaternion(delta,elapsed),maxVelocity);
+      angularVelocity={
+        x:angularVelocity.x*.32+sample.x*.68,
+        y:angularVelocity.y*.32+sample.y*.68,
+        z:angularVelocity.z*.32+sample.z*.68
+      };
+      lastVector=next;
+      lastPointerTime=point.timeStamp;
     });
+    renderOrientation();
+  }
+  tilt.addEventListener('pointerdown',function(event){
+    if(event.button!==0||dragging) return;
+    event.preventDefault();
+    dragging=true;
+    pointerId=event.pointerId;
+    dragRect=tilt.getBoundingClientRect();
+    lastVector=physics.projectToTrackball(event.clientX,event.clientY,dragRect);
+    lastPointerTime=event.timeStamp;
+    angularVelocity={x:0,y:0,z:0};
+    tilt.classList.add('dragging');
+    if(tilt.setPointerCapture) tilt.setPointerCapture(pointerId);
+  });
+  tilt.addEventListener('pointermove',function(event){
+    if(!dragging||event.pointerId!==pointerId) return;
+    event.preventDefault();
+    updateFromPointer(event);
+  });
+  function endDrag(event){
+    if(!dragging||(event&&event.pointerId!==pointerId)) return;
+    var releasedId=pointerId;
+    dragging=false;
+    pointerId=null;
+    tilt.classList.remove('dragging');
+    if(!motionEnabled()) angularVelocity={x:0,y:0,z:0};
+    if(releasedId!==null&&tilt.hasPointerCapture&&tilt.hasPointerCapture(releasedId)) tilt.releasePointerCapture(releasedId);
+  }
+  tilt.addEventListener('pointerup',endDrag);
+  tilt.addEventListener('pointercancel',endDrag);
+  tilt.addEventListener('lostpointercapture',endDrag);
+  tilt.addEventListener('keydown',function(event){
+    var axis=null;
+    var angle=0.12;
+    if(event.key==='ArrowLeft') axis={x:0,y:-1,z:0};
+    if(event.key==='ArrowRight') axis={x:0,y:1,z:0};
+    if(event.key==='ArrowUp') axis={x:-1,y:0,z:0};
+    if(event.key==='ArrowDown') axis={x:1,y:0,z:0};
+    if(!axis) return;
+    event.preventDefault();
+    orientation=physics.multiplyQuaternions(physics.quaternionFromAxisAngle(axis,angle),orientation);
+    renderOrientation();
+  });
+
+  function animate(timestamp){
+    requestAnimationFrame(animate);
+    if(!motionEnabled()||dragging||!inView||document.hidden){lastFrame=timestamp;return}
+    var elapsed=lastFrame?Math.min(40,Math.max(0,timestamp-lastFrame)):16;
+    lastFrame=timestamp;
+    orientation=physics.integrateOrientation(orientation,angularVelocity,elapsed,40);
+    var decay=Math.exp(-0.00115*elapsed);
+    angularVelocity={
+      x:angularVelocity.x*decay,
+      y:idleVelocity+(angularVelocity.y-idleVelocity)*decay,
+      z:angularVelocity.z*decay
+    };
+    renderOrientation();
   }
   if('IntersectionObserver' in window){
-    new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting) motion.play();else motion.pause()})},{threshold:.04}).observe(stage);
+    new IntersectionObserver(function(entries){entries.forEach(function(entry){inView=entry.isIntersecting;syncMotionState()})},{threshold:.04}).observe(stage);
   }
-  document.addEventListener('visibilitychange',function(){if(document.hidden) motion.pause();else motion.play()});
+  document.addEventListener('visibilitychange',syncMotionState);
+  window.addEventListener('scroll',scheduleParallax,{passive:true});
+  renderOrientation();
+  syncMotionState();
+  requestAnimationFrame(animate);
 })();
 var REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
 var els=document.querySelectorAll('.reveal');

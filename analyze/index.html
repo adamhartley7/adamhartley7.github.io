@@ -12,7 +12,7 @@
   --bg:#eef6fb;--bg1:#e5f0f7;--panel:rgba(255,255,255,.88);--panel2:rgba(255,250,244,.94);--border:#c5d4df;--border2:#9db3c3;
   --text:#14263a;--muted:#30465d;--faint:#536a80;--iris:#6556dd;--iris2:#4f43c7;--glow:rgba(101,86,221,.24);
   --mint:#087f62;--amber:#9a5900;--red:#bd3f50;--coral:#f57f72;--sky:#79c8ef;
-  --sun-x:8%;--sun-y:52%;--sun-alpha:1;--moon-x:8%;--moon-y:56%;--moon-alpha:0;--star-alpha:0;
+  --sun-x:8%;--sun-y:36%;--sun-alpha:1;--moon-x:8%;--moon-y:40%;--moon-alpha:0;--star-alpha:0;
   --journey-tint:linear-gradient(rgba(255,181,111,.10),rgba(4,35,55,.18));
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -22,9 +22,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .journey-world{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:#174d65 url("../assets/analyzer-ocean-sunset.webp") center center/cover no-repeat}
 .journey-world::after{content:"";position:absolute;inset:0;z-index:0;background:var(--journey-tint);transition:background 1.2s ease}
 .journey-stars{position:absolute;z-index:1;inset:0 0 48%;opacity:var(--star-alpha);transition:opacity 1.2s ease;background-image:radial-gradient(1.3px 1.3px at 9% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 26% 42%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 44% 14%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 62% 35%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 80% 18%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 41%,#fff 45%,transparent 55%)}
-.journey-sun,.journey-moon{position:absolute;left:var(--sun-x);top:var(--sun-y);width:clamp(82px,10vw,142px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);transition:left 1s cubic-bezier(.2,.8,.2,1),top 1s cubic-bezier(.2,.8,.2,1),opacity 1s ease}
-.journey-sun{z-index:1;opacity:var(--sun-alpha);background:#fff1ae;box-shadow:0 0 38px 18px rgba(255,214,126,.58),0 0 110px 42px rgba(255,130,82,.25)}
-.journey-moon{z-index:1;left:var(--moon-x);top:var(--moon-y);width:clamp(58px,7vw,98px);opacity:var(--moon-alpha);background:radial-gradient(circle at 36% 32%,#fff 0 8%,#dbe8e8 9% 54%,#a8bec4 56% 100%);box-shadow:0 0 30px rgba(213,240,246,.5)}
+.journey-sun,.journey-moon{position:absolute;left:var(--sun-x);top:var(--sun-y);width:clamp(64px,8.5vw,118px);aspect-ratio:1;border-radius:50%;overflow:hidden;transform:translate(-50%,-50%);transition:left 1s cubic-bezier(.2,.8,.2,1),top 1s cubic-bezier(.2,.8,.2,1),opacity 1s ease}
+.journey-sun{z-index:1;opacity:var(--sun-alpha);background:#070502 url("../assets/nasa-sdo-sun-pia26681.webp") center 42%/118% no-repeat;box-shadow:0 0 30px 12px rgba(255,202,92,.52),0 0 92px 34px rgba(255,116,55,.22)}
+.journey-moon{z-index:1;left:var(--moon-x);top:var(--moon-y);width:clamp(50px,6.5vw,84px);opacity:var(--moon-alpha);background:#020305 url("../assets/nasa-lro-full-moon-2017.webp") center/118% no-repeat;box-shadow:0 0 0 1px rgba(231,242,248,.38),0 0 26px rgba(213,240,246,.42)}
 .journey-rail{position:sticky;top:70px;z-index:4;margin:0 0 22px;padding:13px 16px;border:1px solid rgba(255,255,255,.86);border-radius:18px;background:rgba(255,255,255,.86);box-shadow:0 14px 34px rgba(25,66,92,.12);backdrop-filter:blur(16px)}
 .journey-meta{display:flex;justify-content:space-between;gap:16px;align-items:center;font-weight:750;font-size:14px}.journey-meta span{color:var(--muted);font-weight:650}.journey-meta strong{color:#087f62}
 .journey-track{height:7px;margin-top:9px;border-radius:999px;background:#d6e3e8;overflow:hidden}.journey-track span{display:block;width:8%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#f2ad63,#23b6ae,#6253d7);transition:width .75s cubic-bezier(.2,.8,.2,1)}
@@ -188,6 +188,8 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .chip.arch .ex{font-size:13px;color:var(--muted);font-family:"Inter",system-ui,sans-serif;line-height:1.4}
 .chip.arch.on .ex{color:#eeeaff}
 .survey-actions{order:3;margin-top:10px}
+.share-stage{background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(242,237,255,.95));border:2px solid rgba(101,86,221,.34);border-radius:28px;margin:30px 0 8px;padding:clamp(24px,5vw,42px);box-shadow:0 26px 64px rgba(37,48,110,.20);text-align:center}
+.share-stage[hidden]{display:none!important}.share-stage h2{font-size:clamp(28px,4vw,40px);margin:0 0 10px}.share-stage .share-lead{max-width:66ch;margin:0 auto 18px;color:var(--muted);font-size:16px}.share-stage .share-hold{max-width:68ch;margin:0 auto 18px;padding:14px 17px;border:1px solid rgba(151,91,0,.28);border-radius:16px;background:#fff8de;color:#6d3900;font-size:14px;text-align:left}.share-buttons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.share-buttons .btn{min-width:220px;justify-content:center}.share-status{min-height:24px;margin-top:14px;color:var(--mint);font-weight:750}
 /* route B: text-free file you build yourself */
 .routeb{margin:18px 0 0}
 .routeb .lead{color:var(--muted);font-size:14.5px;margin:0 0 16px;max-width:72ch}
@@ -318,16 +320,6 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         <button class="btn" id="dlbtn">Download .txt</button>
       </div>
     </div>
-        <div class="summbox">
-          <h3>Download A Text-Free Copy</h3>
-          <p>Review exactly what is included. TOP is not accepting external files yet, so keep this copy for yourself for now.</p>
-          <label style="display:flex;gap:10px;align-items:flex-start;margin:14px 0;font-weight:650"><input type="checkbox" id="shareconsent" style="margin-top:5px;transform:scale(1.25)"> I have reviewed this copy and understand that downloading it does not send it to TOP.</label>
-          <button class="btn p" id="shareprep" disabled>Prepare My Download</button>
-          <div id="shareactions" style="display:none;margin-top:10px">
-            <button class="btn" id="sharedownload">Download My Copy</button>
-          </div>
-          <div id="sharestatus" role="status" aria-live="polite" style="margin-top:10px;color:var(--mint);font-weight:650"></div>
-        </div>
     <div class="pricerow" id="prices"></div>
     <p class="note">Prices are editable USD-per-million-token assumptions applied locally. Claude Code and chat exports produce API-equivalent estimates, not your Max, Pro, or ChatGPT subscription charge. Claude Console cost columns can provide billed spend.</p>
     <p class="note">Rates updated 6 Jul 2026 to current published list prices.</p>
@@ -581,10 +573,22 @@ if __name__ == "__main__":
     <div class="survey-actions"><p class="note" style="text-align:left;margin:14px 0">Your selections stay in this tab and can be added to the text-free copy you deliberately download. They are never sent.</p>
     <div><button class="btn p" id="surveydone">Finish This Step</button> <button class="btn" id="surveyskip">Skip This Step</button> <button class="btn" id="surveysend">Copy My Answers</button> <span id="surveyok" style="color:var(--mint);font-size:13.5px;display:none">Copied.</span></div></div>
   </div>
+
+  <section class="share-stage" id="shareWithTop" hidden aria-labelledby="shareWithTopHeading">
+    <div class="step-overline">Final Step</div>
+    <h2 id="shareWithTopHeading">Share With TOP</h2>
+    <p class="share-lead">Your original export stays on this device. You can prepare a text-free copy containing usage numbers, model labels, and the optional answers you chose.</p>
+    <p class="share-hold" id="shareHold"><strong>Sharing is not open yet.</strong> TOP has paused external data collection until its consent, retention, and deletion terms are ready. Downloading this copy does not send it to TOP.</p>
+    <div class="share-buttons">
+      <button type="button" class="btn p" id="safeDownload">Download My Safe Copy</button>
+      <button type="button" class="btn" id="shareTopPaused" disabled aria-describedby="shareHold">Share With TOP, Paused</button>
+    </div>
+    <div class="share-status" id="shareStatus" role="status" aria-live="polite"></div>
+  </section>
   </div>
 </div>
 
-<footer><div class="wrap">TOP Analyzer · built by <a href="/">Adam Hartley</a> · everything above happens in your browser, <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a><span class="media-credit">Background photo: <a href="https://www.pexels.com/photo/shoreline-under-blue-sky-166193/" target="_blank" rel="noopener">Pok Rie / Pexels</a>.</span></div></footer>
+<footer><div class="wrap">TOP Analyzer · built by <a href="/">Adam Hartley</a> · everything above happens in your browser, <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a><span class="media-credit">Background photo: <a href="https://www.pexels.com/photo/shoreline-under-blue-sky-166193/" target="_blank" rel="noopener">Pok Rie / Pexels</a>. Sun: <a href="https://science.nasa.gov/photojournal/image-of-sun-from-nasas-solar-dynamics-observatory/" target="_blank" rel="noopener">NASA/GSFC/Solar Dynamics Observatory</a>. Moon: <a href="https://svs.gsfc.nasa.gov/4538/" target="_blank" rel="noopener">NASA's Scientific Visualization Studio</a>.</span></div></footer>
 
 <script>
 "use strict";
@@ -594,11 +598,11 @@ function setJourney(progress,label){
   var p=Math.max(0,Math.min(1,progress));
   var root=document.documentElement;
   var sunX=7+86*p;
-  var sunY=58-Math.sin(Math.PI*p)*43;
+  var sunY=32-Math.sin(Math.PI*p)*20;
   var sunAlpha=p<.82?1:Math.max(0,1-(p-.82)/.16);
   var moonP=Math.max(0,(p-.68)/.32);
   var moonX=8+76*moonP;
-  var moonY=58-Math.sin(Math.PI*.72*moonP)*43;
+  var moonY=34-Math.sin(Math.PI*.72*moonP)*18;
   root.style.setProperty('--sun-x',sunX.toFixed(1)+'%');
   root.style.setProperty('--sun-y',sunY.toFixed(1)+'%');
   root.style.setProperty('--sun-alpha',sunAlpha.toFixed(2));
@@ -624,8 +628,10 @@ function resetDownstream(){
   document.getElementById('survey').hidden=true;
   document.getElementById('file').value='';
   document.getElementById('fileb').value='';
-  document.getElementById('shareactions').style.display='none';
-  document.getElementById('sharestatus').textContent='';
+  document.getElementById('shareWithTop').hidden=true;
+  document.getElementById('shareStatus').textContent='';
+  sharePackage='';
+  ROUTEB=null;
 }
 function resonanceValues(){
   return Array.prototype.map.call(document.querySelectorAll('#resonanceChoices .resonance-choice.on'),function(choice){return choice.dataset.value}).filter(Boolean);
@@ -997,10 +1003,7 @@ function render(res){
   lines.push("[text-free copy: no prompts, replies, code, or message content included]");
   document.getElementById("summary").value=lines.join("\n");
   lastSummary=lines.join("\n");
-  document.getElementById("shareconsent").checked=false;
-  document.getElementById("shareprep").disabled=true;
-  document.getElementById("shareactions").style.display="none";
-  document.getElementById("sharestatus").textContent="";
+  document.getElementById("shareStatus").textContent="";
   // price editors
   document.getElementById("prices").innerHTML="Editable API rates $/Mtok: "+["opus","sonnet","haiku","fable","other"].map(function(k){
     return k+" in <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> out <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";
@@ -1011,6 +1014,7 @@ function render(res){
   renderValueModel(rows, totCost, res);
   document.getElementById("out").style.display="block";
   document.getElementById("survey").hidden=false;
+  document.getElementById("shareWithTop").hidden=false;
   setJourney(.68,"Midday: your export is ready on this device. Add context, or skip.");
   document.getElementById("survey").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1218,24 +1222,26 @@ document.getElementById("surveysend").addEventListener("click",function(){
   }
 });
 function finishSurvey(skipped){
-  var message=skipped?"Sunset: questions skipped. Your private report is ready, and nothing was sent.":"Sunset: context added. Your private report is ready, and nothing was sent.";
-  setJourney(1,message);
-  var result=selectedRoute==="b"&&mode==="cc"?document.getElementById("outb"):document.getElementById("out");
-  if(result&&result.style.display!=="none") result.scrollIntoView({behavior:"smooth",block:"start"});
+  var message=skipped?"Sunset: questions skipped. Your safe-copy step is ready.":"Sunset: context added. Your safe-copy step is ready.";
+  setJourney(.88,message);
+  var share=document.getElementById("shareWithTop");
+  share.hidden=false;
+  share.scrollIntoView({behavior:"smooth",block:"start"});
 }
 document.getElementById("surveydone").addEventListener("click",function(){finishSurvey(false)});
 document.getElementById("surveyskip").addEventListener("click",function(){finishSurvey(true)});
 var sharePackage="";
-var shareConsent=document.getElementById("shareconsent");
-shareConsent.addEventListener("change",function(){document.getElementById("shareprep").disabled=!shareConsent.checked});
-document.getElementById("shareprep").addEventListener("click",function(){
-  if(!shareConsent.checked||!lastSummary) return;
-  sharePackage="TOP text-free copy\ncreated_utc: "+new Date().toISOString()+"\nraw_file_included: no\nautomatic_submission: no\n"+lastSummary+(surveyBlock()||"\n\nquestionnaire answers:\n  (not provided)");
-  document.getElementById("shareactions").style.display="block";
-  document.getElementById("sharestatus").textContent="Your copy is ready on this device. TOP has not received it.";
-});
-document.getElementById("sharedownload").addEventListener("click",function(){
-  if(sharePackage){dlFile("top-text-free-copy.txt",sharePackage,"text/plain");setJourney(1,"Moonrise: your private copy is downloaded. Nothing was sent.");}
+function buildSafePackage(){
+  var body=selectedRoute==="b"&&mode==="cc"&&ROUTEB?buildBJSON():lastSummary;
+  if(!body) return "";
+  return "TOP text-free copy\ncreated_utc: "+new Date().toISOString()+"\nraw_file_included: no\nautomatic_submission: no\nintake_status: paused\n"+body+(surveyBlock()||"\n\nquestionnaire answers:\n  (not provided)");
+}
+document.getElementById("safeDownload").addEventListener("click",function(){
+  sharePackage=buildSafePackage();
+  if(!sharePackage) return;
+  dlFile("top-text-free-copy.txt",sharePackage,"text/plain");
+  document.getElementById("shareStatus").textContent="Downloaded to this device. TOP has not received it.";
+  setJourney(1,"Moonrise: your safe copy is downloaded. Nothing was sent.");
 });
 // ---------- Route B: text-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;
@@ -1296,6 +1302,7 @@ function renderB(res){
   ROUTEB={rows:rows,res:res,totInp:totInp,totOut:totOut,totCw:totCw,totCr:totCr,totCost:totCost,totTok:totTok};
   document.getElementById("outb").style.display="block";
   document.getElementById("survey").hidden=false;
+  document.getElementById("shareWithTop").hidden=false;
   setJourney(.68,"Midday: your text-free file is ready on this device. Add context, or skip.");
   document.getElementById("survey").scrollIntoView({behavior:"smooth",block:"start"});
 }
