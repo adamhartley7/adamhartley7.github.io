@@ -84,6 +84,10 @@ assert.match(html, /W:960,H:420/);
 assert.match(html, /W:760,H:460/);
 assert.match(html, /W:520,H:480/);
 assert.match(html, /lower-cost AI begins/);
+assert.match(html, /the green line rises twice as much as the red line/);
+assert.match(html, /useful work, rising 2× as much/);
+assert.doesNotMatch(html, /C\.vs1/,
+  "the surplus calculation must not depend on the retired value-slope constant");
 assert.doesNotMatch(html, /max-height:400px/);
 assert.match(html, /aria-valuetext/);
 assert.match(html, /Works now/);
@@ -127,5 +131,37 @@ assert.ok(usp >= 0 && suite > usp && problem > suite,
   "the USP and TOP 1, 2, 3 explanation must appear before the problem detail");
 assert.ok(how > problem && analyze > how && status > analyze && valueModel > status,
   "the live TOP-1 path and honest status must appear before the TOP-2 thought experiment");
+
+const graphModelStart = html.indexOf("var VM_VALUE_RISE_RATIO");
+const graphModelEnd = html.indexOf("(function(){", graphModelStart);
+assert.ok(graphModelStart >= 0 && graphModelEnd > graphModelStart,
+  "the value graph model must remain independently testable");
+const graphContext = {};
+vm.createContext(graphContext);
+vm.runInContext(html.slice(graphModelStart, graphModelEnd), graphContext);
+const graphConfig = { BEND: 3.3, c0: 0.5, cs1: 1.15, v0: 0.5 };
+for (const growth of [0.05, 0.2, 0.5, 1]) {
+  for (const [from, to] of [[0, 1.4], [1.4, 3.3], [3.3, 4.8], [4.8, 6], [0, 6]]) {
+    const redRise = graphContext.vmCostAt(graphConfig, to, growth)
+      - graphContext.vmCostAt(graphConfig, from, growth);
+    const greenRise = graphContext.vmValueAt(graphConfig, to, growth)
+      - graphContext.vmValueAt(graphConfig, from, growth);
+    assert.ok(redRise >= 0 && greenRise >= 0,
+      "both graph lines must continue rising across every segment");
+    assert.ok(Math.abs(greenRise - 2 * redRise) < 1e-10,
+      `green rise must be exactly twice red rise from ${from} to ${to} at ${growth}`);
+  }
+  for (const x of [0, 1.4, 3.3, 4.8, 6]) {
+    for (const value of [
+      graphContext.vmCostAt(graphConfig, x, growth),
+      graphContext.vmValueAt(graphConfig, x, growth),
+    ]) {
+      assert.ok(value >= 0 && value <= 14,
+        "both graph lines must stay inside the graph at every slider extreme");
+    }
+  }
+}
+assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, 6, 1) - 13.49) < 1e-10,
+  "the maximum green endpoint must remain visible below the graph ceiling");
 
 console.log("TOP homepage experience regression tests passed");

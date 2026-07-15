@@ -582,21 +582,21 @@ footer a:hover{color:var(--muted)}
     <div class="shead reveal">
       <div class="eyebrow">a simple example for TOP-2</div>
       <h2 style="margin-top:14px">Cheaper is not better if the work gets worse.</h2>
-      <p>Daedalus is an idea for helping people choose which AI version to use for each task. The cheapest option is useless if it gives worse work. This chart uses made-up numbers to explain the idea. It is not a customer result.</p>
+      <p>Daedalus is an idea for helping people choose which AI version to use for each task. The cheapest option is useless if it gives worse work. In this made-up example, the green line rises twice as much as the red line: one step of extra AI cost corresponds to two steps of useful work. It is not a customer result.</p>
     </div>
     <div class="vm-stage reveal">
       <div class="vm-card">
         <div class="cardtop"><span class="dt"></span><span class="dt"></span><span class="dt"></span><span class="lbl">TOP-2 IDEA, EXAMPLE NUMBERS ONLY</span></div>
         <div class="vm-legend">
           <span><span class="sw" style="background:#F26D6D"></span>what the AI costs</span>
-          <span><span class="sw" style="background:#3ECF8E"></span>invented example of useful work</span>
+          <span><span class="sw" style="background:#3ECF8E"></span>useful work, rising 2× as much</span>
           <span><span class="sq" style="background:rgba(53,245,160,.42)"></span>invented example after the cost</span>
         </div>
         <div class="vm-layout">
           <div class="vm-plot">
             <svg id="vm_pv" viewBox="0 0 960 420" width="100%" role="img" aria-labelledby="vmChartTitle vmChartDesc">
               <title id="vmChartTitle">Illustrative AI cost and useful work</title>
-              <desc id="vmChartDesc">An invented example showing AI cost flattening after a lower-cost AI version begins, while useful work may continue to rise. This is not a customer result.</desc>
+              <desc id="vmChartDesc">An invented example in which every rise in useful work is exactly twice the corresponding rise in AI cost. This is not a customer result.</desc>
               <defs>
                 <linearGradient id="vm_valGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0" stop-color="#3ECF8E" stop-opacity="0.16"/>
@@ -708,6 +708,9 @@ footer a:hover{color:var(--muted)}
 
 <script src="assets/top-spin-physics.js"></script>
 <script>
+var VM_VALUE_RISE_RATIO=2;
+function vmCostAt(C,x,g){return x<=C.BEND?C.c0+C.cs1*x:(C.c0+C.cs1*C.BEND)+g*(x-C.BEND);}
+function vmValueAt(C,x,g){return C.v0+VM_VALUE_RISE_RATIO*(vmCostAt(C,x,g)-vmCostAt(C,0,g));}
 (function(){
   var NS='http://www.w3.org/2000/svg';
   function el(id){ return document.getElementById(id); }
@@ -720,9 +723,9 @@ footer a:hover{color:var(--muted)}
   var graph=null;
   function currentMode(){return compactQuery.matches?'small':(tabletQuery.matches?'tablet':'desktop');}
   function layout(mode){
-    if(mode==='small') return {W:520,H:480,X0:66,X1:502,YT:48,YB:430,font:22,small:20,dot:7,vMax:9,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,v0:0.3,vs1:1.0};
-    if(mode==='tablet') return {W:760,H:460,X0:76,X1:738,YT:50,YB:410,font:15,small:13,dot:6,vMax:9,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,v0:0.3,vs1:1.0};
-    return {W:960,H:420,X0:82,X1:936,YT:40,YB:370,font:15,small:14,dot:5,vMax:9,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,v0:0.3,vs1:1.0};
+    if(mode==='small') return {W:520,H:480,X0:66,X1:502,YT:48,YB:430,font:22,small:20,dot:7,vMax:14,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,v0:0.5};
+    if(mode==='tablet') return {W:760,H:460,X0:76,X1:738,YT:50,YB:410,font:15,small:13,dot:6,vMax:14,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,v0:0.5};
+    return {W:960,H:420,X0:82,X1:936,YT:40,YB:370,font:15,small:14,dot:5,vMax:14,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,v0:0.5};
   }
   function build(mode){
     var compact=mode==='small';
@@ -734,12 +737,12 @@ footer a:hover{color:var(--muted)}
     function add(node){root.appendChild(node);return node;}
     function xToPx(x){return C.X0+(x/C.spanX)*(C.X1-C.X0);}
     function yToPx(v){v=Math.min(v,C.vMax);return C.YB-(v/C.vMax)*(C.YB-C.YT);}
-    function costAt(x,g){return x<=C.BEND?C.c0+C.cs1*x:(C.c0+C.cs1*C.BEND)+g*(x-C.BEND);}
-    function valAt(x,g){return x<=C.BEND?C.v0+C.vs1*x:(C.v0+C.vs1*C.BEND)+(0.84+1.16*g)*(x-C.BEND);}
+    function costAt(x,g){return vmCostAt(C,x,g);}
+    function valAt(x,g){return vmValueAt(C,x,g);}
     function pts(fn,g){return [0,C.BEND,6].map(function(x){return xToPx(x)+','+yToPx(fn(x,g));}).join(' ');}
-    [2,4,6,8].forEach(function(v){add(mk('line',{x1:C.X0,y1:yToPx(v),x2:C.X1,y2:yToPx(v),stroke:'rgba(255,255,255,.055)','stroke-width':1,'vector-effect':'non-scaling-stroke'}));});
+    [3,6,9,12].forEach(function(v){add(mk('line',{x1:C.X0,y1:yToPx(v),x2:C.X1,y2:yToPx(v),stroke:'rgba(255,255,255,.055)','stroke-width':1,'vector-effect':'non-scaling-stroke'}));});
     add(mk('line',{x1:C.X0,y1:yToPx(0),x2:C.X1,y2:yToPx(0),stroke:'rgba(255,255,255,.24)','stroke-width':1,'vector-effect':'non-scaling-stroke'}));
-    [[0,'0'],[4,'4'],[8,'8']].forEach(function(p){var t=mk('text',{x:C.X0-10,y:yToPx(p[0])+(compact?7:4),'text-anchor':'end','font-size':C.font,fill:'#7E7E89','font-family':'JetBrains Mono,monospace'});t.textContent=p[1];add(t);});
+    [[0,'0'],[6,'6'],[12,'12']].forEach(function(p){var t=mk('text',{x:C.X0-10,y:yToPx(p[0])+(compact?7:4),'text-anchor':'end','font-size':C.font,fill:'#7E7E89','font-family':'JetBrains Mono,monospace'});t.textContent=p[1];add(t);});
     var xl=mk('text',{x:C.X1,y:C.YB+(compact?34:25),'text-anchor':'end','font-size':C.small,fill:'#8B8B96','font-family':'JetBrains Mono,monospace'});xl.textContent='more work completed →';add(xl);
     var axisX=compact?22:20,yl=mk('text',{x:axisX,y:(C.YT+C.YB)/2,'text-anchor':'middle','font-size':C.small,fill:'#9B9BA6','font-family':'JetBrains Mono,monospace',transform:'rotate(-90 '+axisX+' '+((C.YT+C.YB)/2)+')'});yl.textContent='illustrative index, example only';add(yl);
     var marker=mk('g',{'class':'fx'});
@@ -770,9 +773,9 @@ footer a:hover{color:var(--muted)}
     graph.valueLine.setAttribute('points',graph.pts(valAt,g));
     graph.valueArea.setAttribute('points',
       xToPx(0)+','+yToPx(valAt(0,g))+' '+xToPx(C.BEND)+','+yToPx(valAt(C.BEND,g))+' '+xToPx(6)+','+yToPx(valAt(6,g))+' '+xToPx(6)+','+C.YB+' '+xToPx(0)+','+C.YB);
-    var vs2=0.84+1.16*g,poly='';
+    var vs2=VM_VALUE_RISE_RATIO*g,poly='';
     if(vs2>g){
-      var gap=(C.c0+C.cs1*C.BEND)-(C.v0+C.vs1*C.BEND);
+      var gap=costAt(C.BEND,g)-valAt(C.BEND,g);
       var tc=gap/(vs2-g), xc=C.BEND+Math.min(Math.max(tc,0),6-C.BEND);
       if(xc<6){ poly=[xToPx(xc)+','+yToPx(valAt(xc,g)),xToPx(6)+','+yToPx(valAt(6,g)),xToPx(6)+','+yToPx(costAt(6,g)),xToPx(xc)+','+yToPx(costAt(xc,g))].join(' '); }
     }
