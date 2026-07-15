@@ -73,6 +73,7 @@ context.ROUTEB = {
   totCr: usage.cr,
   totTok: usage.inp + usage.out + usage.cw + usage.cr,
   totCost: 0,
+  costAvailable: true,
 };
 
 const csv = context.buildBCSV();
@@ -86,6 +87,21 @@ assert.doesNotMatch(csv, /session_id/);
 const parsed = JSON.parse(json);
 assert.equal(parsed.sessions[0].session_number, 1);
 assert.equal("session_id" in parsed.sessions[0], false);
+
+Object.values(result.sess)[0].costAvailable = false;
+context.ROUTEB = {
+  ...context.ROUTEB,
+  rows: [{ model: "future-model-with-no-checked-rate", e: usage, cost: null }],
+  costAvailable: false,
+};
+const unpricedJson = JSON.parse(context.buildBJSON());
+const unpricedCsv = context.buildBCSV();
+assert.equal(unpricedJson.totals.est_cost_usd, null,
+  "an unrecognized model must not turn into a zero-dollar total");
+assert.equal(unpricedJson.by_model[0].est_cost_usd, null);
+assert.equal(unpricedJson.sessions[0].est_cost_usd, null);
+assert.match(unpricedCsv, /,[^,]*,$/m,
+  "an unrecognized session price must be blank in the CSV instead of zero");
 
 const scriptStart = html.indexOf('<textarea id="scripttext"');
 const scriptBodyStart = html.indexOf(">", scriptStart) + 1;

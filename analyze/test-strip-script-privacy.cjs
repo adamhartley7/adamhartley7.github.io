@@ -37,6 +37,12 @@ try {
     uuid: `RAW-UUID-SECRET-${index}`,
     requestId,
     permissionMode: "default",
+    agentName: "RAW-AGENT-NAME",
+    attributionSkill: "RAW-SKILL-NAME",
+    attributionMcpServer: "RAW-MCP-SERVER",
+    attributionMcpTool: "RAW-MCP-TOOL",
+    promptSource: "RAW-PROMPT-SOURCE",
+    entrypoint: "RAW-ENTRYPOINT",
     message: {
       id: messageId,
       role: "assistant",
@@ -64,7 +70,8 @@ try {
   const output = fs.readFileSync(path.join(temp, "claude-usage-only.jsonl"), "utf8");
   for (const raw of [
     "RAW-SESSION-SECRET", "RAW-MESSAGE-SECRET", "RAW-REQUEST-SECRET",
-    "RAW-UUID-SECRET", "RAW-PROMPT-OR-REPLY-SECRET",
+    "RAW-UUID-SECRET", "RAW-PROMPT-OR-REPLY-SECRET", "RAW-AGENT-NAME",
+    "RAW-SKILL-NAME", "RAW-MCP-SERVER", "RAW-MCP-TOOL", "RAW-PROMPT-SOURCE", "RAW-ENTRYPOINT",
   ]) assert.doesNotMatch(output, new RegExp(raw), `${raw} must not be written`);
 
   const rows = output.trim().split(/\r?\n/).map(JSON.parse);
@@ -74,6 +81,8 @@ try {
   for (const row of rows) {
     for (const key of ["sessionId", "message_id", "requestId", "uuid"])
       assert.equal(key in row, false, `${key} must not appear in the safe file`);
+    assert.deepEqual(Object.keys(row).sort(), ["model", "permissionMode", "session_number", "timestamp", "usage"],
+      "the safe file must expose only the fields disclosed in the Route B instructions");
   }
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
