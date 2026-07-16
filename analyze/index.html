@@ -321,7 +321,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         </div>
       </div>
       <div class="pilot-status" id="pilotStatus" role="status" aria-live="polite"></div>
-      <div class="pilot-privacy">Nothing is sent automatically. After the report, you can inspect the complete numbers-only copy, then deliberately download or share it.</div>
+      <div class="pilot-privacy">Nothing is sent automatically. After the report, you can inspect the complete content-free aggregate copy, then deliberately download or share it.</div>
     </section>
 
     <section class="resonance-step" id="resonanceStep" aria-labelledby="resonanceHeading">
@@ -899,7 +899,8 @@ if __name__ == "__main__":
     <div class="summbox research-safe-box">
       <h3>Complete Research-Safe JSON</h3>
       <p>This separate file keeps every privacy-safe usage aggregate TOP calculated and the exact pricing rates applied. It includes the current value-model scenario only when the report qualifies for that illustration. Any included scenario is clearly marked as unvalidated, not a forecast result.</p>
-      <p><strong>Before sharing it:</strong> download the JSON, open it in a text editor, inspect it, then attach it deliberately to the message you choose. It contains no prompts, replies, code, tool output, paths, filenames, project or account identifiers, email addresses, exact times or original IDs. Nothing is sent by TOP.</p>
+      <p><strong>Before sharing it:</strong> download the JSON, open it in a text editor, inspect it, then attach it deliberately to the message you choose. It contains aggregate usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. It contains no prompts, replies, code, tool output, paths, filenames, project or account identifiers, email addresses, exact times or original IDs. Nothing is sent by TOP.</p>
+      <p><code>privacy.network_delivery: "none"</code> records that TOP had not transmitted the report when it was generated. If you later choose your device's Share action, the service you select may transmit that file.</p>
       <details class="pilot-share-preview"><summary>See exactly what will be shared</summary><textarea id="pilotResearchPreview" readonly aria-label="Exact research-safe JSON preview"></textarea></details>
       <div class="share-buttons"><button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button><button type="button" class="btn" id="shareResearchJSON">Share Reviewed JSON</button></div>
     </div>
@@ -1867,7 +1868,7 @@ function render(res){
     document.getElementById("pilotQuickSessions").textContent=fmtN(res.sessions||0);
     document.getElementById("pilotQuickDays").textContent=fmtN(res.days||0);
     document.getElementById("pilotQuickPrivacy").textContent=res.pilotSafe
-      ?"Your prompts, replies, code and files stayed on this computer. TOP used the numbers-only file you chose."
+      ?"Your prompts, replies, code and files stayed on this computer. TOP used the content-free aggregate file you chose."
       :"TOP read usage counters locally from the folder you chose. Your raw history was not sent.";
     document.getElementById("pilotQuickCostNote").textContent=res.chatExport
       ?"This download does not contain reliable cost data. TOP has not invented a charge."
@@ -2564,7 +2565,7 @@ function finishSurvey(skipped){
   var share=document.getElementById("shareWithTop");
   if(PILOT_MODE){
     document.getElementById("shareWithTopHeading").textContent="Share Your Safe Report";
-    share.querySelector(".share-lead").textContent="Only the complete numbers-only report below can leave this page. Your prompts, replies, code, files, paths and original identifiers are excluded.";
+    share.querySelector(".share-lead").textContent="Only the complete content-free aggregate report below can leave this page. It includes usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. Your prompts, replies, code, files, paths and original identifiers are excluded.";
     document.getElementById("shareHold").innerHTML="<strong>Nothing has been sent.</strong> Review the exact JSON, then deliberately download it or ask your device to share it. TOP cannot confirm delivery yet.";
     share.querySelector(".research-safe-box h3").textContent="Your Complete Safe Report";
     document.getElementById("downloadResearchJSON").textContent="Download My Safe Report";
