@@ -1,0 +1,74 @@
+
+TOP-3 (Athena) personalisation prototype - empirical-Bayes / Buhlmann shrinkage
+SYNTHETIC data. seed=20260716. numpy 2.4.6. Not real AI cost data.
+Users=400 (half train / half test), tasks/user=24, quantile grid=(0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95)
+
+==========================================================================
+SCENARIO A: users differ (true tau = 0.50). Personalisation should help.
+==========================================================================
+  true within-user  sigma^2 = 0.3600   EB estimate = 0.3540
+  true between-user tau^2   = 0.2500   EB estimate = 0.2312
+  credibility constant k = sigma^2/tau^2 = 1.531   (Z = n/(n+k); n tasks -> weight on the user)
+
+  Average pinball loss over 4800 test forecasts (cost/dollar units, lower is better):
+    population-only : 1.4378
+    personalised    : 1.1760   ( -18.2% vs population)
+  80% interval coverage (target 0.80):
+    population-only : 0.783
+    personalised    : 0.801
+
+  Learning curve (pinball loss vs how many past tasks the user has):
+    history        n_fc   pop-only   personal   change   cover_pop cover_pers
+    n=0             200     1.6254     1.6254     +0.0%      0.735     0.735
+    n=1             200     1.8300     1.6667     -8.9%      0.765     0.775
+    n=2             200     1.2424     1.1428     -8.0%      0.830     0.820
+    n=3             200     1.3776     1.1795    -14.4%      0.825     0.795
+    n=4-5           400     1.3187     1.0656    -19.2%      0.775     0.810
+    n=6-8           600     1.4593     1.1618    -20.4%      0.782     0.802
+    n=9-12          800     1.3813     1.1019    -20.2%      0.797     0.821
+    n=13-23        2200     1.4446     1.1442    -20.8%      0.777     0.799
+
+  Per-user 80% coverage for WARM users (n>=8), by true offset tercile:
+    stratum                        n_fc   cover_pop  cover_pers
+    below crowd  (low offset)      1072       0.693       0.798
+    near crowd   (mid offset)      1056       0.878       0.792
+    above crowd  (high offset)     1072       0.771       0.821
+    (population-only is calibrated on average but drifts off-target in the
+     tails; personalisation restores per-user coverage. This is the point.)
+
+==========================================================================
+SCENARIO B (falsification guard): users identical (true tau = 0). Personalisation should NOT help.
+==========================================================================
+  true within-user  sigma^2 = 0.3600   EB estimate = 0.3483
+  true between-user tau^2   = 0.0000   EB estimate = 0.0029
+  credibility constant k = sigma^2/tau^2 = 119.231   (Z = n/(n+k); n tasks -> weight on the user)
+
+  Average pinball loss over 4800 test forecasts (cost/dollar units, lower is better):
+    population-only : 1.0637
+    personalised    : 1.0640   (  +0.0% vs population)
+  80% interval coverage (target 0.80):
+    population-only : 0.796
+    personalised    : 0.797
+
+  Learning curve (pinball loss vs how many past tasks the user has):
+    history        n_fc   pop-only   personal   change   cover_pop cover_pers
+    n=0             200     0.9379     0.9379     +0.0%      0.820     0.820
+    n=1             200     1.1479     1.1491     +0.1%      0.825     0.820
+    n=2             200     1.0455     1.0461     +0.1%      0.815     0.820
+    n=3             200     1.1241     1.1235     -0.1%      0.815     0.825
+    n=4-5           400     0.9727     0.9742     +0.1%      0.805     0.805
+    n=6-8           600     1.0062     1.0071     +0.1%      0.797     0.793
+    n=9-12          800     1.1286     1.1280     -0.1%      0.767     0.765
+    n=13-23        2200     1.0722     1.0724     +0.0%      0.797     0.799
+
+  Per-user 80% coverage for WARM users (n>=8), by true offset tercile:
+    stratum                        n_fc   cover_pop  cover_pers
+    below crowd  (low offset)      3200       0.788       0.789
+    above crowd  (high offset)     3200       0.788       0.789
+    (population-only is calibrated on average but drifts off-target in the
+     tails; personalisation restores per-user coverage. This is the point.)
+
+Reading: in A, personalisation should cut pinball loss as history grows while
+keeping coverage near 0.80 and fixing the tail miscoverage of the population
+forecast. In B, EB should estimate tau^2 ~ 0, hold Z ~ 0, and show ~no change.
+If B showed a gain, the method would be fitting noise. See README.md for limits.
