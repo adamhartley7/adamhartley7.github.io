@@ -1,0 +1,57 @@
+TOP-3 (Athena) MCQ intake - design-time power and analysis-pinning tool
+==============================================================================
+NOT A RESULT. Every outcome value is drawn from a Gaussian model written down in
+this file. This sizes the study under ASSUMPTIONS and freezes the analysis; it
+says nothing about whether the real intake reduces wasted turns. See README.md.
+
+Seed 20260716 | Monte-Carlo studies/cell 200 | permutations/test 200
+Pre-registered thresholds (frozen before data, NOT measured):
+    MDE          = 1.0 correction turns/task reduction
+    alpha        = 0.05 (one-sided, treatment lowers the outcome)
+    target power = 0.8
+
+ASSUMED inputs (NOT measured): between-participant SD = 2.0, between-task SD = 1.0
+Design knob: tasks per condition per participant (more tasks/person -> fewer people)
+
+------------------------------------------------------------------------------
+1. REQUIRED PARTICIPANTS for 80% power, by assumed residual noise and task load
+------------------------------------------------------------------------------
+   (within-subject randomisation test, the pinned analysis)
+
+   residual SD |  tpc=2   tpc=4 
+          1.5 |      20      10
+          2.5 |      40      25
+          3.5 |     >80      50
+
+   Read as: 'IF residual SD is X and each participant does Y tasks per condition,
+   THEN about N participants give 80% power to detect a 1.0-turn reduction.'
+   The real residual SD is unknown, which is exactly why this is a grid, not a
+   single number. Stage 0 (README.md) exists to get a first read on that SD.
+
+------------------------------------------------------------------------------
+2. WHY WITHIN-SUBJECT: within vs between power on identical simulated data
+------------------------------------------------------------------------------
+   At 30 participants, 4 tasks/condition, residual SD 2.5,
+   between-participant SD 2.0 (large on purpose):
+       within-subject (paired) power  = 0.92
+       between-subject (naive) power   = 0.81
+   The paired test removes the between-participant offset, so it detects the same
+   effect with far fewer people. That offset is why the design is within-subject.
+
+------------------------------------------------------------------------------
+3. REFUTATION-NULL CALIBRATION: true effect = 0, false-positive rate must be ~ alpha
+------------------------------------------------------------------------------
+   This is the 'does the test manufacture an effect where there is none' check.
+   In the protocol the clear-task stratum has (by construction) nothing to clarify,
+   so a well-behaved test must reject at about alpha there, not more.
+   residual SD 1.5:  false-positive rate = 0.043   [ok (~alpha)]
+   residual SD 2.5:  false-positive rate = 0.048   [ok (~alpha)]
+   residual SD 3.5:  false-positive rate = 0.050   [ok (~alpha)]
+
+   A false-positive rate near 0.05 means the pinned test does not invent effects;
+   a rate well above it would invalidate the analysis before any real data is run.
+
+==============================================================================
+Again: this file sizes the study and freezes the analysis under ASSUMPTIONS.
+It contains no evidence about the intake. That evidence would come from Stages
+1-2 in README.md, which have not been run.
