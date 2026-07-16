@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>TOP: understand AI usage or prepare an Obsidian vault for 7C's</title>
-<meta name="description" content="Open Claude or ChatGPT history for a private usage report, or check an Obsidian vault locally for a future 7C's memory setup. Nothing is sent to TOP.">
+<meta name="description" content="Open Claude, ChatGPT or Codex history for a private usage report, or check an Obsidian vault locally for a future 7C's memory setup. Nothing is sent to TOP.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -72,9 +72,9 @@ header{text-align:center;padding:52px 0 24px}
 h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-width:16ch;margin:0 auto 14px}
 .sub{color:var(--text);max-width:60ch;margin:0 auto;font-size:18px;background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.82);border-radius:17px;padding:12px 18px;box-shadow:0 14px 34px rgba(25,66,92,.10);backdrop-filter:blur(8px)}
 .sub b{color:var(--text)}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0 8px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0 8px}
 .tab{min-height:112px;font-family:"Inter",system-ui,sans-serif;font-size:17px;font-weight:750;padding:18px;border:1px solid rgba(255,255,255,.82);border-radius:22px;background:rgba(255,255,255,.78);color:var(--text);cursor:pointer;transition:.2s;box-shadow:0 16px 34px rgba(25,66,92,.10);text-align:left}
-.tab:nth-child(1){background:linear-gradient(145deg,#fff,#dff0ff)}.tab:nth-child(2){background:linear-gradient(145deg,#fff,#f9e2f0)}.tab:nth-child(3){background:linear-gradient(145deg,#fff,#e9e3ff)}.tab:nth-child(4){background:linear-gradient(145deg,#fff,#fff0d5)}.tab:nth-child(5){background:linear-gradient(145deg,#fff,#dff8ed)}
+.tab:nth-child(1){background:linear-gradient(145deg,#fff,#dff0ff)}.tab:nth-child(2){background:linear-gradient(145deg,#fff,#f9e2f0)}.tab:nth-child(3){background:linear-gradient(145deg,#fff,#e9e3ff)}.tab:nth-child(4){background:linear-gradient(145deg,#fff,#fff0d5)}.tab:nth-child(5){background:linear-gradient(145deg,#fff,#dff8ed)}.tab:nth-child(6){background:linear-gradient(145deg,#fff,#e5f1ff)}
 .tab:hover{transform:translateY(-3px);border-color:rgba(101,86,221,.45)}
 .tab.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,#087f87,#2e9ba5);box-shadow:0 18px 42px rgba(15,116,127,.24)}
 .tab:focus-visible,.drop:focus-visible,.btn:focus-visible{outline:3px solid var(--iris2);outline-offset:3px}
@@ -118,6 +118,9 @@ tfoot td{font-weight:700;border-top:1px solid var(--border2);border-bottom:none}
 .summbox[hidden]{display:none!important}
 .summbox h3{font-size:15px;margin-bottom:6px}
 .summbox p{color:var(--muted);font-size:14px;margin-bottom:12px}
+.codex-exports{margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}
+.codex-exports[hidden]{display:none!important}.codex-exports h4{font-size:15px;margin:0 0 6px}.codex-exports code{overflow-wrap:anywhere}
+.codex-exports .export-actions{display:flex;gap:10px;flex-wrap:wrap}.codex-exports .privacy-reminder{margin-top:10px;color:#6d3900}
 textarea{width:100%;min-height:150px;background:#f7fbfd;border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:12.5px;padding:14px;resize:vertical}
 .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;padding:13px 20px;border-radius:13px;border:1px solid var(--border2);background:#fff;color:var(--text);cursor:pointer;transition:.2s;margin-top:10px}
 .btn.p{background:linear-gradient(135deg,var(--iris),#8c6ee8);border-color:transparent;color:#fff;box-shadow:0 12px 28px rgba(101,86,221,.24)}
@@ -262,7 +265,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
   <header>
     <div class="badge"><span class="lk"></span>Your chosen files stay on this device</div>
     <h1>Understand your AI usage, or prepare your Obsidian vault for private AI memory.</h1>
-    <p class="sub">Choose a Claude or ChatGPT history file for a usage report, or choose an Obsidian vault folder for a local 7C's readiness check. The files stay in this browser and are not sent to TOP.</p>
+    <p class="sub">Choose a Claude, ChatGPT or Codex history file for a usage report, or choose an Obsidian vault folder for a local 7C's readiness check. The files stay in this browser and are not sent to TOP.</p>
   </header>
   <div class="flow-shell">
     <div class="journey-rail" aria-live="polite">
@@ -294,6 +297,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       <p class="step-lead">Choose an AI history source for usage numbers, or choose Obsidian for a private 7C's vault check.</p>
       <div class="tabs" id="tabs" role="group" aria-label="Work source">
         <button type="button" class="tab" data-mode="cc" aria-pressed="false">Claude Code<span class="st">Uses the usage numbers saved by Claude Code</span></button>
+        <button type="button" class="tab" data-mode="codex" aria-pressed="false">Codex<span class="st">Uses recorded token counts from local Codex session logs</span></button>
         <button type="button" class="tab" data-mode="chat" aria-pressed="false">Claude Chat<span class="st">Estimates usage from the length of your Claude conversations</span></button>
         <button type="button" class="tab" data-mode="openai" aria-pressed="false">ChatGPT<span class="st">Estimates usage from the length of your ChatGPT conversations</span></button>
         <button type="button" class="tab" data-mode="csv" aria-pressed="false">Claude Console<span class="st">Shows pay-as-you-go usage and costs recorded by Anthropic</span></button>
@@ -321,8 +325,8 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         <div class="small" id="dropsmall">Claude Code history files (.jsonl)</div>
         <input type="file" id="file" multiple>
       </label>
-      <label class="folder-choice" id="historyFolderChoice" tabindex="0" role="button">Choose The Whole Claude Code Folder
-        <span>TOP opens only the supported .jsonl history files inside it. Everything stays on this device.</span>
+      <label class="folder-choice" id="historyFolderChoice" tabindex="0" role="button"><strong id="historyFolderTitle">Choose The Whole Claude Code Folder</strong>
+        <span id="historyFolderText">TOP opens only the supported .jsonl history files inside it. Everything stays on this device.</span>
         <input type="file" id="historyFolder" webkitdirectory directory multiple>
       </label>
       <div class="file-status" id="fileStatus" role="status" aria-live="polite"></div>
@@ -378,6 +382,13 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       <div>
         <button class="btn p" id="copybtn">Copy summary</button>
         <button class="btn" id="dlbtn">Download .txt</button>
+      </div>
+      <div class="codex-exports" id="codexObsidianDownloads" hidden>
+        <h4>Keep A Content-Free Codex Log In Obsidian</h4>
+        <p>These files contain aggregate token counts and AI version names, not prompts, replies, code, paths, project names, account limits or original session IDs.</p>
+        <p>Suggested locations: <code>AI History/Usage Log/ai-events.jsonl</code> and <code>AI History/Reports/YYYY-MM-DD-codex-usage.md</code>.</p>
+        <div class="export-actions"><button class="btn p" id="downloadAIEvents">Download ai-events.jsonl</button><button class="btn" id="downloadObsidianReport">Download Obsidian Report</button></div>
+        <p class="privacy-reminder">Save these only where you intend. OneDrive, Obsidian Sync and Git may copy files placed inside a synced vault. Keep raw Codex rollout files outside the vault.</p>
       </div>
     </div>
     <p class="note">Pay-as-you-go means each amount of AI use is billed separately. Estimates use provider prices checked on 15 Jul 2026 and may differ from your bill. Claude Max, Claude Pro and ChatGPT subscriptions are not charged using the dollar estimate shown here.</p>
@@ -722,7 +733,7 @@ if __name__ == "__main__":
 <script>
 "use strict";
 // No network delivery is configured. Analysis and exports remain local.
-var lastSummary="";
+var lastSummary="",LAST_RESULT=null;
 function setJourney(progress,label){
   var p=Math.max(0,Math.min(1,progress));
   var root=document.documentElement;
@@ -784,9 +795,11 @@ function setJourney(progress,label){
 }
 function resetDownstream(){
   lastSummary='';
+  LAST_RESULT=null;
   document.getElementById('out').style.display='none';
   document.getElementById('outb').style.display='none';
   document.getElementById('shareSummaryBox').hidden=true;
+  document.getElementById('codexObsidianDownloads').hidden=true;
   document.getElementById('survey').hidden=true;
   document.getElementById('file').value='';
   document.getElementById('fileb').value='';
@@ -908,6 +921,15 @@ var MODES={
         "Drop them into the box above."],
       stepstip:"Claude Code records usage numbers for many AI replies. Any dollar figure is a pay-as-you-go comparison estimate, not your Claude Max subscription bill.",
       note:""},
+  codex:{label:"Codex", small:"Codex rollout session files (rollout-*.jsonl) or TOP's ai-events.jsonl",
+      hint:"Codex session transcripts are under <code>~/.codex/sessions/</code> and <code>~/.codex/archived_sessions/</code> (Windows: <code>C:\\Users\\YOU\\.codex\\sessions\\</code>). Choose only <code>rollout-*.jsonl</code> files, or choose one of those two folders. Do not choose the whole <code>.codex</code> folder.",
+      steps:[
+        "Open <code>C:\\Users\\YOU\\.codex\\sessions\\</code> on Windows. Archived sessions can also be under <code>C:\\Users\\YOU\\.codex\\archived_sessions\\</code>.",
+        "Choose one or more files whose names start with <code>rollout-</code> and end with <code>.jsonl</code>, or choose the <code>sessions</code> folder.",
+        "Do not choose <code>.codex\\history.jsonl</code>, <code>auth.json</code>, or the whole <code>.codex</code> folder.",
+        "TOP reads only recorded token counters and the active AI version. It ignores transcript text, commands, tool output, paths, IDs, account limits and Git details."],
+      stepstip:"Codex token counts measure recorded model usage. They do not reveal your remaining ChatGPT allowance or prove a subscription charge. AI versions without a checked public API price remain unpriced.",
+      note:"Some older or incomplete Codex sessions contain no recorded token counters. TOP will report that honestly and will not estimate usage from transcript text."},
   csv:{label:"Console CSV", small:"usage or cost .csv exported from console.anthropic.com",
       hint:"On <code>console.anthropic.com</code>, export either a Usage CSV for token data or a Cost CSV for recorded billed cost, then choose it here.",
       steps:[
@@ -940,11 +962,14 @@ var MODES={
       note:"ChatGPT history downloads do not provide a reliable cost for each conversation. TOP estimates usage from message length on this device and does not invent a dollar charge."},
   obsidian:{label:"Obsidian + 7C's",small:"an Obsidian vault folder checked locally",hint:"",steps:[],stepstip:"",note:""}
 };
-var MODE_ACCEPT={cc:".jsonl",csv:".csv",chat:".json",openai:".json"};
+var MODE_ACCEPT={cc:".jsonl",codex:".jsonl",csv:".csv",chat:".json",openai:".json"};
 var ROUTE_COPY={
   cc:{
     a:"Choose your Claude Code history files. This tab reads the usage numbers on your device. Your prompts, replies, code and files are not uploaded.",
     b:"Use the readable privacy tool first. It creates a new file that keeps usage numbers, dates, AI version names, Claude Code access settings and new numbered sessions. It leaves out prompts, replies, code, file contents and the original internal ID numbers."},
+  codex:{
+    a:"Choose Codex rollout session files. This tab streams each file on your device and retains only token counters, dates and the active AI version. Transcript text, commands, tool output, paths, IDs, account limits and Git details are ignored.",
+    b:"Choose Codex rollout session files. After the local report, TOP can create aggregate JSONL and Markdown copies for Obsidian. They contain no transcript text, paths, original session IDs or account-limit details."},
   chat:{
     a:"Choose conversations.json. This tab reads the conversation text on your device to estimate usage. The text stays in this tab. The download does not contain a cost for each chat.",
     b:"Choose conversations.json. This tab reads it on your device, then prepares a new summary containing totals and optional answers, not conversation text. You inspect and download that summary yourself."},
@@ -996,7 +1021,12 @@ function setMode(m){
   document.getElementById("err").style.display="none";
   document.getElementById("file").value="";
   document.getElementById("file").setAttribute("accept",MODE_ACCEPT[m]||"");
-  document.getElementById("historyFolderChoice").classList.toggle("show",m==="cc");
+  var folderMode=m==="cc"||m==="codex";
+  document.getElementById("historyFolderChoice").classList.toggle("show",folderMode);
+  if(folderMode){
+    document.getElementById("historyFolderTitle").textContent=m==="codex"?"Choose The Codex Sessions Folder":"Choose The Whole Claude Code Folder";
+    document.getElementById("historyFolderText").textContent=m==="codex"?"Choose only sessions or archived_sessions. TOP reads supported rollout files one line at a time and ignores transcript content.":"TOP opens only the supported .jsonl history files inside it. Everything stays on this device.";
+  }
   document.getElementById("routechooser").hidden=false;
   if(selectedRoute) selectRoute(selectedRoute);
   else {
@@ -1073,6 +1103,129 @@ function createClaudeCodeAccumulator(){
 function parseClaudeCode(texts){
   var accumulator=createClaudeCodeAccumulator();
   texts.forEach(function(txt,fileIndex){accumulator.addText(txt,fileIndex)});
+  return accumulator.result();
+}
+function safeCodexCount(value){
+  var n=Number(value);
+  return Number.isSafeInteger(n)&&n>=0?n:null;
+}
+function safeCodexDay(value){
+  var text=String(value||"");
+  var match=text.match(/^(\d{4}-\d{2}-\d{2})(?:T|$)/);
+  return match?match[1]:null;
+}
+function safeCodexModel(value){
+  var text=String(value||"unknown").replace(/[\u0000-\u001f\u007f]/g," ").trim();
+  return text&&text.length<=160?text:"unknown";
+}
+function checkedCodexUsage(value){
+  if(!value||typeof value!=="object") return null;
+  var input=safeCodexCount(value.input_tokens),cached=safeCodexCount(value.cached_input_tokens),output=safeCodexCount(value.output_tokens),reasoning=safeCodexCount(value.reasoning_output_tokens),total=safeCodexCount(value.total_tokens);
+  if(input===null||cached===null||output===null||reasoning===null||total===null) return null;
+  if(cached>input||reasoning>output) return null;
+  return {input:input,cached:cached,output:output,reasoning:reasoning,total:total};
+}
+function subtractCodexUsage(current,previous){
+  if(!current) return null;
+  if(!previous) return current;
+  var delta={input:current.input-previous.input,cached:current.cached-previous.cached,output:current.output-previous.output,reasoning:current.reasoning-previous.reasoning,total:current.total-previous.total};
+  return Object.keys(delta).some(function(key){return delta[key]<0})?null:delta;
+}
+function createBoundedLineCollector(onLine,onOversized,maxChars){
+  var buffer="",dropping=false,limit=maxChars||2*1024*1024;
+  function push(chunk){
+    var pieces=String(chunk||"").split("\n");
+    pieces.forEach(function(piece,index){
+      var ended=index<pieces.length-1;
+      if(dropping){if(ended) dropping=false;return}
+      if(buffer.length+piece.length>limit){buffer="";if(!ended) dropping=true;onOversized();return}
+      buffer+=piece;
+      if(ended){onLine(buffer.replace(/\r$/, ""));buffer=""}
+    });
+  }
+  function finish(){if(!dropping&&buffer){onLine(buffer.replace(/\r$/, ""))}buffer="";dropping=false}
+  return {push:push,finish:finish};
+}
+function createCodexAccumulator(){
+  var by=Object.create(null),days=Object.create(null),normalizedSignatures=new Set(),normalizedSessions=0,normalizedDays=0;
+  var coverage={files_selected:0,files_parsed:0,files_with_usage:0,files_skipped:0,malformed_lines:0,oversized_lines:0,counter_resets:0,complete:true};
+  function modelRow(model){return by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,reasoning:0,turns:0})}
+  function addCounts(model,input,cached,output,reasoning,updates){
+    var row=modelRow(safeCodexModel(model)),noncached=Math.max(input-cached,0);
+    row.inp+=noncached;row.cr+=cached;row.out+=output;row.reasoning+=reasoning;row.turns+=updates||1;
+  }
+  function beginFile(fileIndex){
+    coverage.files_selected++;
+    return {fileIndex:fileIndex,currentModel:"Unknown Codex model",previousTotal:null,lastTotalSignature:null,foundUsage:false,recognized:false};
+  }
+  function addNormalized(state,record){
+    if(record.schema_version!=="top.codex-usage.v1"||record.provider!=="openai"||record.surface!=="codex"||!Array.isArray(record.by_model)) return false;
+    var safeRows=[],valid=true;
+    record.by_model.forEach(function(row){
+      var input=safeCodexCount(row.input_tokens),cached=safeCodexCount(row.cached_input_tokens),noncached=safeCodexCount(row.noncached_input_tokens),output=safeCodexCount(row.output_tokens),reasoning=safeCodexCount(row.reasoning_output_tokens),updates=safeCodexCount(row.usage_updates);
+      if(input===null||cached===null||noncached===null||output===null||reasoning===null||updates===null||cached>input||noncached!==input-cached||reasoning>output){valid=false;return}
+      safeRows.push({model:safeCodexModel(row.model),input:input,cached:cached,output:output,reasoning:reasoning,updates:updates});
+    });
+    if(!valid||!safeRows.length) return false;
+    var totals=record.totals&&typeof record.totals==="object"?record.totals:{};
+    var signature=JSON.stringify({generated_date:safeCodexDay(record.generated_date),sessions:safeCodexCount(totals.sessions),active_days:safeCodexCount(totals.active_days),by_model:safeRows});
+    if(normalizedSignatures.has(signature)) return true;
+    normalizedSignatures.add(signature);
+    safeRows.forEach(function(row){addCounts(row.model,row.input,row.cached,row.output,row.reasoning,row.updates)});
+    normalizedSessions+=safeCodexCount(totals.sessions)||0;
+    normalizedDays+=safeCodexCount(totals.active_days)||0;
+    if(!record.coverage||record.coverage.complete!==true) coverage.complete=false;
+    state.foundUsage=true;state.recognized=true;
+    return true;
+  }
+  function addUsage(state,usage,day){
+    if(!usage||!(usage.input||usage.output||usage.cached||usage.reasoning)) return;
+    state.foundUsage=true;
+    addCounts(state.currentModel,usage.input,usage.cached,usage.output,usage.reasoning,1);
+    if(day) days[day]=1;
+  }
+  function addLine(state,line){
+    var trimmed=String(line||"").trim();if(!trimmed)return;
+    var record;try{record=JSON.parse(trimmed)}catch(error){coverage.malformed_lines++;coverage.complete=false;return}
+    if(addNormalized(state,record)) return;
+    if(!record||typeof record!=="object") return;
+    if(record.type==="turn_context"){
+      state.recognized=true;
+      if(record.payload&&record.payload.model!==undefined) state.currentModel=safeCodexModel(record.payload.model);
+      return;
+    }
+    if(record.type!=="event_msg"||!record.payload||record.payload.type!=="token_count") return;
+    state.recognized=true;
+    var info=record.payload.info;if(!info||typeof info!=="object")return;
+    var total=checkedCodexUsage(info.total_token_usage),last=checkedCodexUsage(info.last_token_usage),usage=null;
+    if(total){
+      var signature=[total.input,total.cached,total.output,total.reasoning,total.total].join("|");
+      if(state.lastTotalSignature===signature) return;
+      state.lastTotalSignature=signature;
+      usage=subtractCodexUsage(total,state.previousTotal);
+      if(!usage){coverage.counter_resets++;coverage.complete=false;if(last)usage=last}
+      state.previousTotal=total;
+    }else if(last){usage=last;coverage.complete=false}
+    else{coverage.complete=false;return}
+    if(usage&&usage.total!==usage.input+usage.output) coverage.complete=false;
+    addUsage(state,usage,safeCodexDay(record.timestamp));
+  }
+  function noteOversized(){coverage.oversized_lines++;coverage.complete=false}
+  function endFile(state,failed){
+    if(failed){coverage.files_skipped++;coverage.complete=false;return}
+    coverage.files_parsed++;if(state.foundUsage)coverage.files_with_usage++;
+  }
+  function result(){
+    return {by:by,turns:Object.keys(by).reduce(function(total,model){return total+by[model].turns},0),sessions:Math.max(coverage.files_with_usage,normalizedSessions),days:Math.max(Object.keys(days).length,normalizedDays),kind:"Codex local session logs",estimate:true,costLabel:"API-rate comparison",estimateReason:"recorded token counts priced only where an exact public API rate is available; ChatGPT subscription limits and charges may differ",codex:true,coverage:coverage};
+  }
+  return {beginFile:beginFile,addLine:addLine,noteOversized:noteOversized,endFile:endFile,result:result};
+}
+function parseCodex(texts){
+  var accumulator=createCodexAccumulator();
+  texts.forEach(function(text,fileIndex){
+    var state=accumulator.beginFile(fileIndex),collector=createBoundedLineCollector(function(line){accumulator.addLine(state,line)},accumulator.noteOversized,2*1024*1024);
+    collector.push(String(text||""));collector.finish();accumulator.endFile(state,false);
+  });
   return accumulator.result();
 }
 function splitCSV(line){
@@ -1219,6 +1372,8 @@ function revealStandardPostReport(){
   document.getElementById("resultsHeading").focus({preventScroll:true});
 }
 function render(res){
+  LAST_RESULT=res;
+  document.getElementById("codexObsidianDownloads").hidden=!res.codex;
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[];
   Object.keys(by).forEach(function(model){
     var e=by[model],resolved=resolveCostRow(model,e,res),key=resolved.key,cost=resolved.cost,complete=resolved.complete;
@@ -1442,6 +1597,8 @@ function vaultCandidateKind(file,strictFolder){
   if(!path||vaultPathBlocked(path)) return "skip";
   if(Number(file.size||0)>VAULT_LIMITS.maxCandidateBytes) return "oversized";
   if(/\.md$/i.test(name)) return "note";
+  if(name==="ai-events.jsonl") return "codex";
+  if(/^rollout-.+\.jsonl$/i.test(name)&&/(?:^|\/)(?:codex|codex-sessions|codex-archived-sessions)(?:\/|$)/i.test(path)) return "codex";
   if(/\.jsonl$/i.test(name)) return "cc";
   if(/\.csv$/i.test(name)&&(!strictFolder||/(?:^|[-_.])(usage|cost|anthropic|claude)(?:[-_.]|$)/i.test(name))) return "csv";
   if(/\.json$/i.test(name)&&(!strictFolder||/^conversations?(?:[-_]\d+)?\.json$/i.test(name))) return "conversation";
@@ -1449,7 +1606,7 @@ function vaultCandidateKind(file,strictFolder){
 }
 function scanVaultFiles(files,strictFolder,now){
   var list=Array.prototype.slice.call(files||[]), folders={}, structures={agents:false,claude:false,index:false,priorities:false,birds:false,daily:false};
-  var scan={notes:0,recent:0,skipped:0,oversized:0,folders:0,tooMany:false,candidates:{cc:[],csv:[],conversation:[]},structures:structures};
+  var scan={notes:0,recent:0,skipped:0,oversized:0,folders:0,tooMany:false,candidates:{cc:[],codex:[],csv:[],conversation:[]},structures:structures};
   if(list.length>VAULT_LIMITS.maxEntries){scan.tooMany=true;return scan}
   var current=Number(now)||Date.now(),candidateBytes=0;
   list.forEach(function(file){
@@ -1468,8 +1625,8 @@ function scanVaultFiles(files,strictFolder,now){
       if(parts.some(function(part){return /^(?:01\s*-\s*)?daily notes?$/i.test(part)})) structures.daily=true;
       return;
     }
-    if(kind==="cc"||kind==="csv"||kind==="conversation"){
-      if(scan.candidates.cc.length+scan.candidates.csv.length+scan.candidates.conversation.length>=VAULT_LIMITS.maxCandidates){scan.skipped++;return}
+    if(kind==="cc"||kind==="codex"||kind==="csv"||kind==="conversation"){
+      if(scan.candidates.cc.length+scan.candidates.codex.length+scan.candidates.csv.length+scan.candidates.conversation.length>=VAULT_LIMITS.maxCandidates){scan.skipped++;return}
       if(candidateBytes+Number(file.size||0)>VAULT_LIMITS.maxCandidateTotalBytes){scan.oversized++;scan.skipped++;return}
       candidateBytes+=Number(file.size||0);scan.candidates[kind].push(file);return;
     }
@@ -1477,7 +1634,7 @@ function scanVaultFiles(files,strictFolder,now){
   scan.folders=Object.keys(folders).length;
   return scan;
 }
-function vaultCandidateCount(scan){return scan.candidates.cc.length+scan.candidates.csv.length+scan.candidates.conversation.length}
+function vaultCandidateCount(scan){return scan.candidates.cc.length+scan.candidates.codex.length+scan.candidates.csv.length+scan.candidates.conversation.length}
 function build7CsPlan(scan){
   var s=scan.structures,yes=function(v){return v?"found":"not found"};
   return [
@@ -1523,12 +1680,17 @@ function renderVaultScan(scan){
   document.getElementById("vaultStatus").textContent="Vault structure checked on this device. No Markdown note contents were read. "+fmtN(scan.skipped)+" hidden, attachment or unsupported file"+(scan.skipped===1?" was":"s were")+" skipped.";
   var buttons=document.getElementById("vaultSourceButtons");buttons.textContent="";
   if(scan.candidates.cc.length) addVaultSourceButton(buttons,"Analyze "+fmtN(scan.candidates.cc.length)+" Claude Code file"+(scan.candidates.cc.length===1?"":"s"),"cc",scan.candidates.cc);
+  if(scan.candidates.codex.length){
+    var codexAggregates=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()==="ai-events.jsonl"}),codexRollouts=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()!=="ai-events.jsonl"});
+    if(codexRollouts.length) addVaultSourceButton(buttons,"Analyze "+fmtN(codexRollouts.length)+" Codex session file"+(codexRollouts.length===1?"":"s"),"codex",codexRollouts);
+    codexAggregates.forEach(function(file,index){addVaultSourceButton(buttons,codexAggregates.length===1?"Analyze Codex aggregate file":"Analyze Codex aggregate "+fmtN(index+1),"codex",[file])});
+  }
   if(scan.candidates.csv.length) addVaultSourceButton(buttons,"Analyze "+fmtN(scan.candidates.csv.length)+" Console CSV file"+(scan.candidates.csv.length===1?"":"s"),"csv",scan.candidates.csv);
   if(scan.candidates.conversation.length){
     addVaultSourceButton(buttons,"Open conversation export as Claude Chat","chat",scan.candidates.conversation);
     addVaultSourceButton(buttons,"Open conversation export as ChatGPT","openai",scan.candidates.conversation);
   }
-  if(!vaultCandidateCount(scan)){var empty=document.createElement("p");empty.className="vault-empty";empty.textContent="No supported AI history file was found. That is normal. Obsidian notes are memory, not a token ledger. Use a downloaded Claude or ChatGPT history if you want a usage report.";buttons.appendChild(empty)}
+  if(!vaultCandidateCount(scan)){var empty=document.createElement("p");empty.className="vault-empty";empty.textContent="No supported AI history file was found. That is normal. Obsidian notes are memory, not a token ledger. Use a downloaded Claude, ChatGPT or Codex history if you want a usage report.";buttons.appendChild(empty)}
   var labels=[
     ["Vault index",scan.structures.index],["Active priorities",scan.structures.priorities],["Agent instructions",scan.structures.agents||scan.structures.claude],["Bird's-eye view",scan.structures.birds],["Daily notes",scan.structures.daily]
   ];
@@ -1556,30 +1718,37 @@ document.getElementById("changeSourceFromVault").addEventListener("click",return
 document.getElementById("useHistoryInstead").addEventListener("click",returnToSources);
 
 // ---------- file handling ----------
-var HISTORY_LIMITS={maxFiles:10000,maxFileBytes:350*1024*1024,maxTotalBytes:1024*1024*1024,maxClaudeTotalBytes:8*1024*1024*1024};
+var HISTORY_LIMITS={maxFiles:10000,maxFileBytes:350*1024*1024,maxCodexFileBytes:4*1024*1024*1024,maxTotalBytes:1024*1024*1024,maxClaudeTotalBytes:8*1024*1024*1024,maxCodexTotalBytes:12*1024*1024*1024};
 function showErr(msg){var e=document.getElementById("err");e.textContent=msg;e.style.display="block";document.getElementById("out").style.display="none";document.getElementById("fileStatus").textContent="";}
 function historyFilesForMode(files,targetMode){
-  var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,total=0;
-  var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="csv"?/\.csv$/i:/\.json$/i);
+  var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,total=0,codexRollouts=0,codexAggregates=0;
+  var unsafeCodexRoot=targetMode==="codex"&&list.some(function(file){return /^(?:\.codex)(?:\/|\\)/i.test(String(file.webkitRelativePath||""))});
+  var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:(targetMode==="csv"?/\.csv$/i:/\.json$/i));
+  var fileLimit=targetMode==="codex"?HISTORY_LIMITS.maxCodexFileBytes:HISTORY_LIMITS.maxFileBytes;
   list.forEach(function(file){
     var name=String(file.name||"");
     if(/\.md$/i.test(name)){markdown++;return}
     if(/\.(?:zip|7z|rar|tar|gz)$/i.test(name)){archives++;return}
     if(!ext.test(name)){unsupported++;return}
-    if(Number(file.size||0)>HISTORY_LIMITS.maxFileBytes){unsupported++;return}
+    if(Number(file.size||0)>fileLimit){unsupported++;return}
+    if(targetMode==="codex"){if(/^ai-events\.jsonl$/i.test(name))codexAggregates++;else codexRollouts++}
     total+=Number(file.size||0);allowed.push(file);
   });
-  return {files:allowed,markdown:markdown,archives:archives,unsupported:unsupported,totalBytes:total,selected:list.length};
+  var mixedCodexSources=targetMode==="codex"&&codexRollouts>0&&codexAggregates>0,multipleCodexAggregates=targetMode==="codex"&&codexAggregates>1;
+  return {files:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,totalBytes:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates};
 }
 function finishParsedResult(res,openedCount){
   var n=Object.keys(res.by).length;
   if(!n||res.turns===0){
     if(mode==="csv") showErr("TOP could not find recognized usage or cost columns with real values in that CSV. An Obsidian note is not a Console export. Choose an Anthropic Usage or Cost CSV.");
+    else if(mode==="codex") showErr("TOP found no recorded token usage in those Codex session files. Some older or incomplete Codex sessions have no token_count records. TOP will not estimate usage from transcript text.");
     else showErr("TOP could not find usage data for the source you chose. Try the matching Claude Code JSONL, Claude Chat conversations.json, or ChatGPT conversations.json file.");
     return;
   }
   render(res);
-  document.getElementById("fileStatus").textContent="Report ready from "+fmtN(openedCount)+" file"+(openedCount===1?"":"s")+" opened only on this device.";
+  var status="Report ready from "+fmtN(openedCount)+" file"+(openedCount===1?"":"s")+" opened only on this device.";
+  if(res.codex&&res.coverage&&!res.coverage.complete) status+=" Some malformed, oversized or reset usage records were skipped, so coverage may be incomplete.";
+  document.getElementById("fileStatus").textContent=status;
   document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function readClaudeFiles(files){
@@ -1604,28 +1773,55 @@ function readTextFiles(files,done){
   }
   next();
 }
+function readBlobChunk(blob){
+  if(blob.arrayBuffer) return blob.arrayBuffer();
+  return new Promise(function(resolve,reject){var reader=new FileReader();reader.onload=function(){resolve(reader.result)};reader.onerror=function(){reject(reader.error||new Error("read failed"))};reader.readAsArrayBuffer(blob)});
+}
+async function streamCodexFile(file,fileIndex,accumulator){
+  var state=accumulator.beginFile(fileIndex),decoder=new TextDecoder("utf-8"),collector=createBoundedLineCollector(function(line){accumulator.addLine(state,line)},accumulator.noteOversized,2*1024*1024),offset=0,chunkSize=1024*1024;
+  try{
+    while(offset<file.size){
+      var end=Math.min(file.size,offset+chunkSize),buffer=await readBlobChunk(file.slice(offset,end));
+      collector.push(decoder.decode(buffer,{stream:end<file.size}));offset=end;
+      document.getElementById("fileStatus").textContent="Reading Codex sessions on this device: file "+fmtN(fileIndex+1)+", "+Math.round(100*offset/Math.max(file.size,1))+"%.";
+      await new Promise(function(resolve){setTimeout(resolve,0)});
+    }
+    collector.push(decoder.decode());collector.finish();accumulator.endFile(state,false);return true;
+  }catch(error){accumulator.endFile(state,true);return false}
+}
+async function readCodexFiles(files){
+  var accumulator=createCodexAccumulator(),opened=0;
+  for(var index=0;index<files.length;index++){if(await streamCodexFile(files[index],index,accumulator))opened++}
+  try{finishParsedResult(accumulator.result(),opened)}catch(error){showErr("TOP could not read those Codex session files. Nothing was sent.")}
+}
 function handle(files){
   document.getElementById("err").style.display="none";
   if(!files||!files.length){showErr("No files were chosen. Nothing was read or sent.");return}
   var checked=historyFilesForMode(files,mode);
   if(!checked.files.length){
-    if(checked.markdown) showErr("That looks like an Obsidian note, not an AI history export. No data was uploaded or sent. Choose Obsidian + 7C's to check the vault, or use a downloaded Claude or ChatGPT history for a usage report.");
+    if(checked.unsafeCodexRoot) showErr("Do not choose the whole .codex folder. It can contain account and prompt history files. Choose only .codex\\sessions, .codex\\archived_sessions, explicit rollout-*.jsonl files, or TOP's ai-events.jsonl.");
+    else if(checked.mixedCodexSources) showErr("Choose either raw rollout-*.jsonl files or ai-events.jsonl aggregate files, not both in one report. The aggregate may already contain the raw usage, so mixing them could count the same tokens twice.");
+    else if(checked.multipleCodexAggregates) showErr("Choose one ai-events.jsonl aggregate at a time. Two aggregate files may cover some of the same sessions, and TOP cannot safely detect that overlap without retaining private session IDs.");
+    else if(checked.markdown) showErr("That looks like an Obsidian note, not an AI history export. No data was uploaded or sent. Choose Obsidian + 7C's to check the vault, or use a downloaded Claude, ChatGPT or Codex history for a usage report.");
     else if(checked.archives) showErr("TOP cannot open a whole ZIP yet. Unzip it on your device, then choose the supported JSON, JSONL or CSV file inside.");
+    else if(mode==="codex") showErr("None of those files are supported Codex session files. Choose rollout-*.jsonl from .codex\\sessions or .codex\\archived_sessions, or choose TOP's ai-events.jsonl. Do not choose history.jsonl.");
     else showErr("None of those files match the source you chose. Choose JSONL for Claude Code, CSV for Claude Console, or conversations.json for Claude Chat or ChatGPT.");
     return;
   }
   if(checked.files.length>HISTORY_LIMITS.maxFiles){showErr("That selection contains more than "+fmtN(HISTORY_LIMITS.maxFiles)+" supported files. Choose a smaller local folder or export.");return}
-  var totalLimit=mode==="cc"?HISTORY_LIMITS.maxClaudeTotalBytes:HISTORY_LIMITS.maxTotalBytes;
+  var totalLimit=mode==="cc"?HISTORY_LIMITS.maxClaudeTotalBytes:(mode==="codex"?HISTORY_LIMITS.maxCodexTotalBytes:HISTORY_LIMITS.maxTotalBytes);
   if(checked.totalBytes>totalLimit){showErr("Those supported files are too large to open safely in one browser tab. Choose a smaller export or split the files into batches.");return}
   var skipped=checked.selected-checked.files.length;
   document.getElementById("fileStatus").textContent="Opening "+fmtN(checked.files.length)+" supported file"+(checked.files.length===1?"":"s")+" on this device"+(skipped?" and skipping "+fmtN(skipped)+" unsupported file"+(skipped===1?"":"s")+".":".");
   if(mode==="cc") readClaudeFiles(checked.files);
+  else if(mode==="codex") readCodexFiles(checked.files);
   else readTextFiles(checked.files,function(texts,failed){if(failed===checked.files.length){showErr("TOP could not read the selected files. Nothing was sent.");return}run(texts,checked.files.length-failed)});
 }
 function run(texts,openedCount){
   try{
     var res;
     if(mode==="cc") res=parseClaudeCode(texts);
+    else if(mode==="codex") res=parseCodex(texts);
     else if(mode==="csv") res=parseCSV(texts);
     else if(mode==="chat") res=parseChat(texts);
     else if(mode==="openai") res=parseOpenAI(texts);
@@ -1647,9 +1843,31 @@ document.getElementById("copybtn").addEventListener("click",function(){
   this.textContent="Copied ✓"; var b=this; setTimeout(function(){b.textContent="Copy summary"},1600);
 });
 document.getElementById("dlbtn").addEventListener("click",function(){
-  var blob=new Blob([document.getElementById("summary").value],{type:"text/plain"});
-  var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="top-usage-summary.txt"; a.click();
+  dlFile("top-usage-summary.txt",document.getElementById("summary").value,"text/plain");
 });
+function codexCoverageForExport(res){
+  var source=res&&res.coverage?res.coverage:{};
+  return {files_selected:safeCodexCount(source.files_selected)||0,files_parsed:safeCodexCount(source.files_parsed)||0,files_with_usage:safeCodexCount(source.files_with_usage)||0,files_skipped:safeCodexCount(source.files_skipped)||0,malformed_lines:safeCodexCount(source.malformed_lines)||0,oversized_lines:safeCodexCount(source.oversized_lines)||0,counter_resets:safeCodexCount(source.counter_resets)||0,complete:source.complete===true};
+}
+function buildCodexAggregateObject(res,createdAt){
+  var totals={input_tokens:0,cached_input_tokens:0,noncached_input_tokens:0,output_tokens:0,reasoning_output_tokens:0,total_tokens:0,sessions:safeCodexCount(res.sessions)||0,active_days:safeCodexCount(res.days)||0};
+  var rows=Object.keys(res.by||{}).sort().map(function(model){
+    var entry=res.by[model],noncached=safeCodexCount(entry.inp)||0,cached=safeCodexCount(entry.cr)||0,output=safeCodexCount(entry.out)||0,reasoning=safeCodexCount(entry.reasoning)||0,updates=safeCodexCount(entry.turns)||0,input=noncached+cached;
+    totals.input_tokens+=input;totals.cached_input_tokens+=cached;totals.noncached_input_tokens+=noncached;totals.output_tokens+=output;totals.reasoning_output_tokens+=reasoning;totals.total_tokens+=input+output;
+    return {model:safeCodexModel(model),input_tokens:input,cached_input_tokens:cached,noncached_input_tokens:noncached,output_tokens:output,reasoning_output_tokens:reasoning,total_tokens:input+output,usage_updates:updates};
+  });
+  return {schema_version:"top.codex-usage.v1",provider:"openai",surface:"codex",generated_date:safeCodexDay(createdAt instanceof Date?createdAt.toISOString():createdAt)||new Date().toISOString().slice(0,10),coverage:codexCoverageForExport(res),totals:totals,by_model:rows};
+}
+function buildAIEventsJSONL(res,createdAt){return JSON.stringify(buildCodexAggregateObject(res,createdAt))+"\n"}
+function markdownSafe(value){return String(value||"").replace(/[\r\n]+/g," ").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\/g,"\\\\").replace(/([`*_{}\[\]()#+.!|-])/g,"\\$1")}
+function buildObsidianAIHistory(res,createdAt){
+  var data=buildCodexAggregateObject(res,createdAt),lines=["---","status: active","project: top","type: log","source: codex-aggregate","created: "+data.generated_date,"---","","# Codex usage report, "+data.generated_date,"","This is a content-free aggregate created locally from Codex session logs. It does not connect Obsidian to AI memory automatically.","","## Totals","","- Total tokens: "+fmtInt(data.totals.total_tokens),"- Text sent to the AI, including reused input: "+fmtInt(data.totals.input_tokens),"- Reused input: "+fmtInt(data.totals.cached_input_tokens),"- Text returned by the AI: "+fmtInt(data.totals.output_tokens),"- Reasoning tokens within the returned-token count: "+fmtInt(data.totals.reasoning_output_tokens),"- Usage updates: "+fmtInt(res.turns),"- Work sessions with recorded usage: "+fmtInt(data.totals.sessions),"- Active days: "+fmtInt(data.totals.active_days),"","## Usage by AI version",""];
+  data.by_model.forEach(function(row){lines.push("- "+markdownSafe(row.model)+": "+fmtInt(row.total_tokens)+" tokens across "+fmtInt(row.usage_updates)+" recorded usage updates.")});
+  lines.push("","## Coverage","","- Files selected: "+fmtInt(data.coverage.files_selected),"- Files parsed: "+fmtInt(data.coverage.files_parsed),"- Files with recorded usage: "+fmtInt(data.coverage.files_with_usage),"- Files skipped: "+fmtInt(data.coverage.files_skipped),"- Malformed lines skipped: "+fmtInt(data.coverage.malformed_lines),"- Oversized lines skipped: "+fmtInt(data.coverage.oversized_lines),"- Counter resets handled: "+fmtInt(data.coverage.counter_resets),"- Complete according to the parser checks: "+(data.coverage.complete?"yes":"no"),"","## Privacy boundary","","This file contains no prompts, replies, code, tool output, paths, project names, original session IDs, account limits or Git details. Keep raw Codex rollout files outside synced vaults. OneDrive, Obsidian Sync and Git may copy anything placed inside a synced vault.","");
+  return lines.join("\n");
+}
+document.getElementById("downloadAIEvents").addEventListener("click",function(){if(LAST_RESULT&&LAST_RESULT.codex)dlFile("ai-events.jsonl",buildAIEventsJSONL(LAST_RESULT,new Date()),"application/x-ndjson")});
+document.getElementById("downloadObsidianReport").addEventListener("click",function(){if(LAST_RESULT&&LAST_RESULT.codex){var day=new Date().toISOString().slice(0,10);dlFile(day+"-codex-usage.md",buildObsidianAIHistory(LAST_RESULT,day),"text/markdown")}});
 // ---------- usage survey (front-end only) ----------
 // Survey answers remain local. The user can copy them deliberately.
 function surveyVal(name){
@@ -1883,7 +2101,7 @@ function buildBJSON(){
     sessions:buildBSessionRows()
   },null,2);
 }
-function dlFile(name,text,type){var blob=new Blob([text],{type:type});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+function dlFile(name,text,type){var blob=new Blob([text],{type:type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(url)},0)}
 document.getElementById("dlcsvb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-shareable-usage-data.csv",buildBCSV(),"text/csv"); });
 document.getElementById("dljsonb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-shareable-usage-data.json",buildBJSON(),"application/json"); });
 

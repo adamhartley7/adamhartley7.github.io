@@ -38,6 +38,8 @@ const files = [
   file("PrivateVault/.git/config"),
   file("PrivateVault/Attachments/photo.png"),
   file("PrivateVault/Resources/Claude History/session.jsonl"),
+  file("PrivateVault/AI History/Sessions/codex/rollout-2026-07-16.jsonl"),
+  file("PrivateVault/AI History/Usage Log/ai-events.jsonl"),
   file("PrivateVault/conversations.json"),
   file("PrivateVault/usage.csv"),
   file("PrivateVault/Personal/api-key.txt"),
@@ -47,9 +49,10 @@ const scan = context.scanVaultFiles(files, true, now);
 assert.equal(scan.notes, 3);
 assert.equal(scan.recent, 3);
 assert.equal(scan.candidates.cc.length, 1);
+assert.equal(scan.candidates.codex.length, 2);
 assert.equal(scan.candidates.conversation.length, 1);
 assert.equal(scan.candidates.csv.length, 1);
-assert.equal(context.vaultCandidateCount(scan), 3);
+assert.equal(context.vaultCandidateCount(scan), 5);
 assert.equal(scan.structures.agents, true);
 assert.equal(scan.structures.daily, true);
 assert.ok(scan.skipped >= 4, "hidden folders, attachments and sensitive files must be skipped");
@@ -62,10 +65,10 @@ assert.equal(context.vaultCandidateKind(file("PrivateVault/session.jsonl", { siz
 
 const plan = context.build7CsPlan(scan);
 assert.match(plan, /Markdown notes: 3/);
-assert.match(plan, /Possible AI history files: 3/);
+assert.match(plan, /Possible AI history files: 5/);
 assert.match(plan, /AGENTS\.md: found/);
 assert.match(plan, /does not connect to, change, upload or index your vault/);
-for (const privateText of ["PrivateVault", "Alpha.md", "session.jsonl", "conversations.json", "usage.csv", "api-key.txt"]) {
+for (const privateText of ["PrivateVault", "Alpha.md", "session.jsonl", "rollout-2026-07-16.jsonl", "ai-events.jsonl", "conversations.json", "usage.csv", "api-key.txt"]) {
   assert.doesNotMatch(plan, new RegExp(privateText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
     `the 7C's plan must not disclose ${privateText}`);
 }
@@ -91,6 +94,41 @@ const mixed = context.historyFilesForMode([
 assert.equal(mixed.files.length, 1);
 assert.equal(mixed.markdown, 1);
 assert.equal(mixed.unsupported, 1);
+
+const codexFiles = context.historyFilesForMode([
+  file("rollout-2026-07-16.jsonl"),
+  file("history.jsonl"),
+  file("arbitrary.jsonl"),
+  file("auth.json"),
+], "codex");
+assert.equal(codexFiles.files.length, 1);
+assert.equal(codexFiles.files[0].name, "rollout-2026-07-16.jsonl");
+assert.equal(codexFiles.unsupported, 3);
+
+const codexAggregate = context.historyFilesForMode([file("ai-events.jsonl")], "codex");
+assert.equal(codexAggregate.files.length, 1);
+assert.equal(codexAggregate.files[0].name, "ai-events.jsonl");
+
+const mixedCodexSources = context.historyFilesForMode([
+  file("rollout-2026-07-16.jsonl"),
+  file("ai-events.jsonl"),
+], "codex");
+assert.equal(mixedCodexSources.mixedCodexSources, true);
+assert.equal(mixedCodexSources.files.length, 0, "raw and aggregate Codex usage must not be mixed or double-counted");
+
+const multipleCodexAggregates = context.historyFilesForMode([
+  file("first/ai-events.jsonl"),
+  file("second/ai-events.jsonl"),
+], "codex");
+assert.equal(multipleCodexAggregates.multipleCodexAggregates, true);
+assert.equal(multipleCodexAggregates.files.length, 0, "overlapping aggregate snapshots cannot be detected without private IDs");
+
+const unsafeCodexRoot = context.historyFilesForMode([
+  file(".codex/sessions/2026/07/16/rollout-2026-07-16.jsonl"),
+  file(".codex/auth.json"),
+], "codex");
+assert.equal(unsafeCodexRoot.unsafeCodexRoot, true);
+assert.equal(unsafeCodexRoot.files.length, 0);
 
 assert.doesNotMatch(html.slice(vaultStart, vaultEnd), /FileReader/,
   "the initial vault scan must not read file contents");

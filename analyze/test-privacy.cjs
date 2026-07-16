@@ -22,7 +22,7 @@ const forbiddenPatterns = [
   [/send us/i, "instruction to send a file to TOP"],
   [/\banonym(?:ised|ized|ous)\b/i, "unsupported anonymous-data claim"],
   [/showDirectoryPicker|createWritable|requestPermission\s*\(\s*\{[^}]*readwrite/i, "vault write permission"],
-  [/indexedDB|localStorage/, "persistent browser storage"],
+  [/indexedDB|localStorage|serviceWorker/, "persistent browser storage or worker"],
 ];
 
 for (const [pattern, label] of forbiddenPatterns) {
@@ -43,6 +43,7 @@ assert.match(html, /Make A Shareable Summary/);
 assert.match(html, /Like opening a spreadsheet on your own laptop/);
 assert.match(html, /Like sharing a summary of a bank statement instead of the statement itself/);
 assert.match(html, /cc:\{[\s\S]*?a:"Choose your Claude Code history files[\s\S]*?b:"Use the readable privacy tool first/);
+assert.match(html, /codex:\{[\s\S]*?a:"Choose Codex rollout session files[\s\S]*?b:"Choose Codex rollout session files/);
 assert.match(html, /chat:\{[\s\S]*?a:"Choose conversations\.json[\s\S]*?b:"Choose conversations\.json/);
 assert.match(html, /openai:\{[\s\S]*?a:"Choose your ChatGPT history download[\s\S]*?b:"Choose your ChatGPT history download/);
 assert.match(html, /csv:\{[\s\S]*?a:"Choose either an Anthropic Usage CSV[\s\S]*?b:"Choose either an Anthropic Usage CSV/);
@@ -71,6 +72,18 @@ assert.match(html, /I Do Not Know Which AI Setup To Choose/);
 assert.match(html, /Spending Too Much On AI/);
 assert.match(html, /My AI Cannot Use My Obsidian Memory/);
 assert.match(html, /data-mode="obsidian"/);
+assert.match(html, /data-mode="codex"/);
+assert.match(html, /Choose only <code>rollout-\*\.jsonl<\/code> files/);
+assert.match(html, /Do not choose the whole <code>\.codex<\/code> folder/);
+assert.match(html, /id="downloadAIEvents">Download ai-events\.jsonl/);
+assert.match(html, /id="downloadObsidianReport">Download Obsidian Report/);
+assert.match(html, /Keep raw Codex rollout files outside the vault/);
+assert.match(html, /function createCodexAccumulator\(/);
+assert.match(html, /function createBoundedLineCollector\(/);
+assert.match(html, /by=Object\.create\(null\),days=Object\.create\(null\)/);
+assert.match(html, /Choose either raw rollout-\*\.jsonl files or ai-events\.jsonl aggregate files, not both/);
+assert.match(html, /Choose one ai-events\.jsonl aggregate at a time/);
+assert.match(html, /URL\.revokeObjectURL\(url\)/);
 assert.match(html, /Your vault is memory, not a bill\./);
 assert.match(html, /it does not connect to, change or copy your vault/i);
 assert.match(html, /id="vaultFolder" webkitdirectory directory multiple/);
@@ -107,6 +120,14 @@ assert.match(html, /getElementById\("survey"\)\.hidden=false/);
 assert.match(html, /share\.scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
 assert.match(html, /document\.getElementById\('shareWithTop'\)\.hidden=true/);
 assert.match(html, /ROUTEB=null/);
+
+const codexExportStart = html.indexOf("function codexCoverageForExport");
+const codexExportEnd = html.indexOf("// ---------- usage survey", codexExportStart);
+assert.ok(codexExportStart >= 0 && codexExportEnd > codexExportStart, "Codex export builders must exist");
+const codexExportSource = html.slice(codexExportStart, codexExportEnd);
+for (const denied of ["source_file", "session_id", "turn_id", "cwd", "workspace_roots", "rate_limits", "plan_type", "credits", "repository_url"]) {
+  assert.doesNotMatch(codexExportSource, new RegExp(denied), `Codex exports must not include ${denied}`);
+}
 
 const holdPosition = html.indexOf("You can make your report now. TOP is not accepting files yet.");
 const routePosition = html.indexOf('id="routechooser"');
