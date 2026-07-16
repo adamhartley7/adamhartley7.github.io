@@ -26,7 +26,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .journey-water{position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen;opacity:.52}
 .journey-stars{position:absolute;z-index:2;inset:0 0 48%;opacity:var(--star-alpha);transition:opacity 1.2s ease;background-image:radial-gradient(1.3px 1.3px at 9% 19%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 26% 42%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 44% 14%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 62% 35%,#fff 45%,transparent 55%),radial-gradient(1.4px 1.4px at 80% 18%,#fff 45%,transparent 55%),radial-gradient(1px 1px at 92% 41%,#fff 45%,transparent 55%)}
 .journey-sun,.journey-moon{position:absolute;left:var(--sun-x);top:var(--sun-y);width:clamp(64px,8.5vw,118px);aspect-ratio:1;border-radius:50%;overflow:hidden;transform:translate(-50%,-50%);transition:left 1s cubic-bezier(.2,.8,.2,1),top 1s cubic-bezier(.2,.8,.2,1),opacity 1s ease}
-.journey-sun{z-index:3;opacity:var(--sun-alpha);background:#110503 url("../assets/nasa-sdo-sun-pia26681.webp") center/cover no-repeat;border:1px solid rgba(255,248,210,.52);box-shadow:0 0 26px 9px rgba(255,221,145,.50),0 0 78px 28px rgba(255,146,61,.22)}
+.journey-sun{z-index:3;width:clamp(44px,6vw,82px);opacity:var(--sun-alpha);background:radial-gradient(circle at 43% 40%,#fffdf1 0 30%,#fff4c5 50%,#ffd98b 72%,#ee9d50 88%,#d77432 100%);border:1px solid rgba(255,250,220,.72);box-shadow:0 0 18px 7px rgba(255,236,178,.55),0 0 58px 25px rgba(255,167,74,.22);filter:saturate(.82) blur(.15px)}
 .journey-moon{z-index:3;left:var(--moon-x);top:var(--moon-y);width:clamp(50px,6.5vw,84px);opacity:var(--moon-alpha);background:#020305 url("../assets/nasa-lro-full-moon-2017.webp") center/118% no-repeat;box-shadow:0 0 0 1px rgba(231,242,248,.38),0 0 26px rgba(213,240,246,.42)}
 .journey-rail{position:sticky;top:70px;z-index:4;margin:0 0 22px;padding:13px 16px;border:1px solid rgba(255,255,255,.86);border-radius:18px;background:rgba(255,255,255,.86);box-shadow:0 14px 34px rgba(25,66,92,.12);backdrop-filter:blur(16px)}
 .journey-meta{display:flex;justify-content:space-between;gap:16px;align-items:center;font-weight:750;font-size:14px}.journey-meta span{color:var(--muted);font-weight:650}.journey-meta strong{color:#087f62}
@@ -255,7 +255,9 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .pilot-flow{max-width:820px;margin:0 auto}.pilot-bubble{max-width:690px;margin:0 0 18px;padding:18px 20px;border-radius:8px 24px 24px 24px;background:#fff;box-shadow:0 12px 28px rgba(22,65,88,.1);font-size:16px;line-height:1.55}.pilot-bubble strong{display:block;font-size:20px;margin-bottom:5px}.pilot-question{margin:24px 0}.pilot-question h2{margin-bottom:8px}.pilot-question>p{color:var(--muted);margin:0 0 14px}.pilot-progress{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#087f87}.pilot-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pilot-choice{min-height:118px;padding:19px;border:2px solid rgba(71,92,112,.18);border-radius:20px;background:rgba(255,255,255,.9);color:var(--text);text-align:left;cursor:pointer;box-shadow:0 12px 26px rgba(22,65,88,.08)}.pilot-choice:hover,.pilot-choice:focus-visible{border-color:#7565dc;transform:translateY(-2px)}.pilot-choice.on{border-color:#087f87;background:#effffd}.pilot-choice strong{display:block;font-size:19px;margin-bottom:6px}.pilot-choice span{display:block;color:var(--muted);line-height:1.45}.pilot-method-panel{margin-top:18px;padding:20px;border:1px solid #c8d9df;border-radius:20px;background:rgba(255,255,255,.82)}.pilot-method-panel h3{margin:0 0 8px}.pilot-method-panel p{color:var(--muted)}.pilot-prompt{width:100%;height:116px;min-height:116px;margin:12px 0;padding:14px;border:1px solid #c6d4dc;border-radius:14px;background:#f8fbfc;color:#213544;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}.pilot-file{display:block;margin-top:12px;padding:20px;border:2px dashed #7a9cad;border-radius:18px;background:#f7fcff;text-align:center;cursor:pointer}.pilot-file strong{display:block;font-size:18px}.pilot-file span{display:block;color:var(--muted);margin-top:4px}.pilot-file input{position:absolute;opacity:0;pointer-events:none}.pilot-path{display:block;padding:12px 14px;margin:12px 0;border-radius:12px;background:#edf5f8;overflow-wrap:anywhere}.pilot-status{display:none;margin:16px 0;padding:14px 16px;border-radius:14px}.pilot-status.show{display:block}.pilot-status.ok{background:#ebfff7;border:1px solid #77c9aa;color:#165d49}.pilot-status.error{background:#fff0f0;border:1px solid #df9696;color:#862e2e}.pilot-privacy{margin-top:14px;padding:13px 15px;border-left:4px solid #087f87;background:#effbf9;color:#31565d}.pilot-mobile-warning{display:none}.pilot-back{margin:0 0 8px}.pilot-mode #resonanceStep,.pilot-mode #providerStep,.pilot-mode #routechooser,.pilot-mode #obsidianPanel,.pilot-mode #routeb{display:none!important}.pilot-mode #routea>h2,.pilot-mode #routea>#routebanner,.pilot-mode #routea>#hint,.pilot-mode #routea>#historyFolderChoice,.pilot-mode #routea>#historyPathHelper,.pilot-mode #routea>#fileFallback,.pilot-mode #routea>#fileStatus,.pilot-mode #routea>#exportsteps,.pilot-mode #routea>#modenote,.pilot-mode #routea>#err{display:none!important}.pilot-mode #routea{padding-top:0}.pilot-mode #shareWithTopHeading{font-size:clamp(25px,4vw,38px)}
 .pilot-mode header{padding:20px 0 12px}.pilot-mode header .badge{margin-bottom:9px;padding:6px 13px}.pilot-mode header h1{max-width:26ch;margin-bottom:8px;font-size:clamp(28px,3.8vw,39px);line-height:1.08}.pilot-mode header .sub{max-width:66ch;padding:9px 14px;font-size:15px}.pilot-mode .flow-shell{margin-top:0;padding:18px 24px}.pilot-mode .journey-rail{position:static;margin-bottom:12px;padding:10px 14px}.pilot-mode .pilot-bubble{display:none}.pilot-mode .pilot-question{margin:10px 0 16px}.pilot-mode .pilot-choice{min-height:96px;padding:16px 18px}
 .pilot-mode #pilotMethodStep.method-selected>.pilot-progress,.pilot-mode #pilotMethodStep.method-selected>h2,.pilot-mode #pilotMethodStep.method-selected>p,.pilot-mode #pilotMethodStep.method-selected>#pilotMethodChoices{display:none}
+.pilot-report{display:none;margin:4px 0 24px}.pilot-mode .pilot-report{display:block}.pilot-report[hidden]{display:none!important}.pilot-result-head{padding:22px;border:1px solid rgba(8,127,98,.24);border-radius:22px;background:linear-gradient(145deg,#f4fff9,#f7fbff);box-shadow:0 18px 42px rgba(25,66,92,.10)}.pilot-result-head h2{margin:0 0 7px;font-size:clamp(26px,4vw,38px)}.pilot-result-head p{margin:0;color:var(--muted);line-height:1.55}.pilot-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:14px 0}.pilot-metric{padding:17px;border:1px solid #cbdbe2;border-radius:17px;background:rgba(255,255,255,.92)}.pilot-metric strong{display:block;font-size:clamp(22px,3vw,30px);overflow-wrap:anywhere}.pilot-metric span{display:block;margin-top:5px;color:var(--muted);font-size:13px;line-height:1.35}.pilot-cost-note{margin:0 0 16px;padding:12px 14px;border-left:4px solid #d99a2b;background:#fff8e6;color:#65470e;line-height:1.5}.pilot-section{margin:15px 0;padding:18px;border:1px solid #cadbe2;border-radius:19px;background:rgba(255,255,255,.91)}.pilot-section h3{margin:0 0 10px;font-size:20px}.pilot-model-row{display:grid;grid-template-columns:minmax(120px,1.25fr) minmax(110px,2fr) auto;gap:10px;align-items:center;margin:9px 0;font-size:13.5px}.pilot-model-row strong{overflow-wrap:anywhere}.pilot-model-track{height:9px;border-radius:99px;background:#e4ebef;overflow:hidden}.pilot-model-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7565dc,#23b6ae)}.pilot-value-list{display:grid;gap:9px}.pilot-value-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #e0e8ec}.pilot-value-row:last-child{border-bottom:0}.pilot-value-row span{color:var(--muted)}.pilot-value-row strong{text-align:right}.pilot-report details{margin:14px 0;border:1px solid #cadbe2;border-radius:16px;background:#fff}.pilot-report summary{padding:14px 16px;font-weight:800;cursor:pointer}.pilot-detail-body{padding:0 16px 16px}.pilot-detail-body table{width:100%}.pilot-result-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.pilot-result-actions .btn{min-width:210px;justify-content:center}.pilot-mode #out>#reportScope,.pilot-mode #out>#cards,.pilot-mode #out>#tokenhelp,.pilot-mode #out>#resultsHeading,.pilot-mode #out>div[style*="overflow-x:auto"],.pilot-mode #out>#vm,.pilot-mode #out>#shareSummaryBox,.pilot-mode #out>.note,.pilot-mode #out>.technical-details,.pilot-mode #survey{display:none!important}
 @media(max-width:760px){.pilot-choices{grid-template-columns:1fr}.pilot-choice{min-height:96px}.pilot-method-panel{padding:16px}.pilot-bubble{font-size:15px}.pilot-mode header{padding:13px 0 9px}.pilot-mode header h1{font-size:28px}.pilot-mode header .sub{font-size:14px}.pilot-mode .flow-shell{padding:14px}.pilot-mobile-warning{display:block;margin:0 0 16px;padding:13px 15px;border:1px solid #e8bd6f;border-radius:14px;background:#fff8e6;color:#704e16}}
+@media(max-width:640px){.pilot-metrics{grid-template-columns:1fr}.pilot-model-row{grid-template-columns:1fr auto}.pilot-model-track{grid-column:1/-1;grid-row:2}.pilot-value-row{display:block}.pilot-value-row strong{display:block;margin-top:4px;text-align:left}}
 </style>
 </head>
 <body>
@@ -401,6 +403,41 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       <div id="err" role="alert" aria-live="polite"></div>
 
       <div id="out">
+    <section class="pilot-report" id="pilotQuickReport" hidden aria-labelledby="pilotQuickHeading">
+      <div class="pilot-result-head">
+        <h2 id="pilotQuickHeading" tabindex="-1">Your report is ready</h2>
+        <p>Your prompts, replies, code and files stayed on this computer. TOP used the numbers-only file you chose.</p>
+      </div>
+      <div class="pilot-metrics">
+        <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span>Estimated API-equivalent cost</span></div>
+        <div class="pilot-metric"><strong id="pilotQuickSessions">0</strong><span>Work sessions found</span></div>
+        <div class="pilot-metric"><strong id="pilotQuickDays">0</strong><span>Active days found</span></div>
+      </div>
+      <p class="pilot-cost-note" id="pilotQuickCostNote"></p>
+      <section class="pilot-section" aria-labelledby="pilotUsageMixHeading">
+        <h3 id="pilotUsageMixHeading">Where the priced estimate went</h3>
+        <div id="pilotUsageMix"></div>
+      </section>
+      <section class="pilot-section" aria-labelledby="pilotValueHeading">
+        <h3 id="pilotValueHeading">Your Value Model To Date</h3>
+        <div class="pilot-value-list">
+          <div class="pilot-value-row"><span>Cost baseline</span><strong id="pilotValueCost">Ready</strong></div>
+          <div class="pilot-value-row"><span>Value of completed work</span><strong>Not measured yet</strong></div>
+          <div class="pilot-value-row"><span>Verified savings forecast</span><strong>Coming soon</strong></div>
+        </div>
+        <p class="note">TOP-2 and TOP-3 remain in research and development. TOP will not invent the value of your work or promise a saving before it has been tested.</p>
+      </section>
+      <details>
+        <summary>See the full usage and pricing details</summary>
+        <div class="pilot-detail-body">
+          <p id="pilotFullScope"></p>
+          <div style="overflow-x:auto"><table id="pilotFullModelTable"></table></div>
+        </div>
+      </details>
+      <div class="pilot-result-actions">
+        <button type="button" class="btn p" id="pilotContinueToShare">Share My Safe Report</button>
+      </div>
+    </section>
     <p class="scope-callout" id="reportScope"></p>
     <div class="cards" id="cards"></div>
     <p class="note" id="tokenhelp">Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.</p>
@@ -875,7 +912,7 @@ if __name__ == "__main__":
   </div>
 </main>
 
-<footer><div class="wrap">TOP local analyzer · built by <a href="/">Adam Hartley</a> · your chosen files stay in this browser, <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a><span class="media-credit">Background photo: <a href="https://www.pexels.com/photo/shoreline-under-blue-sky-166193/" target="_blank" rel="noopener">Pok Rie / Pexels</a>. Sun: <a href="https://science.nasa.gov/photojournal/image-of-sun-from-nasas-solar-dynamics-observatory/" target="_blank" rel="noopener">NASA/GSFC/Solar Dynamics Observatory</a>. Moon: <a href="https://svs.gsfc.nasa.gov/4538/" target="_blank" rel="noopener">NASA's Scientific Visualization Studio</a>.</span></div></footer>
+<footer><div class="wrap">TOP local analyzer · built by <a href="/">Adam Hartley</a> · your chosen files stay in this browser, <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/analyze/index.html">read the source</a><span class="media-credit">Background photo: <a href="https://www.pexels.com/photo/shoreline-under-blue-sky-166193/" target="_blank" rel="noopener">Pok Rie / Pexels</a>. Moon: <a href="https://svs.gsfc.nasa.gov/4538/" target="_blank" rel="noopener">NASA's Scientific Visualization Studio</a>.</span></div></footer>
 
 <script>
 "use strict";
@@ -885,7 +922,7 @@ function setJourney(progress,label){
   var p=Math.max(0,Math.min(1,progress));
   var root=document.documentElement;
   var sunX=7+86*p;
-  var sunY=32-Math.sin(Math.PI*p)*20;
+  var sunY=40-Math.sin(Math.PI*p)*24;
   var sunAlpha=p<.82?1:Math.max(0,1-(p-.82)/.16);
   var moonP=Math.max(0,(p-.68)/.32);
   var moonX=8+76*moonP;
@@ -1765,6 +1802,16 @@ function resultCountLabels(res){
   return {card:"AI replies with usage data",table:"AI replies",summary:"AI replies with usage data"};
 }
 function revealStandardPostReport(){
+  if(PILOT_MODE){
+    document.getElementById("shareSummaryBox").hidden=true;
+    document.getElementById("survey").hidden=true;
+    document.getElementById("shareWithTop").hidden=true;
+    document.getElementById("pilotQuickReport").hidden=false;
+    setJourney(.72,"Your report is ready. Review the short summary, then choose whether to share it.");
+    document.getElementById("pilotQuickReport").scrollIntoView({behavior:"smooth",block:"start"});
+    document.getElementById("pilotQuickHeading").focus({preventScroll:true});
+    return;
+  }
   document.getElementById("shareSummaryBox").hidden=false;
   document.getElementById("survey").hidden=false;
   document.getElementById("shareWithTop").hidden=true;
@@ -1811,6 +1858,26 @@ function render(res){
   var totalShown=res.chatExport?"Not in export":(res.costAvailable?((res.estimate?"~":"")+fmt$(totCost)):(res.partialCost?("Partial "+fmt$(totCost)):"Not available"));
   var tf='<tfoot><tr><td>Total</td><td class="n">'+tokenPrefix+fmtN(totInp)+'</td><td class="n">'+tokenPrefix+fmtN(totOut)+'</td><td class="n">'+(res.chatExport?"Not in export":(fmtN(totCw)+' / '+fmtN(totCr)))+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
   document.getElementById("modeltable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
+  if(PILOT_MODE){
+    var pricedRows=rows.filter(function(row){return row.cost!==null&&row.cost>0}),pricedTotal=pricedRows.reduce(function(sum,row){return sum+row.cost},0);
+    var costText=res.chatExport?"Not included":(pricedTotal>0?((res.estimate?"~":"")+fmt$(pricedTotal)):"Not available");
+    document.getElementById("pilotQuickCost").textContent=costText;
+    document.getElementById("pilotQuickSessions").textContent=fmtN(res.sessions||0);
+    document.getElementById("pilotQuickDays").textContent=fmtN(res.days||0);
+    document.getElementById("pilotQuickCostNote").textContent=res.chatExport
+      ?"This download does not contain reliable cost data. TOP has not invented a charge."
+      :(unpriced.length
+        ?"TOP priced "+fmtN(pricedRows.length)+" of "+fmtN(rows.length)+" AI versions. This is a partial API-rate comparison, not your subscription bill."
+        :"This is an API-rate comparison based on recorded usage, not your subscription bill.");
+    var shownRows=pricedRows.slice().sort(function(a,b){return b.cost-a.cost}).slice(0,5);
+    document.getElementById("pilotUsageMix").innerHTML=shownRows.length?shownRows.map(function(row){
+      var share=pricedTotal>0?Math.round(row.cost/pricedTotal*100):0;
+      return '<div class="pilot-model-row"><strong>'+esc(safePublicModelLabel(row.model))+'</strong><div class="pilot-model-track"><span style="width:'+Math.max(2,share)+'%"></span></div><span>'+fmtN(share)+'%</span></div>';
+    }).join(""):"<p>TOP could not calculate a priced model mix from this file.</p>";
+    document.getElementById("pilotValueCost").textContent=pricedTotal>0?"Ready: "+costText+" priced usage":"Not available from this file";
+    document.getElementById("pilotFullScope").textContent=document.getElementById("reportScope").textContent;
+    document.getElementById("pilotFullModelTable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
+  }
   // Average cost per reply is shown only when the source contains enough cost data.
   var perTurn=res.turns&&res.costAvailable?totCost/res.turns:null;
   // Plain-English, content-free summary. It can include AI-version labels, but never prompt or reply text.
@@ -2494,6 +2561,7 @@ function finishSurvey(skipped){
 }
 document.getElementById("surveydone").addEventListener("click",function(){finishSurvey(false)});
 document.getElementById("surveyskip").addEventListener("click",function(){finishSurvey(true)});
+document.getElementById("pilotContinueToShare").addEventListener("click",function(){finishSurvey(true)});
 function buildSafePackage(){
   var body=lastSummary;
   if(!body) return "";

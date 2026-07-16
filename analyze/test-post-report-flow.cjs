@@ -22,6 +22,7 @@ const nodes = {
 };
 let journey = null;
 const context = {
+  PILOT_MODE: false,
   document: { getElementById(id) { return nodes[id]; } },
   setJourney(progress, message) { journey = { progress, message }; },
 };
