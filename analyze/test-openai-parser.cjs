@@ -12,6 +12,7 @@ vm.createContext(context);
 vm.runInContext(html.slice(start, end), context);
 
 const fixture = [{
+  id: "gpt-conversation-1",
   title: "Test conversation",
   create_time: 1784073600,
   default_model_slug: "gpt-test-model",
@@ -53,6 +54,16 @@ assert.equal(result.by["gpt-test-model"].inp, 2);
 assert.equal(result.by["gpt-test-model"].out, 3);
 assert.equal(result.chatExport, true);
 assert.match(result.estimateReason, /no billed token or ChatGPT subscription cost data/);
+const duplicateResult = context.parseOpenAI([JSON.stringify(fixture), JSON.stringify(fixture)]);
+assert.equal(duplicateResult.sessions, 1, "a copied ChatGPT export must not double the same conversation ID");
+assert.equal(duplicateResult.turns, 2);
+assert.equal(duplicateResult.duplicateRecords, 1);
+const olderOpenAI = JSON.parse(JSON.stringify(fixture));
+olderOpenAI[0].mapping = { user: fixture[0].mapping.user };
+const oldThenNewOpenAI = context.parseOpenAI([JSON.stringify(olderOpenAI), JSON.stringify(fixture)]);
+const newThenOldOpenAI = context.parseOpenAI([JSON.stringify(fixture), JSON.stringify(olderOpenAI)]);
+assert.equal(oldThenNewOpenAI.turns, 2, "the more complete ChatGPT snapshot must win");
+assert.deepEqual(JSON.parse(JSON.stringify(oldThenNewOpenAI.by)), JSON.parse(JSON.stringify(newThenOldOpenAI.by)), "ChatGPT totals must not depend on file order");
 
 const branchedFixture = [{
   current_node: "assistant-new",
@@ -70,6 +81,7 @@ assert.equal(branchedResult.by["gpt-test-model"].inp, 2);
 assert.equal(branchedResult.by["gpt-test-model"].out, 3);
 
 const claudeFixture = [{
+  uuid: "claude-conversation-1",
   name: "Claude conversation",
   chat_messages: [
     { sender: "human", text: "12345678" },
@@ -88,6 +100,20 @@ assert.equal(claudeResult.by["claude.ai (est.)"].inp, 2);
 assert.equal(claudeResult.by["claude.ai (est.)"].out, 5);
 assert.equal(claudeResult.ignoredMessages, 3);
 assert.equal(claudeResult.chatProvider, "Claude Chat");
+const duplicateClaudeResult = context.parseChat([JSON.stringify(claudeFixture), JSON.stringify(claudeFixture)]);
+assert.equal(duplicateClaudeResult.sessions, 1, "a copied Claude Chat export must not double the same conversation UUID");
+assert.equal(duplicateClaudeResult.turns, 3);
+assert.equal(duplicateClaudeResult.duplicateRecords, 1);
+const olderClaude = JSON.parse(JSON.stringify(claudeFixture));
+olderClaude[0].chat_messages = olderClaude[0].chat_messages.slice(0, 1);
+const oldThenNewClaude = context.parseChat([JSON.stringify(olderClaude), JSON.stringify(claudeFixture)]);
+const newThenOldClaude = context.parseChat([JSON.stringify(claudeFixture), JSON.stringify(olderClaude)]);
+assert.equal(oldThenNewClaude.turns, 3, "the more complete Claude snapshot must win");
+assert.deepEqual(JSON.parse(JSON.stringify(oldThenNewClaude.by)), JSON.parse(JSON.stringify(newThenOldClaude.by)), "Claude totals must not depend on file order");
+const newerClaudeWithBothFields = JSON.parse(JSON.stringify(olderClaude));
+newerClaudeWithBothFields[0].chat_messages.push({ sender: "assistant", text: "123456789012", content: { unsupported: "ignore this field" } });
+const bothFieldsResult = context.parseChat([JSON.stringify(olderClaude), JSON.stringify(newerClaudeWithBothFields)]);
+assert.equal(bothFieldsResult.turns, 2, "dedupe quality must use the same Claude text fallback as the parser");
 
 const projectFixture = [{ name: "Project metadata", docs: [{ title: "not a conversation" }] }];
 assert.equal(context.detectConversationMode([JSON.stringify(projectFixture)]), "");

@@ -34,7 +34,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .intake-hold{display:flex;gap:8px 16px;align-items:center;justify-content:center;flex-wrap:wrap;color:#6d3900;font-size:14px;margin:2px auto 12px;background:rgba(255,248,222,.94);border:1px solid rgba(151,91,0,.28);border-radius:18px;padding:11px 17px;width:max-content;max-width:100%;box-shadow:0 12px 28px rgba(25,66,92,.10)}
 .intake-hold strong{font-size:15px}.intake-hold span{max-width:66ch}
 .resonance-step{margin:4px 0 30px;padding:clamp(20px,4vw,34px);border:1px solid rgba(255,255,255,.88);border-radius:27px;background:rgba(255,255,255,.88);box-shadow:0 22px 54px rgba(24,69,91,.13)}
-.resonance-step[hidden],#providerStep[hidden],#routechooser[hidden],#obsidianPanel[hidden]{display:none!important}
+.resonance-step[hidden],#providerStep[hidden],#routechooser[hidden],#obsidianPanel[hidden],#claudeSources[hidden]{display:none!important}
 .resonance-step h1,.resonance-step h2{font-size:clamp(28px,4.5vw,44px);max-width:18ch;margin:0 0 12px;text-align:left;line-height:1.08}
 .step-overline{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#087f62;font-weight:850;margin-bottom:8px}
 .step-lead{color:var(--muted);font-size:16px;margin:-2px 0 18px;max-width:66ch}
@@ -72,7 +72,7 @@ header{text-align:center;padding:52px 0 24px}
 h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-width:16ch;margin:0 auto 14px}
 .sub{color:var(--text);max-width:60ch;margin:0 auto;font-size:18px;background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.82);border-radius:17px;padding:12px 18px;box-shadow:0 14px 34px rgba(25,66,92,.10);backdrop-filter:blur(8px)}
 .sub b{color:var(--text)}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0 8px}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:18px 0 8px}
 .tab{min-height:112px;font-family:"Inter",system-ui,sans-serif;font-size:17px;font-weight:750;padding:18px;border:1px solid rgba(255,255,255,.82);border-radius:22px;background:rgba(255,255,255,.78);color:var(--text);cursor:pointer;transition:.2s;box-shadow:0 16px 34px rgba(25,66,92,.10);text-align:left}
 .tab:nth-child(1){background:linear-gradient(145deg,#fff,#dff0ff)}.tab:nth-child(2){background:linear-gradient(145deg,#fff,#f9e2f0)}.tab:nth-child(3){background:linear-gradient(145deg,#fff,#e9e3ff)}.tab:nth-child(4){background:linear-gradient(145deg,#fff,#fff0d5)}.tab:nth-child(5){background:linear-gradient(145deg,#fff,#dff8ed)}.tab:nth-child(6){background:linear-gradient(145deg,#fff,#e5f1ff)}
 .tab:hover{transform:translateY(-3px);border-color:rgba(101,86,221,.45)}
@@ -80,6 +80,7 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .tab:focus-visible,.drop:focus-visible,.btn:focus-visible{outline:3px solid var(--iris2);outline-offset:3px}
 .tab .st{font-size:13px;font-weight:550;display:block;margin-top:7px;letter-spacing:0;color:var(--muted);line-height:1.35}
 .tab.on .st{color:#eeeaff}
+.claude-sources{margin:14px 0 8px;padding:18px;border:1px solid rgba(101,86,221,.28);border-radius:22px;background:rgba(248,245,255,.92);box-shadow:0 16px 34px rgba(70,48,125,.10);scroll-margin-top:145px}.claude-sources h3{margin:0 0 5px;font-size:21px}.claude-sources>p{margin:0;color:var(--muted);font-size:14.5px}.claude-kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}.claude-kind{min-height:112px;padding:15px;border:1px solid #c9c0e8;border-radius:18px;background:#fff;color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:.18s}.claude-kind:hover{transform:translateY(-2px);border-color:#7560c4}.claude-kind[aria-pressed=true]{border-color:#6956d5;background:linear-gradient(145deg,#f0ecff,#e8f7f5);box-shadow:0 11px 25px rgba(72,54,133,.14)}.claude-kind strong{display:block;font-size:16px;margin-bottom:5px}.claude-kind span{display:block;color:var(--muted);font-size:13px;line-height:1.4}.source-boundary{margin-top:12px;padding:12px 14px;border:1px solid #d6cce9;border-radius:14px;background:#fff;color:var(--muted);font-size:13.5px;line-height:1.5}.source-boundary b{color:var(--text)}
 .hint{text-align:center;color:var(--faint);font-size:13.5px;margin:6px auto 18px;max-width:60ch}
 .hint code{color:var(--muted);background:var(--panel);padding:1px 6px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:12.5px}
 .drop{display:block;width:100%;border:2px dashed #728fa3;border-radius:22px;background:rgba(255,255,255,.82);padding:clamp(30px,6vw,48px) 20px;text-align:center;cursor:pointer;transition:.2s;box-shadow:0 18px 45px rgba(25,66,92,.09)}
@@ -244,9 +245,9 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .technical-details>summary{cursor:pointer;padding:14px 17px;color:var(--text);font-weight:750;list-style:none}
 .technical-details>summary::-webkit-details-marker{display:none}.technical-details>summary::after{content:"Show";float:right;color:var(--iris2);font-size:13px}.technical-details[open]>summary::after{content:"Hide"}
 .technical-details>.details-body{padding:0 17px 17px}
-@media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.routechoices,.resonance-grid,.vault-actions,.vault-split{grid-template-columns:1fr}.vault-stats{grid-template-columns:1fr 1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.chipgroup.arch{grid-template-columns:1fr}.resonance-choice{min-height:88px}.resonance-actions .btn{width:100%}}
+@media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.claude-kinds,.routechoices,.resonance-grid,.vault-actions,.vault-split{grid-template-columns:1fr}.vault-stats{grid-template-columns:1fr 1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.claude-kind{min-height:88px}.chipgroup.arch{grid-template-columns:1fr}.resonance-choice{min-height:88px}.resonance-actions .btn{width:100%}}
 @media(max-width:640px){.vcard .vcontrols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 10px;width:100%}.vcard .vcontrols label{grid-column:1/-1;min-width:0}.vcard .gval{min-width:72px}.vcard .plot{overflow:hidden}.vcard .plot svg{display:block;width:100%;max-width:100%;height:auto}}
-@media(max-width:430px){.tabs,.vault-stats,.vault-truth{grid-template-columns:1fr}.tab{min-height:82px}.vault-offer-actions .btn{width:100%;justify-content:center}}
+@media(max-width:430px){.tabs,.claude-kinds,.vault-stats,.vault-truth{grid-template-columns:1fr}.tab{min-height:82px}.vault-offer-actions .btn{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.journey-world,.journey-sun,.journey-moon,.journey-track span{transition:none!important}}
 </style>
 </head>
@@ -295,14 +296,22 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <section class="provider-step" id="providerStep" hidden aria-labelledby="providerHeading">
       <button type="button" class="step-back" id="changeResonance">← Change Answers</button>
       <h2 id="providerHeading" tabindex="-1"><span class="flow-kicker">2</span>Choose Where Your Work Lives</h2>
-      <p class="step-lead">Choose an AI history source, or choose Obsidian for a private 7C's vault check. If you choose the wrong source but the file is recognizable, TOP will switch readers for you.</p>
+      <p class="step-lead">Choose Claude, Codex, ChatGPT or Obsidian. Claude then asks whether your history came from coding, chat or the pay-as-you-go Console.</p>
       <div class="tabs" id="tabs" role="group" aria-label="Work source">
-        <button type="button" class="tab" data-mode="cc" aria-pressed="false">Claude Code<span class="st">Uses the usage numbers saved by Claude Code</span></button>
+        <button type="button" class="tab" data-provider="claude" aria-controls="claudeSources" aria-expanded="false" aria-pressed="false">Claude<span class="st">Choose Claude Code, Claude Chat or Claude Console</span></button>
         <button type="button" class="tab" data-mode="codex" aria-pressed="false">Codex<span class="st">Uses recorded token counts from local Codex session logs</span></button>
-        <button type="button" class="tab" data-mode="chat" aria-pressed="false">Claude Chat<span class="st">Estimates usage from the length of your Claude conversations</span></button>
         <button type="button" class="tab" data-mode="openai" aria-pressed="false">ChatGPT<span class="st">Estimates usage from the length of your ChatGPT conversations</span></button>
-        <button type="button" class="tab" data-mode="csv" aria-pressed="false">Claude Console<span class="st">Shows pay-as-you-go usage and costs recorded by Anthropic</span></button>
         <button type="button" class="tab" data-mode="obsidian" aria-pressed="false">Obsidian + 7C's<span class="st">Checks your vault locally and finds supported AI history files</span></button>
+      </div>
+      <div class="claude-sources" id="claudeSources" hidden role="group" aria-labelledby="claudeSourcesHeading">
+        <h3 id="claudeSourcesHeading" tabindex="-1">Which Claude history do you have?</h3>
+        <p>Choose by where the history came from. These three files mean different things, so TOP keeps their reports separate.</p>
+        <div class="claude-kinds">
+          <button type="button" class="claude-kind" data-mode="cc" aria-pressed="false"><strong>Claude Code</strong><span>Usage saved while coding. Choose the whole <code>.claude\projects</code> folder or its <code>.jsonl</code> files.</span></button>
+          <button type="button" class="claude-kind" data-mode="chat" aria-pressed="false"><strong>Claude Chat</strong><span>Your cloud conversation export. Extract the ZIP, then choose <code>conversations.json</code>.</span></button>
+          <button type="button" class="claude-kind" data-mode="csv" aria-pressed="false"><strong>Claude Console</strong><span>Pay-as-you-go records. Choose an Anthropic usage or cost CSV.</span></button>
+        </div>
+        <div class="source-boundary"><b>Useful context, but not usage history:</b> <code>projects.json</code>, memory or user files, individual UUID-named JSON files, and Markdown chat transcripts. TOP does not mix those private files into token or cost totals.</div>
       </div>
     </section>
 
@@ -651,8 +660,8 @@ if __name__ == "__main__":
         <div class="small">TOP checks file names and folder structure first. It does not read your Markdown notes, settings or attachments.</div>
         <input type="file" id="vaultFolder" webkitdirectory directory multiple>
       </label>
-      <label class="vault-fallback">Choose Supported Files Instead
-        <span>Use this if your browser cannot choose a whole folder. JSON, JSONL and CSV only.</span>
+      <label class="vault-fallback">Choose AI History Files Instead
+        <span>Use this only for conversations.json, Claude Code JSONL, Codex usage JSONL, or an Anthropic Console CSV.</span>
         <input type="file" id="vaultFiles" accept=".json,.jsonl,.csv,application/json,text/csv" multiple>
       </label>
     </div>
@@ -664,10 +673,10 @@ if __name__ == "__main__":
         <div class="vault-stat"><strong id="vaultNotes">0</strong><span>Markdown notes found, not read</span></div>
         <div class="vault-stat"><strong id="vaultFolders">0</strong><span>folders found</span></div>
         <div class="vault-stat"><strong id="vaultRecent">0</strong><span>notes changed in the last 30 days</span></div>
-        <div class="vault-stat"><strong id="vaultCandidates">0</strong><span>possible AI history files</span></div>
+        <div class="vault-stat"><strong id="vaultCandidates">0</strong><span>files with recognized history names</span></div>
       </div>
       <div class="vault-split">
-        <div class="vault-box"><h3>AI history found in the vault</h3><p>Nothing below is opened until you choose its source. Markdown notes are never sent into the usage parser.</p><div class="vault-source-buttons" id="vaultSourceButtons"></div></div>
+        <div class="vault-box"><h3 id="vaultHistoryHeading">No supported AI history files found</h3><p id="vaultHistoryCopy">Nothing is opened during this first check. Markdown notes are never sent into the usage parser.</p><div class="vault-source-buttons" id="vaultSourceButtons"></div></div>
         <div class="vault-box"><h3>7C's memory building blocks</h3><p>This checks only for standard starter names, not the contents of your notes.</p><ul id="vaultChecklist"></ul></div>
       </div>
       <div class="vault-offer">
@@ -895,6 +904,9 @@ document.getElementById('changeResonance').addEventListener('click',function(){
   document.getElementById('providerStep').hidden=true;
   document.getElementById('routechooser').hidden=true;
   document.querySelectorAll('.tab').forEach(function(tab){tab.classList.remove('on');tab.setAttribute('aria-pressed','false')});
+  document.querySelectorAll('.claude-kind').forEach(function(button){button.setAttribute('aria-pressed','false')});
+  document.querySelector('[data-provider="claude"]').setAttribute('aria-expanded','false');
+  document.getElementById('claudeSources').hidden=true;
   providerChosen=false;
   selectedRoute='';
   document.querySelectorAll('.routepick').forEach(function(route){route.classList.remove('on');route.setAttribute('aria-pressed','false')});
@@ -1001,7 +1013,8 @@ var MODES={
         "Select Privacy.",
         "Export Data.",
         "You'll get an email from Anthropic to download your data.",
-        "Download the zip and take <code>conversations.json</code> out of it.",
+        "Download the ZIP. On Windows, right-click it and choose <b>Extract All</b>.",
+        "Open the extracted folder. Choose <code>conversations.json</code>, not project, memory, user or UUID-named JSON files.",
         "Drop <code>conversations.json</code> into the analytics box above."],
       stepstip:"A Claude Chat download shows how you use Claude, not what your subscription costs.",
       note:"This download has conversation text and dates, but it does not contain a cost for each chat. TOP reads it only in this tab and estimates usage from message length. It does not invent a dollar charge."},
@@ -1012,7 +1025,8 @@ var MODES={
         "Choose <b>Settings</b>, then <b>Data Controls</b>.",
         "Under Export Data, choose <b>Export</b> and confirm.",
         "Download the ZIP from OpenAI's email or text message. The download link expires after 24 hours.",
-        "Unzip it, then choose <code>conversations.json</code>, or all numbered conversation JSON files if your export is split."],
+        "On Windows, right-click the ZIP and choose <b>Extract All</b>. Then choose <code>conversations.json</code>, or all numbered conversation JSON files if your export is split.",
+        "A Markdown transcript downloaded from one chat is not the official account export and is not used for account-wide totals."],
       stepstip:"OpenAI says downloads may take up to seven days. TOP supports the conversation file, not the whole ZIP yet.",
       note:"ChatGPT history downloads do not provide a reliable cost for each conversation. TOP estimates usage from message length on this device and does not invent a dollar charge."},
   obsidian:{label:"Obsidian + 7C's",small:"an Obsidian vault folder checked locally",hint:"",steps:[],stepstip:"",note:""}
@@ -1035,7 +1049,9 @@ var ROUTE_COPY={
     a:"Choose either an Anthropic Usage CSV for usage numbers or a Cost CSV for recorded cost. This tab reads the selected file on your device. It is not uploaded.",
     b:"Choose either an Anthropic Usage CSV or Cost CSV. This tab prepares a smaller summary from the information that file contains. You inspect and download it yourself."}
 };
-var mode="cc";
+var CLAUDE_MODES={cc:true,chat:true,csv:true};
+function isClaudeMode(value){return !!CLAUDE_MODES[value]}
+var mode="";
 var selectedRoute="";
 var providerChosen=false;
 function renderSteps(m){
@@ -1043,6 +1059,26 @@ function renderSteps(m){
   var html='<h4>How to export your '+MODES[m].label+' data</h4><ol>'+s.map(function(x){return "<li>"+x+"</li>"}).join("")+"</ol>";
   if(tip) html+='<div class="tip">'+tip+'</div>';
   document.getElementById("exportsteps").innerHTML=html;
+}
+function showClaudeChoices(){
+  var alreadyClaude=isClaudeMode(mode);
+  providerChosen=true;
+  if(!alreadyClaude){
+    mode="";selectedRoute="";
+    document.querySelectorAll(".routepick").forEach(function(button){button.classList.remove("on");button.setAttribute("aria-pressed","false")});
+    document.getElementById("routechooser").hidden=true;
+    document.getElementById("routea").hidden=true;
+    document.getElementById("routeb").hidden=true;
+    document.getElementById("obsidianPanel").hidden=true;
+    resetDownstream();
+  }
+  document.querySelectorAll("#tabs .tab").forEach(function(tab){var on=tab.dataset.provider==="claude";tab.classList.toggle("on",on);tab.setAttribute("aria-pressed",on?"true":"false")});
+  document.querySelector('[data-provider="claude"]').setAttribute("aria-expanded","true");
+  document.getElementById("claudeSources").hidden=false;
+  document.querySelectorAll(".claude-kind").forEach(function(button){button.setAttribute("aria-pressed",button.dataset.mode===mode?"true":"false")});
+  setJourney(.26,"Early morning: choose which kind of Claude history you have.");
+  document.getElementById("claudeSources").scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("claudeSourcesHeading").focus({preventScroll:true});
 }
 function setMode(m){
   var changed=providerChosen&&mode!==m;
@@ -1056,7 +1092,11 @@ function setMode(m){
     document.getElementById("obsidianPanel").hidden=true;
     resetDownstream();
   }
-  document.querySelectorAll(".tab").forEach(function(t){var on=t.dataset.mode===m;t.classList.toggle("on",on);t.setAttribute("aria-pressed",on?"true":"false")});
+  var claudeMode=isClaudeMode(m);
+  document.querySelectorAll("#tabs .tab").forEach(function(t){var on=t.dataset.mode===m||(t.dataset.provider==="claude"&&claudeMode);t.classList.toggle("on",on);t.setAttribute("aria-pressed",on?"true":"false")});
+  document.querySelector('[data-provider="claude"]').setAttribute("aria-expanded",claudeMode?"true":"false");
+  document.getElementById("claudeSources").hidden=!claudeMode;
+  document.querySelectorAll(".claude-kind").forEach(function(button){button.setAttribute("aria-pressed",button.dataset.mode===m?"true":"false")});
   if(m==="obsidian"){
     document.getElementById("routechooser").hidden=true;
     document.getElementById("routea").hidden=true;
@@ -1090,7 +1130,8 @@ function setMode(m){
     document.getElementById("routeHeading").focus({preventScroll:true});
   }
 }
-document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab"); if(t) setMode(t.dataset.mode)});
+document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab");if(!t)return;if(t.dataset.provider==="claude")showClaudeChoices();else setMode(t.dataset.mode)});
+document.getElementById("claudeSources").addEventListener("click",function(e){var button=e.target.closest(".claude-kind");if(button)setMode(button.dataset.mode)});
 function selectRoute(route){
   selectedRoute=route;
   resetDownstream();
@@ -1328,6 +1369,54 @@ function parseCSV(texts){
 }
 function estTokens(s){return Math.ceil(String(s||"").length/4)}
 function conversationRecords(data){return Array.isArray(data)?data:(data&&Array.isArray(data.conversations)?data.conversations:(data&&typeof data==="object"?[data]:[]))}
+function conversationPrivateKey(record,provider,fileIndex,recordIndex){
+  var raw=record&&(record.uuid||record.id||record.conversation_id);
+  return raw!==undefined&&raw!==null&&raw!==""?provider+":"+String(raw):provider+":file:"+fileIndex+":"+recordIndex;
+}
+function conversationTimeScore(value){
+  if(value===undefined||value===null||value==="")return 0;
+  if(typeof value==="number")return value<1000000000000?value*1000:value;
+  var parsed=Date.parse(String(value));return isNaN(parsed)?0:parsed;
+}
+function conversationRecordQuality(record,provider){
+  var fallback=record.default_model_slug||record.model_slug||"",messages=[];
+  if(provider==="claude")messages=Array.isArray(record.chat_messages)?record.chat_messages:(Array.isArray(record.messages)?record.messages:[]);
+  else if(record.mapping&&typeof record.mapping==="object")messages=visibleOpenAINodes(record).map(function(node){return node&&node.message});
+  else if(Array.isArray(record.messages))messages=record.messages;
+  var parts=[],latest=Math.max(conversationTimeScore(record.updated_at),conversationTimeScore(record.update_time),conversationTimeScore(record.created_at),conversationTimeScore(record.create_time)),tokens=0;
+  messages.forEach(function(message){
+    if(!message||typeof message!=="object")return;
+    var role=provider==="claude"?String(message.sender||message.role||"").toLowerCase():String((message.author&&message.author.role)||message.role||"").toLowerCase();
+    var side=(role==="assistant"||role==="claude")?"assistant":((role==="human"||role==="user")?"user":"");
+    var text=provider==="claude"?messageText(message.text):messageText(message.content!==undefined?message.content:message.text);
+    if(provider==="claude"&&!text)text=messageText(message.content);
+    if(!side||!String(text||"").trim())return;
+    var count=estTokens(text),metadata=message.metadata||{},model=metadata.model_slug||message.model_slug||fallback||"";
+    var timestamp=conversationTimeScore(message.create_time||message.created_at||message.timestamp);latest=Math.max(latest,timestamp);tokens+=count;
+    parts.push(side+":"+count+":"+model+":"+timestamp);
+  });
+  return {messages:parts.length,latest:latest,tokens:tokens,signature:parts.join("|")};
+}
+function compareConversationQuality(a,b){
+  if(a.messages!==b.messages)return a.messages-b.messages;
+  if(a.latest!==b.latest)return a.latest-b.latest;
+  if(a.tokens!==b.tokens)return a.tokens-b.tokens;
+  return a.signature===b.signature?0:(a.signature>b.signature?1:-1);
+}
+function preferredConversationRecords(texts,provider){
+  var selected=Object.create(null),keys=[],invalidRecords=0,duplicateRecords=0;
+  texts.forEach(function(txt,fileIndex){
+    var data;try{data=JSON.parse(txt)}catch(error){return}
+    conversationRecords(data).forEach(function(record,recordIndex){
+      if(!record||typeof record!=="object"){invalidRecords++;return}
+      var key=conversationPrivateKey(record,provider,fileIndex,recordIndex),quality=conversationRecordQuality(record,provider),existing=selected[key];
+      if(!existing){selected[key]={record:record,quality:quality};keys.push(key);return}
+      duplicateRecords++;
+      if(compareConversationQuality(quality,existing.quality)>0)selected[key]={record:record,quality:quality};
+    });
+  });
+  return {records:keys.map(function(key){return selected[key].record}),invalidRecords:invalidRecords,duplicateRecords:duplicateRecords};
+}
 function detectConversationMode(texts){
   var claude=0,openai=0;
   texts.forEach(function(txt){
@@ -1344,12 +1433,8 @@ function detectConversationMode(texts){
   return "";
 }
 function parseChat(texts){
-  var by=Object.create(null),turns=0,convos=0,ignoredRecords=0,ignoredMessages=0;
-  texts.forEach(function(txt){
-    var data; try{data=JSON.parse(txt)}catch(e){return}
-    var arr=conversationRecords(data);
-    arr.forEach(function(c){
-      if(!c||typeof c!=="object"){ignoredRecords++;return}
+  var selected=preferredConversationRecords(texts,"claude"),by=Object.create(null),turns=0,convos=0,ignoredRecords=selected.invalidRecords,ignoredMessages=0,duplicateRecords=selected.duplicateRecords;
+  selected.records.forEach(function(c){
       var msgs=Array.isArray(c.chat_messages)?c.chat_messages:(Array.isArray(c.messages)?c.messages:null),before=turns;
       if(!msgs){ignoredRecords++;return}
       msgs.forEach(function(m){
@@ -1364,9 +1449,8 @@ function parseChat(texts){
         e.turns++; turns++;
       });
       if(turns>before)convos++;else ignoredRecords++;
-    });
   });
-  return {by:by,turns:turns,sessions:convos,days:0,kind:"Claude Chat conversation export",estimate:true,chatExport:true,chatProvider:"Claude Chat",ignoredRecords:ignoredRecords,ignoredMessages:ignoredMessages,
+  return {by:by,turns:turns,sessions:convos,days:0,kind:"Claude Chat conversation export",estimate:true,chatExport:true,chatProvider:"Claude Chat",ignoredRecords:ignoredRecords,ignoredMessages:ignoredMessages,duplicateRecords:duplicateRecords,
     estimateReason:"visible-text length estimate from the selected file; the export contains no billed token or subscription cost data"};
 }
 function messageText(content){
@@ -1399,7 +1483,7 @@ function visibleOpenAINodes(conversation){
   return path.reverse();
 }
 function parseOpenAI(texts){
-  var by=Object.create(null),turns=0,convos=0,days=Object.create(null),ignoredRecords=0,ignoredMessages=0;
+  var selected=preferredConversationRecords(texts,"openai"),by=Object.create(null),turns=0,convos=0,days=Object.create(null),ignoredRecords=selected.invalidRecords,ignoredMessages=0,duplicateRecords=selected.duplicateRecords;
   function addMessage(m, fallbackModel, created){
     if(!m||typeof m!=="object"){ignoredMessages++;return false}
     var role=(m.author&&m.author.role)||m.role||"";
@@ -1415,11 +1499,7 @@ function parseOpenAI(texts){
     var ts=m.create_time||created; if(ts){var d=new Date(typeof ts==="number"?ts*1000:ts);if(!isNaN(d)) days[d.toISOString().slice(0,10)]=1;}
     return true;
   }
-  texts.forEach(function(txt){
-    var data; try{data=JSON.parse(txt)}catch(e){return}
-    var arr=conversationRecords(data);
-    arr.forEach(function(c){
-      if(!c||typeof c!=="object"){ignoredRecords++;return}
+  selected.records.forEach(function(c){
       var fallback=c.default_model_slug||c.model_slug||"ChatGPT export (est.)";
       var recognized=0;
       if(c.mapping&&typeof c.mapping==="object"){
@@ -1428,9 +1508,8 @@ function parseOpenAI(texts){
         c.messages.forEach(function(m){if(addMessage(m,fallback,c.create_time))recognized++});
       }else{ignoredRecords++;return}
       if(recognized)convos++;else ignoredRecords++;
-    });
   });
-  return {by:by,turns:turns,sessions:convos,days:Object.keys(days).length,kind:"ChatGPT conversation export",estimate:true,chatExport:true,chatProvider:"ChatGPT",ignoredRecords:ignoredRecords,ignoredMessages:ignoredMessages,
+  return {by:by,turns:turns,sessions:convos,days:Object.keys(days).length,kind:"ChatGPT conversation export",estimate:true,chatExport:true,chatProvider:"ChatGPT",ignoredRecords:ignoredRecords,ignoredMessages:ignoredMessages,duplicateRecords:duplicateRecords,
     estimateReason:"visible-text length estimate from the selected file; the export contains no billed token or ChatGPT subscription cost data"};
 }
 
@@ -1530,6 +1609,7 @@ function render(res){
   if(res.chatExport&&res.sessions) lines.push("Conversation records found in selected file: "+fmtInt(res.sessions)+".");
   else if(!res.csv&&res.sessions) lines.push("Work sessions: "+fmtInt(res.sessions)+".");
   if(res.chatExport&&res.ignoredRecords) lines.push("Objects ignored because they did not match conversation records with readable user and AI text: "+fmtInt(res.ignoredRecords)+".");
+  if(res.chatExport&&res.duplicateRecords) lines.push("Duplicate conversation copies skipped: "+fmtInt(res.duplicateRecords)+".");
   if(res.days) lines.push("Days used: "+fmtInt(res.days)+".");
   if(perTurn!==null) lines.push("Average cost per "+(res.csv?"record":"AI reply")+": "+fmt$(perTurn)+".");
   lines.push("");
@@ -1696,22 +1776,33 @@ function vaultCandidateKind(file,strictFolder){
   if(!path||vaultPathBlocked(path)) return "skip";
   if(Number(file.size||0)>VAULT_LIMITS.maxCandidateBytes) return "oversized";
   if(/\.md$/i.test(name)) return "note";
+  if(/\.(?:zip|7z|rar|tar|gz)$/i.test(name)) return "archive";
+  if(/^(?:projects?|memories?|users?)(?:[-_]\d+)?\.json$/i.test(name)) return "claude-context";
+  if(/\.json$/i.test(name)&&!/^conversations?(?:[-_]\d+)?\.json$/i.test(name)) return "regular-json";
   if(name==="ai-events.jsonl") return "codex";
   if(/^rollout-.+\.jsonl$/i.test(name)&&/(?:^|\/)(?:codex|codex-sessions|codex-archived-sessions)(?:\/|$)/i.test(path)) return "codex";
-  if(/\.jsonl$/i.test(name)) return "cc";
+  if(name==="history.jsonl"||/^rollout-.+\.jsonl$/i.test(name)) return "other-data";
+  if(/\.jsonl$/i.test(name)){
+    if(!strictFolder||name==="claude-usage-only.jsonl"||/(?:^|\/)(?:\.claude\/projects|claude[-_ ]?(?:code|history))(?:\/|$)/i.test(path)) return "cc";
+    return "other-data";
+  }
   if(/\.csv$/i.test(name)&&(!strictFolder||/(?:^|[-_.])(usage|cost|anthropic|claude)(?:[-_.]|$)/i.test(name))) return "csv";
   if(/^conversations?(?:[-_]\d+)?\.json$/i.test(name)) return "conversation";
   return "skip";
 }
 function scanVaultFiles(files,strictFolder,now){
   var list=Array.prototype.slice.call(files||[]), folders={}, structures={agents:false,claude:false,index:false,priorities:false,birds:false,daily:false};
-  var scan={notes:0,recent:0,skipped:0,oversized:0,folders:0,tooMany:false,candidates:{cc:[],codex:[],csv:[],conversation:[]},structures:structures};
+  var scan={notes:0,recent:0,skipped:0,oversized:0,folders:0,tooMany:false,individualFiles:!strictFolder,claudeContext:0,regularJson:0,archives:0,otherData:0,candidates:{cc:[],codex:[],csv:[],conversation:[]},structures:structures};
   if(list.length>VAULT_LIMITS.maxEntries){scan.tooMany=true;return scan}
   var current=Number(now)||Date.now(),candidateBytes=0;
   list.forEach(function(file){
     var path=vaultRelativePath(file),kind=vaultCandidateKind(file,!!strictFolder),parts=path.split("/").filter(Boolean),base=(parts.pop()||"").toLowerCase();
     if(kind==="skip"){scan.skipped++;return}
     if(kind==="oversized"){scan.oversized++;scan.skipped++;return}
+    if(kind==="claude-context"){scan.claudeContext++;scan.skipped++;return}
+    if(kind==="regular-json"){scan.regularJson++;scan.skipped++;return}
+    if(kind==="archive"){scan.archives++;scan.skipped++;return}
+    if(kind==="other-data"){scan.otherData++;scan.skipped++;return}
     for(var i=1;i<=parts.length;i++) folders[parts.slice(0,i).join("/")]=1;
     if(kind==="note"){
       scan.notes++;
@@ -1744,7 +1835,9 @@ function build7CsPlan(scan){
     "- Markdown notes: "+scan.notes,
     "- Folders: "+scan.folders,
     "- Notes changed in the last 30 days: "+scan.recent,
-    "- Possible AI history files: "+vaultCandidateCount(scan),
+    "- Files with recognized AI history names: "+vaultCandidateCount(scan),
+    "- Claude project, memory or user files recognized but not read: "+scan.claudeContext,
+    "- Other regular JSON files recognized but not read: "+scan.regularJson,
     "- Other, hidden, attachment or unsupported files skipped: "+scan.skipped,"",
     "## 7C's starter structure","",
     "- AGENTS.md: "+yes(s.agents),
@@ -1776,17 +1869,26 @@ function renderVaultScan(scan){
   document.getElementById("vaultFolders").textContent=fmtN(scan.folders);
   document.getElementById("vaultRecent").textContent=fmtN(scan.recent);
   document.getElementById("vaultCandidates").textContent=fmtN(vaultCandidateCount(scan));
-  document.getElementById("vaultStatus").textContent="Vault structure checked on this device. No Markdown note contents were read. "+fmtN(scan.skipped)+" hidden, attachment or unsupported file"+(scan.skipped===1?" was":"s were")+" skipped.";
+  var status=scan.individualFiles?"Individual files were selected, so the note and folder totals below are not a scan of your whole vault. ":"Vault structure checked on this device. ";
+  status+="No Markdown note contents were read. "+fmtN(scan.skipped)+" hidden, attachment or unsupported file"+(scan.skipped===1?" was":"s were")+" skipped.";
+  if(scan.claudeContext)status+=" "+fmtN(scan.claudeContext)+" Claude project, memory or user file"+(scan.claudeContext===1?" was":"s were")+" recognized as private context, not usage history, and not opened.";
+  if(scan.regularJson)status+=" "+fmtN(scan.regularJson)+" regular JSON file"+(scan.regularJson===1?" did":"s did")+" not have a supported history filename and "+(scan.regularJson===1?"was":"were")+" not opened.";
+  if(scan.archives)status+=" ZIP and other archive files are not opened. Extract the archive on your device first.";
+  if(scan.otherData)status+=" "+fmtN(scan.otherData)+" JSONL file"+(scan.otherData===1?" did":"s did")+" not come from an approved Claude Code or Codex location and "+(scan.otherData===1?"was":"were")+" not opened.";
+  document.getElementById("vaultStatus").textContent=status;
   var buttons=document.getElementById("vaultSourceButtons");buttons.textContent="";
-  if(scan.candidates.cc.length) addVaultSourceButton(buttons,"Analyze "+fmtN(scan.candidates.cc.length)+" Claude Code file"+(scan.candidates.cc.length===1?"":"s"),"cc",scan.candidates.cc);
+  var candidateCount=vaultCandidateCount(scan),historyHeading=document.getElementById("vaultHistoryHeading"),historyCopy=document.getElementById("vaultHistoryCopy");
+  historyHeading.textContent=candidateCount?"Files ready for a private format check":"No supported AI history files found";
+  historyCopy.textContent=candidateCount?"TOP recognized the file names or types below. Their contents are checked only after you choose one. Markdown notes are never sent into a usage parser.":"That is normal. Obsidian notes, Claude projects, memories, user files and ordinary JSON are context, not token ledgers.";
+  if(scan.candidates.cc.length) addVaultSourceButton(buttons,"Check "+fmtN(scan.candidates.cc.length)+" Claude Code file"+(scan.candidates.cc.length===1?"":"s"),"cc",scan.candidates.cc);
   if(scan.candidates.codex.length){
     var codexAggregates=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()==="ai-events.jsonl"}),codexRollouts=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()!=="ai-events.jsonl"});
-    if(codexRollouts.length) addVaultSourceButton(buttons,"Analyze "+fmtN(codexRollouts.length)+" Codex session file"+(codexRollouts.length===1?"":"s"),"codex",codexRollouts);
-    codexAggregates.forEach(function(file,index){addVaultSourceButton(buttons,codexAggregates.length===1?"Analyze Codex aggregate file":"Analyze Codex aggregate "+fmtN(index+1),"codex",[file])});
+    if(codexRollouts.length) addVaultSourceButton(buttons,"Check "+fmtN(codexRollouts.length)+" Codex session file"+(codexRollouts.length===1?"":"s"),"codex",codexRollouts);
+    codexAggregates.forEach(function(file,index){addVaultSourceButton(buttons,codexAggregates.length===1?"Check Codex aggregate file":"Check Codex aggregate "+fmtN(index+1),"codex",[file])});
   }
-  if(scan.candidates.csv.length) addVaultSourceButton(buttons,"Analyze "+fmtN(scan.candidates.csv.length)+" Console CSV file"+(scan.candidates.csv.length===1?"":"s"),"csv",scan.candidates.csv);
+  if(scan.candidates.csv.length) addVaultSourceButton(buttons,"Check "+fmtN(scan.candidates.csv.length)+" Console CSV file"+(scan.candidates.csv.length===1?"":"s"),"csv",scan.candidates.csv);
   if(scan.candidates.conversation.length){
-    addVaultSourceButton(buttons,"Analyze conversation export","chat",scan.candidates.conversation);
+    addVaultSourceButton(buttons,scan.candidates.conversation.length===1?"Check conversation export":"Check "+fmtN(scan.candidates.conversation.length)+" conversation export files together","chat",scan.candidates.conversation);
   }
   if(!vaultCandidateCount(scan)){var empty=document.createElement("p");empty.className="vault-empty";empty.textContent="No supported AI history file was found. That is normal. Obsidian notes are memory, not a token ledger. Use a downloaded Claude, ChatGPT or Codex history if you want a usage report.";buttons.appendChild(empty)}
   var labels=[
@@ -1855,7 +1957,7 @@ function openDetectedConversationFiles(files){
   });
 }
 function historyFilesForMode(files,targetMode){
-  var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,total=0,codexRollouts=0,codexAggregates=0,regularJson=0,projectJson=0;
+  var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,total=0,codexRollouts=0,codexAggregates=0,regularJson=0,projectJson=0,contextJson=0;
   var unsafeCodexRoot=targetMode==="codex"&&list.some(function(file){return /^(?:\.codex)(?:\/|\\)/i.test(String(file.webkitRelativePath||""))});
   var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:(targetMode==="csv"?/\.csv$/i:/^conversations?(?:[-_]\d+)?\.json$/i));
   var fileLimit=targetMode==="codex"?HISTORY_LIMITS.maxCodexFileBytes:((targetMode==="chat"||targetMode==="openai")?conversationLimitBytes():HISTORY_LIMITS.maxFileBytes);
@@ -1863,14 +1965,14 @@ function historyFilesForMode(files,targetMode){
     var name=String(file.name||"");
     if(/\.md$/i.test(name)){markdown++;return}
     if(/\.(?:zip|7z|rar|tar|gz)$/i.test(name)){archives++;return}
-    if(/\.json$/i.test(name)&&!conversationFileName(name)){regularJson++;if(/^projects?(?:[-_]\d+)?\.json$/i.test(name))projectJson++}
+    if(/\.json$/i.test(name)&&!conversationFileName(name)){regularJson++;if(/^projects?(?:[-_]\d+)?\.json$/i.test(name))projectJson++;if(/^(?:projects?|memories?|users?)(?:[-_]\d+)?\.json$/i.test(name))contextJson++}
     if(!ext.test(name)){unsupported++;return}
     if(Number(file.size||0)>fileLimit){unsupported++;return}
     if(targetMode==="codex"){if(/^ai-events\.jsonl$/i.test(name))codexAggregates++;else codexRollouts++}
     total+=Number(file.size||0);allowed.push(file);
   });
   var mixedCodexSources=targetMode==="codex"&&codexRollouts>0&&codexAggregates>0,multipleCodexAggregates=targetMode==="codex"&&codexAggregates>1;
-  return {files:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,totalBytes:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates,regularJson:regularJson,projectJson:projectJson};
+  return {files:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,totalBytes:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates,regularJson:regularJson,projectJson:projectJson,contextJson:contextJson};
 }
 function finishParsedResult(res,openedCount){
   var n=Object.keys(res.by).length;
@@ -1884,6 +1986,7 @@ function finishParsedResult(res,openedCount){
   var status=(AUTO_DETECTED_NOTE?AUTO_DETECTED_NOTE+" ":"")+"Report ready from "+fmtN(openedCount)+" file"+(openedCount===1?"":"s")+" opened only on this device.";
   if(res.codex&&res.coverage&&!res.coverage.complete) status+=" Some malformed, oversized or reset usage records were skipped, so coverage may be incomplete.";
   if(res.chatExport&&res.ignoredRecords) status+=" "+fmtN(res.ignoredRecords)+" object"+(res.ignoredRecords===1?" was":"s were")+" ignored because "+(res.ignoredRecords===1?"it did":"they did")+" not contain readable conversation messages.";
+  if(res.chatExport&&res.duplicateRecords) status+=" "+fmtN(res.duplicateRecords)+" duplicate conversation cop"+(res.duplicateRecords===1?"y was":"ies were")+" skipped.";
   document.getElementById("fileStatus").textContent=status;
   AUTO_DETECTED_NOTE="";
   document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -1944,10 +2047,10 @@ function handle(files){
     else if(checked.mixedCodexSources) showErr("Choose either raw rollout-*.jsonl files or ai-events.jsonl aggregate files, not both in one report. The aggregate may already contain the raw usage, so mixing them could count the same tokens twice.");
     else if(checked.multipleCodexAggregates) showErr("Choose one ai-events.jsonl aggregate at a time. Two aggregate files may cover some of the same sessions, and TOP cannot safely detect that overlap without retaining private session IDs.");
     else if(checked.markdown) showErr("That looks like an Obsidian note, not an AI history export. No data was uploaded or sent. Choose Obsidian + 7C's to check the vault, or use a downloaded Claude, ChatGPT or Codex history for a usage report.");
-    else if(checked.archives) showErr("TOP cannot open a whole ZIP yet. Unzip it on your device, then choose the supported JSON, JSONL or CSV file inside.");
+    else if(checked.archives) showErr("TOP cannot open a whole ZIP yet. On Windows, right-click the ZIP and choose Extract All, open the extracted folder, then choose conversations.json, a supported JSONL file, or a Console CSV.");
     else if(mode==="codex") showErr("None of those files are supported Codex session files. Choose rollout-*.jsonl from .codex\\sessions or .codex\\archived_sessions, or choose TOP's ai-events.jsonl. Do not choose history.jsonl.");
-    else if(checked.projectJson) showErr("That is project data, not Claude Code usage. JSON and JSONL are different: a capital or lowercase .JSON is one regular data file, while Claude Code history uses .jsonl with an L. Choose the .jsonl session files under C:\\Users\\YOU\\.claude\\projects\\, or use the whole Claude Code folder button.");
-    else if(checked.regularJson) showErr("Those are regular .json files, not Claude Code session logs or conversation exports. The L in .jsonl matters. Choose conversations.json for Claude Chat or ChatGPT, or choose Claude Code .jsonl session files.");
+    else if(checked.contextJson) showErr("That is Claude project, memory or user context, not usage history. TOP will not turn it into token or cost totals. For Claude Chat choose conversations.json. For Claude Code choose the .jsonl files under C:\\Users\\YOU\\.claude\\projects\\, with the L at the end.");
+    else if(checked.regularJson) showErr("Those are regular .json files, including individual UUID-named files, not Claude Code session logs or account conversation exports. Choose conversations.json for Claude Chat or ChatGPT, or choose Claude Code .jsonl session files, with the L at the end.");
     else showErr("None of those files match the source you chose. Choose JSONL for Claude Code, CSV for Claude Console, or conversations.json for Claude Chat or ChatGPT.");
     return;
   }

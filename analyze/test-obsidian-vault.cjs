@@ -11,6 +11,8 @@ assert.match(html, /Use An AI History Export Instead/);
 assert.match(html, /Download My 7C's Setup Plan/);
 assert.match(html, /A one-click public integration is not live yet/);
 assert.match(html, /No Markdown note contents were read/);
+assert.match(html, /id="vaultHistoryHeading">No supported AI history files found/);
+assert.doesNotMatch(html, /AI history found in the vault/);
 
 const vaultStart = html.indexOf("var VAULT_SCAN");
 const vaultEnd = html.indexOf("function showVaultError", vaultStart);
@@ -42,6 +44,13 @@ const files = [
   file("PrivateVault/AI History/Usage Log/ai-events.jsonl"),
   file("PrivateVault/conversations.json"),
   file("PrivateVault/usage.csv"),
+  file("PrivateVault/projects.json"),
+  file("PrivateVault/memories.json"),
+  file("PrivateVault/users.json"),
+  file("PrivateVault/random.json"),
+  file("PrivateVault/export.zip"),
+  file("PrivateVault/events.jsonl"),
+  file("PrivateVault/history.jsonl"),
   file("PrivateVault/Personal/api-key.txt"),
 ];
 
@@ -53,24 +62,36 @@ assert.equal(scan.candidates.codex.length, 2);
 assert.equal(scan.candidates.conversation.length, 1);
 assert.equal(scan.candidates.csv.length, 1);
 assert.equal(context.vaultCandidateCount(scan), 5);
+assert.equal(scan.claudeContext, 3);
+assert.equal(scan.regularJson, 1);
+assert.equal(scan.archives, 1);
+assert.equal(scan.otherData, 2);
 assert.equal(scan.structures.agents, true);
 assert.equal(scan.structures.daily, true);
 assert.ok(scan.skipped >= 4, "hidden folders, attachments and sensitive files must be skipped");
 
-assert.equal(context.vaultCandidateKind(file("PrivateVault/random.json"), true), "skip");
-assert.equal(context.vaultCandidateKind(file("random.json"), false), "skip");
+assert.equal(context.vaultCandidateKind(file("PrivateVault/random.json"), true), "regular-json");
+assert.equal(context.vaultCandidateKind(file("random.json"), false), "regular-json");
 assert.equal(context.vaultCandidateKind(file("conversations.JSON"), false), "conversation");
-assert.equal(context.vaultCandidateKind(file("projects.JSON"), false), "skip");
+assert.equal(context.vaultCandidateKind(file("projects.JSON"), false), "claude-context");
+assert.equal(context.vaultCandidateKind(file("memories.JSON"), false), "claude-context");
+assert.equal(context.vaultCandidateKind(file("users.JSON"), false), "claude-context");
+assert.equal(context.vaultCandidateKind(file("PrivateVault/events.jsonl"), true), "other-data");
+assert.equal(context.vaultCandidateKind(file("PrivateVault/history.jsonl"), true), "other-data");
+assert.equal(context.vaultCandidateKind(file("PrivateVault/Claude/events.jsonl"), true), "other-data", "a generic Claude folder must not be treated as Claude Code history");
+assert.equal(context.vaultCandidateKind(file("PrivateVault/Claude Code/events.jsonl"), true), "cc");
+assert.equal(context.vaultCandidateKind(file("PrivateVault/claude-usage-only.jsonl"), true), "cc");
 assert.equal(context.vaultCandidateKind(file("PrivateVault/.obsidian/plugin.json"), true), "skip");
 assert.equal(context.vaultCandidateKind(file("PrivateVault/Attachments/conversations.json"), true), "skip");
 assert.equal(context.vaultCandidateKind(file("PrivateVault/session.jsonl", { size: 400 * 1024 * 1024 }), true), "oversized");
 
 const plan = context.build7CsPlan(scan);
 assert.match(plan, /Markdown notes: 3/);
-assert.match(plan, /Possible AI history files: 5/);
+assert.match(plan, /Files with recognized AI history names: 5/);
+assert.match(plan, /Claude project, memory or user files recognized but not read: 3/);
 assert.match(plan, /AGENTS\.md: found/);
 assert.match(plan, /does not connect to, change, upload or index your vault/);
-for (const privateText of ["PrivateVault", "Alpha.md", "session.jsonl", "rollout-2026-07-16.jsonl", "ai-events.jsonl", "conversations.json", "usage.csv", "api-key.txt"]) {
+for (const privateText of ["PrivateVault", "Alpha.md", "session.jsonl", "rollout-2026-07-16.jsonl", "ai-events.jsonl", "conversations.json", "usage.csv", "api-key.txt", "projects.json", "memories.json", "users.json", "random.json"]) {
   assert.doesNotMatch(plan, new RegExp(privateText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
     `the 7C's plan must not disclose ${privateText}`);
 }
@@ -103,11 +124,13 @@ const conversationFiles = context.historyFilesForMode([
   file("conversations_2.json"),
 ], "chat");
 assert.equal(conversationFiles.files.length, 2, "case-insensitive and numbered conversation exports should be accepted");
+assert.match(html, /Check "\+fmtN\(scan\.candidates\.conversation\.length\)\+" conversation export files together/, "split conversation exports must be opened as one report");
 
 const projectJson = context.historyFilesForMode([file("Projects/PROJECTS.JSON")], "cc");
 assert.equal(projectJson.files.length, 0);
 assert.equal(projectJson.projectJson, 1);
 assert.equal(projectJson.regularJson, 1);
+assert.equal(projectJson.contextJson, 1);
 
 assert.equal(context.inferModeFromFileNames([file("session.JSONL")]), "", "generic JSONL must not be guessed to be Claude Code from its extension alone");
 assert.equal(context.inferModeFromFileNames([file("rollout-2026-07-16.JSONL")]), "codex");
