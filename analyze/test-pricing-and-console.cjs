@@ -9,7 +9,7 @@ assert.doesNotMatch(html, /cost_provenance:/,
   "the person-facing report must not expose internal machine labels");
 assert.match(html, /res\.csv\?"record":"AI reply"/,
   "the average-cost label must match the source's counted unit");
-const pricingStart = html.indexOf("var PRICES =");
+const pricingStart = html.indexOf("var PRICING_CHECKED=");
 const pricingEnd = html.indexOf("function fmt$", pricingStart);
 assert.ok(pricingStart >= 0 && pricingEnd > pricingStart, "could not locate pricing logic");
 
@@ -53,6 +53,13 @@ for (const model of [
 }
 assert.equal(context.CACHE_WRITE_MULTIPLIER, 1.25,
   "the comparison estimate must identify the five-minute Anthropic cache-write multiplier");
+assert.equal(context.CACHE_READ_MULTIPLIER, 0.1,
+  "the comparison estimate must identify the checked cache-read discount");
+assert.equal(context.cacheWriteRate(context.PRICES.fable5), 12.5);
+assert.equal(context.cacheReadRate(context.PRICES.fable5), 1);
+assert.match(context.PRICES.fable5.source, /^https:\/\/platform\.claude\.com\//);
+assert.match(context.PRICES.gpt56sol.source, /^https:\/\/openai\.com\//);
+assert.equal(context.PRICING_CHECKED, "16 Jul 2026");
 
 const csvStart = html.indexOf("function splitCSV");
 const csvEnd = html.indexOf("function estTokens", csvStart);

@@ -22,7 +22,7 @@ const forbiddenPatterns = [
   [/send us/i, "instruction to send a file to TOP"],
   [/\banonym(?:ised|ized|ous)\b/i, "unsupported anonymous-data claim"],
   [/showDirectoryPicker|createWritable|requestPermission\s*\(\s*\{[^}]*readwrite/i, "vault write permission"],
-  [/indexedDB|localStorage/, "persistent browser storage"],
+  [/indexedDB|localStorage|serviceWorker/, "persistent browser storage or worker"],
 ];
 
 for (const [pattern, label] of forbiddenPatterns) {
@@ -43,6 +43,7 @@ assert.match(html, /Make A Shareable Summary/);
 assert.match(html, /Like opening a spreadsheet on your own laptop/);
 assert.match(html, /Like sharing a summary of a bank statement instead of the statement itself/);
 assert.match(html, /cc:\{[\s\S]*?a:"Choose your Claude Code history files[\s\S]*?b:"Use the readable privacy tool first/);
+assert.match(html, /codex:\{[\s\S]*?a:"Choose Codex rollout session files[\s\S]*?b:"Choose Codex rollout session files/);
 assert.match(html, /chat:\{[\s\S]*?a:"Choose conversations\.json[\s\S]*?b:"Choose conversations\.json/);
 assert.match(html, /openai:\{[\s\S]*?a:"Choose your ChatGPT history download[\s\S]*?b:"Choose your ChatGPT history download/);
 assert.match(html, /csv:\{[\s\S]*?a:"Choose either an Anthropic Usage CSV[\s\S]*?b:"Choose either an Anthropic Usage CSV/);
@@ -71,6 +72,37 @@ assert.match(html, /I Do Not Know Which AI Setup To Choose/);
 assert.match(html, /Spending Too Much On AI/);
 assert.match(html, /My AI Cannot Use My Obsidian Memory/);
 assert.match(html, /data-mode="obsidian"/);
+assert.match(html, /data-mode="codex"/);
+assert.match(html, /data-provider="claude" aria-controls="claudeSources"/);
+assert.match(html, /id="claudeSources" hidden/);
+assert.match(html, /Which Claude history do you have\?/);
+assert.match(html, /Useful context, but not usage history/);
+assert.match(html, /individual UUID-named JSON files/);
+assert.match(html, /Choose Claude, Codex, ChatGPT or Obsidian/);
+assert.match(html, /id="reportScope"/);
+assert.match(html, /Rough text-only estimate/);
+assert.match(html, /not your full account total, subscription allowance, Claude Code usage or Codex usage/);
+assert.match(html, /function detectConversationMode\(/);
+assert.match(html, /function inferModeFromFileNames\(/);
+assert.match(html, /Claude project, memory or user context, not usage history/);
+assert.match(html, /Check conversation export/);
+assert.match(html, /id="downloadscript"/);
+assert.match(html, /Download Privacy Cleaner/);
+assert.match(html, /id="historyPathHelper"/);
+assert.match(html, /id="copyHistoryPath">Copy Folder Address/);
+assert.match(html, /id="copyAgentPathPrompt">Ask My Agent For The Address/);
+assert.match(html, /A website cannot type a private path into the picker for you/);
+assert.match(html, /Choose only <code>rollout-\*\.jsonl<\/code> files/);
+assert.match(html, /Do not choose the whole <code>\.codex<\/code> folder/);
+assert.match(html, /id="downloadAIEvents">Download ai-events\.jsonl/);
+assert.match(html, /id="downloadObsidianReport">Download Obsidian Report/);
+assert.match(html, /Keep raw Codex rollout files outside the vault/);
+assert.match(html, /function createCodexAccumulator\(/);
+assert.match(html, /function createBoundedLineCollector\(/);
+assert.match(html, /by=Object\.create\(null\),days=Object\.create\(null\)/);
+assert.match(html, /Choose either raw rollout-\*\.jsonl files or ai-events\.jsonl aggregate files, not both/);
+assert.match(html, /Choose one ai-events\.jsonl aggregate at a time/);
+assert.match(html, /URL\.revokeObjectURL\(url\)/);
 assert.match(html, /Your vault is memory, not a bill\./);
 assert.match(html, /it does not connect to, change or copy your vault/i);
 assert.match(html, /id="vaultFolder" webkitdirectory directory multiple/);
@@ -81,18 +113,21 @@ assert.match(html, /id="providerStep" hidden/);
 assert.match(html, /id="routechooser" hidden/);
 assert.match(html, /aria-pressed="false"/);
 assert.match(html, /What you want to improve:/);
-assert.match(html, /Estimated AI usage/);
-assert.match(html, /does not contain token counts/);
+assert.match(html, /Rough text-only estimate/);
+assert.match(html, /has no recorded token counts/);
 assert.match(html, /if\(res\.csv\) return \{card:"Records",table:"Records",summary:"Records"\}/);
-assert.match(html, /if\(res\.chatExport\) return \{card:"Messages",table:"Messages",summary:"Messages"\}/);
+assert.match(html, /if\(res\.chatExport\) return \{card:"Text messages found",table:"Text messages found",summary:"Text messages found in selected file"\}/);
 assert.doesNotMatch(html, /starting_challenges:|provider_selected:|privacy_route:|task_archetypes:/);
 assert.match(html, /id="shareWithTop" hidden/);
-assert.match(html, /<h2 id="shareWithTopHeading" tabindex="-1">Download My Own Copy<\/h2>/);
-assert.match(html, /Sending this to Adam and Sam is not live yet\./);
-assert.match(html, /A safe receiving service still needs to be connected\./);
+assert.match(html, /<h2 id="shareWithTopHeading" tabindex="-1">Download Or Email My Own Copy<\/h2>/);
+assert.match(html, /Nothing is submitted automatically\./);
+assert.match(html, /Direct server delivery is not live yet\./);
 assert.match(html, /Download My Own Copy/);
-assert.match(html, /Submit To Adam And Sam, Setup Required/);
-assert.match(html, /id="shareTopPaused" disabled aria-describedby="shareHold"/);
+assert.match(html, /Copy Exact Summary/);
+assert.match(html, /id="shareRecipients"/);
+assert.match(html, /id="shareConsent"/);
+assert.match(html, /id="openEmailDraft" disabled/);
+assert.match(html, /TOP cannot confirm delivery/);
 assert.match(html, /id="finalPackagePreview" readonly/);
 assert.match(html, /includeSurveyContext=!skipped/);
 assert.match(html, /Optional answers included: "\+\(includeSurveyContext\?"Yes":"No"\)/);
@@ -100,6 +135,10 @@ assert.match(html, /\+\(includeSurveyContext\?surveyBlock\(\):""\)/,
   "skipped optional answers must not enter the shareable file");
 assert.match(html, /var body=lastSummary/);
 assert.match(html, /Original history file included: No/);
+assert.match(html, /Delivery status: Prepared locally, not sent by TOP/);
+assert.match(html, /cache added/);
+assert.match(html, /cache reused/);
+assert.match(html, /Pricing basis: pay-as-you-go API rates checked/);
 assert.match(html, /id="shareSummaryBox" hidden/);
 assert.doesNotMatch(html, /var wantsShare=selectedRoute==="b"/);
 assert.match(html, /shareSummaryBox"\)\.hidden=false/);
@@ -107,6 +146,27 @@ assert.match(html, /getElementById\("survey"\)\.hidden=false/);
 assert.match(html, /share\.scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
 assert.match(html, /document\.getElementById\('shareWithTop'\)\.hidden=true/);
 assert.match(html, /ROUTEB=null/);
+
+const folderChoicePosition = html.indexOf('id="historyFolderChoice"');
+const fileFallbackPosition = html.indexOf('id="fileFallback"');
+assert.ok(folderChoicePosition >= 0 && fileFallbackPosition > folderChoicePosition,
+  "folder selection must be the primary Claude Code and Codex action, before individual-file fallback");
+
+const topLevelSources = html.slice(html.indexOf('id="tabs"'), html.indexOf('id="claudeSources"'));
+assert.doesNotMatch(topLevelSources, /data-mode="(?:cc|chat|csv)"/, "Claude subtypes must not appear as top-level choices");
+const claudeSources = html.slice(html.indexOf('id="claudeSources"'), html.indexOf('id="routechooser"'));
+for (const sourceMode of ["cc", "chat", "csv"]) assert.match(claudeSources, new RegExp(`data-mode="${sourceMode}"`));
+assert.doesNotMatch(html, /MODES\s*=\s*\{\s*claude:/, "Claude must remain a chooser, not a combined parser");
+assert.match(html, /function showClaudeChoices\(/);
+assert.match(html, /document\.getElementById\('claudeSources'\)\.hidden=true/);
+
+const codexExportStart = html.indexOf("function codexCoverageForExport");
+const codexExportEnd = html.indexOf("// ---------- usage survey", codexExportStart);
+assert.ok(codexExportStart >= 0 && codexExportEnd > codexExportStart, "Codex export builders must exist");
+const codexExportSource = html.slice(codexExportStart, codexExportEnd);
+for (const denied of ["source_file", "session_id", "turn_id", "cwd", "workspace_roots", "rate_limits", "plan_type", "credits", "repository_url"]) {
+  assert.doesNotMatch(codexExportSource, new RegExp(denied), `Codex exports must not include ${denied}`);
+}
 
 const holdPosition = html.indexOf("You can make your report now. TOP is not accepting files yet.");
 const routePosition = html.indexOf('id="routechooser"');
