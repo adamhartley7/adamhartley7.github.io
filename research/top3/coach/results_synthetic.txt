@@ -1,0 +1,42 @@
+
+TOP-3 (Athena) prompting coach - metadata-only nudge prototype
+SYNTHETIC metadata. seed=20260716. No real prompts, no real costs.
+Costs are in units of one uncached input token (cache write 1.25x, read 0.1x).
+
+==========================================================================
+SCENARIO 1: history resend (should fire B1 with an exact projection)
+==========================================================================
+  requests: 8   observed input-side cost: 41,320 (units of one uncached input token)
+  nudge [B1 history-resend]
+    signal: 8 turns, input tokens 3224 -> 7352, cache reads observed = 0
+    observed cost   : 41,320
+    projected cost  : 12,587  (exact counterfactual for this synthetic trace)
+    addressable     : 28,733 units (70% of this trace's input-side cost)
+
+==========================================================================
+SCENARIO 2: silent cache invalidator (should fire A2, upper bound)
+==========================================================================
+  requests: 6   observed input-side cost: 25,142 (units of one uncached input token)
+  nudge [A2 silent-invalidator]
+    signal: block[0] size stable at 4000 tok across 6 requests, digest changes every request, cache reads = 0
+    addressable     : up to 17,000 units [UPPER BOUND; coach cannot price exactly without reading the block]
+
+==========================================================================
+SCENARIO 3: healthy trace (guard: coach MUST stay silent)
+==========================================================================
+  requests: 8   observed input-side cost: 11,430 (units of one uncached input token)
+  coach output: NO NUDGES. Trace looks efficient; nothing to suggest.
+
+==========================================================================
+OVERRIDE-RATE KILL SWITCH (synthetic user behaviour)
+==========================================================================
+  noisy-rule    surfacings= 8  override_rate=0.62  -> KILLED at surfacing 8
+  useful-rule   surfacings=24  override_rate=0.00  -> active
+    (theta_kill = 0.50, min_samples = 8, window = 20. A rule the user rejects
+     as often as they accept it is auto-disabled; a useful one survives.)
+
+Reading: in 1 and 2 the coach flags documented structural waste from metadata
+alone and bounds the addressable cost (exactly for B1, as an upper bound for A2).
+In 3 it stays silent on an efficient trace. The kill switch removes a noisy rule
+without the user having to fight it. All numbers describe the synthetic traces
+only; nothing here is a claim about real usage. See README.md for limits.
