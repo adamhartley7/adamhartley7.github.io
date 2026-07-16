@@ -817,7 +817,14 @@ function coverageEmailHtml(report) {
   return `<h2>Coverage warning</h2><p><strong>${escapeHtml(lines[0])}</strong></p>${lines[1] ? `<p>${escapeHtml(lines[1])}</p>` : ""}`;
 }
 
-function buildEmailText(submission, reportHash) {
+function retentionDates(sentAt) {
+  const requestDate = sentAt instanceof Date ? new Date(sentAt.getTime()) : new Date(sentAt);
+  if (!Number.isFinite(requestDate.getTime())) throw new TypeError("A valid delivery request date is required.");
+  const dueDate = new Date(Date.UTC(requestDate.getUTCFullYear(), requestDate.getUTCMonth(), requestDate.getUTCDate() + RETENTION_DAYS));
+  return { requestDate: requestDate.toISOString().slice(0, 10), deletionDueDate: dueDate.toISOString().slice(0, 10) };
+}
+
+function buildEmailText(submission, reportHash, retention) {
   const report = submission.report;
   const purposes = submission.consent.purposes.join(", ");
   return [
@@ -837,6 +844,9 @@ function buildEmailText(submission, reportHash) {
     `Consent purposes: ${purposes}`,
     `Consent notice: ${submission.consent.notice_version}`,
     `Retention acknowledged: ${submission.consent.retention_days} days`,
+    `Delivery request date: ${retention.requestDate}`,
+    `Deletion due date: ${retention.deletionDueDate} (${RETENTION_DAYS} days after the delivery request date)`,
+    "Operational deletion instruction: delete this report email and attachment by the due date, or earlier if Adam receives an early deletion request. The Worker does not delete mailbox copies automatically.",
     ...v2EmailTextLines(report),
     "",
     "The report's privacy.network_delivery value describes the analyzer state when the local report was generated. This email resulted from a separate deliberate submission after the user reviewed the report and gave explicit consent.",
@@ -845,14 +855,15 @@ function buildEmailText(submission, reportHash) {
   ].join("\n");
 }
 
-function buildEmailHtml(submission, reportHash) {
+function buildEmailHtml(submission, reportHash, retention) {
   const report = submission.report;
   const modelRows = report.by_model.map((row) => `<tr><td>${escapeHtml(row.model)}</td><td>${row.total_tokens}</td><td>${escapeHtml(row.cost.status)}</td><td>${row.cost.usd === null ? "Not available" : row.cost.usd}</td></tr>`).join("");
-  return `<!doctype html><html><body><h1>TOP research-safe usage submission</h1><p><strong>Receipt:</strong> ${escapeHtml(submission.submission_id)}</p><p><strong>Report SHA-256:</strong> ${escapeHtml(reportHash)}</p><p><strong>Source:</strong> ${escapeHtml(report.source.provider)} ${escapeHtml(report.source.surface)}</p><p><strong>Generated date:</strong> ${escapeHtml(report.generated_date)}</p>${coverageEmailHtml(report)}<h2>Usage totals</h2><ul><li>Total tokens: ${report.totals.total_tokens}</li><li>Input tokens: ${report.totals.input_tokens}</li><li>Output tokens: ${report.totals.output_tokens}</li><li>Cache write tokens: ${report.totals.cache_write_tokens === null ? "Not available" : report.totals.cache_write_tokens}</li><li>Cache read tokens: ${report.totals.cache_read_tokens === null ? "Not available" : report.totals.cache_read_tokens}</li></ul><h2>By model</h2><table><thead><tr><th>Model</th><th>Total tokens</th><th>Cost status</th><th>Cost USD</th></tr></thead><tbody>${modelRows}</tbody></table>${v2EmailHtml(report)}<p>The report's <code>privacy.network_delivery</code> value describes the analyzer state when the local report was generated. This email resulted from a separate deliberate submission after the user reviewed the report and gave explicit consent.</p><p>The attached JSON is the exact validated research-safe report. It contains no original history file.</p></body></html>`;
+  return `<!doctype html><html><body><h1>TOP research-safe usage submission</h1><p><strong>Receipt:</strong> ${escapeHtml(submission.submission_id)}</p><p><strong>Report SHA-256:</strong> ${escapeHtml(reportHash)}</p><p><strong>Source:</strong> ${escapeHtml(report.source.provider)} ${escapeHtml(report.source.surface)}</p><p><strong>Generated date:</strong> ${escapeHtml(report.generated_date)}</p><h2>Retention instruction</h2><p><strong>Delivery request date:</strong> ${escapeHtml(retention.requestDate)}<br><strong>Deletion due date:</strong> ${escapeHtml(retention.deletionDueDate)} (${RETENTION_DAYS} days after the delivery request date)</p><p>Delete this report email and attachment by the due date, or earlier if Adam receives an early deletion request. The Worker does not delete mailbox copies automatically.</p>${coverageEmailHtml(report)}<h2>Usage totals</h2><ul><li>Total tokens: ${report.totals.total_tokens}</li><li>Input tokens: ${report.totals.input_tokens}</li><li>Output tokens: ${report.totals.output_tokens}</li><li>Cache write tokens: ${report.totals.cache_write_tokens === null ? "Not available" : report.totals.cache_write_tokens}</li><li>Cache read tokens: ${report.totals.cache_read_tokens === null ? "Not available" : report.totals.cache_read_tokens}</li></ul><h2>By model</h2><table><thead><tr><th>Model</th><th>Total tokens</th><th>Cost status</th><th>Cost USD</th></tr></thead><tbody>${modelRows}</tbody></table>${v2EmailHtml(report)}<p>The report's <code>privacy.network_delivery</code> value describes the analyzer state when the local report was generated. This email resulted from a separate deliberate submission after the user reviewed the report and gave explicit consent.</p><p>The attached JSON is the exact validated research-safe report. It contains no original history file.</p></body></html>`;
 }
 
-async function sendWithResend(fetchImpl, env, submission) {
+async function sendWithResend(fetchImpl, env, submission, sentAt) {
   const { to, cc } = configuredDelivery(env);
+  const retention = retentionDates(sentAt);
   const reportJson = JSON.stringify(submission.report, null, 2);
   const reportHash = await sha256Hex(reportJson);
   const filename = `top-research-safe-usage-${submission.report.generated_date}-${submission.submission_id.slice(0, 8)}.json`;
@@ -860,8 +871,8 @@ async function sendWithResend(fetchImpl, env, submission) {
     from: env.RESEND_FROM,
     to,
     subject: `TOP research-safe usage submission ${submission.submission_id.slice(0, 8)}`,
-    text: buildEmailText(submission, reportHash),
-    html: buildEmailHtml(submission, reportHash),
+    text: buildEmailText(submission, reportHash, retention),
+    html: buildEmailHtml(submission, reportHash, retention),
     attachments: [{ filename, content: base64Utf8(reportJson) }],
   };
   if (cc.length) email.cc = cc;
@@ -879,7 +890,7 @@ async function sendWithResend(fetchImpl, env, submission) {
   return { response, result, reportHash };
 }
 
-export function createHandler({ fetchImpl = fetch } = {}) {
+export function createHandler({ fetchImpl = fetch, now = () => new Date() } = {}) {
   return {
     async fetch(request, env) {
       const origin = request.headers.get("origin") || "";
@@ -912,7 +923,7 @@ export function createHandler({ fetchImpl = fetch } = {}) {
         return jsonResponse(500, { ok: false, status: "not_sent", error: { code: "validation_failed", message: "TOP could not validate this report. Nothing was sent." } }, origin);
       }
       try {
-        const { response, result, reportHash } = await sendWithResend(fetchImpl, env, submission);
+        const { response, result, reportHash } = await sendWithResend(fetchImpl, env, submission, now());
         if (response.ok && result && typeof result.id === "string" && result.id) {
           return jsonResponse(202, { ok: true, status: "accepted_for_delivery", delivered: false, receipt_id: submission.submission_id, report_sha256: reportHash, message: "TOP accepted the reviewed report for email delivery. This does not confirm mailbox delivery." }, origin);
         }

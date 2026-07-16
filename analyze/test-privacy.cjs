@@ -8,7 +8,6 @@ assert.match(html, /@media\(max-width:640px\)\{\.vcard \.vcontrols\{display:grid
 assert.match(html, /aria-valuetext/);
 
 const forbiddenPatterns = [
-  [/\bfetch\s*\(/, "fetch call"],
   [/XMLHttpRequest/, "XMLHttpRequest"],
   [/sendBeacon/, "sendBeacon"],
   [/\bWebSocket\s*\(/, "WebSocket"],
@@ -28,6 +27,13 @@ const forbiddenPatterns = [
 for (const [pattern, label] of forbiddenPatterns) {
   assert.equal(pattern.test(html), false, `${label} must not exist in the local analyzer`);
 }
+
+const fetchCalls = html.match(/\bfetch\s*\(/g) || [];
+assert.equal(fetchCalls.length, 1, "only the deliberate, configuration-gated submission may use fetch");
+assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/,
+  "the repository must keep direct delivery disabled until an exact endpoint is reviewed");
+assert.match(html, /fetch\(endpoint,\{method:"POST"/,
+  "the one fetch call must use only the validated configuration constant");
 
 assert.match(html, /Nothing is sent automatically\./);
 assert.match(html, /Your chosen files stay on this device/);
@@ -118,15 +124,17 @@ assert.match(html, /if\(res\.csv\) return \{card:"Records",table:"Records",summa
 assert.match(html, /if\(res\.chatExport\) return \{card:"Text messages found",table:"Text messages found",summary:"Text messages found in selected file"\}/);
 assert.doesNotMatch(html, /starting_challenges:|provider_selected:|privacy_route:|task_archetypes:/);
 assert.match(html, /id="shareWithTop" hidden/);
-assert.match(html, /<h2 id="shareWithTopHeading" tabindex="-1">Download Or Email My Own Copy<\/h2>/);
+assert.match(html, /<h2 id="shareWithTopHeading" tabindex="-1">Download Or Share My Safe Report<\/h2>/);
 assert.match(html, /Nothing is submitted automatically\./);
-assert.match(html, /Direct server delivery is not live yet\./);
 assert.match(html, /Download My Own Copy/);
 assert.match(html, /Copy Exact Summary/);
-assert.match(html, /id="shareRecipients"/);
-assert.match(html, /id="shareConsent"/);
-assert.match(html, /id="openEmailDraft" disabled/);
-assert.match(html, /TOP cannot confirm delivery/);
+assert.match(html, /Optional Research Submission To Adam And Sam/);
+assert.match(html, /This page cannot choose, change or add recipients/);
+assert.match(html, /id="researchConsent"/);
+assert.match(html, /id="submitResearchReport" disabled/);
+assert.match(html, /retained for up to 30 days/);
+assert.doesNotMatch(html, /id="shareRecipients"|id="openEmailDraft"|mailto:/,
+  "the browser must not accept or construct delivery recipients");
 assert.match(html, /id="finalPackagePreview" readonly/);
 assert.match(html, /includeSurveyContext=!skipped/);
 assert.match(html, /Optional answers included: "\+\(includeSurveyContext\?"Yes":"No"\)/);

@@ -477,6 +477,7 @@ test("strict validator accepts current analyzer-generated Claude, Codex, chat an
 test("successful email body contains aggregates but not private source fields", async () => {
   let captured;
   const handler = createHandler({
+    now: () => new Date("2026-07-17T12:34:56.000Z"),
     fetchImpl: async (url, init) => {
       captured = { url, init, email: JSON.parse(init.body) };
       return new Response(JSON.stringify({ id: "synthetic-email-id" }), { status: 200, headers: { "Content-Type": "application/json" } });
@@ -494,7 +495,12 @@ test("successful email body contains aggregates but not private source fields", 
   assert.equal(captured.init.headers["Idempotency-Key"], `top-usage/${SUBMISSION_ID}`);
   assert.match(captured.email.text, /Total tokens: 65/);
   assert.match(captured.email.text, /privacy\.network_delivery value describes the analyzer state/i);
+  assert.match(captured.email.text, /Delivery request date: 2026-07-17/);
+  assert.match(captured.email.text, /Deletion due date: 2026-08-16 \(30 days after the delivery request date\)/);
+  assert.match(captured.email.text, /Worker does not delete mailbox copies automatically/);
   assert.match(captured.email.html, /deepseek-v4-pro/);
+  assert.match(captured.email.html, /<strong>Deletion due date:<\/strong> 2026-08-16/);
+  assert.match(captured.email.html, /earlier if Adam receives an early deletion request/);
   assert.equal(/prompt text|reply text|source path|project identifier/i.test(captured.email.text), false);
   const attachment = JSON.parse(Buffer.from(captured.email.attachments[0].content, "base64").toString("utf8"));
   assert.deepEqual(attachment, reportFixture());
