@@ -53,6 +53,7 @@ assert.match(html, /codex:\{[\s\S]*?a:"Choose Codex rollout session files[\s\S]*
 assert.match(html, /chat:\{[\s\S]*?a:"Choose conversations\.json[\s\S]*?b:"Choose conversations\.json/);
 assert.match(html, /openai:\{[\s\S]*?a:"Choose your ChatGPT history download[\s\S]*?b:"Choose your ChatGPT history download/);
 assert.match(html, /csv:\{[\s\S]*?a:"Choose either an Anthropic Usage CSV[\s\S]*?b:"Choose either an Anthropic Usage CSV/);
+assert.match(html, /cursor:\{[\s\S]*?a:"Choose one Cursor usage CSV[\s\S]*?b:"Choose one Cursor usage CSV/);
 assert.match(html, /class="journey-world"/);
 assert.match(html, /function setJourney\(/);
 assert.match(html, /assets\/analyzer-ocean-sunset\.webp/);
@@ -78,17 +79,25 @@ assert.match(html, /Spending Too Much On AI/);
 assert.match(html, /My AI Cannot Use My Obsidian Memory/);
 assert.match(html, /data-mode="obsidian"/);
 assert.match(html, /data-mode="codex"/);
+assert.match(html, /data-mode="cursor"/);
 assert.match(html, /data-provider="claude" aria-controls="claudeSources"/);
 assert.match(html, /id="claudeSources" hidden/);
 assert.match(html, /Which Claude history do you have\?/);
 assert.match(html, /Useful context, but not usage history/);
 assert.match(html, /individual UUID-named JSON files/);
-assert.match(html, /Choose Claude, Codex, ChatGPT or Obsidian/);
+assert.match(html, /Choose Claude, Codex, Cursor, ChatGPT or Obsidian/);
 assert.match(html, /id="reportScope"/);
 assert.match(html, /Rough text-only estimate/);
 assert.match(html, /not your full account total, subscription allowance, Claude Code usage or Codex usage/);
 assert.match(html, /function detectConversationMode\(/);
 assert.match(html, /function inferModeFromFileNames\(/);
+assert.match(html, /typeof mode!=="undefined"&&mode==="cursor"\?"cursor":"csv"/,
+  "a selected Cursor CSV must not be silently switched to the Console parser");
+assert.match(html, /else if\(mode==="cursor"\) res=parseCursorCSV\(texts\)/,
+  "Cursor must use its dedicated strict parser");
+assert.match(html, /Accepted headers are <code>timestamp<\/code> or <code>date<\/code>/);
+assert.match(html, /requires separate cache_read_tokens and cache_write_tokens/);
+assert.match(html, /Choose exactly one Cursor usage CSV and no other files/);
 assert.match(html, /Claude project, memory or user context, not usage history/);
 assert.match(html, /Check conversation export/);
 assert.match(html, /id="downloadscript"/);
@@ -101,6 +110,8 @@ assert.match(html, /Choose only <code>rollout-\*\.jsonl<\/code> files/);
 assert.match(html, /Do not choose the whole <code>\.codex<\/code> folder/);
 assert.match(html, /id="downloadAIEvents">Download ai-events\.jsonl/);
 assert.match(html, /id="downloadObsidianReport">Download Obsidian Report/);
+assert.match(html, /id="downloadCursorObsidianReport">Download Cursor Obsidian Report/);
+assert.match(html, /top_source: cursor/);
 assert.match(html, /Keep raw Codex rollout files outside the vault/);
 assert.match(html, /function createCodexAccumulator\(/);
 assert.match(html, /function createBoundedLineCollector\(/);
@@ -168,11 +179,18 @@ assert.match(html, /function showClaudeChoices\(/);
 assert.match(html, /document\.getElementById\('claudeSources'\)\.hidden=true/);
 
 const codexExportStart = html.indexOf("function codexCoverageForExport");
-const codexExportEnd = html.indexOf("// ---------- usage survey", codexExportStart);
+const codexExportEnd = html.indexOf("function cursorUsageTotals", codexExportStart);
 assert.ok(codexExportStart >= 0 && codexExportEnd > codexExportStart, "Codex export builders must exist");
 const codexExportSource = html.slice(codexExportStart, codexExportEnd);
 for (const denied of ["source_file", "session_id", "turn_id", "cwd", "workspace_roots", "rate_limits", "plan_type", "credits", "repository_url"]) {
   assert.doesNotMatch(codexExportSource, new RegExp(denied), `Codex exports must not include ${denied}`);
+}
+const cursorExportEnd = html.indexOf('document.getElementById("downloadAIEvents")', codexExportEnd);
+const cursorExportSource = html.slice(codexExportEnd, cursorExportEnd);
+assert.match(cursorExportSource, /"top_source: cursor"/);
+assert.match(cursorExportSource, /Rows are grouped by UTC day and AI version/);
+for (const denied of ["source_file", "session_id", "turn_id", "workspace_roots", "repository_url"]) {
+  assert.doesNotMatch(cursorExportSource, new RegExp(denied), `Cursor exports must not include ${denied}`);
 }
 
 const holdPosition = html.indexOf("You can make your report now. TOP is not accepting files yet.");

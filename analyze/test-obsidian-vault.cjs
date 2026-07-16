@@ -151,6 +151,22 @@ assert.equal(context.inferModeFromFileNames([file("session.JSONL")]), "", "gener
 assert.equal(context.inferModeFromFileNames([file("rollout-2026-07-16.JSONL")]), "codex");
 assert.equal(context.inferModeFromFileNames([file("conversations.JSON")]), "conversation");
 assert.equal(context.inferModeFromFileNames([file("usage.CSV")]), "csv");
+context.mode = "cursor";
+assert.equal(context.inferModeFromFileNames([file("usage.CSV")]), "cursor",
+  "a CSV selected through the Cursor route must stay on the strict Cursor parser");
+context.mode = "";
+
+const oneCursorCsv = context.historyFilesForMode([file("cursor-usage.csv")], "cursor");
+assert.equal(oneCursorCsv.files.length, 1);
+assert.equal(oneCursorCsv.multipleCursorFiles, false);
+const twoCursorCsvs = context.historyFilesForMode([file("cursor-usage.csv"), file("cursor-usage-old.csv")], "cursor");
+assert.equal(twoCursorCsvs.files.length, 0);
+assert.equal(twoCursorCsvs.multipleCursorFiles, true,
+  "overlapping Cursor exports must fail rather than double-count");
+const mixedCursorSelection = context.historyFilesForMode([file("cursor-usage.csv"), file("notes.md")], "cursor");
+assert.equal(mixedCursorSelection.files.length, 0);
+assert.equal(mixedCursorSelection.multipleCursorFiles, true,
+  "Cursor must not silently skip extra selected files");
 
 const oversizedConversation = context.historyFilesForMode([file("conversations.json", { size: 65 * 1024 * 1024 })], "chat");
 assert.equal(oversizedConversation.files.length, 0, "large conversation JSON must fail before a phone tab tries to retain and parse it");

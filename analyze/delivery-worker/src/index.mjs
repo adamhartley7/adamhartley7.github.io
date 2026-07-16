@@ -12,11 +12,15 @@ const PURPOSES = new Set(["analyzer_validation", "forecast_calibration"]);
 const COLLECTOR_VERSIONS = new Set([
   "top.local-analyzer.2026-07-16.1",
   "top.local-collector.2026-07-16.1",
+  "top.local-analyzer.2026-07-17.1",
 ]);
 const PARSER_VERSIONS = new Set([
   "top.usage-parser.2026-07-16.1",
   "top.usage-parser.2026-07-16.2",
+  "top.cursor-usage-parser.2026-07-17.1",
 ]);
+const CURSOR_COLLECTOR_VERSION = "top.local-analyzer.2026-07-17.1";
+const CURSOR_PARSER_VERSION = "top.cursor-usage-parser.2026-07-17.1";
 const V2_COLLECTOR_VERSION = "top.local-collector.2026-07-16.2";
 const V2_PARSER_VERSION = "top.usage-parser.2026-07-16.3";
 const COST_STATUSES = new Set([
@@ -223,6 +227,26 @@ function safeModelLabel(value) {
   return /^codex-(?:mini|large|latest)(?:-latest)?$/i.test(value);
 }
 
+const CURSOR_MODEL_LABEL_PATTERNS = [
+  /^claude-(?:(?:opus|sonnet|haiku|fable|mythos)-\d{1,2}(?:[.-]\d{1,2}){0,2}|\d{1,2}(?:[.-]\d{1,2}){0,2}-(?:opus|sonnet|haiku|fable|mythos))(?:-(?:latest|preview|thinking|max|\d{8}|\d{4}-\d{2}-\d{2}))?$/i,
+  /^gpt-\d{1,2}o?(?:[.-]\d{1,2}){0,2}(?:-(?:sol|terra|luna|mini|nano|codex(?:-mini)?|chat|pro|turbo|vision|audio|realtime))?(?:-(?:latest|preview|thinking|high|medium|low|max|\d{8}|\d{4}-\d{2}-\d{2}))?$/i,
+  /^o[1-9]\d?(?:-(?:mini|pro))?(?:-(?:latest|preview|thinking|high|medium|low|max))?$/i,
+  /^gemini-\d{1,2}(?:[.-]\d{1,2}){0,2}(?:-(?:pro|flash|flash-lite|ultra|nano))?(?:-(?:latest|preview|exp|thinking|max|\d{8}|\d{4}-\d{2}-\d{2}))?$/i,
+  /^deepseek-(?:v?\d{1,2}(?:[.-]\d{1,2}){0,2}|r[1-9]\d?)(?:-(?:pro|lite|chat|coder|reasoner|distill))?(?:-(?:latest|preview|thinking|max))?$/i,
+  /^grok-(?:(?:\d{1,2}(?:[.-]\d{1,2}){0,2})(?:-(?:mini|fast|code|vision))?|code-fast-\d{1,2})(?:-(?:latest|preview|beta|thinking|max))?$/i,
+  /^composer(?:-\d{1,2}(?:[.-]\d{1,2}){0,2})?(?:-(?:fast|pro|thinking|max|latest|preview))?$/i,
+  /^cursor-(?:small|fast|pro|max|thinking|composer)(?:-(?:latest|preview|\d{1,2}(?:[.-]\d{1,2}){0,2}))?$/i,
+  /^auto$/i,
+];
+
+function safeCursorModelLabel(value) {
+  return typeof value === "string"
+    && value.length > 0
+    && value.length <= 80
+    && !/[\u0000-\u001f\u007f<>\\/]/.test(value)
+    && CURSOR_MODEL_LABEL_PATTERNS.some((pattern) => pattern.test(value));
+}
+
 function validateCollector(value, schemaVersion) {
   exactObject(value, ["collector_version", "parser_version"], "collector");
   if (schemaVersion === REPORT_SCHEMA_VERSION_V2) {
@@ -246,6 +270,7 @@ function validateSource(value) {
     "openai|chatgpt|conversation_export",
     "anthropic|claude_chat|conversation_export",
     "anthropic|console|console_csv_export",
+    "cursor|cursor|cursor_usage_csv_export",
   ]);
   oneOf(`${value.provider}|${value.surface}|${value.input_form}`, valid, "source combination");
 }
@@ -264,6 +289,9 @@ function validateMeasurement(value, source) {
     if (actual[0] !== "exported_columns_where_present" || actual[1] !== "exported_columns_where_present" || actual[2] !== "not_available" || !validCost.has(actual[3])) {
       fail("invalid_schema", "measurement does not match the selected source.");
     }
+  } else if (source.surface === "cursor") {
+    const cursorExpected = ["recorded_usage_counters", "recorded_usage_counters", "not_available", "recorded_in_export"];
+    if (actual.some((item, index) => item !== cursorExpected[index])) fail("invalid_schema", "measurement does not match the selected source.");
   } else if (!expected || actual.some((item, index) => item !== expected[index])) {
     fail("invalid_schema", "measurement does not match the selected source.");
   }
@@ -364,7 +392,7 @@ function validateQuestionnaire(value) {
   if (value === null) return;
   exactObject(value, ["what_to_improve", "source_selected", "route_selected", "kinds_of_work", "frequency", "main_uses", "effort_level", "goals", "account_category"], "questionnaire");
   for (const [key, allowed] of Object.entries(QUESTIONNAIRE_ENUMS)) enumArray(value[key], allowed, `questionnaire.${key}`);
-  oneOf(value.source_selected, new Set(["claude_code", "codex", "claude_console", "claude_chat", "chatgpt", "unrecognized"]), "questionnaire.source_selected");
+  oneOf(value.source_selected, new Set(["claude_code", "codex", "claude_console", "cursor", "claude_chat", "chatgpt", "unrecognized"]), "questionnaire.source_selected");
   oneOf(value.route_selected, new Set(["show_report_first", "make_shareable_summary", "not_selected"]), "questionnaire.route_selected");
 }
 
@@ -396,7 +424,7 @@ function validatePrivacy(value) {
   exactArray(value.excluded, PRIVACY_EXCLUSIONS, "privacy.excluded");
 }
 
-function validateByModel(value, totals, cost) {
+function validateByModel(value, totals, cost, source) {
   if (!Array.isArray(value) || value.length < 1 || value.length > 64) fail("invalid_schema", "by_model must contain between one and 64 rows.");
   const sums = Object.fromEntries(TOTAL_KEYS.map((key) => [key, 0]));
   let costSum = 0;
@@ -409,7 +437,7 @@ function validateByModel(value, totals, cost) {
     const row = value[index];
     const label = `by_model[${index}]`;
     exactObject(row, ["model", ...TOTAL_KEYS, "events_or_replies", "cost"], label);
-    if (!safeModelLabel(row.model)) fail("unsafe_model_label", `${label}.model is not permitted.`);
+    if (source.surface === "cursor" ? !safeCursorModelLabel(row.model) : !safeModelLabel(row.model)) fail("unsafe_model_label", `${label}.model is not permitted.`);
     validateTotals(Object.fromEntries(TOTAL_KEYS.map((key) => [key, row[key]])), label);
     count(row.events_or_replies, `${label}.events_or_replies`);
     validateCost(row.cost, `${label}.cost`);
@@ -618,6 +646,51 @@ function validateV2Sections(report) {
   }
 }
 
+function validateCursorReport(report) {
+  const isCursor = report.source.provider === "cursor" && report.source.surface === "cursor";
+  const usesCursorParser = report.collector.collector_version === CURSOR_COLLECTOR_VERSION || report.collector.parser_version === CURSOR_PARSER_VERSION;
+  if (!isCursor) {
+    if (usesCursorParser) fail("invalid_schema", "Cursor collector versions require the Cursor source.");
+    return;
+  }
+  if (report.schema_version !== REPORT_SCHEMA_VERSION) fail("unsupported_report_version", "Cursor reports use the v1 aggregate schema.");
+  if (report.collector.collector_version !== CURSOR_COLLECTOR_VERSION || report.collector.parser_version !== CURSOR_PARSER_VERSION) fail("unsupported_report_version", "The Cursor collector or parser version is not supported.");
+  if (report.coverage.status !== "limited_to_current_parser_checks"
+      || report.coverage.files_opened !== 1
+      || !Object.hasOwn(report.coverage, "rows_with_recorded_cost")
+      || !Object.hasOwn(report.coverage, "rows_without_recorded_cost")
+      || report.coverage.rows_without_recorded_cost !== 0) {
+    fail("invalid_schema", "Cursor coverage must describe one fully costed CSV.");
+  }
+  if (report.activity.ai_replies !== null
+      || report.activity.console_records !== null
+      || report.activity.text_messages !== null
+      || report.activity.sessions !== null
+      || !Number.isSafeInteger(report.activity.usage_events)
+      || report.activity.usage_events < 1
+      || !Number.isSafeInteger(report.activity.active_days)
+      || report.activity.active_days < 1
+      || report.activity.active_days > report.activity.usage_events) {
+    fail("invalid_reconciliation", "Cursor activity must contain only request events and aggregate active days.");
+  }
+  if (report.by_model.some((row) => row.events_or_replies < 1 || row.total_tokens < 1)) {
+    fail("invalid_reconciliation", "Every Cursor model row must contain at least one request and one token.");
+  }
+  const modelEvents = report.by_model.reduce((sum, row) => sum + row.events_or_replies, 0);
+  if (!Number.isSafeInteger(modelEvents)
+      || modelEvents !== report.activity.usage_events
+      || report.coverage.rows_with_recorded_cost !== report.activity.usage_events) {
+    fail("invalid_reconciliation", "Cursor request counts do not reconcile.");
+  }
+  if (report.totals.reasoning_tokens !== null || report.totals.cache_write_tokens === null || report.totals.cache_read_tokens === null) fail("invalid_schema", "Cursor token fields do not match the supported export.");
+  if (report.cost.status !== "recorded" || report.cost.basis !== "recorded_in_export") fail("invalid_schema", "Cursor cost must be fully recorded in the export.");
+  if (report.by_model.some((row) => row.cost.status !== "recorded")) fail("invalid_schema", "Every Cursor model row must have recorded cost.");
+  if (report.pricing.status !== "not_needed_recorded_cost" || report.pricing.applied_rates.length !== 0 || report.pricing.unpriced_model_groups !== 0) fail("invalid_schema", "Cursor reports must not apply or reconstruct model prices.");
+  if (report.permission_mode_counts !== null) fail("invalid_schema", "Cursor reports cannot include permission modes.");
+  if (report.questionnaire !== null && report.questionnaire.source_selected !== "cursor") fail("invalid_schema", "Cursor questionnaire source does not match the report.");
+  if (report.value_model.truth_status !== "not_available" || report.value_model.reason !== "current_report_not_eligible") fail("invalid_schema", "Cursor reports cannot include an unverified value scenario.");
+}
+
 export function validateResearchSafeUsage(report) {
   if (!isObject(report)) fail("invalid_schema", "report must be an object.");
   const baseKeys = ["schema_version", "collector", "generated_date", "source", "measurement", "scope", "coverage", "totals", "activity", "cost", "pricing", "permission_mode_counts", "by_model", "questionnaire", "value_model", "privacy"];
@@ -645,12 +718,13 @@ export function validateResearchSafeUsage(report) {
   if (report.cost.status !== "unavailable" && report.cost.usd === null) fail("invalid_schema", "priced report cost is missing its amount.");
   validatePricing(report.pricing, report.by_model.length);
   validatePermissionModes(report.permission_mode_counts);
-  validateByModel(report.by_model, report.totals, report.cost);
+  validateByModel(report.by_model, report.totals, report.cost, report.source);
   const unpriced = report.by_model.filter((row) => row.cost.status === "unavailable").length;
   if (unpriced !== report.pricing.unpriced_model_groups) fail("invalid_reconciliation", "unpriced model count does not reconcile.");
   validateQuestionnaire(report.questionnaire);
   validateValueModel(report.value_model);
   validatePrivacy(report.privacy);
+  validateCursorReport(report);
   if (report.schema_version === REPORT_SCHEMA_VERSION_V2) validateV2Sections(report);
   return true;
 }

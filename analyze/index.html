@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>TOP: understand AI usage or prepare an Obsidian vault for 7C's</title>
-<meta name="description" content="Open Claude, ChatGPT or Codex history for a private usage report, or check an Obsidian vault locally for a future 7C's memory setup. Nothing is sent to TOP.">
+<meta name="description" content="Open Claude, ChatGPT, Codex or Cursor usage history for a private local report, or check an Obsidian vault locally for a future 7C's memory setup. Nothing is sent to TOP.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -281,7 +281,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
   <header>
     <div class="badge"><span class="lk"></span>Your chosen files stay on this device</div>
     <h1>Understand your AI usage, or prepare your Obsidian vault for private AI memory.</h1>
-    <p class="sub">Choose a Claude, ChatGPT or Codex history file for a usage report, or choose an Obsidian vault folder for a local 7C's readiness check. The files stay in this browser and are not sent to TOP.</p>
+    <p class="sub">Choose a Claude, ChatGPT, Codex or Cursor usage file for a report, or choose an Obsidian vault folder for a local 7C's readiness check. The files stay in this browser and are not sent to TOP.</p>
   </header>
   <div class="flow-shell">
     <div class="journey-rail" aria-live="polite">
@@ -300,7 +300,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
           <button type="button" class="pilot-choice" data-pilot-source="cc" aria-pressed="false"><strong>Claude Code</strong><span>Usage saved by Claude while it works in coding projects.</span></button>
           <button type="button" class="pilot-choice" data-pilot-source="codex" aria-pressed="false"><strong>Codex</strong><span>Usage counters saved in your local Codex sessions.</span></button>
         </div>
-        <p class="pilot-full-link">Using Claude Chat, ChatGPT, Claude Console, or Obsidian? <a href="/analyze/">Open the full analyzer</a>.</p>
+        <p class="pilot-full-link">Using Claude Chat, ChatGPT, Claude Console, Cursor, or Obsidian? <a href="/analyze/">Open the full analyzer</a>.</p>
       </div>
       <div class="pilot-question" id="pilotMethodStep" hidden>
         <button type="button" class="step-back pilot-back" id="pilotBackToSource">← Back</button>
@@ -350,10 +350,11 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <section class="provider-step" id="providerStep" hidden aria-labelledby="providerHeading">
       <button type="button" class="step-back" id="changeResonance">← Change Answers</button>
       <h2 id="providerHeading" tabindex="-1"><span class="flow-kicker">2</span>Choose Where Your Work Lives</h2>
-      <p class="step-lead">Choose Claude, Codex, ChatGPT or Obsidian. Claude then asks whether your history came from coding, chat or the pay-as-you-go Console.</p>
+      <p class="step-lead">Choose Claude, Codex, Cursor, ChatGPT or Obsidian. Claude then asks whether your history came from coding, chat or the pay-as-you-go Console.</p>
       <div class="tabs" id="tabs" role="group" aria-label="Work source">
         <button type="button" class="tab" data-provider="claude" aria-controls="claudeSources" aria-expanded="false" aria-pressed="false">Claude<span class="st">Choose Claude Code, Claude Chat or Claude Console</span></button>
         <button type="button" class="tab" data-mode="codex" aria-pressed="false">Codex<span class="st">Uses recorded token counts from local Codex session logs</span></button>
+        <button type="button" class="tab" data-mode="cursor" aria-pressed="false">Cursor<span class="st">Uses recorded request costs and token counts from one Cursor usage CSV</span></button>
         <button type="button" class="tab" data-mode="openai" aria-pressed="false">ChatGPT<span class="st">Estimates usage from the length of your ChatGPT conversations</span></button>
         <button type="button" class="tab" data-mode="obsidian" aria-pressed="false">Obsidian + 7C's<span class="st">Checks your vault locally and finds supported AI history files</span></button>
       </div>
@@ -512,6 +513,12 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         <p>Suggested locations: <code>AI History/Usage Log/ai-events.jsonl</code> and <code>AI History/Reports/YYYY-MM-DD-codex-usage.md</code>.</p>
         <div class="export-actions"><button class="btn p" id="downloadAIEvents">Download ai-events.jsonl</button><button class="btn" id="downloadObsidianReport">Download Obsidian Report</button></div>
         <p class="privacy-reminder">Save these only where you intend. OneDrive, Obsidian Sync and Git may copy files placed inside a synced vault. Keep raw Codex rollout files outside the vault.</p>
+      </div>
+      <div class="codex-exports" id="cursorObsidianDownloads" hidden>
+        <h4>Keep A Content-Free Cursor Usage Note In Obsidian</h4>
+        <p>The note aggregates by UTC day and AI version. It contains request counts, recorded costs and token totals, not exact times, request IDs, prompts, replies, code, paths, project names or branch names.</p>
+        <div class="export-actions"><button class="btn p" id="downloadCursorObsidianReport">Download Cursor Obsidian Report</button></div>
+        <p class="privacy-reminder">Inspect the note before saving it. OneDrive, Obsidian Sync and Git may copy files placed inside a synced vault. Keep the raw Cursor CSV outside the vault.</p>
       </div>
     </div>
     <p class="note">Pay-as-you-go means each amount of AI use is billed separately. Estimates use provider prices checked on 15 Jul 2026 and may differ from your bill. Claude Max, Claude Pro and ChatGPT subscriptions are not charged using the dollar estimate shown here.</p>
@@ -1010,6 +1017,7 @@ function resetDownstream(){
   document.getElementById('outb').style.display='none';
   document.getElementById('shareSummaryBox').hidden=true;
   document.getElementById('codexObsidianDownloads').hidden=true;
+  document.getElementById('cursorObsidianDownloads').hidden=true;
   document.getElementById('survey').hidden=true;
   document.getElementById('file').value='';
   document.getElementById('fileb').value='';
@@ -1179,6 +1187,15 @@ var MODES={
         "Drop the CSV into the box above."],
       stepstip:"A Usage CSV has usage numbers. A Cost CSV has costs Anthropic recorded. If any record has no valid cost, TOP clearly labels the dollar total as an estimate.",
       note:""},
+  cursor:{label:"Cursor", small:"one Cursor usage CSV with a recorded cost and token counts for every request",
+      hint:"In Cursor, open <b>Settings</b>, then <b>Usage</b>, export your own usage CSV, and choose that one file here. Accepted headers are <code>timestamp</code> or <code>date</code>, <code>model</code>, <code>cost</code> or <code>cost_usd</code>, <code>input_tokens</code>, <code>output_tokens</code>, <code>cache_read_tokens</code> and <code>cache_write_tokens</code>. Spaces may replace underscores in the token headers.",
+      steps:[
+        "Open <b>Cursor</b>, then open <b>Settings</b> and <b>Usage</b>.",
+        "Export or download your own usage CSV.",
+        "Choose exactly one CSV here. TOP checks every row before showing any result.",
+        "If a required field is missing or unclear, TOP rejects the whole file instead of guessing. A single combined cache_tokens column is not accepted because TOP cannot safely split it into reads and writes."],
+      stepstip:"TOP uses the cost already recorded in the Cursor export. It does not reconstruct prices, inspect Cursor's local databases, or read prompts, code, projects or branches.",
+      note:"Cursor export formats can change. TOP accepts only the documented per-request columns and stops on any malformed or incomplete row."},
   chat:{label:"Claude Chat", small:"conversations.json from your Claude Chat data export",
       hint:"In the Claude desktop app, open Settings, then Privacy, then Export Data, and drop the <code>conversations.json</code> from the email export here.",
       steps:[
@@ -1204,7 +1221,7 @@ var MODES={
       note:"ChatGPT history downloads do not provide a reliable cost for each conversation. TOP estimates usage from message length on this device and does not invent a dollar charge."},
   obsidian:{label:"Obsidian + 7C's",small:"an Obsidian vault folder checked locally",hint:"",steps:[],stepstip:"",note:""}
 };
-var MODE_ACCEPT={cc:".jsonl",codex:".jsonl",csv:".csv",chat:".json",openai:".json"};
+var MODE_ACCEPT={cc:".jsonl",codex:".jsonl",csv:".csv",cursor:".csv",chat:".json",openai:".json"};
 var ROUTE_COPY={
   cc:{
     a:"Choose your Claude Code history files. This tab reads the usage numbers on your device. Your prompts, replies, code and files are not uploaded.",
@@ -1220,7 +1237,10 @@ var ROUTE_COPY={
     b:"Choose your ChatGPT history download. This tab reads it on your device, then prepares a new summary containing totals and optional answers, not conversation text. You inspect and download that summary yourself."},
   csv:{
     a:"Choose either an Anthropic Usage CSV for usage numbers or a Cost CSV for recorded cost. This tab reads the selected file on your device. It is not uploaded.",
-    b:"Choose either an Anthropic Usage CSV or Cost CSV. This tab prepares a smaller summary from the information that file contains. You inspect and download it yourself."}
+    b:"Choose either an Anthropic Usage CSV or Cost CSV. This tab prepares a smaller summary from the information that file contains. You inspect and download it yourself."},
+  cursor:{
+    a:"Choose one Cursor usage CSV. TOP validates every per-request row locally and keeps only aggregate costs, token counts, UTC days and safe AI version labels. The file is not uploaded.",
+    b:"Choose one Cursor usage CSV. TOP prepares a content-free aggregate summary for you to inspect and download. It leaves out exact times, request IDs, prompts, code, paths, projects and branches."}
 };
 var CLAUDE_MODES={cc:true,chat:true,csv:true};
 function isClaudeMode(value){return !!CLAUDE_MODES[value]}
@@ -1689,6 +1709,123 @@ function parseCSV(texts){
     costRows:costRows,missingCostRows:missingCostRows,costComplete:allRowsHaveCost,
     estimateReason:allRowsHaveCost?"":"one or more rows lacked a valid billed cost; recognized missing rows use editable comparison rates and unrecognized models remain unpriced"};
 }
+// Cursor is intentionally separate from the permissive Console CSV reader.
+// Future credit-metered sources such as Copilot need their own schema and must
+// not be routed through this token-and-recorded-cost contract.
+var CURSOR_CSV_HEADER_ALIASES={
+  timestamp:["timestamp","date"],
+  model:["model"],
+  cost:["cost","cost_usd","cost usd"],
+  inp:["input_tokens","input tokens"],
+  out:["output_tokens","output tokens"],
+  cr:["cache_read_tokens","cache read tokens","cache read"],
+  cw:["cache_write_tokens","cache write tokens","cache write"]
+};
+var CURSOR_COMBINED_CACHE_HEADERS=["cache_tokens","cache tokens"];
+function parseStrictCursorCSVRows(text){
+  var source=String(text===undefined||text===null?"":text).replace(/^\uFEFF/,""),rows=[],row=[],field="",quoted=false,closedQuote=false;
+  function finishField(){row.push(field);field="";closedQuote=false}
+  function finishRow(){finishField();if(!(row.length===1&&row[0].trim()===""))rows.push(row);row=[]}
+  for(var i=0;i<source.length;i++){
+    var ch=source[i];
+    if(quoted){
+      if(ch==='"'){
+        if(source[i+1]==='"'){field+='"';i++}else{quoted=false;closedQuote=true}
+      }else field+=ch;
+      continue;
+    }
+    if(closedQuote){
+      if(ch===","){finishField();continue}
+      if(ch==="\r"||ch==="\n"){if(ch==="\r"&&source[i+1]==="\n")i++;finishRow();continue}
+      throw new Error("Cursor CSV has characters after a closing quote");
+    }
+    if(ch==='"'){
+      if(field!=="")throw new Error("Cursor CSV has a quote inside an unquoted field");
+      quoted=true;continue;
+    }
+    if(ch===","){finishField();continue}
+    if(ch==="\r"||ch==="\n"){if(ch==="\r"&&source[i+1]==="\n")i++;finishRow();continue}
+    field+=ch;
+  }
+  if(quoted)throw new Error("Cursor CSV has an unclosed quoted field");
+  if(field!==""||row.length||closedQuote)finishRow();
+  if(!rows.length)throw new Error("Cursor CSV is empty");
+  rows[0][0]=String(rows[0][0]||"").replace(/^\uFEFF/,"");
+  return rows;
+}
+function cursorHeaderMap(header){
+  var normalized=header.map(function(value){return String(value||"").trim().toLowerCase()}),seen={};
+  normalized.forEach(function(value){if(!value)throw new Error("Cursor CSV has an empty header");if(seen[value])throw new Error("Cursor CSV has a duplicate header: "+value);seen[value]=true});
+  if(normalized.some(function(value){return CURSOR_COMBINED_CACHE_HEADERS.indexOf(value)>=0}))throw new Error("Cursor CSV has one combined cache_tokens column. TOP requires separate cache_read_tokens and cache_write_tokens columns so it does not mislabel the total");
+  var indexes={},used={};
+  Object.keys(CURSOR_CSV_HEADER_ALIASES).forEach(function(key){
+    var aliases=CURSOR_CSV_HEADER_ALIASES[key],matches=[];
+    normalized.forEach(function(value,index){if(aliases.indexOf(value)>=0)matches.push(index)});
+    if(matches.length!==1)throw new Error("Cursor CSV needs exactly one "+aliases[0]+" column");
+    if(used[matches[0]])throw new Error("Cursor CSV maps one column to more than one required field");
+    used[matches[0]]=true;indexes[key]=matches[0];
+  });
+  return indexes;
+}
+function strictCursorCount(value,label){
+  var text=String(value===undefined?"":value).trim();
+  if(!/^(?:0|[1-9]\d*)$/.test(text))throw new Error("Cursor CSV "+label+" must be a nonnegative whole number");
+  var number=Number(text);if(!Number.isSafeInteger(number))throw new Error("Cursor CSV "+label+" exceeds the supported range");return number;
+}
+function strictCursorMoney(value){
+  var text=String(value===undefined?"":value).trim();
+  if(!/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(text))throw new Error("Cursor CSV cost must be a recorded nonnegative decimal amount");
+  var number=Number(text);if(!Number.isFinite(number))throw new Error("Cursor CSV cost is not a finite amount");return number;
+}
+function strictCursorTimestamp(value){
+  var text=String(value===undefined?"":value).trim(),match=text.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})$/);
+  if(!match)throw new Error("Cursor CSV timestamp must be ISO 8601 with a timezone");
+  var year=Number(match[1]),month=Number(match[2]),day=Number(match[3]),hour=Number(match[4]),minute=Number(match[5]),second=Number(match[6]),offset=match[7],daysInMonth=new Date(Date.UTC(year,month,0)).getUTCDate();
+  if(year<1||month<1||month>12||day<1||day>daysInMonth||hour>23||minute>59||second>59)throw new Error("Cursor CSV timestamp is not a real calendar time");
+  if(offset!=="Z"){
+    var parts=offset.slice(1).split(":"),offsetHour=Number(parts[0]),offsetMinute=Number(parts[1]);
+    if(offsetHour>14||offsetMinute>59||(offsetHour===14&&offsetMinute!==0))throw new Error("Cursor CSV timestamp has an invalid timezone offset");
+  }
+  var parsed=new Date(text);if(!Number.isFinite(parsed.getTime()))throw new Error("Cursor CSV timestamp could not be parsed");
+  return parsed.toISOString().slice(0,10);
+}
+var CURSOR_MODEL_LABEL_PATTERNS=[
+  /^claude-(?:(?:opus|sonnet|haiku|fable|mythos)-\d{1,2}(?:[.-]\d{1,2}){0,2}|\d{1,2}(?:[.-]\d{1,2}){0,2}-(?:opus|sonnet|haiku|fable|mythos))(?:-(?:latest|preview|thinking|max|\d{8}|\d{4}-\d{2}-\d{2}))?$/i,
+  /^gpt-\d{1,2}o?(?:[.-]\d{1,2}){0,2}(?:-(?:sol|terra|luna|mini|nano|codex(?:-mini)?|chat|pro|turbo|vision|audio|realtime))?(?:-(?:latest|preview|thinking|high|medium|low|max|\d{8}|\d{4}-\d{2}-\d{2}))?$/i,
+  /^o[1-9]\d?(?:-(?:mini|pro))?(?:-(?:latest|preview|thinking|high|medium|low|max))?$/i,
+  /^gemini-\d{1,2}(?:[.-]\d{1,2}){0,2}(?:-(?:pro|flash|flash-lite|ultra|nano))?(?:-(?:latest|preview|exp|thinking|max|\d{8}|\d{4}-\d{2}-\d{2}))?$/i,
+  /^deepseek-(?:v?\d{1,2}(?:[.-]\d{1,2}){0,2}|r[1-9]\d?)(?:-(?:pro|lite|chat|coder|reasoner|distill))?(?:-(?:latest|preview|thinking|max))?$/i,
+  /^grok-(?:(?:\d{1,2}(?:[.-]\d{1,2}){0,2})(?:-(?:mini|fast|code|vision))?|code-fast-\d{1,2})(?:-(?:latest|preview|beta|thinking|max))?$/i,
+  /^composer(?:-\d{1,2}(?:[.-]\d{1,2}){0,2})?(?:-(?:fast|pro|thinking|max|latest|preview))?$/i,
+  /^cursor-(?:small|fast|pro|max|thinking|composer)(?:-(?:latest|preview|\d{1,2}(?:[.-]\d{1,2}){0,2}))?$/i,
+  /^auto$/i
+];
+function strictCursorModelLabel(value){
+  var model=String(value===undefined?"":value).trim();
+  if(!model||model.length>80||/[\u0000-\u001f\u007f<>\\/]/.test(model)||!CURSOR_MODEL_LABEL_PATTERNS.some(function(pattern){return pattern.test(model)}))throw new Error("Cursor CSV model label is not a supported public AI version or Cursor tier");
+  return model;
+}
+function addCursorCount(left,right,label){var sum=left+right;if(!Number.isSafeInteger(sum))throw new Error("Cursor CSV "+label+" total exceeds the supported range");return sum}
+function addCursorMoney(left,right){var sum=left+right;if(!Number.isFinite(sum))throw new Error("Cursor CSV cost total exceeds the supported range");return Number(sum.toFixed(12))}
+function parseCursorCSV(texts){
+  if(!Array.isArray(texts)||texts.length!==1)throw new Error("Choose exactly one Cursor usage CSV so overlapping exports cannot be counted twice");
+  var parsed=parseStrictCursorCSVRows(texts[0]);if(parsed.length<2)throw new Error("Cursor CSV has no request rows");
+  var header=parsed[0],columns=cursorHeaderMap(header),by={},days={},dailyByModel={},rows=0,totalCost=0,globalTokens={inp:0,out:0,cr:0,cw:0};
+  for(var rowIndex=1;rowIndex<parsed.length;rowIndex++){
+    var fields=parsed[rowIndex];if(fields.length!==header.length)throw new Error("Cursor CSV row "+(rowIndex+1)+" has the wrong number of columns");
+    var day=strictCursorTimestamp(fields[columns.timestamp]),model=strictCursorModelLabel(fields[columns.model]),cost=strictCursorMoney(fields[columns.cost]),inp=strictCursorCount(fields[columns.inp],"input_tokens"),out=strictCursorCount(fields[columns.out],"output_tokens"),cr=strictCursorCount(fields[columns.cr],"cache_read_tokens"),cw=strictCursorCount(fields[columns.cw],"cache_write_tokens"),rowTokenTotal=addCursorCount(addCursorCount(inp,out,"row token"),addCursorCount(cr,cw,"row cache token"),"row token");
+    if(rowTokenTotal===0)throw new Error("Cursor CSV row "+(rowIndex+1)+" has no recorded token usage");
+    var entry=by[model];
+    if(!entry){if(Object.keys(by).length>=64)throw new Error("Cursor CSV supports at most 64 distinct public model labels");entry=by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0}}}
+    entry.inp=addCursorCount(entry.inp,inp,"input_tokens");entry.out=addCursorCount(entry.out,out,"output_tokens");entry.cw=addCursorCount(entry.cw,cw,"cache_write_tokens");entry.cr=addCursorCount(entry.cr,cr,"cache_read_tokens");addCursorCount(addCursorCount(entry.inp,entry.out,"model token"),addCursorCount(entry.cr,entry.cw,"model cache token"),"model token");entry.turns=addCursorCount(entry.turns,1,"request count");entry.cost=addCursorMoney(entry.cost,cost);entry.costRows=addCursorCount(entry.costRows,1,"recorded cost row count");
+    var ledgerKey=day+"\u0000"+model,ledger=dailyByModel[ledgerKey]||(dailyByModel[ledgerKey]={day:day,model:model,inp:0,out:0,cw:0,cr:0,requests:0,cost:0});
+    ledger.inp=addCursorCount(ledger.inp,inp,"daily input_tokens");ledger.out=addCursorCount(ledger.out,out,"daily output_tokens");ledger.cw=addCursorCount(ledger.cw,cw,"daily cache_write_tokens");ledger.cr=addCursorCount(ledger.cr,cr,"daily cache_read_tokens");addCursorCount(addCursorCount(ledger.inp,ledger.out,"daily token"),addCursorCount(ledger.cr,ledger.cw,"daily cache token"),"daily token");ledger.requests=addCursorCount(ledger.requests,1,"daily request count");ledger.cost=addCursorMoney(ledger.cost,cost);
+    globalTokens.inp=addCursorCount(globalTokens.inp,inp,"report input_tokens");globalTokens.out=addCursorCount(globalTokens.out,out,"report output_tokens");globalTokens.cr=addCursorCount(globalTokens.cr,cr,"report cache_read_tokens");globalTokens.cw=addCursorCount(globalTokens.cw,cw,"report cache_write_tokens");addCursorCount(addCursorCount(globalTokens.inp,globalTokens.out,"report token"),addCursorCount(globalTokens.cr,globalTokens.cw,"report cache token"),"report token");
+    totalCost=addCursorMoney(totalCost,cost);days[day]=true;rows=addCursorCount(rows,1,"request count");
+  }
+  var dayKeys=Object.keys(days).sort();
+  return {by:by,turns:rows,sessions:0,days:dayKeys.length,kind:"Cursor usage CSV",estimate:false,costLabel:"Recorded Cursor cost",csv:true,cursor:true,topSource:"cursor",costRows:rows,missingCostRows:0,costComplete:true,valueModelEligible:false,totalRecordedCost:totalCost,periodStart:dayKeys[0],periodEnd:dayKeys[dayKeys.length-1],dailyByModel:Object.keys(dailyByModel).sort().map(function(key){return dailyByModel[key]})};
+}
 function estTokens(s){return Math.ceil(String(s||"").length/4)}
 function conversationRecords(data){return Array.isArray(data)?data:(data&&Array.isArray(data.conversations)?data.conversations:(data&&typeof data==="object"?[data]:[]))}
 function conversationPrivateKey(record,provider,fileIndex,recordIndex){
@@ -1837,7 +1974,7 @@ function parseOpenAI(texts){
 
 // ---------- render ----------
 function resolveCostRow(model,e,res){
-  var key=priceKeyFor(model),cost=null,complete=!res.chatExport;
+  var key=res.cursor?null:priceKeyFor(model),cost=null,complete=!res.chatExport;
   if(!res.chatExport&&res.csv){
     cost=e.costRows?e.cost:0;
     if(e.missingCostRows){
@@ -1855,6 +1992,7 @@ function valueModelAllowed(rows,costAvailable){
   return costAvailable&&rows.length>0&&rows.every(function(r){return !!priceKeyFor(r.model);});
 }
 function resultCountLabels(res){
+  if(res.cursor) return {card:"Requests",table:"Requests",summary:"Requests"};
   if(res.csv) return {card:"Records",table:"Records",summary:"Records"};
   if(res.chatExport) return {card:"Text messages found",table:"Text messages found",summary:"Text messages found in selected file"};
   return {card:"AI replies with usage data",table:"AI replies",summary:"AI replies with usage data"};
@@ -1901,14 +2039,15 @@ function revealStandardPostReport(){
 function render(res){
   LAST_RESULT=res;
   document.getElementById("codexObsidianDownloads").hidden=!res.codex;
+  document.getElementById("cursorObsidianDownloads").hidden=!res.cursor;
   document.getElementById("reportScope").textContent=res.chatExport
     ?"This report covers only the conversation records and visible text inside the file you selected. It is not your full account total, subscription allowance, Claude Code usage or Codex usage."
-    :(res.codex?"This report covers only recorded token counters found in the selected Codex files.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files."));
+    :(res.codex?"This report covers only recorded token counters found in the selected Codex files.":(res.cursor?"This report covers every valid request row in the one Cursor usage CSV you selected. The whole file is rejected if any required value is missing or malformed.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files.")));
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[];
   Object.keys(by).forEach(function(model){
     var e=by[model],resolved=resolveCostRow(model,e,res),key=resolved.key,cost=resolved.cost,complete=resolved.complete;
     if(key) usedPriceKeys[key]=1;
-    if(!complete){allCostsAvailable=false;unpriced.push(safePublicModelLabel(model));}
+    if(!complete){allCostsAvailable=false;unpriced.push(res.cursor?strictCursorModelLabel(model):safePublicModelLabel(model));}
     if(cost!==null) totCost+=cost;
     totInp+=e.inp;totOut+=e.out;totCw+=e.cw;totCr+=e.cr;
     rows.push({model:model,e:e,cost:cost,complete:complete});
@@ -1917,7 +2056,7 @@ function render(res){
   var totTok=totInp+totOut+totCw+totCr;
   res.costAvailable=allCostsAvailable&&rows.length>0;
   res.partialCost=!res.chatExport&&!allCostsAvailable&&totCost>0;
-  res.valueModelEligible=valueModelAllowed(rows,res.costAvailable);
+  res.valueModelEligible=!res.cursor&&valueModelAllowed(rows,res.costAvailable);
   var costCard=res.chatExport?["Recorded dollar cost","Not included",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):"Recorded spend",(res.estimate?"~":"")+fmt$(totCost),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""]));
   var countLabels=resultCountLabels(res), tokenPrefix=res.chatExport?"about ":"";
   var cards=[costCard,
@@ -1933,7 +2072,7 @@ function render(res){
     :"Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.";
   var estimateWord=res.chatExport?"Estimated ":"";
   var th='<thead><tr><th>AI version</th><th>'+estimateWord+'text sent to the AI</th><th>'+estimateWord+'text returned by the AI</th><th>'+estimateWord+'previously saved text: added / reused</th><th>'+countLabels.table+'</th><th>Cost</th></tr></thead>';
-  var tb=rows.map(function(r){var shown=res.chatExport?"Not in export":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
+  var tb=rows.map(function(r){var shown=res.chatExport?"Not in export":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr)),modelLabel=res.cursor?strictCursorModelLabel(r.model):safePublicModelLabel(r.model);return '<tr><td>'+esc(modelLabel)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
   var totalShown=res.chatExport?"Not in export":(res.costAvailable?((res.estimate?"~":"")+fmt$(totCost)):(res.partialCost?("Partial "+fmt$(totCost)):"Not available"));
   var tf='<tfoot><tr><td>Total</td><td class="n">'+tokenPrefix+fmtN(totInp)+'</td><td class="n">'+tokenPrefix+fmtN(totOut)+'</td><td class="n">'+(res.chatExport?"Not in export":(fmtN(totCw)+' / '+fmtN(totCr)))+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
   document.getElementById("modeltable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
@@ -1993,7 +2132,7 @@ function render(res){
   if(res.chatExport&&res.ignoredRecords) lines.push("Objects ignored because they did not match conversation records with readable user and AI text: "+fmtInt(res.ignoredRecords)+".");
   if(res.chatExport&&res.duplicateRecords) lines.push("Duplicate conversation copies skipped: "+fmtInt(res.duplicateRecords)+".");
   if(res.days) lines.push("Days used: "+fmtInt(res.days)+".");
-  if(perTurn!==null) lines.push("Average cost per "+(res.csv?"record":"AI reply")+": "+fmt$(perTurn)+".");
+  if(perTurn!==null) lines.push("Average cost per "+(res.cursor?"request":(res.csv?"record":"AI reply"))+": "+fmt$(perTurn)+".");
   if(!res.chatExport&&priceKeys.length){
     lines.push("Pricing basis: pay-as-you-go API rates checked "+PRICING_CHECKED+". Five-minute cache writes use 1.25 times the input rate and cache reads use 0.1 times the input rate.");
     if(priceKeys.some(function(key){return PRICES[key].source===ANTHROPIC_PRICING_SOURCE}))lines.push("Anthropic pricing source: "+ANTHROPIC_PRICING_SOURCE+".");
@@ -2003,14 +2142,14 @@ function render(res){
   lines.push("Usage by AI version:");
   rows.forEach(function(r){
     var rowCost=r.cost===null?"cost not available":(!r.complete?("partial cost "+fmt$(r.cost)):((res.estimate?"estimated cost about ":"cost ")+fmt$(r.cost)));
-    lines.push("  "+safePublicModelLabel(r.model)+": "+(res.chatExport?("about "+fmtInt(r.e.inp)+" sent, about "+fmtInt(r.e.out)+" returned"):(fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused"))+", "+fmtInt(r.e.turns)+" "+countLabels.table.toLowerCase()+", "+rowCost+".");
+    lines.push("  "+(res.cursor?strictCursorModelLabel(r.model):safePublicModelLabel(r.model))+": "+(res.chatExport?("about "+fmtInt(r.e.inp)+" sent, about "+fmtInt(r.e.out)+" returned"):(fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused"))+", "+fmtInt(r.e.turns)+" "+countLabels.table.toLowerCase()+", "+rowCost+".");
   });
   lines.push("");
   lines.push("Privacy note: This summary contains no conversation text, AI reply text, code, file contents or original internal ID numbers.");
   document.getElementById("summary").value=lines.join("\n");
   lastSummary=lines.join("\n");
   document.getElementById("shareStatus").textContent="";
-  document.getElementById("prices").innerHTML=res.chatExport?"No dollar cost is guessed for chat-history downloads.":pricingDetailsHTML(priceKeys);
+  document.getElementById("prices").innerHTML=res.chatExport?"No dollar cost is guessed for chat-history downloads.":(res.cursor?"Cursor supplied a recorded cost for every accepted request. TOP did not apply or reconstruct model prices.":pricingDetailsHTML(priceKeys));
   document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
     var v=parseFloat(inp.value); if(!isNaN(v)){PRICES[inp.dataset.k][inp.dataset.f]=v;PRICING_EDITED_FIELDS[inp.dataset.k+":"+inp.dataset.f]=true;} render(res);
   })});
@@ -2372,7 +2511,7 @@ function inferModeFromFileNames(files){
   var list=Array.prototype.slice.call(files||[]),names=list.map(function(file){return String(file.name||"")});
   if(!names.length)return "";
   if(names.every(conversationFileName))return "conversation";
-  if(names.every(function(name){return /\.csv$/i.test(name)}))return "csv";
+  if(names.every(function(name){return /\.csv$/i.test(name)}))return typeof mode!=="undefined"&&mode==="cursor"?"cursor":"csv";
   if(names.every(function(name){return /\.jsonl$/i.test(name)})){
     if(names.some(function(name){return /^history\.jsonl$/i.test(name)}))return "";
     if(names.every(function(name){return /^rollout-.+\.jsonl$/i.test(name)||/^ai-events\.jsonl$/i.test(name)}))return "codex";
@@ -2405,7 +2544,7 @@ function historyFilesForMode(files,targetMode,origin){
   var unsafeCodexRoot=targetMode==="codex"&&list.some(function(file){return /^(?:\.codex)(?:\/|\\)/i.test(String(file.webkitRelativePath||""))});
   var claudeFolderRoots=Object.keys(folderRoots),unsafeClaudeRoot=targetMode==="cc"&&origin==="folder"&&claudeFolderRoots.indexOf(".claude")>=0;
   var invalidClaudeFolder=targetMode==="cc"&&origin==="folder"&&!unsafeClaudeRoot&&(claudeFolderRoots.length!==1||claudeFolderRoots[0]!=="projects");
-  var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:(targetMode==="csv"?/\.csv$/i:/^conversations?(?:[-_]\d+)?\.json$/i));
+  var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:((targetMode==="csv"||targetMode==="cursor")?/\.csv$/i:/^conversations?(?:[-_]\d+)?\.json$/i));
   var fileLimit=targetMode==="codex"?HISTORY_LIMITS.maxCodexFileBytes:((targetMode==="chat"||targetMode==="openai")?conversationLimitBytes():HISTORY_LIMITS.maxFileBytes);
   list.forEach(function(file){
     var name=String(file.name||"");
@@ -2418,15 +2557,16 @@ function historyFilesForMode(files,targetMode,origin){
     if(targetMode==="codex"){if(/^ai-events\.jsonl$/i.test(name))codexAggregates++;else codexRollouts++}
     total+=Number(file.size||0);allowed.push(file);
   });
-  var mixedCodexSources=targetMode==="codex"&&codexRollouts>0&&codexAggregates>0,multipleCodexAggregates=targetMode==="codex"&&codexAggregates>1;
-  var rejectedRoot=unsafeCodexRoot||unsafeClaudeRoot||invalidClaudeFolder||unsafeClaudeHistory||mixedCodexSources||multipleCodexAggregates;
-  return {files:rejectedRoot?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,oversized:oversized,totalBytes:rejectedRoot?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,unsafeClaudeRoot:unsafeClaudeRoot,invalidClaudeFolder:invalidClaudeFolder,unsafeClaudeHistory:unsafeClaudeHistory,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates,regularJson:regularJson,projectJson:projectJson,contextJson:contextJson};
+  var mixedCodexSources=targetMode==="codex"&&codexRollouts>0&&codexAggregates>0,multipleCodexAggregates=targetMode==="codex"&&codexAggregates>1,multipleCursorFiles=targetMode==="cursor"&&(allowed.length!==1||allowed.length!==list.length);
+  var rejectedRoot=unsafeCodexRoot||unsafeClaudeRoot||invalidClaudeFolder||unsafeClaudeHistory||mixedCodexSources||multipleCodexAggregates||multipleCursorFiles;
+  return {files:rejectedRoot?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,oversized:oversized,totalBytes:rejectedRoot?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,unsafeClaudeRoot:unsafeClaudeRoot,invalidClaudeFolder:invalidClaudeFolder,unsafeClaudeHistory:unsafeClaudeHistory,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates,multipleCursorFiles:multipleCursorFiles,regularJson:regularJson,projectJson:projectJson,contextJson:contextJson};
 }
 function finishParsedResult(res,openedCount){
   res.filesOpened=safeCodexCount(openedCount);
   var n=Object.keys(res.by).length;
   if(!n||res.turns===0){
-    if(mode==="csv") showErr("TOP could not find recognized usage or cost columns with real values in that CSV. An Obsidian note is not a Console export. Choose an Anthropic Usage or Cost CSV.");
+    if(mode==="cursor") showErr("TOP found no valid request rows in that Cursor CSV. Choose one current Cursor usage export with all seven required per-request fields.");
+    else if(mode==="csv") showErr("TOP could not find recognized usage or cost columns with real values in that CSV. An Obsidian note is not a Console export. Choose an Anthropic Usage or Cost CSV.");
     else if(mode==="codex") showErr("TOP found no recorded token usage in those Codex session files. Some older or incomplete Codex sessions have no token_count records. TOP will not estimate usage from transcript text.");
     else showErr("TOP could not find usage data for the source you chose. Try the matching Claude Code JSONL, Claude Chat conversations.json, or ChatGPT conversations.json file.");
     return;
@@ -2505,6 +2645,7 @@ function handle(files,origin){
     else if(checked.unsafeClaudeHistory) showErr("history.jsonl contains prompt history, not Claude Code token usage. TOP did not open it. Choose the .claude\\projects folder or supported session JSONL files instead.");
     else if(checked.mixedCodexSources) showErr("Choose either raw rollout-*.jsonl files or ai-events.jsonl aggregate files, not both in one report. The aggregate may already contain the raw usage, so mixing them could count the same tokens twice.");
     else if(checked.multipleCodexAggregates) showErr("Choose one ai-events.jsonl aggregate at a time. Two aggregate files may cover some of the same sessions, and TOP cannot safely detect that overlap without retaining private session IDs.");
+    else if(checked.multipleCursorFiles) showErr("Choose exactly one Cursor usage CSV and no other files. TOP rejects mixed or overlapping selections instead of silently skipping or double-counting rows.");
     else if(checked.markdown) showErr("That looks like an Obsidian note, not an AI history export. No data was uploaded or sent. Choose Obsidian + 7C's to check the vault, or use a downloaded Claude, ChatGPT or Codex history for a usage report.");
     else if(checked.archives) showErr("TOP cannot open a whole ZIP yet. On Windows, right-click the ZIP and choose Extract All, open the extracted folder, then choose conversations.json, a supported JSONL file, or a Console CSV.");
     else if(checked.oversized&&mode==="cc") showErr("That combined raw-history file is too large to open safely as one file. Use Choose The Whole Claude Code Folder instead. TOP reads those session files one at a time and keeps everything on this device.");
@@ -2512,7 +2653,7 @@ function handle(files,origin){
     else if(mode==="codex") showErr("None of those files are supported Codex session files. Choose rollout-*.jsonl from .codex\\sessions or .codex\\archived_sessions, or choose TOP's ai-events.jsonl. Do not choose history.jsonl.");
     else if(checked.contextJson) showErr("That is Claude project, memory or user context, not usage history. TOP will not turn it into token or cost totals. For Claude Chat choose conversations.json. For Claude Code choose the .jsonl files under C:\\Users\\YOU\\.claude\\projects\\, with the L at the end.");
     else if(checked.regularJson) showErr("Those are regular .json files, including individual UUID-named files, not Claude Code session logs or account conversation exports. Choose conversations.json for Claude Chat or ChatGPT, or choose Claude Code .jsonl session files, with the L at the end.");
-    else showErr("None of those files match the source you chose. Choose JSONL for Claude Code, CSV for Claude Console, or conversations.json for Claude Chat or ChatGPT.");
+    else showErr("None of those files match the source you chose. Choose JSONL for Claude Code, one CSV for Cursor or Claude Console, or conversations.json for Claude Chat or ChatGPT.");
     return;
   }
   if(checked.files.length>HISTORY_LIMITS.maxFiles){showErr("That selection contains more than "+fmtN(HISTORY_LIMITS.maxFiles)+" supported files. Choose a smaller local folder or export.");return}
@@ -2530,6 +2671,7 @@ function run(texts,openedCount){
     if(mode==="cc") res=parseClaudeCode(texts);
     else if(mode==="codex") res=parseCodex(texts);
     else if(mode==="csv") res=parseCSV(texts);
+    else if(mode==="cursor") res=parseCursorCSV(texts);
     else if(mode==="chat") res=parseChat(texts);
     else if(mode==="openai") res=parseOpenAI(texts);
     else{showErr("Choose an AI history source before opening usage data.");return}
@@ -2573,8 +2715,48 @@ function buildObsidianAIHistory(res,createdAt){
   lines.push("","## Coverage","","- Files selected: "+fmtInt(data.coverage.files_selected),"- Files parsed: "+fmtInt(data.coverage.files_parsed),"- Files with recorded usage: "+fmtInt(data.coverage.files_with_usage),"- Files skipped: "+fmtInt(data.coverage.files_skipped),"- Malformed lines skipped: "+fmtInt(data.coverage.malformed_lines),"- Oversized lines skipped: "+fmtInt(data.coverage.oversized_lines),"- Counter resets handled: "+fmtInt(data.coverage.counter_resets),"- Complete according to the parser checks: "+(data.coverage.complete?"yes":"no"),"","## Privacy boundary","","This file contains no prompts, replies, code, tool output, paths, project names, original session IDs, account limits or Git details. Keep raw Codex rollout files outside synced vaults. OneDrive, Obsidian Sync and Git may copy anything placed inside a synced vault.","");
   return lines.join("\n");
 }
+function cursorUsageTotals(res){
+  return Object.keys(res&&res.by||{}).reduce(function(total,model){var row=res.by[model];total.inp=addCursorCount(total.inp,row.inp,"report input_tokens");total.out=addCursorCount(total.out,row.out,"report output_tokens");total.cw=addCursorCount(total.cw,row.cw,"report cache_write_tokens");total.cr=addCursorCount(total.cr,row.cr,"report cache_read_tokens");total.requests=addCursorCount(total.requests,row.turns,"report requests");total.cost=addCursorMoney(total.cost,row.cost);return total},{inp:0,out:0,cw:0,cr:0,requests:0,cost:0});
+}
+function cursorMoneyText(value){return Number(Number(value).toFixed(6)).toFixed(6)}
+function buildCursorObsidianReport(res,createdAt){
+  if(!res||!res.cursor)throw new Error("A completed Cursor report is required");
+  var generated=safeCodexDay(createdAt instanceof Date?createdAt.toISOString():createdAt)||new Date().toISOString().slice(0,10),totals=cursorUsageTotals(res),periodStart=res.periodStart||generated,periodEnd=res.periodEnd||periodStart,ledger=(res.dailyByModel||[]).slice().sort(function(a,b){return a.day.localeCompare(b.day)||a.model.localeCompare(b.model)}),lines=[
+    "---",
+    "top_source: cursor",
+    "account_scope: self",
+    "period: "+periodStart+".."+periodEnd,
+    "currency: USD",
+    "totals:",
+    "  cost: "+cursorMoneyText(totals.cost),
+    "  input_tokens: "+totals.inp,
+    "  output_tokens: "+totals.out,
+    "  cache_tokens: "+addCursorCount(totals.cw,totals.cr,"report cache_tokens"),
+    "  requests: "+totals.requests,
+    "  credits: null",
+    "generated: "+generated,
+    "---",
+    "",
+    "# Cursor usage report, "+generated,
+    "",
+    "This content-free note was built locally from one Cursor usage CSV. Every accepted request had a recorded cost and separate input, output, cache-read and cache-write token counts.",
+    "",
+    "## Aggregate ledger",
+    "",
+    "Rows are grouped by UTC day and AI version. Request counts and totals remain traceable to the parsed CSV rows without retaining exact timestamps or request IDs.",
+    "",
+    "| UTC day | AI version | Requests | Input tokens | Output tokens | Cache read | Cache write | Recorded cost (USD) |",
+    "|---|---|---:|---:|---:|---:|---:|---:|"
+  ];
+  ledger.forEach(function(row){lines.push("| "+row.day+" | "+markdownSafe(strictCursorModelLabel(row.model))+" | "+row.requests+" | "+row.inp+" | "+row.out+" | "+row.cr+" | "+row.cw+" | "+cursorMoneyText(row.cost)+" |")});
+  lines.push("","## Model mix","");
+  Object.keys(res.by).sort().forEach(function(model){var row=res.by[model],tokens=addCursorCount(addCursorCount(row.inp,row.out,"model token"),addCursorCount(row.cr,row.cw,"model cache token"),"model token");lines.push("- "+markdownSafe(strictCursorModelLabel(model))+": "+row.turns+" requests, "+tokens+" tokens, "+cursorMoneyText(row.cost)+" USD recorded cost.")});
+  lines.push("","## Privacy boundary","","This note contains no prompts, replies, code, file contents, paths, filenames, projects, branches, request IDs, account identifiers or exact timestamps. Keep the raw Cursor CSV outside synced vaults.","");
+  return lines.join("\n");
+}
 document.getElementById("downloadAIEvents").addEventListener("click",function(){if(LAST_RESULT&&LAST_RESULT.codex)dlFile("ai-events.jsonl",buildAIEventsJSONL(LAST_RESULT,new Date()),"application/x-ndjson")});
 document.getElementById("downloadObsidianReport").addEventListener("click",function(){if(LAST_RESULT&&LAST_RESULT.codex){var day=new Date().toISOString().slice(0,10);dlFile(day+"-codex-usage.md",buildObsidianAIHistory(LAST_RESULT,day),"text/markdown")}});
+document.getElementById("downloadCursorObsidianReport").addEventListener("click",function(){if(LAST_RESULT&&LAST_RESULT.cursor){var day=new Date().toISOString().slice(0,10);dlFile("TOP-cursor-usage-"+day+".md",buildCursorObsidianReport(LAST_RESULT,day),"text/markdown")}});
 // ---------- usage survey (front-end only) ----------
 // Survey answers remain local. The user can copy them deliberately.
 function surveyVal(name){
@@ -2683,6 +2865,8 @@ var researchSafePackage="";
 var RESEARCH_VALUE_MODEL_VERSION="top.value-model.v0.1-illustrative";
 var RESEARCH_COLLECTOR_VERSION="top.local-analyzer.2026-07-16.1";
 var RESEARCH_PARSER_VERSION="top.usage-parser.2026-07-16.1";
+var RESEARCH_CURSOR_COLLECTOR_VERSION="top.local-analyzer.2026-07-17.1";
+var RESEARCH_CURSOR_PARSER_VERSION="top.cursor-usage-parser.2026-07-17.1";
 var RESEARCH_ACCEPTED_SAFE_V2_COLLECTOR="top.local-collector.2026-07-16.2";
 var RESEARCH_ACCEPTED_SAFE_V2_PARSER="top.usage-parser.2026-07-16.3";
 function researchExact(value,keys,label){if(!value||Object.prototype.toString.call(value)!=="[object Object]")throw new Error(label+"_must_be_object");var actual=Object.keys(value),allowed={};keys.forEach(function(key){allowed[key]=1});if(actual.length!==keys.length||actual.some(function(key){return !allowed[key]}))throw new Error(label+"_unsupported_field");return value}
@@ -2725,6 +2909,7 @@ function researchSource(result,routeB){
   if(routeB)return {provider:"anthropic",surface:"claude_code",input_form:"locally_cleaned_usage_export"};
   if(result.pilotSafe)return {provider:result.codex?"openai":"anthropic",surface:result.codex?"codex":"claude_code",input_form:"validated_top_safe_usage_export"};
   if(result.codex)return {provider:"openai",surface:"codex",input_form:"local_session_usage_records"};
+  if(result.cursor)return {provider:"cursor",surface:"cursor",input_form:"cursor_usage_csv_export"};
   if(result.chatProvider==="ChatGPT")return {provider:"openai",surface:"chatgpt",input_form:"conversation_export"};
   if(result.chatProvider==="Claude Chat")return {provider:"anthropic",surface:"claude_chat",input_form:"conversation_export"};
   if(result.csv)return {provider:"anthropic",surface:"console",input_form:"console_csv_export"};
@@ -2732,6 +2917,7 @@ function researchSource(result,routeB){
 }
 function researchMeasurement(result){
   if(result.chatExport)return {token_basis:"estimated_from_visible_message_text",cache_basis:"not_available",reasoning_basis:"not_available",cost_basis:"not_available"};
+  if(result.cursor)return {token_basis:"recorded_usage_counters",cache_basis:"recorded_usage_counters",reasoning_basis:"not_available",cost_basis:"recorded_in_export"};
   if(result.csv)return {token_basis:"exported_columns_where_present",cache_basis:"exported_columns_where_present",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export":"recorded_where_present_then_checked_rates_for_recognized_missing_rows"};
   return {token_basis:"recorded_usage_counters",cache_basis:"recorded_usage_counters",reasoning_basis:result.codex?"recorded_subset_of_output":"not_separately_available",cost_basis:"checked_pay_as_you_go_rate_comparison"};
 }
@@ -2779,7 +2965,7 @@ function selectedResearchEnums(name,map,useDataValue){
 function collectResearchQuestionnaire(){
   if(!includeSurveyContext)return null;
   var resonance=Array.prototype.map.call(document.querySelectorAll("#resonanceChoices .resonance-choice.on"),function(choice){return RESEARCH_ENUM_MAPS.resonance[choice.dataset.value]||null}).filter(Boolean);
-  var source={cc:"claude_code",codex:"codex",csv:"claude_console",chat:"claude_chat",openai:"chatgpt"}[mode]||"unrecognized";
+  var source={cc:"claude_code",codex:"codex",csv:"claude_console",cursor:"cursor",chat:"claude_chat",openai:"chatgpt"}[mode]||"unrecognized";
   var route={a:"show_report_first",b:"make_shareable_summary"}[selectedRoute]||"not_selected";
   return {what_to_improve:resonance,source_selected:source,route_selected:route,kinds_of_work:selectedResearchEnums("archetype",RESEARCH_ENUM_MAPS.archetype,true),frequency:selectedResearchEnums("frequency",RESEARCH_ENUM_MAPS.frequency,false),main_uses:selectedResearchEnums("primary",RESEARCH_ENUM_MAPS.primary,false),effort_level:selectedResearchEnums("thinking",RESEARCH_ENUM_MAPS.thinking,false),goals:selectedResearchEnums("goal",RESEARCH_ENUM_MAPS.goal,false),account_category:selectedResearchEnums("account",RESEARCH_ENUM_MAPS.account,false)};
 }
@@ -2787,11 +2973,11 @@ function safeResearchQuestionnaire(value){
   if(!value||typeof value!=="object")return null;
   function allowedValues(map){var set={};Object.keys(map).forEach(function(key){set[map[key]]=1});return set}
   function filtered(items,map){var allowed=allowedValues(map);return Array.isArray(items)?items.filter(function(item){return allowed[item]}):[]}
-  var sources={claude_code:1,codex:1,claude_console:1,claude_chat:1,chatgpt:1,unrecognized:1},routes={show_report_first:1,make_shareable_summary:1,not_selected:1};
+  var sources={claude_code:1,codex:1,claude_console:1,cursor:1,claude_chat:1,chatgpt:1,unrecognized:1},routes={show_report_first:1,make_shareable_summary:1,not_selected:1};
   return {what_to_improve:filtered(value.what_to_improve,RESEARCH_ENUM_MAPS.resonance),source_selected:sources[value.source_selected]?value.source_selected:"unrecognized",route_selected:routes[value.route_selected]?value.route_selected:"not_selected",kinds_of_work:filtered(value.kinds_of_work,RESEARCH_ENUM_MAPS.archetype),frequency:filtered(value.frequency,RESEARCH_ENUM_MAPS.frequency),main_uses:filtered(value.main_uses,RESEARCH_ENUM_MAPS.primary),effort_level:filtered(value.effort_level,RESEARCH_ENUM_MAPS.thinking),goals:filtered(value.goals,RESEARCH_ENUM_MAPS.goal),account_category:filtered(value.account_category,RESEARCH_ENUM_MAPS.account)};
 }
 function researchCostRow(rawModel,entry,result){
-  var model=strictResearchModelLabel(rawModel),key=model==="Unrecognized AI version"?null:priceKeyFor(model),cost=null,complete=false,status="unavailable",rateApplied=false;
+  var model=result.cursor?strictCursorModelLabel(rawModel):strictResearchModelLabel(rawModel),key=result.cursor||model==="Unrecognized AI version"?null:priceKeyFor(model),cost=null,complete=false,status="unavailable",rateApplied=false;
   if(result.chatExport)return {model:model,key:null,cost:null,complete:false,status:status,rateApplied:false};
   if(result.csv){
     var recorded=entry.costRows?Number(entry.cost)||0:0,hasRecorded=!!entry.costRows,hasMissing=!!entry.missingCostRows,estimated=null;
@@ -2835,12 +3021,12 @@ function buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,creat
   var modelRows=Object.keys(grouped).sort().map(function(model){var row=grouped[model],clean={model:row.model,input_tokens:row.input_tokens,output_tokens:row.output_tokens,cache_write_tokens:row.cache_write_tokens,cache_read_tokens:row.cache_read_tokens,reasoning_tokens:row.reasoning_tokens,total_tokens:row.total_tokens,events_or_replies:row.events_or_replies,cost:{status:mergeResearchCostStatus(row._statuses,row._anyCost,row._allComplete),usd:row._anyCost?researchMoney(row._cost):null}};return clean});
   var totals=modelRows.reduce(function(out,row){out.input_tokens+=row.input_tokens;out.output_tokens+=row.output_tokens;if(row.cache_write_tokens!==null)out.cache_write_tokens+=row.cache_write_tokens;if(row.cache_read_tokens!==null)out.cache_read_tokens+=row.cache_read_tokens;if(row.reasoning_tokens!==null)out.reasoning_tokens+=row.reasoning_tokens;out.total_tokens+=row.total_tokens;return out},{input_tokens:0,output_tokens:0,cache_write_tokens:current.chatExport?null:0,cache_read_tokens:current.chatExport?null:0,reasoning_tokens:current.codex?0:null,total_tokens:0});
   var activity={ai_replies:null,usage_events:null,console_records:null,text_messages:null,sessions:current.csv?null:researchCount(current.sessions),active_days:current.pilotSafeSchemaVersion==="top.safe-usage.v2"?researchCount(current.days):(researchCount(current.days)||null)};
-  if(current.codex)activity.usage_events=researchCount(current.turns);else if(current.csv)activity.console_records=researchCount(current.turns);else if(current.chatExport)activity.text_messages=researchCount(current.turns);else activity.ai_replies=researchCount(current.turns);
-  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.chatExport?"not_available":(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison"),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
+  if(current.cursor)activity.usage_events=researchCount(current.turns);else if(current.codex)activity.usage_events=researchCount(current.turns);else if(current.csv)activity.console_records=researchCount(current.turns);else if(current.chatExport)activity.text_messages=researchCount(current.turns);else activity.ai_replies=researchCount(current.turns);
+  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.chatExport?"not_available":(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison"),valueResult=Object.assign({},current,{valueModelEligible:!current.cursor&&!routeB&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
   if(routeB&&valueModel.truth_status==="not_available")valueModel.reason="scenario_control_not_shown_for_this_route";
   appliedRates.forEach(function(rate){Object.keys(rate.field_provenance).forEach(function(field){var origin=rate.field_provenance[field];if(origin==="user_edited_in_tab"||origin==="derived_from_user_edited_input")editedFields++;else referenceFields++})});
   if(current.chatExport)pricingStatus="not_applied";else if(current.csv&&current.costComplete)pricingStatus="not_needed_recorded_cost";else if(!appliedRates.length)pricingStatus="not_applied_no_recognized_rate";else if(editedFields&&referenceFields)pricingStatus=allComplete?"mixed_checked_and_user_edited_rates":"partially_applied_mixed_rate_provenance";else if(editedFields)pricingStatus=allComplete?"user_edited_in_tab":"partially_applied_user_edited_rates";else pricingStatus=allComplete?"checked_reference_rates":"partially_applied_checked_rates";
-  var output={schema_version:RESEARCH_SCHEMA_VERSION,collector:{collector_version:current.pilotCollectorVersion||RESEARCH_COLLECTOR_VERSION,parser_version:current.pilotParserVersion||RESEARCH_PARSER_VERSION},generated_date:researchDateOnly(createdDate),source:researchSource(current,routeB),measurement:researchMeasurement(current),scope:{selection:"supported_records_in_user_selected_local_data",full_account_or_subscription_claim:false,original_source_content_included:false},coverage:researchCoverage(current,routeB),totals:totals,activity:activity,cost:{status:costStatus,usd:anyCost?researchMoney(totalCost):null,basis:costBasis,currency:"USD",subscription_bill:false},pricing:{status:pricingStatus,reference_checked_date:PRICING_CHECKED_DATE,unit:"usd_per_million_tokens",applied_rates:appliedRates,unpriced_model_groups:modelRows.filter(function(row){return row.cost.status==="unavailable"}).length},permission_mode_counts:routeB&&routeB.res?safePermissionModeCounts(routeB.res.perm):null,by_model:modelRows,questionnaire:safeResearchQuestionnaire(questionnaire),value_model:valueModel,privacy:{network_delivery:"none",inspect_before_attaching:true,excluded:["prompts","replies","code","tool_output","paths","filenames","project_and_account_identifiers","email_addresses","exact_timestamps","original_ids"]}},v2=researchCopyV2Sections(current,totals,activity);
+  var output={schema_version:RESEARCH_SCHEMA_VERSION,collector:{collector_version:current.pilotCollectorVersion||(current.cursor?RESEARCH_CURSOR_COLLECTOR_VERSION:RESEARCH_COLLECTOR_VERSION),parser_version:current.pilotParserVersion||(current.cursor?RESEARCH_CURSOR_PARSER_VERSION:RESEARCH_PARSER_VERSION)},generated_date:researchDateOnly(createdDate),source:researchSource(current,routeB),measurement:researchMeasurement(current),scope:{selection:"supported_records_in_user_selected_local_data",full_account_or_subscription_claim:false,original_source_content_included:false},coverage:researchCoverage(current,routeB),totals:totals,activity:activity,cost:{status:costStatus,usd:anyCost?researchMoney(totalCost):null,basis:costBasis,currency:"USD",subscription_bill:false},pricing:{status:pricingStatus,reference_checked_date:PRICING_CHECKED_DATE,unit:"usd_per_million_tokens",applied_rates:appliedRates,unpriced_model_groups:modelRows.filter(function(row){return row.cost.status==="unavailable"}).length},permission_mode_counts:routeB&&routeB.res?safePermissionModeCounts(routeB.res.perm):null,by_model:modelRows,questionnaire:safeResearchQuestionnaire(questionnaire),value_model:valueModel,privacy:{network_delivery:"none",inspect_before_attaching:true,excluded:["prompts","replies","code","tool_output","paths","filenames","project_and_account_identifiers","email_addresses","exact_timestamps","original_ids"]}},v2=researchCopyV2Sections(current,totals,activity);
   if(v2){output.schema_version=RESEARCH_SCHEMA_VERSION_V2;output.timeline=v2.timeline;output.session_distributions=v2.session_distributions;output.workflow_shape=v2.workflow_shape}
   return output;
 }

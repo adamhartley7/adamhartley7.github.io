@@ -15,16 +15,20 @@ assert.doesNotMatch(html, /var PRICING_EDITED=false/,
 
 const pricingStart = html.indexOf('var PRICING_CHECKED=');
 const pricingEnd = html.indexOf('var VM=', pricingStart);
+const cursorParserStart = html.indexOf('function splitCSV');
+const cursorParserEnd = html.indexOf('function estTokens', cursorParserStart);
 const researchStart = html.indexOf('var RESEARCH_SCHEMA_VERSION=');
 const researchEnd = html.indexOf('document.getElementById("downloadResearchJSON")', researchStart);
 const routeBStart = html.indexOf('// ---------- Route B:', researchEnd);
 assert.ok(pricingStart >= 0 && pricingEnd > pricingStart, "pricing helpers not found");
+assert.ok(cursorParserStart >= 0 && cursorParserEnd > cursorParserStart, "Cursor parser not found");
 assert.ok(researchStart >= 0 && researchEnd > researchStart, "research-safe builder not found");
 assert.ok(routeBStart > researchEnd, "research-safe listener boundary not found");
 
 const context = { Date, JSON, Math, Number, Object, String, Array, RegExp, Map, Set };
 vm.createContext(context);
 vm.runInContext(html.slice(pricingStart, pricingEnd), context);
+vm.runInContext(html.slice(cursorParserStart, cursorParserEnd), context);
 vm.runInContext(html.slice(researchStart, researchEnd), context);
 
 // Date-like suffixes are removed before a constrained allowlist is applied.
@@ -280,6 +284,49 @@ const mixedCsv = plain(context.buildResearchSafeObject({
 assert.equal(mixedCsv.cost.status, "mixed_recorded_and_estimated");
 assert.ok(mixedCsv.cost.usd > 1.5);
 assert.equal(mixedCsv.pricing.applied_rates.length, 1);
+
+// Cursor keeps the v1 shape while mapping strict recorded request rows into the
+// source-native fields. Exact timestamps and the internal topSource marker are
+// not exported.
+const cursorResult = context.parseCursorCSV([[
+  "timestamp,model,cost_usd,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens",
+  "2026-07-16T12:00:00Z,composer-1,0.1,100,20,30,40",
+  "2026-07-17T12:00:00Z,gpt-5.6-sol,0.2,200,30,50,60",
+].join("\n")]);
+cursorResult.filesOpened = 1;
+cursorResult.valueModelEligible = true;
+const cursorQuestionnaire = { ...questionnaire, source_selected: "cursor" };
+const cursor = plain(context.buildResearchSafeObject(cursorResult, null, cursorQuestionnaire, 0.4, "2026-07-17"));
+assert.deepEqual(Object.keys(cursor), Object.keys(exported), "Cursor must not change the strict v1 top-level schema");
+assert.equal(Object.hasOwn(cursor, "top_source"), false);
+assert.deepEqual(cursor.source, { provider: "cursor", surface: "cursor", input_form: "cursor_usage_csv_export" });
+assert.deepEqual(cursor.collector, { collector_version: "top.local-analyzer.2026-07-17.1", parser_version: "top.cursor-usage-parser.2026-07-17.1" });
+assert.deepEqual(cursor.measurement, { token_basis: "recorded_usage_counters", cache_basis: "recorded_usage_counters", reasoning_basis: "not_available", cost_basis: "recorded_in_export" });
+assert.equal(cursor.coverage.files_opened, 1);
+assert.equal(cursor.coverage.rows_with_recorded_cost, 2);
+assert.equal(cursor.coverage.rows_without_recorded_cost, 0);
+assert.equal(cursor.activity.usage_events, 2);
+assert.equal(cursor.activity.active_days, 2);
+for (const key of ["ai_replies", "console_records", "text_messages", "sessions"]) assert.equal(cursor.activity[key], null);
+assert.equal(cursor.totals.input_tokens, 300);
+assert.equal(cursor.totals.output_tokens, 50);
+assert.equal(cursor.totals.cache_read_tokens, 80);
+assert.equal(cursor.totals.cache_write_tokens, 100);
+assert.equal(cursor.totals.reasoning_tokens, null);
+assert.equal(cursor.totals.total_tokens, 530);
+assert.deepEqual(cursor.by_model.map(row => row.model), ["composer-1", "gpt-5.6-sol"]);
+assert.ok(cursor.by_model.every(row => row.cost.status === "recorded"));
+assert.equal(cursor.cost.status, "recorded");
+assert.equal(cursor.cost.usd, 0.3);
+assert.equal(cursor.cost.basis, "recorded_in_export");
+assert.equal(cursor.pricing.status, "not_needed_recorded_cost");
+assert.deepEqual(cursor.pricing.applied_rates, []);
+assert.equal(cursor.pricing.unpriced_model_groups, 0);
+assert.equal(cursor.questionnaire.source_selected, "cursor");
+assert.equal(cursor.value_model.truth_status, "not_available");
+assert.equal(cursor.value_model.reason, "current_report_not_eligible");
+const cursorJson = JSON.stringify(cursor);
+for (const sentinel of ["2026-07-16T12:00:00Z", "2026-07-17T12:00:00Z", "dailyByModel", "periodStart", "topSource"]) assert.equal(cursorJson.includes(sentinel), false);
 
 // Private fields and arbitrary questionnaire text never flow through the whitelist-based builder.
 const privateResult = claudeResult("C:\\Users\\Adam\\PRIVATE_PROJECT\\claude-opus-4-8");

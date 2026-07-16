@@ -110,6 +110,72 @@ function reportFixture() {
   };
 }
 
+function cursorReportFixture(model = "composer-1") {
+  const report = reportFixture();
+  report.collector = {
+    collector_version: "top.local-analyzer.2026-07-17.1",
+    parser_version: "top.cursor-usage-parser.2026-07-17.1",
+  };
+  report.source = { provider: "cursor", surface: "cursor", input_form: "cursor_usage_csv_export" };
+  report.measurement = {
+    token_basis: "recorded_usage_counters",
+    cache_basis: "recorded_usage_counters",
+    reasoning_basis: "not_available",
+    cost_basis: "recorded_in_export",
+  };
+  report.coverage = {
+    status: "limited_to_current_parser_checks",
+    files_opened: 1,
+    rows_with_recorded_cost: 2,
+    rows_without_recorded_cost: 0,
+  };
+  report.totals = {
+    input_tokens: 10,
+    output_tokens: 5,
+    cache_write_tokens: 20,
+    cache_read_tokens: 30,
+    reasoning_tokens: null,
+    total_tokens: 65,
+  };
+  report.activity = {
+    ai_replies: null,
+    usage_events: 2,
+    console_records: null,
+    text_messages: null,
+    sessions: null,
+    active_days: 2,
+  };
+  report.cost = { status: "recorded", usd: 0.3, basis: "recorded_in_export", currency: "USD", subscription_bill: false };
+  report.pricing = {
+    status: "not_needed_recorded_cost",
+    reference_checked_date: "2026-07-16",
+    unit: "usd_per_million_tokens",
+    applied_rates: [],
+    unpriced_model_groups: 0,
+  };
+  report.by_model = [{
+    model,
+    input_tokens: 10,
+    output_tokens: 5,
+    cache_write_tokens: 20,
+    cache_read_tokens: 30,
+    reasoning_tokens: null,
+    total_tokens: 65,
+    events_or_replies: 2,
+    cost: { status: "recorded", usd: 0.3 },
+  }];
+  report.questionnaire = {
+    what_to_improve: [], source_selected: "cursor", route_selected: "show_report_first",
+    kinds_of_work: [], frequency: [], main_uses: [], effort_level: [], goals: [], account_category: [],
+  };
+  report.value_model = {
+    truth_status: "not_available",
+    algorithm_version: "top.value-model.v0.1-illustrative",
+    reason: "current_report_not_eligible",
+  };
+  return report;
+}
+
 function submissionFixture() {
   return {
     submission_schema_version: "top.explicit-submission.v1",
@@ -324,6 +390,117 @@ test("strict v1 fixture validates and totals reconcile", () => {
   assert.equal(validateResearchSafeUsage(reportFixture()), true);
 });
 
+test("strict Cursor fixture validates as a fully recorded v1 request ledger", () => {
+  assert.equal(validateResearchSafeUsage(cursorReportFixture()), true);
+});
+
+test("Cursor model allowlist accepts public families and rejects private-looking labels", () => {
+  const acceptedModels = [
+    "claude-3-5-sonnet-20241022",
+    "gpt-4o",
+    "gpt-5.6-codex-preview",
+    "o3-mini-high",
+    "gemini-2.5-pro-preview",
+    "deepseek-v4-reasoner",
+    "grok-4-fast",
+    "grok-code-fast-1",
+    "composer-1-thinking",
+    "cursor-fast-preview",
+    "Auto",
+  ];
+  for (const model of acceptedModels) {
+    assert.equal(validateResearchSafeUsage(cursorReportFixture(model)), true, `expected model to be accepted: ${model}`);
+  }
+
+  const rejectedModels = [
+    "Adam Secret Project",
+    "customer-847291",
+    "C:\\private\\project",
+    "claude-sonnet-4-5-private-project",
+    "gpt-5.6-customer847",
+    "composer-adam",
+    "cursor-secret",
+    "account-12345",
+  ];
+  for (const model of rejectedModels) {
+    assert.throws(() => validateResearchSafeUsage(cursorReportFixture(model)), /model is not permitted/i, `expected model to be rejected: ${model}`);
+  }
+});
+
+test("Cursor validation rejects schema, coverage, pricing and privacy drift", () => {
+  const wrongCollector = cursorReportFixture();
+  wrongCollector.collector.parser_version = "top.usage-parser.2026-07-16.1";
+  assert.throws(() => validateResearchSafeUsage(wrongCollector), /Cursor collector or parser version/i);
+
+  const wrongSource = cursorReportFixture();
+  wrongSource.source.provider = "openai";
+  assert.throws(() => validateResearchSafeUsage(wrongSource), /source combination/i);
+
+  const wrongMeasurement = cursorReportFixture();
+  wrongMeasurement.measurement.cost_basis = "checked_pay_as_you_go_rate_comparison";
+  assert.throws(() => validateResearchSafeUsage(wrongMeasurement), /measurement/i);
+
+  const missingCostRow = cursorReportFixture();
+  missingCostRow.coverage.rows_with_recorded_cost = 1;
+  missingCostRow.coverage.rows_without_recorded_cost = 1;
+  assert.throws(() => validateResearchSafeUsage(missingCostRow), /fully costed CSV/i);
+
+  const wrongFileCount = cursorReportFixture();
+  wrongFileCount.coverage.files_opened = 2;
+  assert.throws(() => validateResearchSafeUsage(wrongFileCount), /fully costed CSV/i);
+
+  const wrongActivity = cursorReportFixture();
+  wrongActivity.activity.console_records = 2;
+  assert.throws(() => validateResearchSafeUsage(wrongActivity), /Cursor activity/i);
+
+  const eventMismatch = cursorReportFixture();
+  eventMismatch.by_model[0].events_or_replies = 1;
+  assert.throws(() => validateResearchSafeUsage(eventMismatch), /request counts do not reconcile/i);
+
+  const emptyModelEvents = cursorReportFixture();
+  emptyModelEvents.by_model[0].events_or_replies = 0;
+  assert.throws(() => validateResearchSafeUsage(emptyModelEvents), /at least one request and one token/i);
+
+  const emptyModelTokens = cursorReportFixture();
+  for (const key of ["input_tokens", "output_tokens", "cache_write_tokens", "cache_read_tokens", "total_tokens"]) {
+    emptyModelTokens.by_model[0][key] = 0;
+    emptyModelTokens.totals[key] = 0;
+  }
+  assert.throws(() => validateResearchSafeUsage(emptyModelTokens), /at least one request and one token/i);
+
+  const estimatedCost = cursorReportFixture();
+  estimatedCost.cost.status = "estimated";
+  assert.throws(() => validateResearchSafeUsage(estimatedCost), /fully recorded/i);
+
+  const estimatedModelCost = cursorReportFixture();
+  estimatedModelCost.by_model[0].cost.status = "estimated";
+  assert.throws(() => validateResearchSafeUsage(estimatedModelCost), /model row must have recorded cost/i);
+
+  const appliedPrice = cursorReportFixture();
+  appliedPrice.pricing.status = "not_applied";
+  assert.throws(() => validateResearchSafeUsage(appliedPrice), /must not apply or reconstruct model prices/i);
+
+  const unsafeModel = cursorReportFixture();
+  unsafeModel.by_model[0].model = "C:\\Users\\Adam\\private";
+  assert.throws(() => validateResearchSafeUsage(unsafeModel), /model is not permitted/i);
+
+  const wrongQuestionnaire = cursorReportFixture();
+  wrongQuestionnaire.questionnaire.source_selected = "claude_code";
+  assert.throws(() => validateResearchSafeUsage(wrongQuestionnaire), /questionnaire source/i);
+
+  const valueScenario = cursorReportFixture();
+  valueScenario.value_model.reason = "scenario_control_not_shown_for_this_route";
+  assert.throws(() => validateResearchSafeUsage(valueScenario), /value scenario/i);
+
+  const exactTimestamp = cursorReportFixture();
+  exactTimestamp.timestamp = "2026-07-16T12:00:00Z";
+  assert.throws(() => validateResearchSafeUsage(exactTimestamp), /unsupported or missing fields/i);
+
+  const cursorV2 = cursorReportFixture();
+  cursorV2.schema_version = REPORT_SCHEMA_VERSION_V2;
+  assert.throws(() => validateResearchSafeUsage(cursorV2), /unsupported or missing fields/i);
+});
+
 test("strict v2 Claude Code and Codex fixtures validate without weakening v1", () => {
   assert.equal(validateResearchSafeUsage(v2ReportFixture()), true);
   assert.equal(validateResearchSafeUsage(v2CodexReportFixture()), true);
@@ -439,18 +616,27 @@ test("v2 workflow shape is structural, exact and reconciled to usage buckets", (
   assert.throws(() => validateResearchSafeUsage(wrongShape), /does not reconcile with usage-record buckets/i);
 });
 
-test("strict validator accepts current analyzer-generated Claude, Codex, chat and Console variants", async () => {
+test("strict validator accepts current analyzer-generated Claude, Codex, chat, Console and Cursor variants", async () => {
   const html = await readFile(new URL("../../index.html", import.meta.url), "utf8");
   const pricingStart = html.indexOf("var PRICING_CHECKED=");
   const pricingEnd = html.indexOf("var VM=", pricingStart);
+  const cursorParserStart = html.indexOf("function splitCSV");
+  const cursorParserEnd = html.indexOf("function estTokens", cursorParserStart);
   const researchStart = html.indexOf("var RESEARCH_SCHEMA_VERSION=");
   const researchEnd = html.indexOf('document.getElementById("downloadResearchJSON")', researchStart);
-  assert.ok(pricingStart >= 0 && pricingEnd > pricingStart && researchStart >= 0 && researchEnd > researchStart);
+  assert.ok(pricingStart >= 0 && pricingEnd > pricingStart && cursorParserStart >= 0 && cursorParserEnd > cursorParserStart && researchStart >= 0 && researchEnd > researchStart);
   const context = { Date, JSON, Math, Number, Object, String, Array, RegExp, Map, Set };
   vm.createContext(context);
   vm.runInContext(html.slice(pricingStart, pricingEnd), context);
+  vm.runInContext(html.slice(cursorParserStart, cursorParserEnd), context);
   vm.runInContext(html.slice(researchStart, researchEnd), context);
   const plain = (value) => JSON.parse(JSON.stringify(value));
+  const cursorParsed = context.parseCursorCSV([[
+    "timestamp,model,cost_usd,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens",
+    "2026-07-16T12:00:00Z,composer-1,0.3,10,5,30,20",
+    "2026-07-17T12:00:00Z,composer-1,0,1,1,1,1",
+  ].join("\n")]);
+  cursorParsed.filesOpened = 1;
   const reports = [
     context.buildResearchSafeObject({
       by: { "claude-opus-4-8": { inp: 100, out: 20, cw: 30, cr: 40, turns: 2 } },
@@ -470,6 +656,10 @@ test("strict validator accepts current analyzer-generated Claude, Codex, chat an
       by: { "claude-opus-4-8": { inp: 10, out: 5, cw: 0, cr: 0, turns: 1, cost: 4.2, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } } },
       turns: 1, sessions: 1, days: 0, filesOpened: 1, csv: true, costComplete: true, costRows: 1, missingCostRows: 0, valueModelEligible: true,
     }, null, null, 0.4, "2026-07-16"),
+    context.buildResearchSafeObject(cursorParsed, null, {
+      what_to_improve: [], source_selected: "cursor", route_selected: "show_report_first",
+      kinds_of_work: [], frequency: [], main_uses: [], effort_level: [], goals: [], account_category: [],
+    }, 0.4, "2026-07-17"),
   ].map(plain);
   for (const report of reports) assert.equal(validateResearchSafeUsage(report), true);
 });
