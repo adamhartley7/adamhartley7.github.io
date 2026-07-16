@@ -22,14 +22,18 @@ assert.match(html, /Complete this analysis on the computer that holds your Claud
 
 // The pinned collector prompt is inspectable and locks the exact released file.
 assert.match(html, /https:\/\/adamhartley7\.github\.io\/analyze\/collector\/top-collector\.mjs/);
-assert.match(html, /36A1FEE0205B6676974559DD34C0E9D1527CA4807B4056689F4DEFD7F70EB304/);
-assert.match(html, /PILOT_COLLECTOR_VERSION="top\.local-collector\.2026-07-16\.1"/);
+assert.match(html, /EB3F69B6FD6C0B9FB78E85548EB0767037CBB2F30657FA4619A85782B38403BE/);
+assert.match(html, /PILOT_COLLECTOR_VERSION="top\.local-collector\.2026-07-16\.2"/);
+assert.match(html, /using the explicit option --schema v2/);
+assert.match(html, /single top\.safe-usage\.v2 JSON output/);
 assert.doesNotMatch(html, /COLLECTOR_(?:SHA256|VERSION)_PLACEHOLDER/);
 assert.match(html, /Do not print, quote, summarize, copy or transmit any prompt/);
 assert.match(html, /generated TOP filename without its full path/);
 assert.doesNotMatch(html, /return only the verified output path/);
 assert.match(html, /id="pilotSafeFile" accept="\.json,application\/json"/);
 assert.doesNotMatch(html, /id="pilotSafeFile"[^>]*multiple/);
+assert.match(html, /small, content-free aggregate file/);
+assert.match(html, /create one content-free aggregate file/);
 
 // Folder fallback preselects a source, exposes the exact paths, copies, then opens
 // the existing read-only folder input from the same deliberate button action.
@@ -77,6 +81,39 @@ function validEnvelope(surface = "claude_code") {
     }],
   };
 }
+function validV2Envelope(surface = "claude_code") {
+  const value = validEnvelope(surface);
+  value.schema_version = "top.safe-usage.v2";
+  value.collector_version = "top.local-collector.2026-07-16.2";
+  value.parser_version = "top.usage-parser.2026-07-16.3";
+  value.timeline = {
+    status: "available", granularity: "calendar_month",
+    timestamp_basis: "source_date_prefix_not_timezone_normalized",
+    periods: [{
+      period: "2026-07", input_tokens: 100, cache_write_input_tokens: 20,
+      cache_read_input_tokens: 30, output_tokens: 50,
+      reasoning_output_tokens: surface === "codex" ? 10 : 0,
+      usage_records: 5, total_tokens: 200, active_days: 1,
+      logical_sessions_started: 2,
+    }],
+  };
+  value.session_distributions = {
+    status: "available",
+    session_definition: surface === "codex" ? "codex_rollout_file_proxy" : "deduplicated_logical_session",
+    thresholds_version: "top.session-buckets.v1",
+    elapsed_time_basis: "wall_clock_span_between_first_and_last_supported_usage_record",
+    logical_sessions_analyzed: 2,
+    usage_records_per_session: { zero: 0, one: 1, two_to_four: 1, five_to_nineteen: 0, twenty_plus: 0 },
+    total_tokens_per_session: { under_10k: 2, ten_to_49k: 0, fifty_to_199k: 0, two_hundred_to_999k: 0, one_million_plus: 0 },
+    elapsed_time_per_session: { under_10m: 1, ten_to_59m: 0, one_to_3h: 0, four_to_11h: 0, twelve_h_plus: 0, unknown: 1 },
+  };
+  value.workflow_shape = {
+    status: "available", algorithm_version: "top.workflow-shape.v1",
+    basis: "deduplicated_usage_record_count_only",
+    sessions: { single_exchange: 1, short_multi_exchange: 1, sustained: 0, high_iteration: 0, unclassified: 0 },
+  };
+  return value;
+}
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function rejects(mutator, code) {
   const value = validEnvelope();
@@ -94,6 +131,31 @@ assert.equal(claudeResult.by["claude-opus-4-8"].cr, 30);
 assert.equal(claudeResult.pilotCoverage.complete, true);
 assert.equal(claudeResult.estimate, true);
 assert.match(claudeResult.estimateReason, /subscription charges may differ/);
+assert.equal(claudeResult.pilotSafeSchemaVersion, "top.safe-usage.v1");
+assert.equal(claudeResult.pilotV2Aggregate, null);
+
+const claudeV2 = context.pilotValidateSafeUsage(validV2Envelope());
+const claudeV2Result = context.pilotResultFromSafeUsage(claudeV2);
+assert.equal(claudeV2Result.pilotSafeSchemaVersion, "top.safe-usage.v2");
+assert.equal(claudeV2Result.pilotV2Aggregate.timeline.periods[0].period, "2026-07");
+assert.equal(claudeV2Result.pilotV2Aggregate.workflow_shape.sessions.short_multi_exchange, 1);
+assert.deepEqual(Object.keys(JSON.parse(JSON.stringify(claudeV2Result.pilotV2Aggregate))).sort(), ["session_distributions", "timeline", "workflow_shape"]);
+const earlyYearV2 = validV2Envelope();
+earlyYearV2.timeline.periods[0].period = "0000-02";
+assert.equal(context.pilotValidateSafeUsage(earlyYearV2).timeline.periods[0].period, "0000-02",
+  "browser validation must match the collector's four-digit-year contract");
+
+for (const [mutate, code] of [
+  [value => { value.timeline.periods[0].prompt = "PRIVATE"; }, /unexpected_object_fields/],
+  [value => { value.timeline.periods[0].input_tokens += 1; value.timeline.periods[0].total_tokens += 1; }, /timeline_total_mismatch/],
+  [value => { value.timeline.periods[0].period = "2026-99"; }, /invalid_timeline_period/],
+  [value => { value.session_distributions.usage_records_per_session.two_to_four = 0; value.session_distributions.usage_records_per_session.twenty_plus = 1; }, /bucket_range_mismatch/],
+  [value => { value.workflow_shape.sessions.single_exchange = 0; value.workflow_shape.sessions.short_multi_exchange = 2; }, /workflow_shape_mismatch/],
+]) {
+  const value = validV2Envelope();
+  mutate(value);
+  assert.throws(() => context.pilotValidateSafeUsage(value), code);
+}
 
 context.PILOT_SOURCE = "codex";
 const codex = context.pilotValidateSafeUsage(validEnvelope("codex"));
@@ -102,6 +164,11 @@ assert.equal(codexResult.codex, true);
 assert.equal(codexResult.estimate, true);
 assert.equal(codexResult.costLabel, "API-rate comparison");
 assert.match(codexResult.estimateReason, /subscription limits and charges may differ/);
+const codexV2 = context.pilotValidateSafeUsage(validV2Envelope("codex"));
+const codexV2Result = context.pilotResultFromSafeUsage(codexV2);
+assert.equal(codexV2Result.pilotSafeSchemaVersion, "top.safe-usage.v2");
+assert.equal(codexV2Result.pilotV2Aggregate.session_distributions.session_definition, "codex_rollout_file_proxy");
+assert.equal(codexV2Result.by["gpt-5.6-codex-mini"].reasoning, 10);
 context.PILOT_SOURCE = "cc";
 
 rejects(value => { value.prompt = "PRIVATE PROMPT"; }, /unexpected_object_fields/);

@@ -81,6 +81,8 @@ for (const key of ["schema_version", "collector", "generated_date", "source", "m
   assert.ok(Object.prototype.hasOwnProperty.call(exported, key), `missing top-level field: ${key}`);
 }
 assert.equal(exported.schema_version, "top.research-safe-usage.v1");
+assert.deepEqual(Object.keys(exported), ["schema_version", "collector", "generated_date", "source", "measurement", "scope", "coverage", "totals", "activity", "cost", "pricing", "permission_mode_counts", "by_model", "questionnaire", "value_model", "privacy"],
+  "v1 output shape and key order must remain unchanged");
 assert.equal(exported.collector.collector_version, "top.local-analyzer.2026-07-16.1");
 assert.equal(exported.collector.parser_version, "top.usage-parser.2026-07-16.1");
 assert.equal(exported.generated_date, "2026-07-16");
@@ -110,6 +112,89 @@ for (const row of exported.by_model) {
     assert.ok(Object.prototype.hasOwnProperty.call(row, key), `missing per-model field: ${key}`);
   }
 }
+
+function v2Result() {
+  const result = claudeResult();
+  Object.assign(result, {
+    pilotSafe: true,
+    pilotSafeSchemaVersion: "top.safe-usage.v2",
+    pilotCollectorVersion: "top.local-collector.2026-07-16.2",
+    pilotParserVersion: "top.usage-parser.2026-07-16.3",
+    pilotV2Aggregate: {
+      timeline: {
+        status: "available", granularity: "calendar_month",
+        timestamp_basis: "source_date_prefix_not_timezone_normalized",
+        periods: [{
+          period: "2026-07", input_tokens: 100, cache_write_input_tokens: 30,
+          cache_read_input_tokens: 40, output_tokens: 20, reasoning_output_tokens: 0,
+          usage_records: 2, total_tokens: 190, active_days: 1,
+          logical_sessions_started: 1,
+        }],
+      },
+      session_distributions: {
+        status: "available", session_definition: "deduplicated_logical_session",
+        thresholds_version: "top.session-buckets.v1",
+        elapsed_time_basis: "wall_clock_span_between_first_and_last_supported_usage_record",
+        logical_sessions_analyzed: 1,
+        usage_records_per_session: { zero: 0, one: 0, two_to_four: 1, five_to_nineteen: 0, twenty_plus: 0 },
+        total_tokens_per_session: { under_10k: 1, ten_to_49k: 0, fifty_to_199k: 0, two_hundred_to_999k: 0, one_million_plus: 0 },
+        elapsed_time_per_session: { under_10m: 1, ten_to_59m: 0, one_to_3h: 0, four_to_11h: 0, twelve_h_plus: 0, unknown: 0 },
+      },
+      workflow_shape: {
+        status: "available", algorithm_version: "top.workflow-shape.v1",
+        basis: "deduplicated_usage_record_count_only",
+        sessions: { single_exchange: 0, short_multi_exchange: 1, sustained: 0, high_iteration: 0, unclassified: 0 },
+      },
+    },
+  });
+  return result;
+}
+
+const exportedV2 = plain(context.buildResearchSafeObject(v2Result(), null, null, 0.4, "2026-07-16"));
+assert.equal(exportedV2.schema_version, "top.research-safe-usage.v2");
+assert.deepEqual(Object.keys(exportedV2), Object.keys(exported).concat(["timeline", "session_distributions", "workflow_shape"]));
+assert.equal(exportedV2.collector.collector_version, "top.local-collector.2026-07-16.2");
+assert.equal(exportedV2.timeline.periods[0].total_tokens, exportedV2.totals.total_tokens);
+assert.equal(exportedV2.session_distributions.logical_sessions_analyzed, exportedV2.activity.sessions);
+assert.equal(exportedV2.workflow_shape.sessions.short_multi_exchange, 1);
+assert.deepEqual(Object.keys(exportedV2.timeline), ["status", "granularity", "timestamp_basis", "periods"]);
+assert.deepEqual(Object.keys(exportedV2.session_distributions), ["status", "session_definition", "thresholds_version", "elapsed_time_basis", "logical_sessions_analyzed", "usage_records_per_session", "total_tokens_per_session", "elapsed_time_per_session"]);
+assert.deepEqual(Object.keys(exportedV2.workflow_shape), ["status", "algorithm_version", "basis", "sessions"]);
+const earlyYearResearchV2 = v2Result();
+earlyYearResearchV2.pilotV2Aggregate.timeline.periods[0].period = "0000-02";
+assert.equal(context.buildResearchSafeObject(earlyYearResearchV2, null, null, 0.4, "2026-07-16").timeline.periods[0].period, "0000-02");
+for (const forbidden of ["prompt", "reply", "code", "tool_output", "filename", "path", "semantic_category"]) {
+  assert.equal(Object.prototype.hasOwnProperty.call(exportedV2.timeline, forbidden), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(exportedV2.session_distributions, forbidden), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(exportedV2.workflow_shape, forbidden), false);
+}
+const v2WithPrivateField = v2Result();
+v2WithPrivateField.pilotV2Aggregate.timeline.periods[0].prompt = "PRIVATE";
+assert.throws(() => context.buildResearchSafeObject(v2WithPrivateField, null, null, 0.4, "2026-07-16"), /v2_period_unsupported_field/);
+const v2WithBadTotals = v2Result();
+v2WithBadTotals.pilotV2Aggregate.timeline.periods[0].input_tokens++;
+v2WithBadTotals.pilotV2Aggregate.timeline.periods[0].total_tokens++;
+assert.throws(() => context.buildResearchSafeObject(v2WithBadTotals, null, null, 0.4, "2026-07-16"), /v2_reconciliation_failed/);
+const v2WithUnknownCollector = v2Result();
+v2WithUnknownCollector.pilotCollectorVersion = "latest";
+assert.throws(() => context.buildResearchSafeObject(v2WithUnknownCollector, null, null, 0.4, "2026-07-16"), /v2_source_not_accepted/);
+const undatedV2 = v2Result();
+undatedV2.days = 0;
+undatedV2.pilotV2Aggregate.timeline.periods[0].period = "undated";
+undatedV2.pilotV2Aggregate.timeline.periods[0].active_days = 0;
+const exportedUndatedV2 = plain(context.buildResearchSafeObject(undatedV2, null, null, 0.4, "2026-07-16"));
+assert.equal(exportedUndatedV2.activity.active_days, 0, "v2 must preserve a valid zero active-day count");
+const codexResearchV2 = v2Result();
+codexResearchV2.by = { "gpt-5.6-codex-mini": { inp: 100, out: 20, cw: 30, cr: 40, reasoning: 10, turns: 2 } };
+codexResearchV2.codex = true;
+codexResearchV2.pilotV2Aggregate.timeline.periods[0].reasoning_output_tokens = 10;
+codexResearchV2.pilotV2Aggregate.session_distributions.session_definition = "codex_rollout_file_proxy";
+const exportedCodexV2 = plain(context.buildResearchSafeObject(codexResearchV2, null, null, 0.4, "2026-07-16"));
+assert.equal(exportedCodexV2.schema_version, "top.research-safe-usage.v2");
+assert.equal(exportedCodexV2.activity.usage_events, 2);
+assert.equal(exportedCodexV2.activity.ai_replies, null);
+assert.equal(exportedCodexV2.totals.reasoning_tokens, 10);
+assert.equal(exportedCodexV2.timeline.periods[0].reasoning_output_tokens, 10);
 
 // Exact edit provenance persists by price family and affects only the edited fields.
 context.PRICING_EDITED_FIELDS["opusNew:in"] = true;
