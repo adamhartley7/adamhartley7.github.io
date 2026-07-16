@@ -814,6 +814,12 @@ if __name__ == "__main__":
       <button type="button" class="btn p" id="safeDownload">Download My Own Copy</button>
       <button type="button" class="btn" id="copySafePackage">Copy Exact Summary</button>
     </div>
+    <div class="summbox research-safe-box">
+      <h3>Complete Research-Safe JSON</h3>
+      <p>This separate file keeps every privacy-safe usage aggregate TOP calculated and the exact pricing rates applied. It includes the current value-model scenario only when the report qualifies for that illustration. Any included scenario is clearly marked as unvalidated, not a forecast result.</p>
+      <p><strong>Before sharing it:</strong> download the JSON, open it in a text editor, inspect it, then attach it deliberately to the message you choose. It contains no prompts, replies, code, tool output, paths, filenames, project or account identifiers, email addresses, exact times or original IDs. Nothing is sent by TOP.</p>
+      <button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button>
+    </div>
     <div class="share-form">
       <label for="shareRecipients">Email address or addresses</label>
       <input type="text" id="shareRecipients" inputmode="email" autocomplete="off" placeholder="Enter up to three addresses, separated by commas">
@@ -958,6 +964,8 @@ document.getElementById('changeResonance').addEventListener('click',function(){
 // Checked 16 Jul 2026. Five-minute cache writes use 1.25x input and cache reads use 0.1x input for the matched model families below.
 // Exact model recognition is deliberate. Unknown or ambiguous models are never silently assigned a price.
 var PRICING_CHECKED="16 Jul 2026";
+var PRICING_CHECKED_DATE="2026-07-16";
+var PRICING_EDITED_FIELDS=Object.create(null);
 var ANTHROPIC_PRICING_SOURCE="https://platform.claude.com/docs/en/about-claude/pricing";
 var OPENAI_PRICING_SOURCE="https://openai.com/index/gpt-5-6/";
 var PRICES = {
@@ -1706,7 +1714,7 @@ function render(res){
   document.getElementById("shareStatus").textContent="";
   document.getElementById("prices").innerHTML=res.chatExport?"No dollar cost is guessed for chat-history downloads.":pricingDetailsHTML(priceKeys);
   document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
-    var v=parseFloat(inp.value); if(!isNaN(v)) PRICES[inp.dataset.k][inp.dataset.f]=v; render(res);
+    var v=parseFloat(inp.value); if(!isNaN(v)){PRICES[inp.dataset.k][inp.dataset.f]=v;PRICING_EDITED_FIELDS[inp.dataset.k+":"+inp.dataset.f]=true;} render(res);
   })});
   renderValueModel(rows, totCost, res);
   document.getElementById("out").style.display="block";
@@ -2117,6 +2125,7 @@ function historyFilesForMode(files,targetMode,origin){
   return {files:rejectedRoot?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,oversized:oversized,totalBytes:rejectedRoot?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,unsafeClaudeRoot:unsafeClaudeRoot,invalidClaudeFolder:invalidClaudeFolder,unsafeClaudeHistory:unsafeClaudeHistory,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates,regularJson:regularJson,projectJson:projectJson,contextJson:contextJson};
 }
 function finishParsedResult(res,openedCount){
+  res.filesOpened=safeCodexCount(openedCount);
   var n=Object.keys(res.by).length;
   if(!n||res.turns===0){
     if(mode==="csv") showErr("TOP could not find recognized usage or cost columns with real values in that CSV. An Obsidian note is not a Console export. Choose an Anthropic Usage or Cost CSV.");
@@ -2377,6 +2386,150 @@ document.getElementById("openEmailDraft").addEventListener("click",function(){
   window.location.href=url;
   document.getElementById("shareStatus").textContent="TOP asked your device to open an email draft. TOP cannot tell whether it opened or was delivered. If no draft appeared, download the copy and attach it instead.";
 });
+// ---------- complete research-safe aggregate (local download only) ----------
+var RESEARCH_SCHEMA_VERSION="top.research-safe-usage.v1";
+var RESEARCH_VALUE_MODEL_VERSION="top.value-model.v0.1-illustrative";
+var RESEARCH_COLLECTOR_VERSION="top.local-analyzer.2026-07-16.1";
+var RESEARCH_PARSER_VERSION="top.usage-parser.2026-07-16.1";
+function researchCount(value){var number=Number(value);return Number.isFinite(number)&&number>=0?Math.round(number):0}
+function researchMoney(value){var number=Number(value);return Number.isFinite(number)&&number>=0?Number(number.toFixed(6)):null}
+function researchDateOnly(value){var match=String(value||"").match(/^(\d{4}-\d{2}-\d{2})$/);return match?match[1]:new Date().toISOString().slice(0,10)}
+function strictResearchModelLabel(value){
+  var model=String(value||"").replace(/[\u0000-\u001f\u007f<>\\/]/g," ").replace(/\s+/g," ").trim();
+  if(/^(?:claude\.ai \(est\.\)|ChatGPT export \(est\.\)|Unknown Codex model)$/i.test(model))return model;
+  model=model.replace(/-(?:\d{8}|\d{4}-\d{2}-\d{2})$/i,"");
+  if(/^claude-(?:(?:opus|sonnet|haiku|fable|mythos)-\d{1,2}(?:-\d{1,2}){0,2}|\d{1,2}(?:-\d{1,2}){0,2}-(?:opus|sonnet|haiku|fable|mythos))$/i.test(model))return model;
+  if(/^gpt-\d{1,2}(?:[.-]\d{1,2})*(?:-(?:sol|terra|luna|mini|nano|codex|chat|pro|turbo|preview))?$/i.test(model))return model;
+  if(/^o[1-9](?:-(?:mini|pro|preview|latest))?$/i.test(model))return model;
+  if(/^deepseek-v\d{1,2}(?:[.-]\d{1,2})*(?:-(?:pro|lite|chat|coder|reasoner))?$/i.test(model))return model;
+  if(/^codex-(?:mini|large|latest)(?:-latest)?$/i.test(model))return model;
+  return "Unrecognized AI version";
+}
+function researchSource(result,routeB){
+  if(routeB)return {provider:"anthropic",surface:"claude_code",input_form:"locally_cleaned_usage_export"};
+  if(result.codex)return {provider:"openai",surface:"codex",input_form:"local_session_usage_records"};
+  if(result.chatProvider==="ChatGPT")return {provider:"openai",surface:"chatgpt",input_form:"conversation_export"};
+  if(result.chatProvider==="Claude Chat")return {provider:"anthropic",surface:"claude_chat",input_form:"conversation_export"};
+  if(result.csv)return {provider:"anthropic",surface:"console",input_form:"console_csv_export"};
+  return {provider:"anthropic",surface:"claude_code",input_form:"local_session_usage_records"};
+}
+function researchMeasurement(result){
+  if(result.chatExport)return {token_basis:"estimated_from_visible_message_text",cache_basis:"not_available",reasoning_basis:"not_available",cost_basis:"not_available"};
+  if(result.csv)return {token_basis:"exported_columns_where_present",cache_basis:"exported_columns_where_present",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export":"recorded_where_present_then_checked_rates_for_recognized_missing_rows"};
+  return {token_basis:"recorded_usage_counters",cache_basis:"recorded_usage_counters",reasoning_basis:result.codex?"recorded_subset_of_output":"not_separately_available",cost_basis:"checked_pay_as_you_go_rate_comparison"};
+}
+function researchCoverage(result,routeB){
+  var coverage={status:"limited_to_current_parser_checks",files_opened:result.filesOpened===null||result.filesOpened===undefined?null:researchCount(result.filesOpened)};
+  if(routeB&&routeB.res)coverage.files_opened=routeB.res.filesOpened===undefined?null:researchCount(routeB.res.filesOpened);
+  if(result.codex&&result.coverage){
+    coverage.status="available";
+    ["files_selected","files_parsed","files_with_usage","files_skipped","malformed_lines","oversized_lines","counter_resets"].forEach(function(key){coverage[key]=researchCount(result.coverage[key])});
+    coverage.complete=result.coverage.complete===true;
+  }else if(result.chatExport){
+    coverage.records_ignored=researchCount(result.ignoredRecords);
+    coverage.messages_ignored=researchCount(result.ignoredMessages);
+    coverage.duplicate_records_skipped=researchCount(result.duplicateRecords);
+  }else if(result.csv){
+    coverage.rows_with_recorded_cost=researchCount(result.costRows);
+    coverage.rows_without_recorded_cost=researchCount(result.missingCostRows);
+  }else{
+    coverage.usage_records=researchCount(result.turns);
+  }
+  return coverage;
+}
+function safePermissionModeCounts(value){
+  var allowed={"default":"default","acceptedits":"accept_edits","bypasspermissions":"bypass_permissions","plan":"plan","dontask":"dont_ask"},out={};
+  Object.keys(value||{}).forEach(function(raw){var key=allowed[String(raw).replace(/[^a-z]/gi,"").toLowerCase()]||"unrecognized",count=researchCount(value[raw]);if(count)out[key]=(out[key]||0)+count});
+  return out;
+}
+var RESEARCH_ENUM_MAPS={
+  resonance:{"running out of tokens":"running_out_of_ai_usage","worried about budgeting tokens":"cannot_predict_allowance","hard to optimize AI workflow":"unsure_which_ai_setup","spending too much on AI":"spending_too_much","worried about runaway tasks":"worried_about_runaway_tasks","want more value from AI accounts":"want_more_account_value","want Obsidian connected to AI":"want_obsidian_memory","something else":"other_unspecified"},
+  frequency:{"6+ hours a day":"six_plus_hours_daily","3+ hours a day":"three_plus_hours_daily","1+ hours a day":"one_plus_hours_daily","every day":"daily","a couple times a week":"several_times_weekly"},
+  primary:{"Coding problems":"coding","Business development or decisions":"business_decisions","General questions":"general_questions","Web development":"web_development","Other":"other_unspecified"},
+  archetype:{"a quick steer/ack":"quick_direction","chat Q&A":"chat_question_answer","chat thread":"long_chat","code Q&A":"code_question_answer","repo ops":"repository_operations","single-file edit":"single_file_edit","debugging":"debugging","research/review":"research_review","multi-file change":"multi_file_change","build a feature":"build_feature","bounded agent loop":"bounded_agent_loop","overnight/automated run":"overnight_automated_run"},
+  thinking:{"ultracode":"ultracode","max":"max","high":"high","medium":"medium","low":"low"},
+  goal:{"Predict cost before a task":"predict_cost","Spend less on AI":"spend_less","Choose the right AI version":"choose_model","Stop automated tasks using too much allowance":"bound_automated_usage","Understand team usage":"understand_team_usage","Protect private data":"protect_private_data"},
+  account:{"Free individual":"free_individual","Paid individual":"paid_individual","Team or business":"team_or_business","Pay-as-you-go developer account":"pay_as_you_go_developer"}
+};
+function selectedResearchEnums(name,map,useDataValue){
+  var group=document.querySelector('#survey .chipgroup[data-name="'+name+'"]');if(!group)return [];
+  return Array.prototype.map.call(group.querySelectorAll(".chip.on"),function(chip){var raw=useDataValue?chip.dataset.val:chip.textContent.trim();return map[raw]||null}).filter(Boolean);
+}
+function collectResearchQuestionnaire(){
+  if(!includeSurveyContext)return null;
+  var resonance=Array.prototype.map.call(document.querySelectorAll("#resonanceChoices .resonance-choice.on"),function(choice){return RESEARCH_ENUM_MAPS.resonance[choice.dataset.value]||null}).filter(Boolean);
+  var source={cc:"claude_code",codex:"codex",csv:"claude_console",chat:"claude_chat",openai:"chatgpt"}[mode]||"unrecognized";
+  var route={a:"show_report_first",b:"make_shareable_summary"}[selectedRoute]||"not_selected";
+  return {what_to_improve:resonance,source_selected:source,route_selected:route,kinds_of_work:selectedResearchEnums("archetype",RESEARCH_ENUM_MAPS.archetype,true),frequency:selectedResearchEnums("frequency",RESEARCH_ENUM_MAPS.frequency,false),main_uses:selectedResearchEnums("primary",RESEARCH_ENUM_MAPS.primary,false),effort_level:selectedResearchEnums("thinking",RESEARCH_ENUM_MAPS.thinking,false),goals:selectedResearchEnums("goal",RESEARCH_ENUM_MAPS.goal,false),account_category:selectedResearchEnums("account",RESEARCH_ENUM_MAPS.account,false)};
+}
+function safeResearchQuestionnaire(value){
+  if(!value||typeof value!=="object")return null;
+  function allowedValues(map){var set={};Object.keys(map).forEach(function(key){set[map[key]]=1});return set}
+  function filtered(items,map){var allowed=allowedValues(map);return Array.isArray(items)?items.filter(function(item){return allowed[item]}):[]}
+  var sources={claude_code:1,codex:1,claude_console:1,claude_chat:1,chatgpt:1,unrecognized:1},routes={show_report_first:1,make_shareable_summary:1,not_selected:1};
+  return {what_to_improve:filtered(value.what_to_improve,RESEARCH_ENUM_MAPS.resonance),source_selected:sources[value.source_selected]?value.source_selected:"unrecognized",route_selected:routes[value.route_selected]?value.route_selected:"not_selected",kinds_of_work:filtered(value.kinds_of_work,RESEARCH_ENUM_MAPS.archetype),frequency:filtered(value.frequency,RESEARCH_ENUM_MAPS.frequency),main_uses:filtered(value.main_uses,RESEARCH_ENUM_MAPS.primary),effort_level:filtered(value.effort_level,RESEARCH_ENUM_MAPS.thinking),goals:filtered(value.goals,RESEARCH_ENUM_MAPS.goal),account_category:filtered(value.account_category,RESEARCH_ENUM_MAPS.account)};
+}
+function researchCostRow(rawModel,entry,result){
+  var model=strictResearchModelLabel(rawModel),key=model==="Unrecognized AI version"?null:priceKeyFor(model),cost=null,complete=false,status="unavailable",rateApplied=false;
+  if(result.chatExport)return {model:model,key:null,cost:null,complete:false,status:status,rateApplied:false};
+  if(result.csv){
+    var recorded=entry.costRows?Number(entry.cost)||0:0,hasRecorded=!!entry.costRows,hasMissing=!!entry.missingCostRows,estimated=null;
+    if(hasMissing&&key)estimated=costOf(model,researchCount(entry.missing&&entry.missing.inp),researchCount(entry.missing&&entry.missing.out),researchCount(entry.missing&&entry.missing.cw),researchCount(entry.missing&&entry.missing.cr));
+    if(hasRecorded||estimated!==null)cost=recorded+(estimated||0);
+    complete=!hasMissing||(estimated!==null);
+    rateApplied=hasMissing&&estimated!==null;
+    status=hasRecorded&&hasMissing?(complete?"mixed_recorded_and_estimated":"partial_recorded"):(hasRecorded?"recorded":(estimated!==null?"estimated":"unavailable"));
+  }else if(key){cost=costOf(model,researchCount(entry.inp),researchCount(entry.out),researchCount(entry.cw),researchCount(entry.cr));complete=cost!==null;status=complete?"estimated":"unavailable";rateApplied=complete}
+  return {model:model,key:key,cost:researchMoney(cost),complete:complete,status:status,rateApplied:rateApplied};
+}
+function mergeResearchCostStatus(statuses,anyCost,allComplete){
+  if(!anyCost)return "unavailable";
+  if(!allComplete)return "partial";
+  var unique={};statuses.forEach(function(status){unique[status]=1});
+  return Object.keys(unique).length===1?statuses[0]:"mixed";
+}
+function researchRateFieldProvenance(priceKey){
+  var inputEdited=PRICING_EDITED_FIELDS[priceKey+":in"]===true,outputEdited=PRICING_EDITED_FIELDS[priceKey+":out"]===true;
+  return {input:inputEdited?"user_edited_in_tab":"checked_reference_rate",cache_write:inputEdited?"derived_from_user_edited_input":"derived_from_checked_reference_input",cache_read:inputEdited?"derived_from_user_edited_input":"derived_from_checked_reference_input",output:outputEdited?"user_edited_in_tab":"checked_reference_rate"};
+}
+function buildResearchValueModel(result,modelRows,totalCost,scenarioValue){
+  if(!result.valueModelEligible||!(totalCost>0))return {truth_status:"not_available",algorithm_version:RESEARCH_VALUE_MODEL_VERSION,reason:"current_report_not_eligible"};
+  var frontierCost=0;modelRows.forEach(function(row){if(tierOf(row.model)==="frontier"&&row.cost.usd!==null)frontierCost+=row.cost.usd});
+  var amount=Math.max(0,Math.min(1,Number(scenarioValue)));if(!Number.isFinite(amount))amount=.4;
+  var ratioLow=5,ratioHigh=5,moveLow=.25,moveHigh=.5,ratio=ratioLow+(ratioHigh-ratioLow)*amount,move=moveLow+(moveHigh-moveLow)*amount;
+  var saving=frontierCost*move*(1-1/ratio),after=totalCost-saving,saveLow=frontierCost*moveLow*(1-1/ratioLow),saveHigh=frontierCost*moveHigh*(1-1/ratioHigh);
+  return {truth_status:"illustrative_unvalidated",algorithm_version:RESEARCH_VALUE_MODEL_VERSION,inputs:{baseline_cost_usd:researchMoney(totalCost),frontier_model_cost_usd:researchMoney(frontierCost),frontier_model_cost_share:totalCost?Number((frontierCost/totalCost).toFixed(6)):0,scenario_slider:amount,work_moved_share_low:moveLow,work_moved_share_high:moveHigh,work_moved_share_current:Number(move.toFixed(6)),flagship_to_lower_cost_ratio_low:ratioLow,flagship_to_lower_cost_ratio_high:ratioHigh,flagship_to_lower_cost_ratio_current:ratio},assumptions:["frontier_spend_is_only_a_proxy_for_work_that_might_be_routable","between_25_and_50_percent_of_frontier_spend_might_move","the_lower_cost_ai_is_one_fifth_of_the_flagship_price","work_quality_is_unchanged_after_routing","saved_budget_may_be_reinvested_in_more_ai_work","the_output_value_index_is_not_measured"],outputs:{illustrative_cost_after_routing_usd:researchMoney(after),illustrative_saving_usd:researchMoney(saving),illustrative_saving_range_low_usd:researchMoney(saveLow),illustrative_saving_range_high_usd:researchMoney(saveHigh),chart_cost_index_after_routing:totalCost?Number((after/totalCost).toFixed(6)):null,chart_output_value_index:Number((1.26+.24*amount).toFixed(6))}};
+}
+function buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,createdDate){
+  var current=routeB&&routeB.res?routeB.res:result;if(!current)return null;
+  var grouped={},statuses=[],rateMap={},totalCost=0,anyCost=false,allComplete=true;
+  Object.keys(current.by||{}).forEach(function(rawModel){
+    var entry=current.by[rawModel],cost=researchCostRow(rawModel,entry,current),model=cost.model,row=grouped[model];
+    if(!row)row=grouped[model]={model:model,input_tokens:0,output_tokens:0,cache_write_tokens:current.chatExport?null:0,cache_read_tokens:current.chatExport?null:0,reasoning_tokens:current.codex?0:null,total_tokens:0,events_or_replies:0,_cost:0,_anyCost:false,_allComplete:true,_statuses:[]};
+    var input=researchCount(entry.inp),output=researchCount(entry.out),cacheWrite=researchCount(entry.cw),cacheRead=researchCount(entry.cr),reasoning=researchCount(entry.reasoning);
+    row.input_tokens+=input;row.output_tokens+=output;if(row.cache_write_tokens!==null)row.cache_write_tokens+=cacheWrite;if(row.cache_read_tokens!==null)row.cache_read_tokens+=cacheRead;if(row.reasoning_tokens!==null)row.reasoning_tokens+=reasoning;row.total_tokens+=input+output+(current.chatExport?0:cacheWrite+cacheRead);row.events_or_replies+=researchCount(entry.turns);
+    row._statuses.push(cost.status);if(cost.cost!==null){row._cost+=cost.cost;row._anyCost=true;totalCost+=cost.cost;anyCost=true}if(!cost.complete){row._allComplete=false;allComplete=false}statuses.push(cost.status);
+    if(cost.rateApplied&&cost.key){var price=PRICES[cost.key],rateKey=model+"|"+cost.key;rateMap[rateKey]={model:model,rate_family:price.label,input_usd_per_million:price.in,cache_write_usd_per_million:cacheWriteRate(price),cache_read_usd_per_million:cacheReadRate(price),output_usd_per_million:price.out,field_provenance:researchRateFieldProvenance(cost.key),reference_source_url:price.source}}
+  });
+  var modelRows=Object.keys(grouped).sort().map(function(model){var row=grouped[model],clean={model:row.model,input_tokens:row.input_tokens,output_tokens:row.output_tokens,cache_write_tokens:row.cache_write_tokens,cache_read_tokens:row.cache_read_tokens,reasoning_tokens:row.reasoning_tokens,total_tokens:row.total_tokens,events_or_replies:row.events_or_replies,cost:{status:mergeResearchCostStatus(row._statuses,row._anyCost,row._allComplete),usd:row._anyCost?researchMoney(row._cost):null}};return clean});
+  var totals=modelRows.reduce(function(out,row){out.input_tokens+=row.input_tokens;out.output_tokens+=row.output_tokens;if(row.cache_write_tokens!==null)out.cache_write_tokens+=row.cache_write_tokens;if(row.cache_read_tokens!==null)out.cache_read_tokens+=row.cache_read_tokens;if(row.reasoning_tokens!==null)out.reasoning_tokens+=row.reasoning_tokens;out.total_tokens+=row.total_tokens;return out},{input_tokens:0,output_tokens:0,cache_write_tokens:current.chatExport?null:0,cache_read_tokens:current.chatExport?null:0,reasoning_tokens:current.codex?0:null,total_tokens:0});
+  var activity={ai_replies:null,usage_events:null,console_records:null,text_messages:null,sessions:current.csv?null:researchCount(current.sessions),active_days:researchCount(current.days)||null};
+  if(current.codex)activity.usage_events=researchCount(current.turns);else if(current.csv)activity.console_records=researchCount(current.turns);else if(current.chatExport)activity.text_messages=researchCount(current.turns);else activity.ai_replies=researchCount(current.turns);
+  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.chatExport?"not_available":(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison"),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
+  if(routeB&&valueModel.truth_status==="not_available")valueModel.reason="scenario_control_not_shown_for_this_route";
+  appliedRates.forEach(function(rate){Object.keys(rate.field_provenance).forEach(function(field){var origin=rate.field_provenance[field];if(origin==="user_edited_in_tab"||origin==="derived_from_user_edited_input")editedFields++;else referenceFields++})});
+  if(current.chatExport)pricingStatus="not_applied";else if(current.csv&&current.costComplete)pricingStatus="not_needed_recorded_cost";else if(!appliedRates.length)pricingStatus="not_applied_no_recognized_rate";else if(editedFields&&referenceFields)pricingStatus=allComplete?"mixed_checked_and_user_edited_rates":"partially_applied_mixed_rate_provenance";else if(editedFields)pricingStatus=allComplete?"user_edited_in_tab":"partially_applied_user_edited_rates";else pricingStatus=allComplete?"checked_reference_rates":"partially_applied_checked_rates";
+  return {schema_version:RESEARCH_SCHEMA_VERSION,collector:{collector_version:RESEARCH_COLLECTOR_VERSION,parser_version:RESEARCH_PARSER_VERSION},generated_date:researchDateOnly(createdDate),source:researchSource(current,routeB),measurement:researchMeasurement(current),scope:{selection:"supported_records_in_user_selected_local_data",full_account_or_subscription_claim:false,original_source_content_included:false},coverage:researchCoverage(current,routeB),totals:totals,activity:activity,cost:{status:costStatus,usd:anyCost?researchMoney(totalCost):null,basis:costBasis,currency:"USD",subscription_bill:false},pricing:{status:pricingStatus,reference_checked_date:PRICING_CHECKED_DATE,unit:"usd_per_million_tokens",applied_rates:appliedRates,unpriced_model_groups:modelRows.filter(function(row){return row.cost.status==="unavailable"}).length},permission_mode_counts:routeB&&routeB.res?safePermissionModeCounts(routeB.res.perm):null,by_model:modelRows,questionnaire:safeResearchQuestionnaire(questionnaire),value_model:valueModel,privacy:{network_delivery:"none",inspect_before_attaching:true,excluded:["prompts","replies","code","tool_output","paths","filenames","project_and_account_identifiers","email_addresses","exact_timestamps","original_ids"]}};
+}
+function buildResearchSafeJSON(result,routeB,questionnaire,scenarioValue,createdDate){var data=buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,createdDate);return data?JSON.stringify(data,null,2):""}
+function downloadResearchSafeJSON(){
+  var slider=document.getElementById("vmg"),scenario=slider?parseFloat(slider.value):.4,json=buildResearchSafeJSON(LAST_RESULT,ROUTEB,collectResearchQuestionnaire(),scenario,new Date().toISOString().slice(0,10));
+  if(!json){document.getElementById("shareStatus").textContent="No completed usage report is available for the research-safe file.";return false}
+  var day=new Date().toISOString().slice(0,10);dlFile("top-research-safe-usage-"+day+".json",json,"application/json");
+  document.getElementById("shareStatus").textContent="The research-safe JSON was downloaded. Open and inspect it before deliberately attaching it. Nothing was submitted.";
+  return true;
+}
+document.getElementById("downloadResearchJSON").addEventListener("click",downloadResearchSafeJSON);
 // ---------- Route B: content-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;
 function parseStripped(texts){
@@ -2426,7 +2579,7 @@ function parseStripped(texts){
       var rowCost=costOf(model,inp,out,cw,cr);if(rowCost===null)s.costAvailable=false;else s.cost+=rowCost;
       if(row.timestamp){ if(!s.first||row.timestamp<s.first) s.first=row.timestamp; if(!s.last||row.timestamp>s.last) s.last=row.timestamp; }
   });
-  return {by:by, turns:calls.size, sessions:Object.keys(sessions).length, days:Object.keys(days).length, perm:perm, sess:sess, kind:"Claude Code cleaned usage file"};
+  return {by:by, turns:calls.size, sessions:Object.keys(sessions).length, days:Object.keys(days).length, filesOpened:texts.length, perm:perm, sess:sess, kind:"Claude Code cleaned usage file"};
 }
 function renderB(res){
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],costAvailable=true;
@@ -2450,6 +2603,8 @@ function renderB(res){
   rows.forEach(function(r){bLines.push("  "+safePublicModelLabel(r.model)+": "+fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused, "+fmtInt(r.e.turns)+" AI replies, "+(r.cost===null?"cost not available":"estimated cost about "+fmt$(r.cost))+".");});
   bLines.push("","Privacy note: This summary contains no conversation text, AI reply text, code, file contents or original internal ID numbers.");
   lastSummary=bLines.join("\n");
+  res.costAvailable=costAvailable&&rows.length>0;
+  res.valueModelEligible=false;
   ROUTEB={rows:rows,res:res,totInp:totInp,totOut:totOut,totCw:totCw,totCr:totCr,totCost:totCost,totTok:totTok,costAvailable:costAvailable};
   document.getElementById("outb").style.display="block";
   document.getElementById("survey").hidden=false;
