@@ -57,11 +57,13 @@ const result = context.parseStripped([[
   stripped({ messageId: "RAW-MESSAGE-1", requestId: "RAW-REQUEST-1", output: 10 }),
   stripped({ messageId: "RAW-MESSAGE-1", requestId: "RAW-REQUEST-1", output: 25 }),
   stripped({ messageId: "RAW-MESSAGE-2", requestId: "RAW-REQUEST-2", output: 7 }),
+  stripped({ sessionId: "RAW-SESSION-SECOND", messageId: "RAW-MESSAGE-1", requestId: "RAW-REQUEST-1", output: 11 }),
 ].join("\n")]);
 
-assert.equal(result.turns, 2, "Route B must deduplicate repeated call records");
-assert.equal(result.by["claude-opus-4-8"].out, 32, "Route B must retain max counters for each unique call");
+assert.equal(result.turns, 3, "Route B must deduplicate only within the same work session");
+assert.equal(result.by["claude-opus-4-8"].out, 43, "Route B must retain max counters for each unique call");
 assert.equal(Object.values(result.sess)[0].turns, 2, "session totals must use unique calls");
+assert.equal(Object.values(result.sess)[1].turns, 1, "matching IDs in another session must stay separate");
 
 const usage = result.by["claude-opus-4-8"];
 context.ROUTEB = {
@@ -112,7 +114,7 @@ assert.doesNotMatch(keepTop, /sessionId|requestId|uuid|message_id/,
   "the stripped file allowlist must exclude raw identifiers");
 assert.doesNotMatch(script, /out\["message_id"\]/,
   "the privacy script must never write raw message IDs");
-assert.match(script, /out\["session_number"\] = session_number/);
+assert.match(script, /safe_row\["session_number"\] = session_aliases\[private_session_key\]/);
 assert.match(script, /Raw IDs are used only in memory/);
 
 console.log("TOP Analyzer Route B and escaping regression tests passed");

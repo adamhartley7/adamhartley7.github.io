@@ -81,6 +81,8 @@ assert.match(html, /function detectConversationMode\(/);
 assert.match(html, /function inferModeFromFileNames\(/);
 assert.match(html, /That is project data, not Claude Code usage/);
 assert.match(html, /Analyze conversation export/);
+assert.match(html, /id="downloadscript"/);
+assert.match(html, /Download Privacy Cleaner/);
 assert.match(html, /Choose only <code>rollout-\*\.jsonl<\/code> files/);
 assert.match(html, /Do not choose the whole <code>\.codex<\/code> folder/);
 assert.match(html, /id="downloadAIEvents">Download ai-events\.jsonl/);

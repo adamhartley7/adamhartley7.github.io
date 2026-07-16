@@ -234,7 +234,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .routeb .lead{color:var(--muted);font-size:14.5px;margin:0 0 16px;max-width:72ch}
 .routeb .lead b{color:var(--text)}
 .scriptbox{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:14px 0}
-.scripthead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.scripthead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}.script-actions{display:flex;gap:8px;flex-wrap:wrap}
 .scripthead .fn{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--iris2)}
 .scriptbox textarea{min-height:240px;font-size:12px;color:var(--muted)}
 .privbox{background:rgba(62,207,142,.06);border:1px solid rgba(62,207,142,.3);border-radius:12px;padding:14px 16px;margin:14px 0;color:var(--muted);font-size:13.5px;line-height:1.6}
@@ -406,8 +406,8 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <div class="steps">
       <h4>Advanced option for Claude Code</h4>
       <ol>
-        <li>Copy the script below and save it as <code>strip_claude_logs.py</code>.</li>
-        <li>On Windows, run <code>py strip_claude_logs.py</code>. On macOS or Linux, run <code>python3 strip_claude_logs.py</code>. It writes <code>claude-usage-only.jsonl</code> next to it.</li>
+        <li>Choose <b>Download Privacy Cleaner</b> below. It saves <code>strip_claude_logs.py</code>.</li>
+        <li>On Windows, open PowerShell in that download folder and run <code>py .\strip_claude_logs.py</code>. On macOS or Linux, run <code>python3 strip_claude_logs.py</code>. It writes <code>claude-usage-only.jsonl</code> next to it.</li>
         <li>Open that file and check it yourself. It should contain no prompts, replies, code, file contents or original internal ID numbers. It can include dates, AI version names, Claude Code access settings and new numbered sessions.</li>
         <li>Drop that file into the box below to see it parsed locally on your device.</li>
         <li>Download a CSV or JSON copy for yourself. TOP is not accepting external files yet.</li>
@@ -416,7 +416,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     </div>
 
     <div class="scriptbox">
-      <div class="scripthead"><span class="fn">strip_claude_logs.py</span><button class="btn" id="copyscript" style="margin-top:0">Copy script</button></div>
+      <div class="scripthead"><span class="fn">strip_claude_logs.py</span><div class="script-actions"><button class="btn p" id="downloadscript" style="margin-top:0">Download Privacy Cleaner</button><button class="btn" id="copyscript" style="margin-top:0">Copy Script Instead</button></div></div>
       <textarea id="scripttext" readonly spellcheck="false">#!/usr/bin/env python3
 """
 strip_claude_logs.py
@@ -431,7 +431,8 @@ session numbers.
 What never gets read into the output file: prompt text, response text,
 tool inputs and outputs, file contents, code, and raw session, message,
 request, or event IDs. Raw IDs are used only in memory to de-duplicate
-multi-part turns, then discarded before the new file is written.
+multi-part turns and map the same work session to a new sequential number.
+The raw IDs are then discarded before the new file is written.
 
 The script is deliberately readable. Read it before you run it.
 
@@ -449,6 +450,8 @@ import json
 import os
 import sys
 import glob
+import math
+import re
 
 INCLUDE_PROJECT = "--with-projects" in sys.argv
 SRC = os.path.expanduser("~/.claude/projects")
@@ -461,6 +464,33 @@ KEEP_USAGE = {
     "input_tokens", "output_tokens",
     "cache_read_input_tokens", "cache_creation_input_tokens",
 }
+SAFE_LABEL = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$")
+SAFE_TIMESTAMP = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
+)
+MAX_SAFE_INTEGER = 9_007_199_254_740_991
+
+
+def safe_label(value):
+    if isinstance(value, str) and SAFE_LABEL.fullmatch(value):
+        return value
+    return None
+
+
+def safe_timestamp(value):
+    if isinstance(value, str) and SAFE_TIMESTAMP.fullmatch(value):
+        return value
+    return None
+
+
+def safe_counter(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if not math.isfinite(value) or value < 0 or value > MAX_SAFE_INTEGER:
+        return None
+    if not float(value).is_integer():
+        return None
+    return int(value)
 
 
 def strip_line(raw, project_name, session_number, line_number):
@@ -478,29 +508,48 @@ def strip_line(raw, project_name, session_number, line_number):
     if not isinstance(usage, dict):
         return None
 
-    safe_usage = {k: v for k, v in usage.items() if k in KEEP_USAGE}
-    if not safe_usage:
+    safe_usage = {}
+    for key in KEEP_USAGE:
+        value = safe_counter(usage.get(key))
+        if value is not None:
+            safe_usage[key] = value
+    if not any(value > 0 for value in safe_usage.values()):
         return None
 
-    out = {k: rec[k] for k in KEEP_TOP if k in rec}
-    out["session_number"] = session_number
-    if "model" in msg:
-        out["model"] = msg["model"]
+    out = {}
+    timestamp = safe_timestamp(rec.get("timestamp"))
+    if timestamp:
+        out["timestamp"] = timestamp
+    permission_mode = safe_label(rec.get("permissionMode"))
+    if permission_mode:
+        out["permissionMode"] = permission_mode
+    out["model"] = safe_label(msg.get("model")) or "unknown"
     out["usage"] = safe_usage
 
     if INCLUDE_PROJECT and project_name:
-        out["project"] = project_name
+        out["project"] = safe_label(project_name) or "unnamed-project"
+
+    raw_session_id = rec.get("sessionId")
+    private_session_key = (
+        ("session", str(raw_session_id))
+        if raw_session_id
+        else ("file", session_number)
+    )
 
     message_id = msg.get("id")
     request_id = rec.get("requestId")
     event_id = rec.get("uuid")
     if message_id or request_id:
-        private_key = ("call", str(message_id or ""), str(request_id or ""))
+        private_key = private_session_key + (
+            "call", str(message_id or ""), str(request_id or "")
+        )
     elif event_id:
-        private_key = ("event", str(event_id))
+        private_key = private_session_key + ("event", str(event_id))
     else:
-        private_key = ("line", session_number, line_number)
-    return private_key, out
+        private_key = private_session_key + (
+            "line", session_number, line_number
+        )
+    return private_key, private_session_key, out
 
 
 def merge_duplicate(existing, incoming):
@@ -522,6 +571,7 @@ def main():
     n_in = 0
     safe_calls = {}
     call_order = []
+    session_aliases = {}
     pattern = os.path.join(SRC, "**", "*.jsonl")
     paths = sorted(glob.glob(pattern, recursive=True))
     for session_number, path in enumerate(paths, start=1):
@@ -537,7 +587,10 @@ def main():
                 )
                 if not stripped:
                     continue
-                private_key, safe_row = stripped
+                private_key, private_session_key, safe_row = stripped
+                if private_session_key not in session_aliases:
+                    session_aliases[private_session_key] = len(session_aliases) + 1
+                safe_row["session_number"] = session_aliases[private_session_key]
                 if private_key in safe_calls:
                     merge_duplicate(safe_calls[private_key], safe_row)
                 else:
@@ -2065,12 +2118,13 @@ function parseStripped(texts){
       var u=r.usage; if(!u||typeof u!=="object") return;
       var inp=tokenCount(u.input_tokens), out=tokenCount(u.output_tokens), cw=tokenCount(u.cache_creation_input_tokens), cr=tokenCount(u.cache_read_input_tokens);
       if(!(inp||out||cw||cr)) return;
+      var sid=safeSessionNumber(r,fileIndex);
       var mid=idPart(r.message_id), rid=idPart(r.requestId);
       var key=mid!==null||rid!==null
-        ?JSON.stringify(["call",mid,rid])
+        ?JSON.stringify(["call",sid,mid,rid])
         :JSON.stringify(["line",fileIndex,lineIndex]);
       var row={model:r.model||"unknown",inp:inp,out:out,cw:cw,cr:cr,
-        sid:safeSessionNumber(r,fileIndex),pm:r.permissionMode||"unknown",timestamp:r.timestamp||null};
+        sid:sid,pm:r.permissionMode||"unknown",timestamp:r.timestamp||null};
       var prev=calls.get(key);
       if(prev){
         if(prev.model==="unknown"&&row.model!=="unknown") prev.model=row.model;
@@ -2159,6 +2213,11 @@ document.getElementById("copyscript").addEventListener("click",function(){
   var done=function(){b.textContent="Copied ✓"; setTimeout(function(){b.textContent="Copy script"},1600);};
   t.select();
   if(navigator.clipboard) navigator.clipboard.writeText(t.value).then(done,done); else { document.execCommand("copy"); done(); }
+});
+document.getElementById("downloadscript").addEventListener("click",function(){
+  var text=document.getElementById("scripttext").value;
+  dlFile("strip_claude_logs.py",text,"text/x-python");
+  this.textContent="Downloaded";
 });
 function csvEsc(v){v=String(v); return /[",\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v;}
 function buildBSessionRows(){
