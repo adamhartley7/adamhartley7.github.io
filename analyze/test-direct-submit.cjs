@@ -18,7 +18,9 @@ assert.match(html, /forecast_calibration/);
 assert.match(html, /retained for up to 30 days/);
 assert.match(html, /Cloudflare processes the submission request and Resend processes the email delivery/);
 assert.match(html, /usage patterns may still identify you/);
-assert.match(html, /ask Adam to delete it earlier/);
+assert.match(html, /stores account data, email metadata, logs and API records in the United States/);
+assert.match(html, /ask Adam to delete their mailbox copies earlier/);
+assert.match(html, /Resend may still retain its processor copy for its standard 30-day period/);
 assert.doesNotMatch(html, /id="shareRecipients"|mailto:|oconns89@|adam2hartley@/i);
 assert.match(html, /prepareResearchSafePackage\(true\)/,
   "the exact research-safe package must be frozen before review");
@@ -94,7 +96,7 @@ function createContext(fetchImpl) {
   assert.equal(envelope.submission_schema_version, "top.explicit-submission.v1");
   assert.equal(envelope.submission_id, UUID);
   assert.deepEqual(envelope.consent, {
-    notice_version: "top.research-consent.2026-07-16.1",
+    notice_version: "top.research-consent.2026-07-17.1",
     accepted: true,
     purposes: ["analyzer_validation", "forecast_calibration"],
     retention_days: 30,

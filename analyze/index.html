@@ -928,8 +928,8 @@ if __name__ == "__main__":
       <p><strong>Fixed recipients:</strong> Adam and Sam. Their delivery addresses are configured only on the secure server. This page cannot choose, change or add recipients.</p>
       <p>If you submit, they will use this content-free aggregate for both approved purposes:</p>
       <ul><li>Validate whether the analyzer measures usage accurately.</li><li>Calibrate future forecasting research. This does not make the current value illustration a verified forecast.</li></ul>
-      <p>Cloudflare processes the submission request and Resend processes the email delivery. Even without prompts or code, unusual usage patterns may still identify you. Adam and Sam may retain the submitted report for up to 30 days, and you can ask Adam to delete it earlier.</p>
-      <label class="share-consent"><input type="checkbox" id="researchConsent"> <span>I reviewed the exact research-safe JSON and consent to Adam and Sam receiving it for <code>analyzer_validation</code> and <code>forecast_calibration</code>. I understand that the submitted report may be retained for up to 30 days. My original history files, prompts, replies, code and file contents are not included.</span></label>
+      <p>Cloudflare processes the submission request and Resend processes the email delivery. Resend sends from Ireland when the Ireland region is selected, but stores account data, email metadata, logs and API records in the United States. Even without prompts or code, unusual usage patterns may still identify you. Adam and Sam may retain the submitted report for up to 30 days. You can ask Adam to delete their mailbox copies earlier, but Resend may still retain its processor copy for its standard 30-day period.</p>
+      <label class="share-consent"><input type="checkbox" id="researchConsent"> <span>I reviewed the exact research-safe JSON and consent to Adam and Sam receiving it for <code>analyzer_validation</code> and <code>forecast_calibration</code>. I understand that the submitted report may be retained for up to 30 days, including in Resend systems in the United States, and that an early deletion request applies to Adam and Sam's mailbox copies. My original history files, prompts, replies, code and file contents are not included.</span></label>
       <p class="delivery-readiness" id="deliveryReadiness">Direct submission is not configured yet. Download remains available.</p>
       <div class="share-buttons" style="margin-top:12px"><button type="button" class="btn p" id="submitResearchReport" disabled>Submit Reviewed Safe Report</button></div>
     </div>
@@ -2881,7 +2881,7 @@ var shareResearchButton=document.getElementById("shareResearchJSON");if(shareRes
 // ---------- explicit research-safe delivery (disabled until one exact HTTPS endpoint is configured) ----------
 var TOP_DELIVERY_ENDPOINT="";
 var DIRECT_SUBMISSION_SCHEMA_VERSION="top.explicit-submission.v1";
-var DIRECT_CONSENT_NOTICE_VERSION="top.research-consent.2026-07-16.1";
+var DIRECT_CONSENT_NOTICE_VERSION="top.research-consent.2026-07-17.1";
 var DIRECT_RETENTION_DAYS=30;
 var DIRECT_PURPOSES=["analyzer_validation","forecast_calibration"];
 var directSubmissionEnvelope=null,directSubmissionReportJSON="",directSubmissionGeneration=0,directSubmissionActiveAttempt=null,directSubmissionAcceptedGeneration=-1,directSubmissionAcceptedReportJSON="";

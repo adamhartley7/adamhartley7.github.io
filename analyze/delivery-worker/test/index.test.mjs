@@ -115,7 +115,7 @@ function submissionFixture() {
     submission_schema_version: "top.explicit-submission.v1",
     submission_id: SUBMISSION_ID,
     consent: {
-      notice_version: "top.research-consent.2026-07-16.1",
+      notice_version: "top.research-consent.2026-07-17.1",
       accepted: true,
       purposes: ["analyzer_validation", "forecast_calibration"],
       retention_days: 30,

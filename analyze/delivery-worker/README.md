@@ -18,7 +18,9 @@ V1 remains unchanged. V2 is the exact v1 top-level object plus `timeline`, `sess
 - `report.privacy.network_delivery` records the analyzer's local state when it generated the report. A later email can occur only through the separate explicit-submission consent envelope.
 - A successful POST means only `accepted_for_delivery`. It does not mean mailbox delivery.
 
-The deletion date is an operational instruction, not technical deletion enforcement. The Worker keeps no report store and cannot remove copies from recipient mailboxes or processor systems. Deployment still requires a documented owner and procedure for early requests, due-date deletion and evidence that the procedure ran. This documentation does not claim legal compliance.
+The deletion date is an operational instruction, not technical deletion enforcement. The Worker keeps no report store and cannot remove copies from recipient mailboxes or processor systems. An early deletion request can cover Adam and Sam's mailbox copies, but it cannot promise early deletion of Resend's processor copy. Resend may retain that copy for its standard 30-day period. Deployment still requires a documented owner and procedure for early requests, due-date deletion and evidence that the procedure ran. This documentation does not claim legal compliance.
+
+Selecting Resend's Ireland region controls routing and sending only. Resend states that account data, email metadata, logs and API records remain stored in the United States regardless of the sending region.
 
 ## Exact v2 additions
 
