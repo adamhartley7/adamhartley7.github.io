@@ -58,7 +58,9 @@ assert.equal(scan.structures.daily, true);
 assert.ok(scan.skipped >= 4, "hidden folders, attachments and sensitive files must be skipped");
 
 assert.equal(context.vaultCandidateKind(file("PrivateVault/random.json"), true), "skip");
-assert.equal(context.vaultCandidateKind(file("random.json"), false), "conversation");
+assert.equal(context.vaultCandidateKind(file("random.json"), false), "skip");
+assert.equal(context.vaultCandidateKind(file("conversations.JSON"), false), "conversation");
+assert.equal(context.vaultCandidateKind(file("projects.JSON"), false), "skip");
 assert.equal(context.vaultCandidateKind(file("PrivateVault/.obsidian/plugin.json"), true), "skip");
 assert.equal(context.vaultCandidateKind(file("PrivateVault/Attachments/conversations.json"), true), "skip");
 assert.equal(context.vaultCandidateKind(file("PrivateVault/session.jsonl", { size: 400 * 1024 * 1024 }), true), "oversized");
@@ -77,6 +79,7 @@ const historyStart = html.indexOf("var HISTORY_LIMITS");
 const historyEnd = html.indexOf("function finishParsedResult", historyStart);
 assert.ok(historyStart >= 0 && historyEnd > historyStart, "could not locate history-file preflight");
 vm.runInContext(html.slice(historyStart, historyEnd), context);
+assert.equal(context.conversationLimitBytes(), 64 * 1024 * 1024, "non-browser tests use the bounded desktop conversation limit");
 
 const markdownOnly = context.historyFilesForMode([file("PrivateVault/Note.md")], "cc");
 assert.equal(markdownOnly.files.length, 0);
@@ -94,6 +97,25 @@ const mixed = context.historyFilesForMode([
 assert.equal(mixed.files.length, 1);
 assert.equal(mixed.markdown, 1);
 assert.equal(mixed.unsupported, 1);
+
+const conversationFiles = context.historyFilesForMode([
+  file("conversations.JSON"),
+  file("conversations_2.json"),
+], "chat");
+assert.equal(conversationFiles.files.length, 2, "case-insensitive and numbered conversation exports should be accepted");
+
+const projectJson = context.historyFilesForMode([file("Projects/PROJECTS.JSON")], "cc");
+assert.equal(projectJson.files.length, 0);
+assert.equal(projectJson.projectJson, 1);
+assert.equal(projectJson.regularJson, 1);
+
+assert.equal(context.inferModeFromFileNames([file("session.JSONL")]), "", "generic JSONL must not be guessed to be Claude Code from its extension alone");
+assert.equal(context.inferModeFromFileNames([file("rollout-2026-07-16.JSONL")]), "codex");
+assert.equal(context.inferModeFromFileNames([file("conversations.JSON")]), "conversation");
+assert.equal(context.inferModeFromFileNames([file("usage.CSV")]), "csv");
+
+const oversizedConversation = context.historyFilesForMode([file("conversations.json", { size: 65 * 1024 * 1024 })], "chat");
+assert.equal(oversizedConversation.files.length, 0, "large conversation JSON must fail before a phone tab tries to retain and parse it");
 
 const codexFiles = context.historyFilesForMode([
   file("rollout-2026-07-16.jsonl"),

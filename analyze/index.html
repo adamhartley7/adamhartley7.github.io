@@ -50,7 +50,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .resonance-choice.on .choice-check{border-color:#0d9588;background:#0d9588;color:#fff;box-shadow:0 5px 13px rgba(13,149,136,.24)}
 .resonance-other{margin:14px 0 0}.resonance-other[hidden]{display:none}.resonance-other input{width:100%;padding:14px 16px;border:1px solid #b8cdd5;border-radius:15px;background:#fff;color:var(--text);font:inherit}
 .resonance-actions{display:flex;justify-content:flex-end;margin-top:18px}.resonance-actions .btn{min-width:220px;justify-content:center}
-.provider-step{padding-top:2px}
+.provider-step{padding-top:2px}.provider-step,#routechooser,#obsidianPanel,#out{scroll-margin-top:155px}
 .step-back{display:inline-flex;margin:0 0 2px;padding:7px 10px;border:0;border-radius:10px;background:rgba(255,255,255,.72);color:var(--muted);font:inherit;font-size:13px;font-weight:750;cursor:pointer}.step-back:hover{background:#fff;color:var(--text)}.step-back:focus-visible{outline:3px solid #168c94;outline-offset:2px}
 .mono{font-family:"JetBrains Mono",monospace}
 a{color:var(--iris2);text-decoration:none}
@@ -102,6 +102,7 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .note.warn{color:var(--amber)}
 #err{display:none;color:var(--red);background:rgba(242,109,109,.08);border:1px solid rgba(242,109,109,.3);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:14.5px}
 #out{display:none;margin:28px 0 60px}
+.scope-callout{margin:0 0 16px;padding:14px 16px;border:1px solid rgba(101,86,221,.28);border-radius:15px;background:rgba(244,241,255,.88);color:#382b6d;font-size:15px;line-height:1.5}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:8px 0 22px}
 .mcard{background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.82);border-radius:18px;padding:20px;box-shadow:0 14px 34px rgba(25,66,92,.10)}
 .mcard .k{font-size:12px;color:var(--faint);font-family:"JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
@@ -294,7 +295,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <section class="provider-step" id="providerStep" hidden aria-labelledby="providerHeading">
       <button type="button" class="step-back" id="changeResonance">← Change Answers</button>
       <h2 id="providerHeading" tabindex="-1"><span class="flow-kicker">2</span>Choose Where Your Work Lives</h2>
-      <p class="step-lead">Choose an AI history source for usage numbers, or choose Obsidian for a private 7C's vault check.</p>
+      <p class="step-lead">Choose an AI history source, or choose Obsidian for a private 7C's vault check. If you choose the wrong source but the file is recognizable, TOP will switch readers for you.</p>
       <div class="tabs" id="tabs" role="group" aria-label="Work source">
         <button type="button" class="tab" data-mode="cc" aria-pressed="false">Claude Code<span class="st">Uses the usage numbers saved by Claude Code</span></button>
         <button type="button" class="tab" data-mode="codex" aria-pressed="false">Codex<span class="st">Uses recorded token counts from local Codex session logs</span></button>
@@ -336,6 +337,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       <div id="err" role="alert" aria-live="polite"></div>
 
       <div id="out">
+    <p class="scope-callout" id="reportScope"></p>
     <div class="cards" id="cards"></div>
     <p class="note" id="tokenhelp">Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.</p>
     <h2 id="resultsHeading" tabindex="-1">Usage By AI Version</h2>
@@ -733,7 +735,7 @@ if __name__ == "__main__":
 <script>
 "use strict";
 // No network delivery is configured. Analysis and exports remain local.
-var lastSummary="",LAST_RESULT=null;
+var lastSummary="",LAST_RESULT=null,AUTO_DETECTED_NOTE="";
 function setJourney(progress,label){
   var p=Math.max(0,Math.min(1,progress));
   var root=document.documentElement;
@@ -1271,28 +1273,48 @@ function parseCSV(texts){
     costRows:costRows,missingCostRows:missingCostRows,costComplete:allRowsHaveCost,
     estimateReason:allRowsHaveCost?"":"one or more rows lacked a valid billed cost; recognized missing rows use editable comparison rates and unrecognized models remain unpriced"};
 }
-function estTokens(s){return Math.ceil((s||"").length/4)}
+function estTokens(s){return Math.ceil(String(s||"").length/4)}
+function conversationRecords(data){return Array.isArray(data)?data:(data&&Array.isArray(data.conversations)?data.conversations:(data&&typeof data==="object"?[data]:[]))}
+function detectConversationMode(texts){
+  var claude=0,openai=0;
+  texts.forEach(function(txt){
+    var data;try{data=JSON.parse(txt)}catch(error){return}
+    conversationRecords(data).forEach(function(record){
+      if(!record||typeof record!=="object")return;
+      if(Array.isArray(record.chat_messages)&&record.chat_messages.some(function(message){var role=String(message&&message.sender||"").toLowerCase();return role==="human"||role==="user"||role==="assistant"||role==="claude"}))claude++;
+      if(record.mapping&&typeof record.mapping==="object"&&Object.keys(record.mapping).some(function(key){var message=record.mapping[key]&&record.mapping[key].message,role=String(message&&message.author&&message.author.role||"").toLowerCase();return role==="user"||role==="assistant"}))openai++;
+    });
+  });
+  if(claude&&openai)return "mixed";
+  if(claude)return "chat";
+  if(openai)return "openai";
+  return "";
+}
 function parseChat(texts){
-  var by={}, turns=0, convos=0;
+  var by=Object.create(null),turns=0,convos=0,ignoredRecords=0,ignoredMessages=0;
   texts.forEach(function(txt){
     var data; try{data=JSON.parse(txt)}catch(e){return}
-    var arr=Array.isArray(data)?data:(data.conversations||[data]);
+    var arr=conversationRecords(data);
     arr.forEach(function(c){
-      convos++;
-      var msgs=c.chat_messages||c.messages||[];
+      if(!c||typeof c!=="object"){ignoredRecords++;return}
+      var msgs=Array.isArray(c.chat_messages)?c.chat_messages:(Array.isArray(c.messages)?c.messages:null),before=turns;
+      if(!msgs){ignoredRecords++;return}
       msgs.forEach(function(m){
-        var role=m.sender||m.role||"";
-        var text=m.text|| (Array.isArray(m.content)?m.content.map(function(x){return x.text||""}).join(" "):(m.content||""));
+        if(!m||typeof m!=="object"){ignoredMessages++;return}
+        var role=String(m.sender||m.role||"").toLowerCase(),side=(role==="assistant"||role==="claude")?"assistant":((role==="human"||role==="user")?"user":"");
+        var text=messageText(m.text);if(!text)text=messageText(m.content);
+        if(!side||!String(text||"").trim()){ignoredMessages++;return}
         var t=estTokens(text);
         var model="claude.ai (est.)";
         var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0});
-        if(role==="assistant"||role==="Claude"||role==="claude"){e.out+=t;} else {e.inp+=t;}
+        if(side==="assistant"){e.out+=t;} else {e.inp+=t;}
         e.turns++; turns++;
       });
+      if(turns>before)convos++;else ignoredRecords++;
     });
   });
-  return {by:by, turns:turns, sessions:convos, days:0, kind:"claude.ai", estimate:true, chatExport:true,
-    estimateReason:"message length estimate; the export contains no billed token or subscription cost data"};
+  return {by:by,turns:turns,sessions:convos,days:0,kind:"Claude Chat conversation export",estimate:true,chatExport:true,chatProvider:"Claude Chat",ignoredRecords:ignoredRecords,ignoredMessages:ignoredMessages,
+    estimateReason:"visible-text length estimate from the selected file; the export contains no billed token or subscription cost data"};
 }
 function messageText(content){
   if(content===null||content===undefined) return "";
@@ -1305,38 +1327,58 @@ function messageText(content){
   }
   return "";
 }
+function visibleOpenAINodes(conversation){
+  var mapping=conversation&&conversation.mapping;
+  if(!mapping||typeof mapping!=="object")return [];
+  var keys=Object.keys(mapping),current=String(conversation.current_node||""),hasLinks=keys.some(function(key){var node=mapping[key];return !!(node&&(node.parent!==undefined||Array.isArray(node.children)))});
+  if(!current||!mapping[current]){
+    if(!hasLinks)return keys.map(function(key){return mapping[key]});
+    var leaves=keys.filter(function(key){var node=mapping[key],children=node&&Array.isArray(node.children)?node.children:[];return !children.some(function(child){return !!mapping[child]})});
+    if(!leaves.length)return [];
+    leaves.sort(function(a,b){
+      var am=mapping[a]&&mapping[a].message,bm=mapping[b]&&mapping[b].message,at=Number(am&&am.create_time||0),bt=Number(bm&&bm.create_time||0);
+      return at-bt||keys.indexOf(a)-keys.indexOf(b);
+    });
+    current=leaves[leaves.length-1];
+  }
+  var path=[],seen=Object.create(null);
+  while(current&&mapping[current]&&!seen[current]){seen[current]=1;path.push(mapping[current]);current=String(mapping[current].parent||"")}
+  return path.reverse();
+}
 function parseOpenAI(texts){
-  var by={}, turns=0, convos=0, days={};
+  var by=Object.create(null),turns=0,convos=0,days=Object.create(null),ignoredRecords=0,ignoredMessages=0;
   function addMessage(m, fallbackModel, created){
-    if(!m||typeof m!=="object") return;
+    if(!m||typeof m!=="object"){ignoredMessages++;return false}
     var role=(m.author&&m.author.role)||m.role||"";
-    if(role!=="user"&&role!=="assistant") return;
+    if(role!=="user"&&role!=="assistant"){ignoredMessages++;return false}
     var text=messageText(m.content!==undefined?m.content:m.text);
     var tokens=estTokens(text);
-    if(!tokens) return;
+    if(!tokens){ignoredMessages++;return false}
     var metadata=m.metadata||{};
     var model=metadata.model_slug||m.model_slug||fallbackModel||"ChatGPT export (est.)";
     var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0});
     if(role==="assistant") e.out+=tokens; else e.inp+=tokens;
     e.turns++; turns++;
     var ts=m.create_time||created; if(ts){var d=new Date(typeof ts==="number"?ts*1000:ts);if(!isNaN(d)) days[d.toISOString().slice(0,10)]=1;}
+    return true;
   }
   texts.forEach(function(txt){
     var data; try{data=JSON.parse(txt)}catch(e){return}
-    var arr=Array.isArray(data)?data:(data.conversations||[data]);
+    var arr=conversationRecords(data);
     arr.forEach(function(c){
-      if(!c||typeof c!=="object") return;
-      convos++;
+      if(!c||typeof c!=="object"){ignoredRecords++;return}
       var fallback=c.default_model_slug||c.model_slug||"ChatGPT export (est.)";
+      var recognized=0;
       if(c.mapping&&typeof c.mapping==="object"){
-        Object.keys(c.mapping).forEach(function(k){var node=c.mapping[k];addMessage(node&&node.message,fallback,c.create_time)});
-      }else{
-        (c.messages||c.chat_messages||[]).forEach(function(m){addMessage(m,fallback,c.create_time)});
-      }
+        visibleOpenAINodes(c).forEach(function(node){if(addMessage(node&&node.message,fallback,c.create_time))recognized++});
+      }else if(Array.isArray(c.messages)){
+        c.messages.forEach(function(m){if(addMessage(m,fallback,c.create_time))recognized++});
+      }else{ignoredRecords++;return}
+      if(recognized)convos++;else ignoredRecords++;
     });
   });
-  return {by:by, turns:turns, sessions:convos, days:Object.keys(days).length, kind:"ChatGPT export", estimate:true, chatExport:true,
-    estimateReason:"message length estimate; the export contains no billed token or ChatGPT subscription cost data"};
+  return {by:by,turns:turns,sessions:convos,days:Object.keys(days).length,kind:"ChatGPT conversation export",estimate:true,chatExport:true,chatProvider:"ChatGPT",ignoredRecords:ignoredRecords,ignoredMessages:ignoredMessages,
+    estimateReason:"visible-text length estimate from the selected file; the export contains no billed token or ChatGPT subscription cost data"};
 }
 
 // ---------- render ----------
@@ -1360,7 +1402,7 @@ function valueModelAllowed(rows,costAvailable){
 }
 function resultCountLabels(res){
   if(res.csv) return {card:"Records",table:"Records",summary:"Records"};
-  if(res.chatExport) return {card:"Messages",table:"Messages",summary:"Messages"};
+  if(res.chatExport) return {card:"Text messages found",table:"Text messages found",summary:"Text messages found in selected file"};
   return {card:"AI replies with usage data",table:"AI replies",summary:"AI replies with usage data"};
 }
 function revealStandardPostReport(){
@@ -1374,6 +1416,9 @@ function revealStandardPostReport(){
 function render(res){
   LAST_RESULT=res;
   document.getElementById("codexObsidianDownloads").hidden=!res.codex;
+  document.getElementById("reportScope").textContent=res.chatExport
+    ?"This report covers only the conversation records and visible text inside the file you selected. It is not your full account total, subscription allowance, Claude Code usage or Codex usage."
+    :(res.codex?"This report covers only recorded token counters found in the selected Codex files.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files."));
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[];
   Object.keys(by).forEach(function(model){
     var e=by[model],resolved=resolveCostRow(model,e,res),key=resolved.key,cost=resolved.cost,complete=resolved.complete;
@@ -1388,18 +1433,18 @@ function render(res){
   res.costAvailable=allCostsAvailable&&rows.length>0;
   res.partialCost=!res.chatExport&&!allCostsAvailable&&totCost>0;
   res.valueModelEligible=valueModelAllowed(rows,res.costAvailable);
-  var costCard=res.chatExport?["Dollar cost","Not in export",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):"Recorded spend",(res.estimate?"~":"")+fmt$(totCost),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""]));
+  var costCard=res.chatExport?["Recorded dollar cost","Not included",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):"Recorded spend",(res.estimate?"~":"")+fmt$(totCost),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""]));
   var countLabels=resultCountLabels(res), tokenPrefix=res.chatExport?"about ":"";
   var cards=[costCard,
-    [res.chatExport?"Estimated AI usage":"Total AI usage",tokenPrefix+fmtN(totTok)+" tokens","i"],
+    [res.chatExport?"Rough text-only estimate":"Total AI usage",tokenPrefix+fmtN(totTok)+" tokens","i"],
     [countLabels.card,fmtN(res.turns),""]
   ];
   if(res.days) cards.push(["Days used",fmtN(res.days),"g"]);
-  else if(res.chatExport) cards.push(["Conversations",fmtN(res.sessions),"g"]);
+  else if(res.chatExport) cards.push(["Conversation records found",fmtN(res.sessions),"g"]);
   else if(!res.csv) cards.push(["Work sessions",fmtN(res.sessions),"g"]);
   document.getElementById("cards").innerHTML=cards.map(function(c){return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div></div>'}).join("");
   document.getElementById("tokenhelp").textContent=res.chatExport
-    ?"This download does not contain token counts. TOP estimates them from message length using a rough rule of one token for every four characters. Treat every token number below as approximate."
+    ?"This file has no recorded token counts. TOP divides visible message-text characters by four to make a rough text-only estimate. It excludes context replay, hidden instructions, tools, attachments, thinking, caching and every file you did not choose."
     :"Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.";
   var estimateWord=res.chatExport?"Estimated ":"";
   var th='<thead><tr><th>AI version</th><th>'+estimateWord+'text sent to the AI</th><th>'+estimateWord+'text returned by the AI</th><th>'+estimateWord+'previously saved text: added / reused</th><th>'+countLabels.table+'</th><th>Cost</th></tr></thead>';
@@ -1422,15 +1467,16 @@ function render(res){
   else lines.push("Cost information: TOP could not calculate a reliable dollar cost.");
   if(unpriced.length) lines.push("AI versions without a checked price: "+unpriced.join(", ")+".");
   lines.push("");
-  lines.push((res.chatExport?"Estimated AI usage: about ":"Total AI usage: ")+fmtInt(totTok)+" tokens.");
+  lines.push((res.chatExport?"Rough text-only estimate from selected file: about ":"Total AI usage: ")+fmtInt(totTok)+" tokens.");
   lines.push("Tokens are small pieces of text that AI companies use to measure usage.");
-  if(res.chatExport) lines.push("TOP estimated the token numbers from message length because this download does not contain token counts.");
+  if(res.chatExport) lines.push("TOP divided visible message-text characters by four because this file contains no recorded token counts. This is not a full account total, subscription allowance, Claude Code total or Codex total.");
   lines.push((res.chatExport?"Estimated text sent to the AI: about ":"Text sent to the AI: ")+fmtInt(totInp)+" tokens.");
   lines.push((res.chatExport?"Estimated text returned by the AI: about ":"Text returned by the AI: ")+fmtInt(totOut)+" tokens.");
   lines.push(res.chatExport?"Previously saved text: Not included in this download.":("Previously saved text: "+fmtInt(totCw)+" tokens added, "+fmtInt(totCr)+" tokens reused."));
   lines.push(countLabels.summary+": "+fmtInt(res.turns)+".");
-  if(res.chatExport&&res.sessions) lines.push("Conversations: "+fmtInt(res.sessions)+".");
+  if(res.chatExport&&res.sessions) lines.push("Conversation records found in selected file: "+fmtInt(res.sessions)+".");
   else if(!res.csv&&res.sessions) lines.push("Work sessions: "+fmtInt(res.sessions)+".");
+  if(res.chatExport&&res.ignoredRecords) lines.push("Objects ignored because they did not match conversation records with readable user and AI text: "+fmtInt(res.ignoredRecords)+".");
   if(res.days) lines.push("Days used: "+fmtInt(res.days)+".");
   if(perTurn!==null) lines.push("Average cost per "+(res.csv?"record":"AI reply")+": "+fmt$(perTurn)+".");
   lines.push("");
@@ -1601,7 +1647,7 @@ function vaultCandidateKind(file,strictFolder){
   if(/^rollout-.+\.jsonl$/i.test(name)&&/(?:^|\/)(?:codex|codex-sessions|codex-archived-sessions)(?:\/|$)/i.test(path)) return "codex";
   if(/\.jsonl$/i.test(name)) return "cc";
   if(/\.csv$/i.test(name)&&(!strictFolder||/(?:^|[-_.])(usage|cost|anthropic|claude)(?:[-_.]|$)/i.test(name))) return "csv";
-  if(/\.json$/i.test(name)&&(!strictFolder||/^conversations?(?:[-_]\d+)?\.json$/i.test(name))) return "conversation";
+  if(/^conversations?(?:[-_]\d+)?\.json$/i.test(name)) return "conversation";
   return "skip";
 }
 function scanVaultFiles(files,strictFolder,now){
@@ -1687,8 +1733,7 @@ function renderVaultScan(scan){
   }
   if(scan.candidates.csv.length) addVaultSourceButton(buttons,"Analyze "+fmtN(scan.candidates.csv.length)+" Console CSV file"+(scan.candidates.csv.length===1?"":"s"),"csv",scan.candidates.csv);
   if(scan.candidates.conversation.length){
-    addVaultSourceButton(buttons,"Open conversation export as Claude Chat","chat",scan.candidates.conversation);
-    addVaultSourceButton(buttons,"Open conversation export as ChatGPT","openai",scan.candidates.conversation);
+    addVaultSourceButton(buttons,"Analyze conversation export","chat",scan.candidates.conversation);
   }
   if(!vaultCandidateCount(scan)){var empty=document.createElement("p");empty.className="vault-empty";empty.textContent="No supported AI history file was found. That is normal. Obsidian notes are memory, not a token ledger. Use a downloaded Claude, ChatGPT or Codex history if you want a usage report.";buttons.appendChild(empty)}
   var labels=[
@@ -1718,24 +1763,61 @@ document.getElementById("changeSourceFromVault").addEventListener("click",return
 document.getElementById("useHistoryInstead").addEventListener("click",returnToSources);
 
 // ---------- file handling ----------
-var HISTORY_LIMITS={maxFiles:10000,maxFileBytes:350*1024*1024,maxCodexFileBytes:4*1024*1024*1024,maxTotalBytes:1024*1024*1024,maxClaudeTotalBytes:8*1024*1024*1024,maxCodexTotalBytes:12*1024*1024*1024};
+var HISTORY_LIMITS={maxFiles:10000,maxFileBytes:350*1024*1024,maxConversationDesktopBytes:64*1024*1024,maxConversationMobileBytes:12*1024*1024,maxCodexFileBytes:4*1024*1024*1024,maxTotalBytes:128*1024*1024,maxClaudeTotalBytes:8*1024*1024*1024,maxCodexTotalBytes:12*1024*1024*1024};
 function showErr(msg){var e=document.getElementById("err");e.textContent=msg;e.style.display="block";document.getElementById("out").style.display="none";document.getElementById("fileStatus").textContent="";}
+function conversationLimitBytes(){
+  var width=typeof window!=="undefined"?Number(window.innerWidth||0):0,touch=typeof navigator!=="undefined"?Number(navigator.maxTouchPoints||0):0;
+  return (width&&width<=768)||(touch&&width&&width<=1024)?HISTORY_LIMITS.maxConversationMobileBytes:HISTORY_LIMITS.maxConversationDesktopBytes;
+}
+function conversationFileName(name){return /^conversations?(?:[-_]\d+)?\.json$/i.test(String(name||""))}
+function inferModeFromFileNames(files){
+  var list=Array.prototype.slice.call(files||[]),names=list.map(function(file){return String(file.name||"")});
+  if(!names.length)return "";
+  if(names.every(conversationFileName))return "conversation";
+  if(names.every(function(name){return /\.csv$/i.test(name)}))return "csv";
+  if(names.every(function(name){return /\.jsonl$/i.test(name)})){
+    if(names.some(function(name){return /^history\.jsonl$/i.test(name)}))return "";
+    if(names.every(function(name){return /^rollout-.+\.jsonl$/i.test(name)||/^ai-events\.jsonl$/i.test(name)}))return "codex";
+    return "";
+  }
+  return "";
+}
+function switchToDetectedMode(targetMode){
+  var previous=mode,route=selectedRoute||"a";
+  if(previous!==targetMode){setMode(targetMode);selectRoute(route)}
+  AUTO_DETECTED_NOTE="TOP recognized this as "+MODES[targetMode].label+" and used the matching reader instead of "+MODES[previous].label+".";
+}
+function openDetectedConversationFiles(files){
+  var checked=historyFilesForMode(files,"chat");
+  if(!checked.files.length){showErr("Choose conversations.json from a Claude Chat or ChatGPT export. Project JSON files are not conversation or usage history.");return}
+  if(checked.files.length>HISTORY_LIMITS.maxFiles||checked.totalBytes>conversationLimitBytes()){showErr("Those conversation files are too large to open safely on this device. Choose a smaller export batch or use a computer with more memory.");return}
+  document.getElementById("fileStatus").textContent="Checking the conversation-export format on this device.";
+  readTextFiles(checked.files,function(texts,failed){
+    if(failed===checked.files.length){showErr("TOP could not read the selected conversation file. Nothing was sent.");return}
+    var detected=detectConversationMode(texts);
+    if(detected==="mixed"){showErr("That selection mixes Claude Chat and ChatGPT conversation formats. Choose one provider's conversation files at a time so totals are not blended.");return}
+    if(!detected){showErr("TOP could not recognize this as a Claude Chat or ChatGPT conversation export. A project JSON file is not a usage log. Nothing was sent.");return}
+    if(mode!==detected)switchToDetectedMode(detected);
+    run(texts,checked.files.length-failed);
+  });
+}
 function historyFilesForMode(files,targetMode){
-  var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,total=0,codexRollouts=0,codexAggregates=0;
+  var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,total=0,codexRollouts=0,codexAggregates=0,regularJson=0,projectJson=0;
   var unsafeCodexRoot=targetMode==="codex"&&list.some(function(file){return /^(?:\.codex)(?:\/|\\)/i.test(String(file.webkitRelativePath||""))});
-  var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:(targetMode==="csv"?/\.csv$/i:/\.json$/i));
-  var fileLimit=targetMode==="codex"?HISTORY_LIMITS.maxCodexFileBytes:HISTORY_LIMITS.maxFileBytes;
+  var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:(targetMode==="csv"?/\.csv$/i:/^conversations?(?:[-_]\d+)?\.json$/i));
+  var fileLimit=targetMode==="codex"?HISTORY_LIMITS.maxCodexFileBytes:((targetMode==="chat"||targetMode==="openai")?conversationLimitBytes():HISTORY_LIMITS.maxFileBytes);
   list.forEach(function(file){
     var name=String(file.name||"");
     if(/\.md$/i.test(name)){markdown++;return}
     if(/\.(?:zip|7z|rar|tar|gz)$/i.test(name)){archives++;return}
+    if(/\.json$/i.test(name)&&!conversationFileName(name)){regularJson++;if(/^projects?(?:[-_]\d+)?\.json$/i.test(name))projectJson++}
     if(!ext.test(name)){unsupported++;return}
     if(Number(file.size||0)>fileLimit){unsupported++;return}
     if(targetMode==="codex"){if(/^ai-events\.jsonl$/i.test(name))codexAggregates++;else codexRollouts++}
     total+=Number(file.size||0);allowed.push(file);
   });
   var mixedCodexSources=targetMode==="codex"&&codexRollouts>0&&codexAggregates>0,multipleCodexAggregates=targetMode==="codex"&&codexAggregates>1;
-  return {files:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,totalBytes:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates};
+  return {files:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,totalBytes:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates,regularJson:regularJson,projectJson:projectJson};
 }
 function finishParsedResult(res,openedCount){
   var n=Object.keys(res.by).length;
@@ -1746,9 +1828,11 @@ function finishParsedResult(res,openedCount){
     return;
   }
   render(res);
-  var status="Report ready from "+fmtN(openedCount)+" file"+(openedCount===1?"":"s")+" opened only on this device.";
+  var status=(AUTO_DETECTED_NOTE?AUTO_DETECTED_NOTE+" ":"")+"Report ready from "+fmtN(openedCount)+" file"+(openedCount===1?"":"s")+" opened only on this device.";
   if(res.codex&&res.coverage&&!res.coverage.complete) status+=" Some malformed, oversized or reset usage records were skipped, so coverage may be incomplete.";
+  if(res.chatExport&&res.ignoredRecords) status+=" "+fmtN(res.ignoredRecords)+" object"+(res.ignoredRecords===1?" was":"s were")+" ignored because "+(res.ignoredRecords===1?"it did":"they did")+" not contain readable conversation messages.";
   document.getElementById("fileStatus").textContent=status;
+  AUTO_DETECTED_NOTE="";
   document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function readClaudeFiles(files){
@@ -1797,6 +1881,10 @@ async function readCodexFiles(files){
 function handle(files){
   document.getElementById("err").style.display="none";
   if(!files||!files.length){showErr("No files were chosen. Nothing was read or sent.");return}
+  AUTO_DETECTED_NOTE="";
+  var inferred=inferModeFromFileNames(files);
+  if(inferred==="conversation"){openDetectedConversationFiles(files);return}
+  if(inferred&&inferred!==mode)switchToDetectedMode(inferred);
   var checked=historyFilesForMode(files,mode);
   if(!checked.files.length){
     if(checked.unsafeCodexRoot) showErr("Do not choose the whole .codex folder. It can contain account and prompt history files. Choose only .codex\\sessions, .codex\\archived_sessions, explicit rollout-*.jsonl files, or TOP's ai-events.jsonl.");
@@ -1805,6 +1893,8 @@ function handle(files){
     else if(checked.markdown) showErr("That looks like an Obsidian note, not an AI history export. No data was uploaded or sent. Choose Obsidian + 7C's to check the vault, or use a downloaded Claude, ChatGPT or Codex history for a usage report.");
     else if(checked.archives) showErr("TOP cannot open a whole ZIP yet. Unzip it on your device, then choose the supported JSON, JSONL or CSV file inside.");
     else if(mode==="codex") showErr("None of those files are supported Codex session files. Choose rollout-*.jsonl from .codex\\sessions or .codex\\archived_sessions, or choose TOP's ai-events.jsonl. Do not choose history.jsonl.");
+    else if(checked.projectJson) showErr("That is project data, not Claude Code usage. JSON and JSONL are different: a capital or lowercase .JSON is one regular data file, while Claude Code history uses .jsonl with an L. Choose the .jsonl session files under C:\\Users\\YOU\\.claude\\projects\\, or use the whole Claude Code folder button.");
+    else if(checked.regularJson) showErr("Those are regular .json files, not Claude Code session logs or conversation exports. The L in .jsonl matters. Choose conversations.json for Claude Chat or ChatGPT, or choose Claude Code .jsonl session files.");
     else showErr("None of those files match the source you chose. Choose JSONL for Claude Code, CSV for Claude Console, or conversations.json for Claude Chat or ChatGPT.");
     return;
   }
