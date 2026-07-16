@@ -7,7 +7,7 @@ export const REPORT_SCHEMA_VERSION = "top.research-safe-usage.v1";
 export const REPORT_SCHEMA_VERSION_V2 = "top.research-safe-usage.v2";
 
 const RETENTION_DAYS = 30;
-const CONSENT_NOTICE_VERSION = "top.research-consent.2026-07-16.1";
+const CONSENT_NOTICE_VERSION = "top.research-consent.2026-07-17.1";
 const PURPOSES = new Set(["analyzer_validation", "forecast_calibration"]);
 const COLLECTOR_VERSIONS = new Set([
   "top.local-analyzer.2026-07-16.1",
