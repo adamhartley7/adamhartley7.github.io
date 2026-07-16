@@ -65,6 +65,10 @@ assert.doesNotMatch(html, /stroke="#ff9d74"|stroke="#ffc199"/);
 assert.match(html, /stroke="#b39cff"/);
 assert.match(html, /width:min\(470px,92%\)/);
 assert.match(html, /Your chosen history file is not sent to TOP/);
+assert.equal((html.match(/href="\/analyze\/\?pilot=1"/g) || []).length, 5,
+  "every homepage analyzer call to action must use the low-friction guided route");
+assert.doesNotMatch(html, /href="\/analyze\/"/,
+  "the homepage must not send new users into the advanced analyzer by default");
 assert.doesNotMatch(html, /gc\.zgo\.at|goatcounter/i);
 assert.match(html, /<main id="main-content">/);
 assert.match(html, /aria-label="Main navigation"/);
