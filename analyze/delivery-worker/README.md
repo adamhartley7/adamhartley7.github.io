@@ -1,6 +1,8 @@
 # TOP analyzer delivery Worker
 
-This is a review-only Cloudflare Worker scaffold for explicit submission of `top.research-safe-usage.v1` reports. It is not deployed and the public analyzer does not call it.
+This is a review-only Cloudflare Worker scaffold for explicit submission of `top.research-safe-usage.v1` and `top.research-safe-usage.v2` reports. It is not deployed and the public analyzer does not call it.
+
+V1 remains unchanged. V2 is the exact v1 top-level object plus `timeline`, `session_distributions` and `workflow_shape`. It accepts only the vetted v2 local collector and parser versions for Claude Code or Codex safe-usage exports.
 
 ## Safety boundary
 
@@ -11,7 +13,64 @@ This is a review-only Cloudflare Worker scaffold for explicit submission of `top
 - The API key must be a Resend `sending_access` key restricted to the verified sender domain.
 - The same submission UUID is passed to Resend as an idempotency key.
 - The Worker does not log, persist or place the report in KV, D1 or R2. The validated report is attached to one email; the message body contains only a readable aggregate summary.
+- For v2, the email also contains a concise monthly timeline and structural session-shape summary. The attached JSON remains the exact validated report.
+- `report.privacy.network_delivery` records the analyzer's local state when it generated the report. A later email can occur only through the separate explicit-submission consent envelope.
 - A successful POST means only `accepted_for_delivery`. It does not mean mailbox delivery.
+
+## Exact v2 additions
+
+The frontend must preserve these collector field names. The Worker maps their aggregate totals to the existing research-safe names such as `cache_write_tokens`, `cache_read_tokens` and `reasoning_tokens` during reconciliation.
+
+```text
+timeline: {
+  status: "available",
+  granularity: "calendar_month",
+  timestamp_basis: "source_date_prefix_not_timezone_normalized",
+  periods: [{
+    period,
+    input_tokens,
+    cache_write_input_tokens,
+    cache_read_input_tokens,
+    output_tokens,
+    reasoning_output_tokens,
+    usage_records,
+    total_tokens,
+    active_days,
+    logical_sessions_started
+  }]
+}
+
+session_distributions: {
+  status: "available",
+  session_definition,
+  thresholds_version: "top.session-buckets.v1",
+  elapsed_time_basis: "wall_clock_span_between_first_and_last_supported_usage_record",
+  logical_sessions_analyzed,
+  usage_records_per_session: {
+    zero, one, two_to_four, five_to_nineteen, twenty_plus
+  },
+  total_tokens_per_session: {
+    under_10k, ten_to_49k, fifty_to_199k,
+    two_hundred_to_999k, one_million_plus
+  },
+  elapsed_time_per_session: {
+    under_10m, ten_to_59m, one_to_3h,
+    four_to_11h, twelve_h_plus, unknown
+  }
+}
+
+workflow_shape: {
+  status: "available",
+  algorithm_version: "top.workflow-shape.v1",
+  basis: "deduplicated_usage_record_count_only",
+  sessions: {
+    single_exchange, short_multi_exchange,
+    sustained, high_iteration, unclassified
+  }
+}
+```
+
+`session_definition` is `deduplicated_logical_session` for Claude Code and `codex_rollout_file_proxy` for Codex. V2 does not accept semantic prompt categories, prompt text, code, paths or original identifiers.
 
 ## Tests
 
@@ -21,7 +80,7 @@ No package install is needed for the test suite:
 node --test test/*.test.mjs
 ```
 
-Tests cover strict validation, total reconciliation, fixed server-side recipients, idempotency, CORS, the 256 KiB limit, JSON-only input, HTML escaping and synthetic 400, 409, 413, 429 and upstream-500 failures.
+Tests cover strict v1 preservation, v2 exact keys and enums, calendar ordering, cardinality, bucket ranges, cross-section reconciliation, fixed server-side recipients, idempotency, CORS, the 256 KiB limit, JSON-only input, HTML escaping and synthetic 400, 409, 413, 429 and upstream-500 failures.
 
 ## Human setup gates before any deployment
 

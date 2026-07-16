@@ -4,6 +4,7 @@ const RESEND_ENDPOINT = "https://api.resend.com/emails";
 export const MAX_JSON_BYTES = 256 * 1024;
 export const SUBMISSION_SCHEMA_VERSION = "top.explicit-submission.v1";
 export const REPORT_SCHEMA_VERSION = "top.research-safe-usage.v1";
+export const REPORT_SCHEMA_VERSION_V2 = "top.research-safe-usage.v2";
 
 const RETENTION_DAYS = 30;
 const CONSENT_NOTICE_VERSION = "top.research-consent.2026-07-16.1";
@@ -16,6 +17,8 @@ const PARSER_VERSIONS = new Set([
   "top.usage-parser.2026-07-16.1",
   "top.usage-parser.2026-07-16.2",
 ]);
+const V2_COLLECTOR_VERSION = "top.local-collector.2026-07-16.2";
+const V2_PARSER_VERSION = "top.usage-parser.2026-07-16.3";
 const COST_STATUSES = new Set([
   "unavailable",
   "partial",
@@ -182,6 +185,18 @@ function dateOnly(value, label) {
   if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) fail("invalid_date", `${label} is not a real date.`);
 }
 
+function validCalendarMonth(value) {
+  const match = typeof value === "string" ? value.match(/^(\d{4})-(\d{2})$/) : null;
+  return Boolean(match && Number(match[2]) >= 1 && Number(match[2]) <= 12);
+}
+
+function daysInCalendarMonth(value) {
+  if (!validCalendarMonth(value)) return 0;
+  const [year, month] = value.split("-").map(Number);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  return [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+}
+
 function exactArray(value, expected, label) {
   if (!Array.isArray(value) || value.length !== expected.length || value.some((item, index) => item !== expected[index])) {
     fail("invalid_schema", `${label} does not match the approved list.`);
@@ -208,8 +223,14 @@ function safeModelLabel(value) {
   return /^codex-(?:mini|large|latest)(?:-latest)?$/i.test(value);
 }
 
-function validateCollector(value) {
+function validateCollector(value, schemaVersion) {
   exactObject(value, ["collector_version", "parser_version"], "collector");
+  if (schemaVersion === REPORT_SCHEMA_VERSION_V2) {
+    if (value.collector_version !== V2_COLLECTOR_VERSION || value.parser_version !== V2_PARSER_VERSION) {
+      fail("unsupported_report_version", "The v2 collector or parser version is not supported.");
+    }
+    return;
+  }
   oneOf(value.collector_version, COLLECTOR_VERSIONS, "collector version");
   oneOf(value.parser_version, PARSER_VERSIONS, "parser version");
 }
@@ -411,10 +432,203 @@ function validateByModel(value, totals, cost) {
   if (cost.usd !== null && (!pricedRows || Math.abs(costSum - cost.usd) > 0.00001)) fail("invalid_reconciliation", "model costs do not reconcile with report cost.");
 }
 
+const V2_TIMELINE_COUNT_KEYS = [
+  "input_tokens",
+  "cache_write_input_tokens",
+  "cache_read_input_tokens",
+  "output_tokens",
+  "reasoning_output_tokens",
+  "usage_records",
+  "total_tokens",
+  "active_days",
+  "logical_sessions_started",
+];
+const V2_USAGE_BUCKET_KEYS = ["zero", "one", "two_to_four", "five_to_nineteen", "twenty_plus"];
+const V2_TOKEN_BUCKET_KEYS = ["under_10k", "ten_to_49k", "fifty_to_199k", "two_hundred_to_999k", "one_million_plus"];
+const V2_ELAPSED_BUCKET_KEYS = ["under_10m", "ten_to_59m", "one_to_3h", "four_to_11h", "twelve_h_plus", "unknown"];
+const V2_WORKFLOW_BUCKET_KEYS = ["single_exchange", "short_multi_exchange", "sustained", "high_iteration", "unclassified"];
+
+function addCount(total, value, label) {
+  const next = total + value;
+  if (!Number.isSafeInteger(next)) fail("invalid_count", `${label} exceeds the supported range.`);
+  return next;
+}
+
+function validateBucketObject(value, keys, label, expectedTotal) {
+  exactObject(value, keys, label);
+  let total = 0;
+  for (const key of keys) total = addCount(total, count(value[key], `${label}.${key}`), label);
+  if (total !== expectedTotal) fail("invalid_reconciliation", `${label} does not reconcile with logical sessions.`);
+}
+
+function validateRangeReconciliation(buckets, aggregateTotal, ranges, label) {
+  let minimum = 0;
+  let maximum = 0;
+  let unbounded = false;
+  for (const [key, lower, upper] of ranges) {
+    const lowerContribution = buckets[key] * lower;
+    if (!Number.isSafeInteger(lowerContribution)) fail("invalid_count", `${label} exceeds the supported range.`);
+    minimum = addCount(minimum, lowerContribution, label);
+    if (upper === null && buckets[key] > 0) {
+      unbounded = true;
+    } else if (upper !== null) {
+      const upperContribution = buckets[key] * upper;
+      if (!Number.isSafeInteger(upperContribution)) fail("invalid_count", `${label} exceeds the supported range.`);
+      maximum = addCount(maximum, upperContribution, label);
+    }
+  }
+  if (aggregateTotal < minimum || (!unbounded && aggregateTotal > maximum)) {
+    fail("invalid_reconciliation", `${label} does not reconcile with its aggregate total.`);
+  }
+}
+
+function validateV2Activity(report) {
+  const activity = report.activity;
+  if (report.source.surface === "claude_code") {
+    count(activity.ai_replies, "activity.ai_replies");
+    if (activity.usage_events !== null || activity.console_records !== null || activity.text_messages !== null) {
+      fail("invalid_reconciliation", "Claude Code v2 activity contains an unsupported counter.");
+    }
+    return activity.ai_replies;
+  }
+  if (report.source.surface === "codex") {
+    count(activity.usage_events, "activity.usage_events");
+    if (activity.ai_replies !== null || activity.console_records !== null || activity.text_messages !== null) {
+      fail("invalid_reconciliation", "Codex v2 activity contains an unsupported counter.");
+    }
+    return activity.usage_events;
+  }
+  fail("invalid_schema", "Research-safe v2 supports only Claude Code and Codex usage reports.");
+}
+
+function validateV2Sections(report) {
+  if (report.source.input_form !== "validated_top_safe_usage_export") {
+    fail("invalid_schema", "Research-safe v2 requires a validated TOP safe-usage export.");
+  }
+  if (report.totals.cache_write_tokens === null || report.totals.cache_read_tokens === null) {
+    fail("invalid_reconciliation", "Research-safe v2 requires recorded cache counters.");
+  }
+  const usageRecordTotal = validateV2Activity(report);
+  const sessions = count(report.activity.sessions, "activity.sessions");
+  const activeDays = count(report.activity.active_days, "activity.active_days");
+  if (report.totals.total_tokens < usageRecordTotal) {
+    fail("invalid_reconciliation", "Usage records cannot exceed total tokens.");
+  }
+  let modelUsageRecords = 0;
+  for (const row of report.by_model) {
+    modelUsageRecords = addCount(modelUsageRecords, row.events_or_replies, "by-model usage records");
+    if (row.total_tokens < row.events_or_replies) fail("invalid_reconciliation", "Model usage records cannot exceed model tokens.");
+  }
+  if (modelUsageRecords !== usageRecordTotal) fail("invalid_reconciliation", "Model usage records do not reconcile with activity.");
+
+  exactObject(report.timeline, ["status", "granularity", "timestamp_basis", "periods"], "timeline");
+  if (report.timeline.status !== "available" || report.timeline.granularity !== "calendar_month" || report.timeline.timestamp_basis !== "source_date_prefix_not_timezone_normalized") {
+    fail("invalid_enum", "timeline metadata is not supported.");
+  }
+  if (!Array.isArray(report.timeline.periods) || report.timeline.periods.length < 1) {
+    fail("invalid_schema", "timeline.periods must be a nonempty list.");
+  }
+  const timelineSums = Object.fromEntries(V2_TIMELINE_COUNT_KEYS.map((key) => [key, 0]));
+  let previousPeriod = "";
+  for (let index = 0; index < report.timeline.periods.length; index++) {
+    const row = report.timeline.periods[index];
+    const label = `timeline.periods[${index}]`;
+    exactObject(row, ["period", ...V2_TIMELINE_COUNT_KEYS], label);
+    if (row.period !== "undated" && !validCalendarMonth(row.period)) fail("invalid_date", `${label}.period is not a calendar month.`);
+    if (previousPeriod === "undated" || (previousPeriod && row.period !== "undated" && previousPeriod.localeCompare(row.period) >= 0)) {
+      fail("invalid_reconciliation", "timeline periods must be uniquely sorted with undated last.");
+    }
+    previousPeriod = row.period;
+    for (const key of V2_TIMELINE_COUNT_KEYS) {
+      count(row[key], `${label}.${key}`);
+      timelineSums[key] = addCount(timelineSums[key], row[key], `timeline.${key}`);
+    }
+    if (row.reasoning_output_tokens > row.output_tokens) fail("invalid_reconciliation", `${label} reasoning tokens exceed output tokens.`);
+    const expectedTokens = row.input_tokens + row.cache_write_input_tokens + row.cache_read_input_tokens + row.output_tokens;
+    if (!Number.isSafeInteger(expectedTokens) || row.total_tokens !== expectedTokens) fail("invalid_reconciliation", `${label} token totals do not reconcile.`);
+    if (row.usage_records === 0 || row.usage_records > row.total_tokens) fail("invalid_reconciliation", `${label} must contain supported usage records that do not exceed tokens.`);
+    if (row.period === "undated" && row.active_days !== 0) fail("invalid_reconciliation", "An undated timeline row cannot claim active days.");
+    if (row.active_days > row.usage_records || (row.period !== "undated" && row.active_days > daysInCalendarMonth(row.period))) {
+      fail("invalid_reconciliation", `${label} has an impossible active-day cardinality.`);
+    }
+    if (row.logical_sessions_started > row.usage_records) fail("invalid_reconciliation", `${label} has an impossible session-start cardinality.`);
+  }
+  const timelineToTotals = {
+    input_tokens: "input_tokens",
+    cache_write_input_tokens: "cache_write_tokens",
+    cache_read_input_tokens: "cache_read_tokens",
+    output_tokens: "output_tokens",
+    total_tokens: "total_tokens",
+  };
+  for (const [timelineKey, totalKey] of Object.entries(timelineToTotals)) {
+    if (timelineSums[timelineKey] !== report.totals[totalKey]) fail("invalid_reconciliation", `timeline does not reconcile with totals.${totalKey}.`);
+  }
+  if (report.totals.reasoning_tokens === null) {
+    if (timelineSums.reasoning_output_tokens !== 0) fail("invalid_reconciliation", "timeline reasoning tokens cannot be present when report reasoning is unavailable.");
+  } else if (timelineSums.reasoning_output_tokens !== report.totals.reasoning_tokens) {
+    fail("invalid_reconciliation", "timeline does not reconcile with totals.reasoning_tokens.");
+  }
+  if (timelineSums.usage_records !== usageRecordTotal) fail("invalid_reconciliation", "timeline usage records do not reconcile with activity.");
+  if (timelineSums.active_days !== activeDays) fail("invalid_reconciliation", "timeline active days do not reconcile with activity.");
+  if (timelineSums.logical_sessions_started !== sessions) fail("invalid_reconciliation", "timeline session starts do not reconcile with activity.");
+
+  const distributions = report.session_distributions;
+  exactObject(distributions, ["status", "session_definition", "thresholds_version", "elapsed_time_basis", "logical_sessions_analyzed", "usage_records_per_session", "total_tokens_per_session", "elapsed_time_per_session"], "session_distributions");
+  if (distributions.status !== "available" || distributions.thresholds_version !== "top.session-buckets.v1" || distributions.elapsed_time_basis !== "wall_clock_span_between_first_and_last_supported_usage_record") {
+    fail("invalid_enum", "session distribution metadata is not supported.");
+  }
+  const expectedDefinition = report.source.surface === "claude_code" ? "deduplicated_logical_session" : "codex_rollout_file_proxy";
+  if (distributions.session_definition !== expectedDefinition) fail("invalid_reconciliation", "session definition does not match the report source.");
+  count(distributions.logical_sessions_analyzed, "session_distributions.logical_sessions_analyzed");
+  if (distributions.logical_sessions_analyzed !== sessions) fail("invalid_reconciliation", "session distribution count does not reconcile with activity.");
+  validateBucketObject(distributions.usage_records_per_session, V2_USAGE_BUCKET_KEYS, "session_distributions.usage_records_per_session", sessions);
+  validateBucketObject(distributions.total_tokens_per_session, V2_TOKEN_BUCKET_KEYS, "session_distributions.total_tokens_per_session", sessions);
+  validateBucketObject(distributions.elapsed_time_per_session, V2_ELAPSED_BUCKET_KEYS, "session_distributions.elapsed_time_per_session", sessions);
+  validateRangeReconciliation(distributions.usage_records_per_session, usageRecordTotal, [
+    ["zero", 0, 0],
+    ["one", 1, 1],
+    ["two_to_four", 2, 4],
+    ["five_to_nineteen", 5, 19],
+    ["twenty_plus", 20, null],
+  ], "session_distributions.usage_records_per_session");
+  validateRangeReconciliation(distributions.total_tokens_per_session, report.totals.total_tokens, [
+    ["under_10k", 0, 9_999],
+    ["ten_to_49k", 10_000, 49_999],
+    ["fifty_to_199k", 50_000, 199_999],
+    ["two_hundred_to_999k", 200_000, 999_999],
+    ["one_million_plus", 1_000_000, null],
+  ], "session_distributions.total_tokens_per_session");
+
+  exactObject(report.workflow_shape, ["status", "algorithm_version", "basis", "sessions"], "workflow_shape");
+  if (report.workflow_shape.status !== "available" || report.workflow_shape.algorithm_version !== "top.workflow-shape.v1" || report.workflow_shape.basis !== "deduplicated_usage_record_count_only") {
+    fail("invalid_enum", "workflow shape metadata is not supported.");
+  }
+  validateBucketObject(report.workflow_shape.sessions, V2_WORKFLOW_BUCKET_KEYS, "workflow_shape.sessions", sessions);
+  const usageToShape = {
+    zero: "unclassified",
+    one: "single_exchange",
+    two_to_four: "short_multi_exchange",
+    five_to_nineteen: "sustained",
+    twenty_plus: "high_iteration",
+  };
+  for (const [usageKey, shapeKey] of Object.entries(usageToShape)) {
+    if (distributions.usage_records_per_session[usageKey] !== report.workflow_shape.sessions[shapeKey]) {
+      fail("invalid_reconciliation", "workflow shape does not reconcile with usage-record buckets.");
+    }
+  }
+}
+
 export function validateResearchSafeUsage(report) {
-  exactObject(report, ["schema_version", "collector", "generated_date", "source", "measurement", "scope", "coverage", "totals", "activity", "cost", "pricing", "permission_mode_counts", "by_model", "questionnaire", "value_model", "privacy"], "report");
-  if (report.schema_version !== REPORT_SCHEMA_VERSION) fail("unsupported_report_version", "The research-safe report version is not supported.");
-  validateCollector(report.collector);
+  if (!isObject(report)) fail("invalid_schema", "report must be an object.");
+  const baseKeys = ["schema_version", "collector", "generated_date", "source", "measurement", "scope", "coverage", "totals", "activity", "cost", "pricing", "permission_mode_counts", "by_model", "questionnaire", "value_model", "privacy"];
+  if (report.schema_version !== REPORT_SCHEMA_VERSION && report.schema_version !== REPORT_SCHEMA_VERSION_V2) {
+    fail("unsupported_report_version", "The research-safe report version is not supported.");
+  }
+  const reportKeys = report.schema_version === REPORT_SCHEMA_VERSION_V2
+    ? [...baseKeys, "timeline", "session_distributions", "workflow_shape"]
+    : baseKeys;
+  exactObject(report, reportKeys, "report");
+  validateCollector(report.collector, report.schema_version);
   dateOnly(report.generated_date, "generated_date");
   validateSource(report.source);
   validateMeasurement(report.measurement, report.source);
@@ -437,6 +651,7 @@ export function validateResearchSafeUsage(report) {
   validateQuestionnaire(report.questionnaire);
   validateValueModel(report.value_model);
   validatePrivacy(report.privacy);
+  if (report.schema_version === REPORT_SCHEMA_VERSION_V2) validateV2Sections(report);
   return true;
 }
 
@@ -553,6 +768,55 @@ function base64Utf8(text) {
   return btoa(binary);
 }
 
+function v2EmailTextLines(report) {
+  if (report.schema_version !== REPORT_SCHEMA_VERSION_V2) return [];
+  const periods = report.timeline.periods;
+  const dated = periods.filter((row) => row.period !== "undated");
+  const shown = dated.slice(-6);
+  const undated = periods.find((row) => row.period === "undated");
+  const timeline = shown.map((row) => `${row.period}: ${row.total_tokens} tokens, ${row.logical_sessions_started} session starts, ${row.active_days} active days`).join("; ") || "no dated periods";
+  const shape = report.workflow_shape.sessions;
+  return [
+    `Source-month timeline (${dated.length} dated periods${dated.length > shown.length ? ", latest 6 shown" : ""}; source date prefixes, not timezone-normalized): ${timeline}.`,
+    ...(undated ? [`Undated usage: ${undated.total_tokens} tokens, ${undated.logical_sessions_started} session starts.`] : []),
+    `Session shape: single exchange ${shape.single_exchange}; short multi-exchange ${shape.short_multi_exchange}; sustained ${shape.sustained}; high iteration ${shape.high_iteration}; unclassified ${shape.unclassified}.`,
+  ];
+}
+
+function v2EmailHtml(report) {
+  if (report.schema_version !== REPORT_SCHEMA_VERSION_V2) return "";
+  const periods = report.timeline.periods;
+  const dated = periods.filter((row) => row.period !== "undated");
+  const shown = dated.slice(-6);
+  const undated = periods.find((row) => row.period === "undated");
+  const periodRows = shown.map((row) => `<tr><td>${escapeHtml(row.period)}</td><td>${row.total_tokens}</td><td>${row.logical_sessions_started}</td><td>${row.active_days}</td></tr>`).join("");
+  const shape = report.workflow_shape.sessions;
+  const timelineTable = shown.length ? `<table><thead><tr><th>Source month</th><th>Total tokens</th><th>Sessions started</th><th>Active days</th></tr></thead><tbody>${periodRows}</tbody></table>` : "<p>No dated periods.</p>";
+  const undatedLine = undated ? `<p><strong>Undated usage:</strong> ${undated.total_tokens} tokens, ${undated.logical_sessions_started} session starts.</p>` : "";
+  return `<h2>Source-month timeline</h2><p>${dated.length} dated periods${dated.length > shown.length ? "; latest 6 shown" : ""}. Month labels use source date prefixes and are not timezone-normalized.</p>${timelineTable}${undatedLine}<h2>Session shape</h2><ul><li>Single exchange: ${shape.single_exchange}</li><li>Short multi-exchange: ${shape.short_multi_exchange}</li><li>Sustained: ${shape.sustained}</li><li>High iteration: ${shape.high_iteration}</li><li>Unclassified: ${shape.unclassified}</li></ul>`;
+}
+
+function coverageEmailTextLines(report) {
+  const coverage = report.coverage;
+  const incomplete = Object.hasOwn(coverage, "complete") && coverage.complete === false;
+  const counts = [
+    ["Skipped files", coverage.files_skipped],
+    ["Malformed lines", coverage.malformed_lines],
+    ["Oversized lines", coverage.oversized_lines],
+  ].filter(([, value]) => Number.isSafeInteger(value) && value > 0);
+  if (!incomplete && !counts.length) return [];
+  return [
+    incomplete ? "COVERAGE WARNING: This report is incomplete." : "COVERAGE WARNING: Some supported records were skipped.",
+    ...(counts.length ? [`Coverage exclusions: ${counts.map(([label, value]) => `${label} ${value}`).join("; ")}.`] : []),
+  ];
+}
+
+function coverageEmailHtml(report) {
+  const lines = coverageEmailTextLines(report);
+  if (!lines.length) return "";
+  return `<h2>Coverage warning</h2><p><strong>${escapeHtml(lines[0])}</strong></p>${lines[1] ? `<p>${escapeHtml(lines[1])}</p>` : ""}`;
+}
+
 function buildEmailText(submission, reportHash) {
   const report = submission.report;
   const purposes = submission.consent.purposes.join(", ");
@@ -562,6 +826,7 @@ function buildEmailText(submission, reportHash) {
     `Report SHA-256: ${reportHash}`,
     `Source: ${report.source.provider} ${report.source.surface}`,
     `Generated date: ${report.generated_date}`,
+    ...coverageEmailTextLines(report),
     `Total tokens: ${report.totals.total_tokens}`,
     `Input tokens: ${report.totals.input_tokens}`,
     `Output tokens: ${report.totals.output_tokens}`,
@@ -572,6 +837,9 @@ function buildEmailText(submission, reportHash) {
     `Consent purposes: ${purposes}`,
     `Consent notice: ${submission.consent.notice_version}`,
     `Retention acknowledged: ${submission.consent.retention_days} days`,
+    ...v2EmailTextLines(report),
+    "",
+    "The report's privacy.network_delivery value describes the analyzer state when the local report was generated. This email resulted from a separate deliberate submission after the user reviewed the report and gave explicit consent.",
     "",
     "The attached JSON is the exact validated research-safe report. It excludes prompts, replies, code, tool output, paths, filenames, project and account identifiers, email addresses, exact timestamps and original IDs.",
   ].join("\n");
@@ -580,7 +848,7 @@ function buildEmailText(submission, reportHash) {
 function buildEmailHtml(submission, reportHash) {
   const report = submission.report;
   const modelRows = report.by_model.map((row) => `<tr><td>${escapeHtml(row.model)}</td><td>${row.total_tokens}</td><td>${escapeHtml(row.cost.status)}</td><td>${row.cost.usd === null ? "Not available" : row.cost.usd}</td></tr>`).join("");
-  return `<!doctype html><html><body><h1>TOP research-safe usage submission</h1><p><strong>Receipt:</strong> ${escapeHtml(submission.submission_id)}</p><p><strong>Report SHA-256:</strong> ${escapeHtml(reportHash)}</p><p><strong>Source:</strong> ${escapeHtml(report.source.provider)} ${escapeHtml(report.source.surface)}</p><p><strong>Generated date:</strong> ${escapeHtml(report.generated_date)}</p><h2>Usage totals</h2><ul><li>Total tokens: ${report.totals.total_tokens}</li><li>Input tokens: ${report.totals.input_tokens}</li><li>Output tokens: ${report.totals.output_tokens}</li><li>Cache write tokens: ${report.totals.cache_write_tokens === null ? "Not available" : report.totals.cache_write_tokens}</li><li>Cache read tokens: ${report.totals.cache_read_tokens === null ? "Not available" : report.totals.cache_read_tokens}</li></ul><h2>By model</h2><table><thead><tr><th>Model</th><th>Total tokens</th><th>Cost status</th><th>Cost USD</th></tr></thead><tbody>${modelRows}</tbody></table><p>The attached JSON is the exact validated research-safe report. It contains no original history file.</p></body></html>`;
+  return `<!doctype html><html><body><h1>TOP research-safe usage submission</h1><p><strong>Receipt:</strong> ${escapeHtml(submission.submission_id)}</p><p><strong>Report SHA-256:</strong> ${escapeHtml(reportHash)}</p><p><strong>Source:</strong> ${escapeHtml(report.source.provider)} ${escapeHtml(report.source.surface)}</p><p><strong>Generated date:</strong> ${escapeHtml(report.generated_date)}</p>${coverageEmailHtml(report)}<h2>Usage totals</h2><ul><li>Total tokens: ${report.totals.total_tokens}</li><li>Input tokens: ${report.totals.input_tokens}</li><li>Output tokens: ${report.totals.output_tokens}</li><li>Cache write tokens: ${report.totals.cache_write_tokens === null ? "Not available" : report.totals.cache_write_tokens}</li><li>Cache read tokens: ${report.totals.cache_read_tokens === null ? "Not available" : report.totals.cache_read_tokens}</li></ul><h2>By model</h2><table><thead><tr><th>Model</th><th>Total tokens</th><th>Cost status</th><th>Cost USD</th></tr></thead><tbody>${modelRows}</tbody></table>${v2EmailHtml(report)}<p>The report's <code>privacy.network_delivery</code> value describes the analyzer state when the local report was generated. This email resulted from a separate deliberate submission after the user reviewed the report and gave explicit consent.</p><p>The attached JSON is the exact validated research-safe report. It contains no original history file.</p></body></html>`;
 }
 
 async function sendWithResend(fetchImpl, env, submission) {
