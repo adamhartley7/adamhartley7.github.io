@@ -39,7 +39,7 @@ assert.match(html, /Partial: "\+costText\+" for models TOP could price/);
 assert.match(html, /Ready: "\+costText\+" across all models/);
 assert.match(html, /slice\(0,3\)/);
 assert.match(html, /Share Your Safe Report/);
-assert.match(html, /See exactly what will be shared/);
+assert.match(html, /See the exact research-safe JSON that will be downloaded or submitted/);
 assert.match(html, /id="pilotResearchPreview" readonly/);
 assert.match(html, /Only the complete content-free aggregate report below can leave this page/);
 assert.match(html, /usage totals, model labels, source and collector metadata, pricing references/);
