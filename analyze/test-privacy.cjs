@@ -88,6 +88,10 @@ assert.match(html, /Claude project, memory or user context, not usage history/);
 assert.match(html, /Check conversation export/);
 assert.match(html, /id="downloadscript"/);
 assert.match(html, /Download Privacy Cleaner/);
+assert.match(html, /id="historyPathHelper"/);
+assert.match(html, /id="copyHistoryPath">Copy Folder Address/);
+assert.match(html, /id="copyAgentPathPrompt">Ask My Agent For The Address/);
+assert.match(html, /A website cannot type a private path into the picker for you/);
 assert.match(html, /Choose only <code>rollout-\*\.jsonl<\/code> files/);
 assert.match(html, /Do not choose the whole <code>\.codex<\/code> folder/);
 assert.match(html, /id="downloadAIEvents">Download ai-events\.jsonl/);
@@ -115,12 +119,15 @@ assert.match(html, /if\(res\.csv\) return \{card:"Records",table:"Records",summa
 assert.match(html, /if\(res\.chatExport\) return \{card:"Text messages found",table:"Text messages found",summary:"Text messages found in selected file"\}/);
 assert.doesNotMatch(html, /starting_challenges:|provider_selected:|privacy_route:|task_archetypes:/);
 assert.match(html, /id="shareWithTop" hidden/);
-assert.match(html, /<h2 id="shareWithTopHeading" tabindex="-1">Download My Own Copy<\/h2>/);
-assert.match(html, /Sending this to Adam and Sam is not live yet\./);
-assert.match(html, /A safe receiving service still needs to be connected\./);
+assert.match(html, /<h2 id="shareWithTopHeading" tabindex="-1">Download Or Email My Own Copy<\/h2>/);
+assert.match(html, /Nothing is submitted automatically\./);
+assert.match(html, /Direct server delivery is not live yet\./);
 assert.match(html, /Download My Own Copy/);
-assert.match(html, /Submit To Adam And Sam, Setup Required/);
-assert.match(html, /id="shareTopPaused" disabled aria-describedby="shareHold"/);
+assert.match(html, /Copy Exact Summary/);
+assert.match(html, /id="shareRecipients"/);
+assert.match(html, /id="shareConsent"/);
+assert.match(html, /id="openEmailDraft" disabled/);
+assert.match(html, /TOP cannot confirm delivery/);
 assert.match(html, /id="finalPackagePreview" readonly/);
 assert.match(html, /includeSurveyContext=!skipped/);
 assert.match(html, /Optional answers included: "\+\(includeSurveyContext\?"Yes":"No"\)/);
@@ -128,6 +135,10 @@ assert.match(html, /\+\(includeSurveyContext\?surveyBlock\(\):""\)/,
   "skipped optional answers must not enter the shareable file");
 assert.match(html, /var body=lastSummary/);
 assert.match(html, /Original history file included: No/);
+assert.match(html, /Delivery status: Prepared locally, not sent by TOP/);
+assert.match(html, /cache added/);
+assert.match(html, /cache reused/);
+assert.match(html, /Pricing basis: pay-as-you-go API rates checked/);
 assert.match(html, /id="shareSummaryBox" hidden/);
 assert.doesNotMatch(html, /var wantsShare=selectedRoute==="b"/);
 assert.match(html, /shareSummaryBox"\)\.hidden=false/);
@@ -135,6 +146,11 @@ assert.match(html, /getElementById\("survey"\)\.hidden=false/);
 assert.match(html, /share\.scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
 assert.match(html, /document\.getElementById\('shareWithTop'\)\.hidden=true/);
 assert.match(html, /ROUTEB=null/);
+
+const folderChoicePosition = html.indexOf('id="historyFolderChoice"');
+const fileFallbackPosition = html.indexOf('id="fileFallback"');
+assert.ok(folderChoicePosition >= 0 && fileFallbackPosition > folderChoicePosition,
+  "folder selection must be the primary Claude Code and Codex action, before individual-file fallback");
 
 const topLevelSources = html.slice(html.indexOf('id="tabs"'), html.indexOf('id="claudeSources"'));
 assert.doesNotMatch(topLevelSources, /data-mode="(?:cc|chat|csv)"/, "Claude subtypes must not appear as top-level choices");

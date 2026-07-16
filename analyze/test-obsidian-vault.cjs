@@ -16,6 +16,10 @@ assert.match(html, /Opening Claude Code inside an Obsidian vault does not put it
 assert.match(html, /reads the JSONL session files locally and keeps only their usage fields/);
 assert.match(html, /Use An AI History Export Instead/);
 assert.match(html, /Download My 7C's Setup Plan/);
+assert.match(html, /id="vaultAnalyzeClaudeFolder" hidden>Analyze This Claude Code Folder/);
+assert.match(html, /id="vaultUseClaudeFolderPicker" hidden>Choose Claude Code Folder Safely/);
+assert.match(html, /id="vaultChooseAgain">Choose My Actual Vault Folder/);
+assert.match(html, /You chose your Claude Code history folder/);
 assert.match(html, /A one-click public integration is not live yet/);
 assert.match(html, /No Markdown note contents were read/);
 assert.match(html, /id="vaultHistoryHeading">No supported AI history files found/);
@@ -151,6 +155,36 @@ assert.equal(context.inferModeFromFileNames([file("usage.CSV")]), "csv");
 const oversizedConversation = context.historyFilesForMode([file("conversations.json", { size: 65 * 1024 * 1024 })], "chat");
 assert.equal(oversizedConversation.files.length, 0, "large conversation JSON must fail before a phone tab tries to retain and parse it");
 
+const giantMergedClaude = context.historyFilesForMode([file("TOP-claude-export.jsonl", { size: 546 * 1024 * 1024 })], "cc");
+assert.equal(giantMergedClaude.files.length, 0, "a giant raw merged history must not be retained as one browser string");
+assert.equal(giantMergedClaude.oversized, 1, "the UI must be able to redirect a giant merged history to the safer folder route");
+
+const validClaudeProjectsRoot = context.historyFilesForMode([
+  file("projects/C--Users-Adam-Project/session.jsonl"),
+], "cc", "folder");
+assert.equal(validClaudeProjectsRoot.files.length, 1,
+  "the promoted folder route must accept the exact .claude/projects folder");
+
+const wholeClaudeRoot = context.historyFilesForMode([
+  file(".claude/projects/C--Users-Adam-Project/session.jsonl"),
+  file(".claude/history.jsonl"),
+], "cc", "folder");
+assert.equal(wholeClaudeRoot.unsafeClaudeRoot, true);
+assert.equal(wholeClaudeRoot.files.length, 0,
+  "the whole .claude folder must fail closed before prompt history is opened");
+
+const oneProjectSubfolder = context.historyFilesForMode([
+  file("C--Users-Adam-Project/session.jsonl"),
+], "cc", "folder");
+assert.equal(oneProjectSubfolder.invalidClaudeFolder, true);
+assert.equal(oneProjectSubfolder.files.length, 0,
+  "the folder-first route must require the complete projects root instead of silently undercounting one project");
+
+const directClaudeHistory = context.historyFilesForMode([file("history.jsonl")], "cc", "files");
+assert.equal(directClaudeHistory.unsafeClaudeHistory, true);
+assert.equal(directClaudeHistory.files.length, 0,
+  "Claude prompt history must never be accepted as token usage through the file fallback");
+
 const codexFiles = context.historyFilesForMode([
   file("rollout-2026-07-16.jsonl"),
   file("history.jsonl"),
@@ -199,6 +233,70 @@ assert.equal(context.vaultCandidateCount(ordinaryVault), 0, "Markdown history an
 assert.equal(ordinaryVault.notes, 2);
 assert.equal(ordinaryVault.claudeContext, 1);
 assert.equal(ordinaryVault.regularJson, 1);
+
+const canonical7Cs = context.scanVaultFiles([
+  file("7Cs-Vault/AGENTS.md"),
+  file("7Cs-Vault/CLAUDE.md"),
+  file("7Cs-Vault/VAULT-INDEX.md"),
+  file("7Cs-Vault/Active Priorities.md"),
+  file("7Cs-Vault/Birds-Eye-View.md"),
+  file("7Cs-Vault/01 - Daily Notes/2026-07-16.md"),
+], true, now);
+assert.deepEqual(
+  { ...canonical7Cs.structures },
+  { agents: true, claude: true, index: true, priorities: true, birds: true, daily: true },
+  "Adam's exact canonical starter names must all be recognized without reading note contents",
+);
+assert.equal(canonical7Cs.rootName, "7Cs-Vault");
+assert.equal(canonical7Cs.looksLikeClaudeProjects, false);
+
+const mistakenClaudeFolder = context.scanVaultFiles(
+  Array.from({ length: 12 }, (_, index) => file(`projects/C--Users-Adam-Project/session-${index}.jsonl`)),
+  true,
+  now,
+);
+assert.equal(mistakenClaudeFolder.rootName, "projects");
+assert.equal(mistakenClaudeFolder.looksLikeClaudeProjects, true,
+  "selecting .claude/projects as the vault must produce a corrective Claude Code route");
+assert.equal(mistakenClaudeFolder.candidates.cc.length, 12);
+assert.equal(mistakenClaudeFolder.notes, 0);
+
+const unsafeClaudeRoot = context.scanVaultFiles(
+  Array.from({ length: 12 }, (_, index) => file(`.claude/projects/C--Users-Adam-Project/session-${index}.jsonl`)),
+  true,
+  now,
+);
+assert.equal(unsafeClaudeRoot.looksLikeUnsafeClaudeRoot, true,
+  "selecting all of .claude must be recognized and redirected to a safer subfolder");
+assert.equal(unsafeClaudeRoot.looksLikeClaudeProjects, false);
+
+const arbitraryProjectsFolder = context.scanVaultFiles([
+  file("projects/not-claude.jsonl"),
+], true, now);
+assert.equal(arbitraryProjectsFolder.looksLikeClaudeProjects, false,
+  "an arbitrary folder named projects must not be mistaken for Claude Code history");
+assert.equal(arbitraryProjectsFolder.candidates.cc.length, 0);
+
+const blockedProjectsFolder = context.scanVaultFiles(
+  Array.from({ length: 12 }, (_, index) => file(`projects/C--Users-Adam-Project/secret-${index}.jsonl`)),
+  true,
+  now,
+);
+assert.equal(blockedProjectsFolder.looksLikeClaudeProjects, false,
+  "blocked private-looking JSONL names must not create Claude Code confidence");
+assert.equal(blockedProjectsFolder.candidates.cc.length, 0);
+
+const cappedClaudeFolder = context.scanVaultFiles(
+  Array.from({ length: 12 }, (_, index) => file(`projects/C--Users-Adam-Project/session-${index}.jsonl`, { size: 200 * 1024 * 1024 })),
+  true,
+  now,
+);
+assert.equal(cappedClaudeFolder.looksLikeClaudeProjects, true);
+assert.equal(cappedClaudeFolder.candidatesIncomplete, true,
+  "the recovery shortcut must fail closed if its candidate byte cap would truncate the report");
+assert.ok(cappedClaudeFolder.candidates.cc.length < 12);
+assert.match(html, /if\(scan\.candidatesIncomplete\)[\s\S]*safeClaudePicker\.hidden=false/,
+  "an incomplete recovery scan must redirect to the dedicated folder picker");
 
 const individualRollout = context.scanVaultFiles([file("rollout-2026-07-16.jsonl")], false, now);
 assert.equal(individualRollout.candidates.codex.length, 1, "the individual-file fallback must retain a valid Codex rollout");

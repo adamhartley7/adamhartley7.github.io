@@ -89,7 +89,8 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .drop .big{font-size:19px;font-weight:600;margin-bottom:6px}
 .drop .small{color:var(--muted);font-size:15px;margin-top:4px}
 .drop input{display:none}
-.folder-choice{display:none;margin:12px 0 0;padding:13px 16px;border:1px solid #a9c4cf;border-radius:15px;background:rgba(255,255,255,.82);color:var(--text);font-weight:750;text-align:center;cursor:pointer}.folder-choice.show{display:block}.folder-choice span{display:block;color:var(--muted);font-size:13px;font-weight:550;margin-top:3px}.folder-choice input{display:none}
+.folder-choice{display:none;margin:0;padding:clamp(24px,5vw,36px) 18px;border:2px solid #6956d5;border-radius:22px;background:linear-gradient(145deg,#f3efff,#e8f8f3);color:var(--text);font-weight:800;text-align:center;cursor:pointer;box-shadow:0 18px 42px rgba(80,61,147,.14);transition:.18s}.folder-choice.show{display:block}.folder-choice:hover{transform:translateY(-2px);box-shadow:0 22px 48px rgba(80,61,147,.2)}.folder-choice strong{display:block;font-size:clamp(19px,3vw,25px)}.folder-choice span{display:block;max-width:62ch;margin:7px auto 0;color:var(--muted);font-size:14px;font-weight:550}.folder-choice input{display:none}
+.history-path-helper{display:none;margin:12px 0;padding:14px 16px;border:1px solid #c4b9e8;border-radius:16px;background:rgba(255,255,255,.88)}.history-path-helper.show{display:block}.history-path-helper strong{display:block}.history-path-helper p{margin:5px 0 10px;color:var(--muted);font-size:13.5px}.history-path-actions{display:flex;gap:8px;flex-wrap:wrap}.file-fallback{margin:12px 0 0;border:1px solid #c7d6dd;border-radius:16px;background:rgba(255,255,255,.76);overflow:hidden}.file-fallback>summary{cursor:pointer;padding:13px 16px;font-weight:750}.file-fallback .drop{border:0;border-top:1px solid #d7e2e7;border-radius:0;box-shadow:none;padding:24px 18px}.file-fallback .drop .big{font-size:18px}
 .file-status{min-height:22px;margin:11px 0 0;color:#087f62;font-size:13.5px;font-weight:700;text-align:center}
 .obsidian-panel{scroll-margin-top:125px;margin:20px 0 34px;padding:clamp(20px,4vw,32px);border:1px solid rgba(255,255,255,.9);border-radius:27px;background:rgba(255,255,255,.9);box-shadow:0 22px 54px rgba(24,69,91,.13)}
 .obsidian-panel h2{margin-top:8px}.vault-truth{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;margin:14px 0 18px;padding:17px 18px;border:1px solid rgba(101,86,221,.24);border-radius:18px;background:linear-gradient(145deg,#f6f2ff,#edf9f5)}.vault-truth .mark{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:#6956d5;color:#fff;font-weight:900}.vault-truth strong{display:block;margin-bottom:4px;font-size:17px}.vault-truth p{color:var(--muted);font-size:14.5px}
@@ -97,7 +98,7 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .vault-support{margin:12px 0;color:var(--muted);font-size:13.5px;text-align:center}.vault-support strong{color:var(--text)}
 .vault-recovery{margin:14px 0;padding:18px;border:1px solid rgba(101,86,221,.3);border-radius:18px;background:linear-gradient(145deg,rgba(247,244,255,.98),rgba(237,250,246,.95))}.vault-recovery h3{margin:0 0 7px;font-size:18px}.vault-recovery p{margin:0;color:var(--muted);font-size:14px}.vault-recovery-actions{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0 10px}.vault-recovery-actions .btn{justify-content:center}.vault-paths{font-size:13px!important}.vault-path-row{display:flex;align-items:center;gap:8px;margin-top:10px}.vault-path-row code{flex:1;padding:10px 12px;border:1px solid rgba(101,86,221,.24);border-radius:11px;background:#fff;font-family:"JetBrains Mono",monospace;font-size:12px;overflow-wrap:anywhere}.vault-path-row .btn{flex:0 0 auto}
 .vault-error{display:none;margin:14px 0;padding:14px 16px;border:1px solid rgba(242,109,109,.35);border-radius:13px;background:rgba(242,109,109,.08);color:#a32f2f;font-size:14px}
-.vault-report{margin-top:20px}.vault-report[hidden]{display:none}.vault-status{margin:0 0 14px;padding:13px 15px;border:1px solid rgba(8,127,98,.25);border-radius:14px;background:rgba(227,250,241,.8);color:#075f4b;font-weight:750}.vault-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.vault-stat{padding:15px;border:1px solid #c9dce3;border-radius:16px;background:#fff}.vault-stat strong{display:block;font-family:"JetBrains Mono",monospace;font-size:24px}.vault-stat span{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}
+.vault-report{margin-top:20px}.vault-report[hidden]{display:none}.vault-status{margin:0 0 14px;padding:13px 15px;border:1px solid rgba(8,127,98,.25);border-radius:14px;background:rgba(227,250,241,.8);color:#075f4b;font-weight:750}.vault-correction{margin:0 0 14px;padding:18px;border:2px solid #d08a22;border-radius:18px;background:#fff8de;color:#603400}.vault-correction[hidden]{display:none}.vault-correction h3{margin:0 0 6px;font-size:20px}.vault-correction p{margin:0 0 12px;line-height:1.55}.vault-correction-actions{display:flex;gap:9px;flex-wrap:wrap}.vault-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.vault-stat{padding:15px;border:1px solid #c9dce3;border-radius:16px;background:#fff}.vault-stat strong{display:block;font-family:"JetBrains Mono",monospace;font-size:24px}.vault-stat span{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}
 .vault-split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.vault-box{padding:17px;border:1px solid #c9dce3;border-radius:17px;background:rgba(255,255,255,.88)}.vault-box h3{font-size:17px;margin:0 0 8px}.vault-box p,.vault-box li{color:var(--muted);font-size:13.5px}.vault-box ul{margin:8px 0 0 18px}.vault-source-buttons{display:grid;gap:8px;margin-top:12px}.vault-source-buttons button{width:100%;justify-content:center}.vault-empty{color:var(--muted);font-size:13.5px}
 .vault-offer{margin-top:14px;padding:19px;border:1px solid rgba(101,86,221,.28);border-radius:18px;background:linear-gradient(145deg,rgba(244,240,255,.96),rgba(233,249,243,.92))}.vault-offer h3{font-size:19px;margin:0 0 6px}.vault-offer p{color:var(--muted);font-size:14px}.vault-offer-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
 .note{color:var(--muted);font-size:14px;text-align:center;margin:14px auto;max-width:70ch}
@@ -230,7 +231,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .chip.arch.on .ex{color:#eeeaff}
 .survey-actions{order:3;margin-top:10px}
 .share-stage{background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(242,237,255,.95));border:2px solid rgba(101,86,221,.34);border-radius:28px;margin:30px 0 8px;padding:clamp(24px,5vw,42px);box-shadow:0 26px 64px rgba(37,48,110,.20);text-align:center}
-.share-stage[hidden]{display:none!important}.share-stage h2{font-size:clamp(28px,4vw,40px);margin:0 0 10px}.share-stage .share-lead{max-width:66ch;margin:0 auto 18px;color:var(--muted);font-size:16px}.share-stage .share-hold{max-width:68ch;margin:0 auto 18px;padding:14px 17px;border:1px solid rgba(151,91,0,.28);border-radius:16px;background:#fff8de;color:#6d3900;font-size:14px;text-align:left}.share-buttons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.share-buttons .btn{min-width:220px;justify-content:center}.share-status{min-height:24px;margin-top:14px;color:var(--mint);font-weight:750}
+.share-stage[hidden]{display:none!important}.share-stage h2{font-size:clamp(28px,4vw,40px);margin:0 0 10px}.share-stage .share-lead{max-width:66ch;margin:0 auto 18px;color:var(--muted);font-size:16px}.share-stage .share-hold{max-width:68ch;margin:0 auto 18px;padding:14px 17px;border:1px solid rgba(151,91,0,.28);border-radius:16px;background:#fff8de;color:#6d3900;font-size:14px;text-align:left}.share-buttons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.share-buttons .btn{min-width:220px;justify-content:center}.share-form{max-width:68ch;margin:16px auto;padding:16px;border:1px solid #c9c0e8;border-radius:17px;background:#fff;text-align:left}.share-form label{display:block;font-weight:750}.share-form input[type=text]{width:100%;margin:7px 0 10px;padding:12px;border:1px solid #b9cbd3;border-radius:11px;font:inherit}.share-consent{display:flex!important;gap:9px;align-items:flex-start;color:var(--muted);font-size:13.5px;font-weight:550!important}.share-consent input{margin-top:3px}.share-status{min-height:24px;margin-top:14px;color:var(--mint);font-weight:750}
 /* Route B: content-free usage file you build yourself. */
 .routeb{margin:18px 0 0}
 .routeb .lead{color:var(--muted);font-size:14.5px;margin:0 0 16px;max-width:72ch}
@@ -245,7 +246,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .technical-details{margin:16px 0;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.72);overflow:hidden}
 .technical-details>summary{cursor:pointer;padding:14px 17px;color:var(--text);font-weight:750;list-style:none}
 .technical-details>summary::-webkit-details-marker{display:none}.technical-details>summary::after{content:"Show";float:right;color:var(--iris2);font-size:13px}.technical-details[open]>summary::after{content:"Hide"}
-.technical-details>.details-body{padding:0 17px 17px}
+.technical-details>.details-body{padding:0 17px 17px}.pricing-table{width:100%;border-collapse:collapse;font-size:12.5px}.pricing-table th,.pricing-table td{padding:8px 7px;border-bottom:1px solid #dce5e9;text-align:right}.pricing-table th:first-child,.pricing-table td:first-child{text-align:left}.pricing-table input{max-width:76px;padding:5px}.pricing-table a{color:var(--iris2)}
 @media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.claude-kinds,.routechoices,.resonance-grid,.vault-actions,.vault-split{grid-template-columns:1fr}.vault-stats{grid-template-columns:1fr 1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.claude-kind{min-height:88px}.chipgroup.arch{grid-template-columns:1fr}.resonance-choice{min-height:88px}.resonance-actions .btn{width:100%}}
 @media(max-width:640px){.vcard .vcontrols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 10px;width:100%}.vcard .vcontrols label{grid-column:1/-1;min-width:0}.vcard .gval{min-width:72px}.vcard .plot{overflow:hidden}.vcard .plot svg{display:block;width:100%;max-width:100%;height:auto}}
 @media(max-width:430px){.tabs,.claude-kinds,.vault-stats,.vault-truth{grid-template-columns:1fr}.tab{min-height:82px}.vault-offer-actions .btn,.vault-recovery-actions .btn{width:100%;justify-content:center}.vault-path-row{align-items:stretch;flex-direction:column}.vault-path-row .btn{width:100%;justify-content:center}}
@@ -327,19 +328,28 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     </div>
 
     <div class="routepanel" id="routea" hidden>
-      <h2 id="routeAHeading" tabindex="-1"><span class="flow-kicker">4</span>Choose The History File You Downloaded</h2>
+      <h2 id="routeAHeading" tabindex="-1"><span class="flow-kicker">4</span>Choose Where Your History Lives</h2>
       <div class="routebanner" id="routebanner">This page opens the file on your device. It does not send the file anywhere.</div>
       <div class="hint" id="hint"></div>
 
-      <label class="drop" id="drop" tabindex="0" role="button">
-        <div class="big">Choose Your File or Files</div>
-        <div class="small" id="dropsmall">Claude Code history files (.jsonl)</div>
-        <input type="file" id="file" multiple>
-      </label>
       <label class="folder-choice" id="historyFolderChoice" tabindex="0" role="button"><strong id="historyFolderTitle">Choose The Whole Claude Code Folder</strong>
         <span id="historyFolderText">TOP opens only the supported .jsonl history files inside it. Everything stays on this device.</span>
         <input type="file" id="historyFolder" webkitdirectory directory multiple>
       </label>
+      <div class="history-path-helper" id="historyPathHelper">
+        <strong id="historyPathHeading">The folder address on Windows</strong>
+        <p><code id="historyPathValue">%USERPROFILE%\.claude\projects</code>. Copy it, click the folder button, paste it into the address bar at the top of the Windows picker, press Enter, then choose <b>Select Folder</b>. A website cannot type a private path into the picker for you.</p>
+        <div class="history-path-actions"><button type="button" class="btn" id="copyHistoryPath">Copy Folder Address</button><button type="button" class="btn" id="copyAgentPathPrompt">Ask My Agent For The Address</button></div>
+      </div>
+      <details class="file-fallback" id="fileFallback">
+        <summary>Use One Or More Individual Files Instead</summary>
+        <p class="note" style="padding:0 16px">A giant combined raw-history file still contains your prompts and can overwhelm a browser tab. The folder button above is the safer default. For a reusable single file, use the content-free privacy option after this report.</p>
+        <label class="drop" id="drop" tabindex="0" role="button">
+          <div class="big">Choose Your File Or Files</div>
+          <div class="small" id="dropsmall">Claude Code history files (.jsonl)</div>
+          <input type="file" id="file" multiple>
+        </label>
+      </details>
       <div class="file-status" id="fileStatus" role="status" aria-live="polite"></div>
 
       <div class="steps" id="exportsteps"></div>
@@ -681,6 +691,11 @@ if __name__ == "__main__":
     <div class="vault-error" id="vaultError" role="alert" aria-live="polite"></div>
     <div class="vault-report" id="vaultReport" hidden>
       <div class="vault-status" id="vaultStatus">Vault check ready.</div>
+      <div class="vault-correction" id="vaultCorrection" hidden>
+        <h3 id="vaultCorrectionHeading">That is not your Obsidian vault</h3>
+        <p id="vaultCorrectionCopy"></p>
+        <div class="vault-correction-actions"><button type="button" class="btn p" id="vaultAnalyzeClaudeFolder" hidden>Analyze This Claude Code Folder</button><button type="button" class="btn p" id="vaultUseClaudeFolderPicker" hidden>Choose Claude Code Folder Safely</button><button type="button" class="btn" id="vaultChooseAgain">Choose My Actual Vault Folder</button></div>
+      </div>
       <div class="vault-stats">
         <div class="vault-stat"><strong id="vaultNotes">0</strong><span>Markdown notes found, not read</span></div>
         <div class="vault-stat"><strong id="vaultFolders">0</strong><span>folders found</span></div>
@@ -689,7 +704,7 @@ if __name__ == "__main__":
       </div>
       <div class="vault-split">
         <div class="vault-box"><h3 id="vaultHistoryHeading">No supported AI history files found</h3><p id="vaultHistoryCopy">Nothing is opened during this first check. Markdown notes are never sent into the usage parser.</p><div class="vault-source-buttons" id="vaultSourceButtons"></div></div>
-        <div class="vault-box"><h3>7C's memory building blocks</h3><p>This checks only for standard starter names, not the contents of your notes.</p><ul id="vaultChecklist"></ul></div>
+        <div class="vault-box" id="vaultChecklistBox"><h3>7C's memory building blocks</h3><p>This checks only for standard starter names, not the contents of your notes.</p><ul id="vaultChecklist"></ul></div>
       </div>
       <div class="vault-offer">
         <h3>Turn your vault into private AI memory with 7C's</h3>
@@ -787,9 +802,9 @@ if __name__ == "__main__":
 
   <section class="share-stage" id="shareWithTop" hidden aria-labelledby="shareWithTopHeading">
     <div class="step-overline">Final Step</div>
-    <h2 id="shareWithTopHeading" tabindex="-1">Download My Own Copy</h2>
-    <p class="share-lead">Your original file stays on this device. The file below contains usage totals and AI version names. Optional answers appear only if you chose Finish This Step. It leaves out conversation text.</p>
-    <p class="share-hold" id="shareHold"><strong>Sending this to Adam and Sam is not live yet.</strong> A safe receiving service still needs to be connected. Downloading your own copy works now and does not send anything.</p>
+    <h2 id="shareWithTopHeading" tabindex="-1">Download Or Email My Own Copy</h2>
+    <p class="share-lead">Your original file stays on this device. The copy below contains the full usage breakdown and any optional answers you chose. It leaves out conversation text, code, file contents, paths and original IDs.</p>
+    <p class="share-hold" id="shareHold"><strong>Nothing is submitted automatically.</strong> Direct server delivery is not live yet. You can download or copy the exact summary, or deliberately open it as an email draft. Opening a draft does not mean it was sent.</p>
     <div class="summbox">
       <h3>Exact File Prepared For Download</h3>
       <p>Read this before downloading. The downloaded text file will match this preview.</p>
@@ -797,7 +812,13 @@ if __name__ == "__main__":
     </div>
     <div class="share-buttons">
       <button type="button" class="btn p" id="safeDownload">Download My Own Copy</button>
-      <button type="button" class="btn" id="shareTopPaused" disabled aria-describedby="shareHold">Submit To Adam And Sam, Setup Required</button>
+      <button type="button" class="btn" id="copySafePackage">Copy Exact Summary</button>
+    </div>
+    <div class="share-form">
+      <label for="shareRecipients">Email address or addresses</label>
+      <input type="text" id="shareRecipients" inputmode="email" autocomplete="off" placeholder="Enter up to three addresses, separated by commas">
+      <label class="share-consent"><input type="checkbox" id="shareConsent"> <span>I reviewed the exact preview and choose to put this copy into an email draft. I understand that TOP cannot confirm delivery.</span></label>
+      <div class="share-buttons" style="margin-top:12px"><button type="button" class="btn" id="openEmailDraft" disabled>Open Reviewed Email Draft</button></div>
     </div>
     <div class="share-status" id="shareStatus" role="status" aria-live="polite"></div>
   </section>
@@ -885,6 +906,9 @@ function resetDownstream(){
   document.getElementById('finalPackagePreview').value='';
   includeSurveyContext=false;
   document.getElementById('shareStatus').textContent='';
+  document.getElementById('shareRecipients').value='';
+  document.getElementById('shareConsent').checked=false;
+  document.getElementById('openEmailDraft').disabled=true;
   sharePackage='';
   ROUTEB=null;
 }
@@ -931,21 +955,25 @@ document.getElementById('changeResonance').addEventListener('click',function(){
   document.getElementById('resonanceHeading').focus({preventScroll:true});
 });
 // ---- editable comparison pricing, USD per 1M tokens ----
-// Checked 15 Jul 2026. Cache write assumes Anthropic's 5-minute rate (1.25x); cache read = 0.1x.
+// Checked 16 Jul 2026. Five-minute cache writes use 1.25x input and cache reads use 0.1x input for the matched model families below.
 // Exact model recognition is deliberate. Unknown or ambiguous models are never silently assigned a price.
+var PRICING_CHECKED="16 Jul 2026";
+var ANTHROPIC_PRICING_SOURCE="https://platform.claude.com/docs/en/about-claude/pricing";
+var OPENAI_PRICING_SOURCE="https://openai.com/index/gpt-5-6/";
 var PRICES = {
-  opusNew:{label:"Claude Opus 4.5 to 4.8",in:5,out:25},
-  opusOld:{label:"Claude Opus 3, 4, or 4.1",in:15,out:75},
-  sonnet5:{label:"Claude Sonnet 5 promo",in:2,out:10},
-  sonnet4:{label:"Claude Sonnet 3.5 to 4.6",in:3,out:15},
-  haiku45:{label:"Claude Haiku 4.5",in:1,out:5},
-  haiku35:{label:"Claude Haiku 3.5",in:.8,out:4},
-  fable5:{label:"Claude Fable 5",in:10,out:50},
-  gpt56sol:{label:"GPT-5.6 Sol",in:5,out:30},
-  gpt56terra:{label:"GPT-5.6 Terra",in:2.5,out:15},
-  gpt56luna:{label:"GPT-5.6 Luna",in:1,out:6}
+  opusNew:{label:"Claude Opus 4.5 to 4.8",in:5,out:25,source:ANTHROPIC_PRICING_SOURCE},
+  opusOld:{label:"Claude Opus 3, 4, or 4.1",in:15,out:75,source:ANTHROPIC_PRICING_SOURCE},
+  sonnet5:{label:"Claude Sonnet 5 promo through 31 Aug 2026",in:2,out:10,source:ANTHROPIC_PRICING_SOURCE},
+  sonnet4:{label:"Claude Sonnet 3.5 to 4.6",in:3,out:15,source:ANTHROPIC_PRICING_SOURCE},
+  haiku45:{label:"Claude Haiku 4.5",in:1,out:5,source:ANTHROPIC_PRICING_SOURCE},
+  haiku35:{label:"Claude Haiku 3.5",in:.8,out:4,source:ANTHROPIC_PRICING_SOURCE},
+  fable5:{label:"Claude Fable 5",in:10,out:50,source:ANTHROPIC_PRICING_SOURCE},
+  gpt56sol:{label:"GPT-5.6 Sol",in:5,out:30,source:OPENAI_PRICING_SOURCE},
+  gpt56terra:{label:"GPT-5.6 Terra",in:2.5,out:15,source:OPENAI_PRICING_SOURCE},
+  gpt56luna:{label:"GPT-5.6 Luna",in:1,out:6,source:OPENAI_PRICING_SOURCE}
 };
 var CACHE_WRITE_MULTIPLIER=1.25;
+var CACHE_READ_MULTIPLIER=.1;
 function priceKeyFor(model){
   var m=(model||"").toLowerCase().trim().replace(/[_.]/g,"-").replace(/-+/g,"-");
   var claudeAt=m.lastIndexOf("claude-");
@@ -966,10 +994,12 @@ function priceKeyFor(model){
   return null;
 }
 function priceFor(model){var key=priceKeyFor(model);return key?PRICES[key]:null;}
+function cacheWriteRate(price){return price.in*CACHE_WRITE_MULTIPLIER}
+function cacheReadRate(price){return price.in*CACHE_READ_MULTIPLIER}
 function costOf(model,inp,out,cw,cr){
   var p=priceFor(model);
   if(!p) return null;
-  return (inp*p.in + out*p.out + cw*p.in*CACHE_WRITE_MULTIPLIER + cr*p.in*.1)/1e6;
+  return (inp*p.in + out*p.out + cw*cacheWriteRate(p) + cr*cacheReadRate(p))/1e6;
 }
 function fmt$(x){return "$"+(x<0.01&&x>0?x.toFixed(4):x.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}))}
 function fmtN(x){return Math.round(x).toLocaleString()}
@@ -979,6 +1009,20 @@ function esc(value){
   return String(value).replace(/[&<>"']/g,function(ch){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];
   });
+}
+function safePublicModelLabel(value){
+  var cleaned=String(value||"").replace(/[\u0000-\u001f\u007f<>\\/]/g," ").replace(/\s+/g," ").trim().slice(0,80);
+  if(/^(?:claude\.ai \(est\.\)|ChatGPT export \(est\.\)|Unknown Codex model)$/i.test(cleaned))return cleaned;
+  if(/^claude-(?:(?:[0-9]+(?:-[0-9]+)*)-(?:opus|sonnet|haiku|fable|mythos)|(?:opus|sonnet|haiku|fable|mythos))(?:-[a-z0-9]+)+$/i.test(cleaned))return cleaned;
+  if(/^gpt-[0-9]+(?:[.-][0-9]+)*(?:-[a-z0-9]+){0,3}$/i.test(cleaned))return cleaned;
+  if(/^deepseek-v[0-9]+(?:-[a-z0-9]+){0,3}$/i.test(cleaned))return cleaned;
+  if(/^(?:codex|o[1-9])-[a-z0-9.-]+$/i.test(cleaned))return cleaned;
+  return "Unrecognized AI version";
+}
+function pricingDetailsHTML(keys){
+  if(!keys.length)return "TOP could not match an AI version to a checked price, so it did not calculate a dollar cost.";
+  var rows=keys.map(function(key){var p=PRICES[key],provider=p.source===OPENAI_PRICING_SOURCE?"OpenAI":"Anthropic";return "<tr><td>"+esc(p.label)+"</td><td><input aria-label='"+esc(p.label)+" input price' data-k='"+key+"' data-f='in' value='"+p.in+"'></td><td>"+cacheWriteRate(p)+"</td><td>"+cacheReadRate(p)+"</td><td><input aria-label='"+esc(p.label)+" output price' data-k='"+key+"' data-f='out' value='"+p.out+"'></td><td><a href='"+esc(p.source)+"' target='_blank' rel='noopener'>"+provider+"</a></td></tr>"}).join("");
+  return "<p class='note'>Checked "+esc(PRICING_CHECKED)+". Dollars per 1 million tokens. Cache write means the five-minute write rate. Editing input or output here recalculates this tab only.</p><div style='overflow-x:auto'><table class='pricing-table'><thead><tr><th>AI version</th><th>Input</th><th>Cache write</th><th>Cache read</th><th>Output</th><th>Official source</th></tr></thead><tbody>"+rows+"</tbody></table></div>";
 }
 // ---- model tiering for the value model: which spend is frontier-class (right-sizable) vs already cheap ----
 function tierOf(model){
@@ -992,19 +1036,18 @@ var VM={built:false};
 
 var MODES={
   cc:{label:"Claude Code", small:"Claude Code history files (.jsonl), choose one or more",
-      hint:"Claude Code saves history files in <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>). Choose the <code>.jsonl</code> files there. TOP uses the usage numbers Claude Code saved in them.",
+      hint:"Claude Code saves history in <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>). Choose that whole folder once. TOP uses the usage numbers Claude Code saved there.",
       steps:[
-        "Find your Claude Code logs at <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>).",
-        "Each project you have used has its own folder of <code>.jsonl</code> session logs.",
-        "Select one or more <code>.jsonl</code> session files.",
-        "Drop them into the box above."],
+        "Click <b>Choose The Whole Claude Code Folder</b> above.",
+        "In the Windows picker, paste <code>%USERPROFILE%\\.claude\\projects</code> into the address bar and press Enter.",
+        "Choose <b>Select Folder</b>. TOP opens the supported <code>.jsonl</code> files locally, so you do not need to enter every project folder."],
       stepstip:"Claude Code records usage numbers for many AI replies. Any dollar figure is a pay-as-you-go comparison estimate, not your Claude Max subscription bill.",
       note:""},
   codex:{label:"Codex", small:"Codex rollout session files (rollout-*.jsonl) or TOP's ai-events.jsonl",
       hint:"Codex session transcripts are under <code>~/.codex/sessions/</code> and <code>~/.codex/archived_sessions/</code> (Windows: <code>C:\\Users\\YOU\\.codex\\sessions\\</code>). Choose only <code>rollout-*.jsonl</code> files, or choose one of those two folders. Do not choose the whole <code>.codex</code> folder.",
       steps:[
-        "Open <code>C:\\Users\\YOU\\.codex\\sessions\\</code> on Windows. Archived sessions can also be under <code>C:\\Users\\YOU\\.codex\\archived_sessions\\</code>.",
-        "Choose one or more files whose names start with <code>rollout-</code> and end with <code>.jsonl</code>, or choose the <code>sessions</code> folder.",
+        "Click <b>Choose The Codex Sessions Folder</b> above.",
+        "In the Windows picker, paste <code>%USERPROFILE%\\.codex\\sessions</code> into the address bar and press Enter, then choose <b>Select Folder</b>. Archived sessions can also be under <code>%USERPROFILE%\\.codex\\archived_sessions</code>.",
         "Do not choose <code>.codex\\history.jsonl</code>, <code>auth.json</code>, or the whole <code>.codex</code> folder.",
         "TOP reads only recorded token counters and the active AI version. It ignores transcript text, commands, tool output, paths, IDs, account limits and Git details."],
       stepstip:"Codex token counts measure recorded model usage. They do not reveal your remaining ChatGPT allowance or prove a subscription charge. AI versions without a checked public API price remain unpriced.",
@@ -1130,9 +1173,13 @@ function setMode(m){
   document.getElementById("file").setAttribute("accept",MODE_ACCEPT[m]||"");
   var folderMode=m==="cc"||m==="codex";
   document.getElementById("historyFolderChoice").classList.toggle("show",folderMode);
+  document.getElementById("historyPathHelper").classList.toggle("show",folderMode);
+  document.getElementById("fileFallback").open=!folderMode;
   if(folderMode){
     document.getElementById("historyFolderTitle").textContent=m==="codex"?"Choose The Codex Sessions Folder":"Choose The Whole Claude Code Folder";
-    document.getElementById("historyFolderText").textContent=m==="codex"?"Choose only sessions or archived_sessions. TOP reads supported rollout files one line at a time and ignores transcript content.":"TOP opens only the supported .jsonl history files inside it. Everything stays on this device.";
+    document.getElementById("historyFolderText").textContent=m==="codex"?"Choose only sessions or archived_sessions. TOP reads supported rollout files one line at a time and ignores transcript content.":"TOP opens every supported .jsonl history file inside projects. You do not need to open the project folders one by one.";
+    document.getElementById("historyPathValue").textContent=m==="codex"?"%USERPROFILE%\\.codex\\sessions":"%USERPROFILE%\\.claude\\projects";
+    document.getElementById("historyPathHeading").textContent=m==="codex"?"The usual Codex folder address on Windows":"The usual Claude Code folder address on Windows";
   }
   document.getElementById("routechooser").hidden=false;
   if(selectedRoute) selectRoute(selectedRoute);
@@ -1142,6 +1189,23 @@ function setMode(m){
     document.getElementById("routeHeading").focus({preventScroll:true});
   }
 }
+function copyPlainText(text,button,doneLabel){
+  var before=button.textContent;
+  function flash(label){button.textContent=label;setTimeout(function(){button.textContent=before},1600)}
+  function copied(){flash(doneLabel);return true}
+  function fallback(){
+    var helper=document.createElement("textarea"),ok=false;helper.value=text;helper.setAttribute("readonly","");helper.style.position="fixed";helper.style.opacity="0";document.body.appendChild(helper);helper.select();
+    try{ok=document.execCommand("copy")===true}catch(error){ok=false}
+    document.body.removeChild(helper);if(ok)return copied();flash("Copy Failed");return false;
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText)return Promise.resolve().then(function(){return navigator.clipboard.writeText(text)}).then(copied).catch(fallback);
+  return Promise.resolve(fallback());
+}
+document.getElementById("copyHistoryPath").addEventListener("click",function(){copyPlainText(document.getElementById("historyPathValue").textContent,this,"Folder Address Copied")});
+document.getElementById("copyAgentPathPrompt").addEventListener("click",function(){
+  var product=mode==="codex"?"Codex":"Claude Code",expected=document.getElementById("historyPathValue").textContent;
+  copyPlainText("Find the local "+product+" session-history folder on this computer. Do not open, read, merge, copy or upload any history files. Return only the verified folder path. The usual Windows path is "+expected+".",this,"Agent Prompt Copied");
+});
 document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab");if(!t)return;if(t.dataset.provider==="claude")showClaudeChoices();else setMode(t.dataset.mode)});
 document.getElementById("claudeSources").addEventListener("click",function(e){var button=e.target.closest(".claude-kind");if(button)setMode(button.dataset.mode)});
 function selectRoute(route){
@@ -1567,7 +1631,7 @@ function render(res){
   Object.keys(by).forEach(function(model){
     var e=by[model],resolved=resolveCostRow(model,e,res),key=resolved.key,cost=resolved.cost,complete=resolved.complete;
     if(key) usedPriceKeys[key]=1;
-    if(!complete){allCostsAvailable=false;unpriced.push(model);}
+    if(!complete){allCostsAvailable=false;unpriced.push(safePublicModelLabel(model));}
     if(cost!==null) totCost+=cost;
     totInp+=e.inp;totOut+=e.out;totCw+=e.cw;totCr+=e.cr;
     rows.push({model:model,e:e,cost:cost,complete:complete});
@@ -1592,14 +1656,14 @@ function render(res){
     :"Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.";
   var estimateWord=res.chatExport?"Estimated ":"";
   var th='<thead><tr><th>AI version</th><th>'+estimateWord+'text sent to the AI</th><th>'+estimateWord+'text returned by the AI</th><th>'+estimateWord+'previously saved text: added / reused</th><th>'+countLabels.table+'</th><th>Cost</th></tr></thead>';
-  var tb=rows.map(function(r){var shown=res.chatExport?"Not in export":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(r.model)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
+  var tb=rows.map(function(r){var shown=res.chatExport?"Not in export":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
   var totalShown=res.chatExport?"Not in export":(res.costAvailable?((res.estimate?"~":"")+fmt$(totCost)):(res.partialCost?("Partial "+fmt$(totCost)):"Not available"));
   var tf='<tfoot><tr><td>Total</td><td class="n">'+tokenPrefix+fmtN(totInp)+'</td><td class="n">'+tokenPrefix+fmtN(totOut)+'</td><td class="n">'+(res.chatExport?"Not in export":(fmtN(totCw)+' / '+fmtN(totCr)))+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
   document.getElementById("modeltable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
   // Average cost per reply is shown only when the source contains enough cost data.
   var perTurn=res.turns&&res.costAvailable?totCost/res.turns:null;
   // Plain-English, content-free summary. It can include AI-version labels, but never prompt or reply text.
-  var lines=[];
+  var lines=[],priceKeys=Object.keys(usedPriceKeys);
   lines.push("TOP Usage Report");
   lines.push("");
   lines.push("Where this came from: "+res.kind+".");
@@ -1624,19 +1688,23 @@ function render(res){
   if(res.chatExport&&res.duplicateRecords) lines.push("Duplicate conversation copies skipped: "+fmtInt(res.duplicateRecords)+".");
   if(res.days) lines.push("Days used: "+fmtInt(res.days)+".");
   if(perTurn!==null) lines.push("Average cost per "+(res.csv?"record":"AI reply")+": "+fmt$(perTurn)+".");
+  if(!res.chatExport&&priceKeys.length){
+    lines.push("Pricing basis: pay-as-you-go API rates checked "+PRICING_CHECKED+". Five-minute cache writes use 1.25 times the input rate and cache reads use 0.1 times the input rate.");
+    if(priceKeys.some(function(key){return PRICES[key].source===ANTHROPIC_PRICING_SOURCE}))lines.push("Anthropic pricing source: "+ANTHROPIC_PRICING_SOURCE+".");
+    if(priceKeys.some(function(key){return PRICES[key].source===OPENAI_PRICING_SOURCE}))lines.push("OpenAI pricing source: "+OPENAI_PRICING_SOURCE+".");
+  }
   lines.push("");
   lines.push("Usage by AI version:");
   rows.forEach(function(r){
     var rowCost=r.cost===null?"cost not available":(!r.complete?("partial cost "+fmt$(r.cost)):((res.estimate?"estimated cost about ":"cost ")+fmt$(r.cost)));
-    lines.push("  "+r.model+": "+(res.chatExport?"about ":"")+fmtInt(r.e.inp+r.e.out+r.e.cw+r.e.cr)+" tokens, "+fmtInt(r.e.turns)+" "+countLabels.table.toLowerCase()+", "+rowCost+".");
+    lines.push("  "+safePublicModelLabel(r.model)+": "+(res.chatExport?("about "+fmtInt(r.e.inp)+" sent, about "+fmtInt(r.e.out)+" returned"):(fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused"))+", "+fmtInt(r.e.turns)+" "+countLabels.table.toLowerCase()+", "+rowCost+".");
   });
   lines.push("");
   lines.push("Privacy note: This summary contains no conversation text, AI reply text, code, file contents or original internal ID numbers.");
   document.getElementById("summary").value=lines.join("\n");
   lastSummary=lines.join("\n");
   document.getElementById("shareStatus").textContent="";
-  var priceKeys=Object.keys(usedPriceKeys);
-  document.getElementById("prices").innerHTML=res.chatExport?"No dollar cost is guessed for chat-history downloads.":(priceKeys.length?("Prices used for this estimate, in dollars per 1 million tokens: "+priceKeys.map(function(k){return esc(PRICES[k].label)+" input <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> output <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";}).join(" &nbsp;|&nbsp; ")):"TOP could not match an AI version to a checked price, so it did not calculate a dollar cost.");
+  document.getElementById("prices").innerHTML=res.chatExport?"No dollar cost is guessed for chat-history downloads.":pricingDetailsHTML(priceKeys);
   document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
     var v=parseFloat(inp.value); if(!isNaN(v)) PRICES[inp.dataset.k][inp.dataset.f]=v; render(res);
   })});
@@ -1769,6 +1837,11 @@ function updateVM(){
 // The first pass never opens file contents. It uses only browser-provided metadata.
 var VAULT_SCAN=null;
 var VAULT_LIMITS={maxEntries:30000,maxCandidates:6000,maxCandidateBytes:300*1024*1024,maxCandidateTotalBytes:1200*1024*1024};
+function vaultRootName(files){
+  var roots=Object.create(null);
+  Array.prototype.slice.call(files||[]).forEach(function(file){var raw=String(file.webkitRelativePath||"").replace(/\\/g,"/");var first=raw.split("/").filter(Boolean)[0];if(first)roots[first]=1});
+  var names=Object.keys(roots);return names.length===1?names[0]:"";
+}
 function vaultRelativePath(file){
   var raw=String(file.webkitRelativePath||file.name||"").replace(/\\/g,"/");
   var parts=raw.split("/").filter(Boolean);
@@ -1802,15 +1875,25 @@ function vaultCandidateKind(file,strictFolder){
   if(/^conversations?(?:[-_]\d+)?\.json$/i.test(name)) return "conversation";
   return "skip";
 }
+function isNestedClaudeProjectLog(file){
+  var path=vaultRelativePath(file),name=String(file.name||"");
+  return path.indexOf("/")>=0&&/\.jsonl$/i.test(name)&&!/^history\.jsonl$/i.test(name)&&!vaultPathBlocked(path);
+}
 function scanVaultFiles(files,strictFolder,now){
   var list=Array.prototype.slice.call(files||[]), folders={}, structures={agents:false,claude:false,index:false,priorities:false,birds:false,daily:false};
-  var scan={selected:list.length,notes:0,recent:0,skipped:0,oversized:0,folders:0,tooMany:false,individualFiles:!strictFolder,claudeContext:0,regularJson:0,archives:0,otherData:0,candidates:{cc:[],codex:[],csv:[],conversation:[]},structures:structures};
+  var rootName=vaultRootName(list),rootKey=rootName.toLowerCase();
+  var hasStarterSignal=list.some(function(file){var path=vaultRelativePath(file),parts=path.split("/").filter(Boolean),base=String(file.name||"").toLowerCase();return /^(?:agents|claude|vault-index)\.md$/.test(base)||base==="active priorities.md"||base==="birds-eye-view.md"||parts.some(function(part){return /^(?:01\s*-\s*)?daily notes?$/i.test(part)})});
+  var projectLogCount=list.filter(isNestedClaudeProjectLog).length;
+  var looksLikeClaudeProjects=!!strictFolder&&rootKey==="projects"&&projectLogCount>=10&&!hasStarterSignal;
+  var scan={selected:list.length,rootName:rootName,notes:0,recent:0,skipped:0,oversized:0,folders:0,jsonlFiles:0,tooMany:false,candidatesIncomplete:false,individualFiles:!strictFolder,looksLikeClaudeProjects:looksLikeClaudeProjects,looksLikeUnsafeClaudeRoot:!!strictFolder&&rootKey===".claude",claudeContext:0,regularJson:0,archives:0,otherData:0,candidates:{cc:[],codex:[],csv:[],conversation:[]},structures:structures};
   if(list.length>VAULT_LIMITS.maxEntries){scan.tooMany=true;return scan}
   var current=Number(now)||Date.now(),candidateBytes=0;
   list.forEach(function(file){
     var path=vaultRelativePath(file),kind=vaultCandidateKind(file,!!strictFolder),parts=path.split("/").filter(Boolean),base=(parts.pop()||"").toLowerCase();
+    if(/\.jsonl$/i.test(base))scan.jsonlFiles++;
+    if(scan.looksLikeClaudeProjects&&isNestedClaudeProjectLog(file)&&Number(file.size||0)<=VAULT_LIMITS.maxCandidateBytes)kind="cc";
     if(kind==="skip"){scan.skipped++;return}
-    if(kind==="oversized"){scan.oversized++;scan.skipped++;return}
+    if(kind==="oversized"){scan.oversized++;scan.skipped++;if(scan.looksLikeClaudeProjects&&isNestedClaudeProjectLog(file))scan.candidatesIncomplete=true;return}
     if(kind==="claude-context"){scan.claudeContext++;scan.skipped++;return}
     if(kind==="regular-json"){scan.regularJson++;scan.skipped++;return}
     if(kind==="archive"){scan.archives++;scan.skipped++;return}
@@ -1828,8 +1911,8 @@ function scanVaultFiles(files,strictFolder,now){
       return;
     }
     if(kind==="cc"||kind==="codex"||kind==="csv"||kind==="conversation"){
-      if(scan.candidates.cc.length+scan.candidates.codex.length+scan.candidates.csv.length+scan.candidates.conversation.length>=VAULT_LIMITS.maxCandidates){scan.skipped++;return}
-      if(candidateBytes+Number(file.size||0)>VAULT_LIMITS.maxCandidateTotalBytes){scan.oversized++;scan.skipped++;return}
+      if(scan.candidates.cc.length+scan.candidates.codex.length+scan.candidates.csv.length+scan.candidates.conversation.length>=VAULT_LIMITS.maxCandidates){scan.candidatesIncomplete=true;scan.skipped++;return}
+      if(candidateBytes+Number(file.size||0)>VAULT_LIMITS.maxCandidateTotalBytes){scan.candidatesIncomplete=true;scan.oversized++;scan.skipped++;return}
       candidateBytes+=Number(file.size||0);scan.candidates[kind].push(file);return;
     }
   });
@@ -1868,9 +1951,9 @@ function build7CsPlan(scan){
   ].join("\n");
 }
 function showVaultError(message){var el=document.getElementById("vaultError");el.textContent=message;el.style.display="block";document.getElementById("vaultReport").hidden=true}
-function addVaultSourceButton(container,label,targetMode,files){
-  var button=document.createElement("button");button.type="button";button.className="btn";button.textContent=label;button.addEventListener("click",function(){
-    setMode(targetMode);selectRoute("a");document.getElementById("fileStatus").textContent="Opening "+files.length+" supported file"+(files.length===1?"":"s")+" on this device.";handle(files);
+function addVaultSourceButton(container,label,targetMode,files,primary){
+  var button=document.createElement("button");button.type="button";button.className="btn"+(primary?" p":"");button.textContent=label;button.addEventListener("click",function(){
+    setMode(targetMode);selectRoute("a");document.getElementById("fileStatus").textContent="Opening "+files.length+" supported file"+(files.length===1?"":"s")+" on this device.";handle(files,"vault");
   });container.appendChild(button);
 }
 function renderVaultScan(scan){
@@ -1881,18 +1964,40 @@ function renderVaultScan(scan){
   document.getElementById("vaultFolders").textContent=fmtN(scan.folders);
   document.getElementById("vaultRecent").textContent=fmtN(scan.recent);
   document.getElementById("vaultCandidates").textContent=fmtN(vaultCandidateCount(scan));
-  var status=scan.individualFiles?"This was not a whole-vault scan. You selected "+fmtN(scan.selected)+" individual file"+(scan.selected===1?"":"s")+", so the note and folder totals below do not describe your vault. ":"Vault structure checked on this device. ";
+  var status=scan.individualFiles?"This was not a whole-vault scan. You selected "+fmtN(scan.selected)+" individual file"+(scan.selected===1?"":"s")+", so the note and folder totals below do not describe your vault. ":(scan.looksLikeClaudeProjects?"This is your Claude Code history folder, not your Obsidian vault. ":(scan.looksLikeUnsafeClaudeRoot?"This is the whole .claude settings folder, not your Obsidian vault. ":"Vault structure checked on this device. "));
   status+="No Markdown note contents were read. "+fmtN(scan.skipped)+" hidden, attachment or unsupported file"+(scan.skipped===1?" was":"s were")+" skipped.";
   if(scan.claudeContext)status+=" "+fmtN(scan.claudeContext)+" Claude project, memory or user file"+(scan.claudeContext===1?" was":"s were")+" recognized as private context, not usage history, and not opened.";
   if(scan.regularJson)status+=" "+fmtN(scan.regularJson)+" regular JSON file"+(scan.regularJson===1?" did":"s did")+" not have a supported history filename and "+(scan.regularJson===1?"was":"were")+" not opened.";
   if(scan.archives)status+=" ZIP and other archive files are not opened. Extract the archive on your device first.";
   if(scan.otherData)status+=" "+fmtN(scan.otherData)+" JSONL file"+(scan.otherData===1?" did":"s did")+" not come from an approved Claude Code or Codex location and "+(scan.otherData===1?"was":"were")+" not opened.";
   document.getElementById("vaultStatus").textContent=status;
+  var correction=document.getElementById("vaultCorrection"),correctionHeading=document.getElementById("vaultCorrectionHeading"),correctionCopy=document.getElementById("vaultCorrectionCopy"),analyzeClaude=document.getElementById("vaultAnalyzeClaudeFolder"),safeClaudePicker=document.getElementById("vaultUseClaudeFolderPicker"),starterCount=Object.keys(scan.structures).filter(function(key){return scan.structures[key]}).length;
+  correction.hidden=true;analyzeClaude.hidden=true;safeClaudePicker.hidden=true;document.getElementById("vaultChecklistBox").hidden=false;
+  if(scan.looksLikeClaudeProjects){
+    correction.hidden=false;document.getElementById("vaultChecklistBox").hidden=true;
+    if(scan.candidatesIncomplete){
+      safeClaudePicker.hidden=false;
+      correctionHeading.textContent="TOP found Claude Code history, but this shortcut would be incomplete";
+      correctionCopy.textContent="Some supported files exceeded the vault-check safety limits, so TOP will not produce a partial report. Choose the Claude Code folder through the dedicated route instead. If you wanted the 7C's vault check, choose the 7Cs-Vault folder itself.";
+    }else{
+      analyzeClaude.hidden=false;
+      correctionHeading.textContent="You chose your Claude Code history folder";
+      correctionCopy.textContent="Good news: TOP found the usage logs. Click Analyze This Claude Code Folder below. If you wanted the 7C's vault check instead, choose the 7Cs-Vault folder itself.";
+    }
+  }else if(scan.looksLikeUnsafeClaudeRoot){
+    correction.hidden=false;document.getElementById("vaultChecklistBox").hidden=true;
+    correctionHeading.textContent="Choose a smaller, safer folder";
+    correctionCopy.textContent="Do not choose the whole .claude folder because it can include settings and private history. For usage, choose .claude\\projects. For the vault check, choose the 7Cs-Vault folder itself.";
+  }else if(!scan.individualFiles&&starterCount===0){
+    correction.hidden=false;
+    correctionHeading.textContent="TOP could not confirm this is your 7C's vault";
+    correctionCopy.textContent="If you meant to check your existing 7C's vault, choose the vault root itself, the folder that directly contains AGENTS.md, VAULT-INDEX.md and Active Priorities.md. If this is a different vault, the checklist below is still a valid setup suggestion.";
+  }
   var buttons=document.getElementById("vaultSourceButtons");buttons.textContent="";
   var candidateCount=vaultCandidateCount(scan),historyHeading=document.getElementById("vaultHistoryHeading"),historyCopy=document.getElementById("vaultHistoryCopy");
-  historyHeading.textContent=candidateCount?"Files ready for a private format check":"No supported AI history files found";
-  historyCopy.textContent=candidateCount?"TOP recognized the file names or types below. Their contents are checked only after you choose one. Markdown notes are never sent into a usage parser.":"That is normal. Obsidian notes and ordinary JSON are context, not token ledgers. Claude Code usage is normally in the separate .claude\\projects folder, even when Claude Code worked inside this vault.";
-  if(scan.candidates.cc.length) addVaultSourceButton(buttons,"Check "+fmtN(scan.candidates.cc.length)+" Claude Code file"+(scan.candidates.cc.length===1?"":"s"),"cc",scan.candidates.cc);
+  historyHeading.textContent=scan.looksLikeClaudeProjects?(scan.candidatesIncomplete?"Claude Code history found, report not started":"Claude Code usage files found"):(candidateCount?"Files ready for a private format check":"No supported AI history files found");
+  historyCopy.textContent=scan.looksLikeClaudeProjects?(scan.candidatesIncomplete?"TOP will not open a truncated subset. Use the dedicated Claude Code folder route above.":"These are coding-session usage files, not Obsidian notes. TOP will not open them until you choose Analyze This Claude Code Folder."):(candidateCount?"TOP recognized the file names or types below. Their contents are checked only after you choose one. Markdown notes are never sent into a usage parser.":"That is normal. Obsidian notes and ordinary JSON are context, not token ledgers. Claude Code usage is normally in the separate .claude\\projects folder, even when Claude Code worked inside this vault.");
+  if(scan.candidates.cc.length&&!scan.looksLikeClaudeProjects) addVaultSourceButton(buttons,"Check "+fmtN(scan.candidates.cc.length)+" Claude Code file"+(scan.candidates.cc.length===1?"":"s"),"cc",scan.candidates.cc);
   if(scan.candidates.codex.length){
     var codexAggregates=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()==="ai-events.jsonl"}),codexRollouts=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()!=="ai-events.jsonl"});
     if(codexRollouts.length) addVaultSourceButton(buttons,"Check "+fmtN(codexRollouts.length)+" Codex session file"+(codexRollouts.length===1?"":"s"),"codex",codexRollouts);
@@ -1926,6 +2031,12 @@ vaultDrop.addEventListener("keydown",function(event){if(event.key==="Enter"||eve
 ["dragleave","drop"].forEach(function(name){vaultDrop.addEventListener(name,function(event){event.preventDefault();vaultDrop.classList.remove("over")})});
 vaultDrop.addEventListener("drop",function(event){if(event.dataTransfer&&event.dataTransfer.files) startVaultScan(event.dataTransfer.files,false)});
 document.getElementById("download7CsPlan").addEventListener("click",function(){if(VAULT_SCAN) dlFile("7Cs-local-vault-setup-plan.md",build7CsPlan(VAULT_SCAN),"text/markdown")});
+document.getElementById("vaultChooseAgain").addEventListener("click",function(){vaultFolder.click()});
+document.getElementById("vaultUseClaudeFolderPicker").addEventListener("click",function(){chooseHistoryFromVault("cc","historyFolder")});
+document.getElementById("vaultAnalyzeClaudeFolder").addEventListener("click",function(){
+  if(!VAULT_SCAN||!VAULT_SCAN.looksLikeClaudeProjects||VAULT_SCAN.candidatesIncomplete||!VAULT_SCAN.candidates.cc.length)return;
+  setMode("cc");selectRoute("a");document.getElementById("fileStatus").textContent="Opening "+VAULT_SCAN.candidates.cc.length+" supported Claude Code files on this device.";handle(VAULT_SCAN.candidates.cc,"vault-projects");
+});
 function returnToSources(){document.getElementById("obsidianPanel").hidden=true;document.getElementById("providerStep").hidden=false;document.getElementById("providerStep").scrollIntoView({behavior:"smooth",block:"start"});document.getElementById("providerHeading").focus({preventScroll:true})}
 document.getElementById("changeSourceFromVault").addEventListener("click",returnToSources);
 document.getElementById("useHistoryInstead").addEventListener("click",returnToSources);
@@ -1982,9 +2093,12 @@ function openDetectedConversationFiles(files){
     run(texts,checked.files.length-failed);
   });
 }
-function historyFilesForMode(files,targetMode){
-  var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,total=0,codexRollouts=0,codexAggregates=0,regularJson=0,projectJson=0,contextJson=0;
+function historyFilesForMode(files,targetMode,origin){
+  var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,oversized=0,total=0,codexRollouts=0,codexAggregates=0,regularJson=0,projectJson=0,contextJson=0,folderRoots=Object.create(null),unsafeClaudeHistory=false;
+  list.forEach(function(file){var raw=String(file.webkitRelativePath||"").replace(/\\/g,"/");if(raw.indexOf("/")>=0){var root=raw.split("/").filter(Boolean)[0];if(root)folderRoots[root.toLowerCase()]=1}});
   var unsafeCodexRoot=targetMode==="codex"&&list.some(function(file){return /^(?:\.codex)(?:\/|\\)/i.test(String(file.webkitRelativePath||""))});
+  var claudeFolderRoots=Object.keys(folderRoots),unsafeClaudeRoot=targetMode==="cc"&&origin==="folder"&&claudeFolderRoots.indexOf(".claude")>=0;
+  var invalidClaudeFolder=targetMode==="cc"&&origin==="folder"&&!unsafeClaudeRoot&&(claudeFolderRoots.length!==1||claudeFolderRoots[0]!=="projects");
   var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:(targetMode==="csv"?/\.csv$/i:/^conversations?(?:[-_]\d+)?\.json$/i));
   var fileLimit=targetMode==="codex"?HISTORY_LIMITS.maxCodexFileBytes:((targetMode==="chat"||targetMode==="openai")?conversationLimitBytes():HISTORY_LIMITS.maxFileBytes);
   list.forEach(function(file){
@@ -1992,13 +2106,15 @@ function historyFilesForMode(files,targetMode){
     if(/\.md$/i.test(name)){markdown++;return}
     if(/\.(?:zip|7z|rar|tar|gz)$/i.test(name)){archives++;return}
     if(/\.json$/i.test(name)&&!conversationFileName(name)){regularJson++;if(/^projects?(?:[-_]\d+)?\.json$/i.test(name))projectJson++;if(/^(?:projects?|memories?|users?)(?:[-_]\d+)?\.json$/i.test(name))contextJson++}
+    if(targetMode==="cc"&&/^history\.jsonl$/i.test(name)){unsafeClaudeHistory=true;unsupported++;return}
     if(!ext.test(name)){unsupported++;return}
-    if(Number(file.size||0)>fileLimit){unsupported++;return}
+    if(Number(file.size||0)>fileLimit){oversized++;unsupported++;return}
     if(targetMode==="codex"){if(/^ai-events\.jsonl$/i.test(name))codexAggregates++;else codexRollouts++}
     total+=Number(file.size||0);allowed.push(file);
   });
   var mixedCodexSources=targetMode==="codex"&&codexRollouts>0&&codexAggregates>0,multipleCodexAggregates=targetMode==="codex"&&codexAggregates>1;
-  return {files:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,totalBytes:unsafeCodexRoot||mixedCodexSources||multipleCodexAggregates?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates,regularJson:regularJson,projectJson:projectJson,contextJson:contextJson};
+  var rejectedRoot=unsafeCodexRoot||unsafeClaudeRoot||invalidClaudeFolder||unsafeClaudeHistory||mixedCodexSources||multipleCodexAggregates;
+  return {files:rejectedRoot?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,oversized:oversized,totalBytes:rejectedRoot?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,unsafeClaudeRoot:unsafeClaudeRoot,invalidClaudeFolder:invalidClaudeFolder,unsafeClaudeHistory:unsafeClaudeHistory,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates,regularJson:regularJson,projectJson:projectJson,contextJson:contextJson};
 }
 function finishParsedResult(res,openedCount){
   var n=Object.keys(res.by).length;
@@ -2060,20 +2176,25 @@ async function readCodexFiles(files){
   for(var index=0;index<files.length;index++){if(await streamCodexFile(files[index],index,accumulator))opened++}
   try{finishParsedResult(accumulator.result(),opened)}catch(error){showErr("TOP could not read those Codex session files. Nothing was sent.")}
 }
-function handle(files){
+function handle(files,origin){
   document.getElementById("err").style.display="none";
   if(!files||!files.length){showErr("No files were chosen. Nothing was read or sent.");return}
   AUTO_DETECTED_NOTE="";
   var inferred=inferModeFromFileNames(files);
   if(inferred==="conversation"){openDetectedConversationFiles(files);return}
   if(inferred&&inferred!==mode)switchToDetectedMode(inferred);
-  var checked=historyFilesForMode(files,mode);
+  var checked=historyFilesForMode(files,mode,origin);
   if(!checked.files.length){
     if(checked.unsafeCodexRoot) showErr("Do not choose the whole .codex folder. It can contain account and prompt history files. Choose only .codex\\sessions, .codex\\archived_sessions, explicit rollout-*.jsonl files, or TOP's ai-events.jsonl.");
+    else if(checked.unsafeClaudeRoot) showErr("Do not choose the whole .claude folder. It contains prompt history and settings that do not belong in a usage report. Choose only C:\\Users\\YOU\\.claude\\projects.");
+    else if(checked.invalidClaudeFolder) showErr("Choose the whole .claude\\projects folder, not a parent folder or one individual project folder. Copy %USERPROFILE%\\.claude\\projects into the Windows picker address bar.");
+    else if(checked.unsafeClaudeHistory) showErr("history.jsonl contains prompt history, not Claude Code token usage. TOP did not open it. Choose the .claude\\projects folder or supported session JSONL files instead.");
     else if(checked.mixedCodexSources) showErr("Choose either raw rollout-*.jsonl files or ai-events.jsonl aggregate files, not both in one report. The aggregate may already contain the raw usage, so mixing them could count the same tokens twice.");
     else if(checked.multipleCodexAggregates) showErr("Choose one ai-events.jsonl aggregate at a time. Two aggregate files may cover some of the same sessions, and TOP cannot safely detect that overlap without retaining private session IDs.");
     else if(checked.markdown) showErr("That looks like an Obsidian note, not an AI history export. No data was uploaded or sent. Choose Obsidian + 7C's to check the vault, or use a downloaded Claude, ChatGPT or Codex history for a usage report.");
     else if(checked.archives) showErr("TOP cannot open a whole ZIP yet. On Windows, right-click the ZIP and choose Extract All, open the extracted folder, then choose conversations.json, a supported JSONL file, or a Console CSV.");
+    else if(checked.oversized&&mode==="cc") showErr("That combined raw-history file is too large to open safely as one file. Use Choose The Whole Claude Code Folder instead. TOP reads those session files one at a time and keeps everything on this device.");
+    else if(checked.oversized) showErr("That file is too large to open safely in this browser tab. Choose a smaller supported export. Nothing was uploaded or sent.");
     else if(mode==="codex") showErr("None of those files are supported Codex session files. Choose rollout-*.jsonl from .codex\\sessions or .codex\\archived_sessions, or choose TOP's ai-events.jsonl. Do not choose history.jsonl.");
     else if(checked.contextJson) showErr("That is Claude project, memory or user context, not usage history. TOP will not turn it into token or cost totals. For Claude Chat choose conversations.json. For Claude Code choose the .jsonl files under C:\\Users\\YOU\\.claude\\projects\\, with the L at the end.");
     else if(checked.regularJson) showErr("Those are regular .json files, including individual UUID-named files, not Claude Code session logs or account conversation exports. Choose conversations.json for Claude Chat or ChatGPT, or choose Claude Code .jsonl session files, with the L at the end.");
@@ -2102,13 +2223,13 @@ function run(texts,openedCount){
   }catch(err){showErr("TOP could not read that file: "+err.message+". Nothing was uploaded or sent. Try a different file or AI source.");}
 }
 var drop=document.getElementById("drop"),fileInput=document.getElementById("file"),historyFolderInput=document.getElementById("historyFolder"),historyFolderChoice=document.getElementById("historyFolderChoice");
-fileInput.addEventListener("change",function(){handle(takeChosenFiles(fileInput))});
-historyFolderInput.addEventListener("change",function(){handle(takeChosenFiles(historyFolderInput))});
+fileInput.addEventListener("change",function(){handle(takeChosenFiles(fileInput),"files")});
+historyFolderInput.addEventListener("change",function(){handle(takeChosenFiles(historyFolderInput),"folder")});
 historyFolderChoice.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();historyFolderInput.click()}});
 drop.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fileInput.click();}});
 ["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("over")})});
 ["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("over")})});
-drop.addEventListener("drop",function(e){e.preventDefault();drop.classList.remove("over"); if(e.dataTransfer&&e.dataTransfer.files) handle(e.dataTransfer.files);});
+drop.addEventListener("drop",function(e){e.preventDefault();drop.classList.remove("over"); if(e.dataTransfer&&e.dataTransfer.files) handle(e.dataTransfer.files,"files");});
 document.getElementById("copybtn").addEventListener("click",function(){
   var t=document.getElementById("summary"); t.select();
   navigator.clipboard? navigator.clipboard.writeText(t.value).then(function(){this.textContent="Copied ✓"}.bind(this)) : document.execCommand("copy");
@@ -2217,7 +2338,7 @@ document.getElementById("surveyskip").addEventListener("click",function(){finish
 function buildSafePackage(){
   var body=lastSummary;
   if(!body) return "";
-  return "TOP Usage Summary\nCreated: "+new Date().toISOString()+"\nOriginal history file included: No\nSent automatically: No\nSubmitted to Adam and Sam: No\nOptional answers included: "+(includeSurveyContext?"Yes":"No")+"\n\n"+body+(includeSurveyContext?surveyBlock():"");
+  return "TOP Usage Summary\nCreated: "+new Date().toISOString()+"\nOriginal history file included: No\nSent automatically: No\nDelivery status: Prepared locally, not sent by TOP\nOptional answers included: "+(includeSurveyContext?"Yes":"No")+"\n\n"+body+(includeSurveyContext?surveyBlock():"");
 }
 document.getElementById("safeDownload").addEventListener("click",function(){
   sharePackage=sharePackage||buildSafePackage();
@@ -2225,6 +2346,36 @@ document.getElementById("safeDownload").addEventListener("click",function(){
   dlFile("top-usage-summary-my-copy.txt",sharePackage,"text/plain");
   document.getElementById("shareStatus").textContent="Your copy was downloaded to this device. Nothing was submitted.";
   setJourney(1,"Moonrise: your own copy is downloaded. Nothing was submitted.");
+});
+document.getElementById("copySafePackage").addEventListener("click",function(){
+  sharePackage=sharePackage||buildSafePackage();if(!sharePackage)return;
+  document.getElementById("shareStatus").textContent="Copying the exact summary. Nothing is being submitted.";
+  copyPlainText(sharePackage,this,"Exact Summary Copied").then(function(ok){document.getElementById("shareStatus").textContent=ok?"The exact summary was copied. Nothing was submitted.":"The summary was not copied. Use Download My Own Copy instead. Nothing was submitted."});
+});
+var MAILTO_SAFE_LIMIT=7500;
+function parseRecipientList(value){
+  var items=String(value||"").split(/[;,]/).map(function(item){return item.trim()}).filter(Boolean);
+  if(!items.length||items.length>3)return [];
+  return items.every(function(item){return /^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i.test(item)})?items:[];
+}
+function buildMailDraftUrl(recipients,packageText){
+  var subject="TOP usage summary, prepared locally";
+  return "mailto:"+recipients.map(encodeURIComponent).join(",")+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(packageText);
+}
+function updateEmailDraftState(resetConsent){
+  var consent=document.getElementById("shareConsent"),recipients=parseRecipientList(document.getElementById("shareRecipients").value);
+  if(resetConsent)consent.checked=false;
+  document.getElementById("openEmailDraft").disabled=!(consent.checked&&recipients.length);
+}
+document.getElementById("shareRecipients").addEventListener("input",function(){updateEmailDraftState(true)});
+document.getElementById("shareConsent").addEventListener("change",function(){updateEmailDraftState(false)});
+document.getElementById("openEmailDraft").addEventListener("click",function(){
+  var recipients=parseRecipientList(document.getElementById("shareRecipients").value);sharePackage=sharePackage||buildSafePackage();
+  if(!recipients.length||!document.getElementById("shareConsent").checked||!sharePackage){document.getElementById("shareStatus").textContent="Not opened. Enter valid email addresses and confirm the review box.";return}
+  var url=buildMailDraftUrl(recipients,sharePackage);
+  if(url.length>MAILTO_SAFE_LIMIT){document.getElementById("shareStatus").textContent="This report is too long for a reliable email link. Download the copy and attach it instead. Nothing was submitted.";return}
+  window.location.href=url;
+  document.getElementById("shareStatus").textContent="TOP asked your device to open an email draft. TOP cannot tell whether it opened or was delivered. If no draft appeared, download the copy and attach it instead.";
 });
 // ---------- Route B: content-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;
@@ -2286,7 +2437,7 @@ function renderB(res){
   var cards=[[costAvailable?"Estimated pay-as-you-go cost":"Dollar cost",costAvailable?("~"+fmt$(totCost)):"Not available",costAvailable?"a":""],["Total AI usage",fmtN(totTok)+" tokens","i"],["AI replies with usage data",fmtN(res.turns),""],[res.days?"Days used":"Work sessions",fmtN(res.days||res.sessions),"g"]];
   document.getElementById("cardsb").innerHTML=cards.map(function(c){return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div></div>'}).join("");
   var th='<thead><tr><th>AI version</th><th>Text sent to the AI</th><th>Text returned by the AI</th><th>Previously saved text: added / reused</th><th>AI replies</th><th>Estimated cost</th></tr></thead>';
-  var tb=rows.map(function(r){return '<tr><td>'+esc(r.model)+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+(r.cost===null?"Not priced":("~"+fmt$(r.cost)))+'</td></tr>'}).join("");
+  var tb=rows.map(function(r){return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+(r.cost===null?"Not priced":("~"+fmt$(r.cost)))+'</td></tr>'}).join("");
   var tf='<tfoot><tr><td>Total</td><td class="n">'+fmtN(totInp)+'</td><td class="n">'+fmtN(totOut)+'</td><td class="n">'+fmtN(totCw)+' / '+fmtN(totCr)+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+(costAvailable?("~"+fmt$(totCost)):"Not available")+'</td></tr></tfoot>';
   document.getElementById("modeltableb").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
   var pm=res.perm||{}, keys=Object.keys(pm).sort(function(a,b){return pm[b]-pm[a]});
@@ -2296,7 +2447,7 @@ function renderB(res){
   bLines.push("","Total AI usage: "+fmtInt(totTok)+" tokens.","Tokens are small pieces of text that AI companies use to measure usage.","Text sent to the AI: "+fmtInt(totInp)+" tokens.","Text returned by the AI: "+fmtInt(totOut)+" tokens.","Previously saved text: "+fmtInt(totCw)+" tokens added, "+fmtInt(totCr)+" tokens reused.","AI replies with usage data: "+fmtInt(res.turns)+".","Work sessions: "+fmtInt(res.sessions)+".");
   if(res.days) bLines.push("Days used: "+fmtInt(res.days)+".");
   bLines.push("","Usage by AI version:");
-  rows.forEach(function(r){bLines.push("  "+r.model+": "+fmtInt(r.e.inp+r.e.out+r.e.cw+r.e.cr)+" tokens, "+fmtInt(r.e.turns)+" AI replies, "+(r.cost===null?"cost not available":"estimated cost about "+fmt$(r.cost))+".");});
+  rows.forEach(function(r){bLines.push("  "+safePublicModelLabel(r.model)+": "+fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused, "+fmtInt(r.e.turns)+" AI replies, "+(r.cost===null?"cost not available":"estimated cost about "+fmt$(r.cost))+".");});
   bLines.push("","Privacy note: This summary contains no conversation text, AI reply text, code, file contents or original internal ID numbers.");
   lastSummary=bLines.join("\n");
   ROUTEB={rows:rows,res:res,totInp:totInp,totOut:totOut,totCw:totCw,totCr:totCr,totCost:totCost,totTok:totTok,costAvailable:costAvailable};
