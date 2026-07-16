@@ -19,6 +19,8 @@ assert.match(html, /Choice 1 of 2/);
 assert.match(html, /Choice 2 of 2/);
 assert.match(html, /id="pilotBackToSource"/);
 assert.match(html, /Complete this analysis on the computer that holds your Claude Code or Codex history/);
+assert.match(html, /Using Claude Chat, ChatGPT, Claude Console, or Obsidian\?/);
+assert.match(html, /href="\/analyze\/">Open the full analyzer<\/a>/);
 
 // The pinned collector prompt is inspectable and locks the exact released file.
 assert.match(html, /https:\/\/adamhartley7\.github\.io\/analyze\/collector\/top-collector\.mjs/);
