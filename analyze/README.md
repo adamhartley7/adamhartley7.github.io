@@ -11,6 +11,7 @@ node analyze/test-privacy.cjs
 node analyze/test-openai-parser.cjs
 node analyze/test-post-report-flow.cjs
 node analyze/test-email-draft.cjs
+node analyze/test-research-safe-export.cjs
 node analyze/test-codex-parser.cjs
 node analyze/test-obsidian-vault.cjs
 ```
@@ -20,5 +21,7 @@ The parser checks cover duplicate Claude Code usage rows, stable call identities
 Every successful usage report is followed by the optional questionnaire and a personal summary download. The Claude Code and Codex routes put the whole-folder picker before the individual-file fallback. Claude Code accepts the exact `.claude\projects` root and rejects the parent `.claude` folder and `history.jsonl`, which can contain prompt history. The Obsidian route detects when someone selected `.claude\projects` instead of a vault and offers the correct local analysis path without opening the files automatically. If the vault-check safety limits would truncate that recovery path, it refuses to make a partial report and redirects to the dedicated folder route. Codex reports also offer explicit aggregate `ai-events.jsonl` and Obsidian Markdown downloads. These files do not connect a vault to AI memory automatically, and raw rollout transcripts should remain outside synced vaults.
 
 The final step can download, copy, or open the exact reviewed summary in a user-addressed email draft. It never sends automatically and never claims delivery. Recipient addresses remain browser-local and are not stored in source. Reliable direct submission remains disabled until consent, retention, deletion, legal responsibility, server-side recipients, and a safe receiving service are approved.
+
+The final step also offers a separate complete research-safe JSON download. It contains collector and parser versions, privacy-safe source, measurement and scope labels, parser coverage where the current parser exposes it, token and activity aggregates, cost and exact per-field applied-rate provenance, strictly sanitized AI-version labels, safe permission-mode counts when available, and enum-only questionnaire selections. Date-like AI-version suffixes are removed before a constrained allowlist is applied. Its value-model scenario is included only for an eligible report, is labelled `illustrative_unvalidated`, includes the algorithm version and assumptions, and must not be treated as measured forecast accuracy. Ineligible reports retain a `not_available` status object without scenario outputs. The file uses a date only and excludes prompts, replies, code, tool output, paths, filenames, project and account identifiers, email addresses, exact timestamps and original IDs. The tester must inspect it and deliberately attach it; TOP does not transmit it.
 
 Removing a client-side access value from this repository does not revoke it at the provider. Provider-side rotation or revocation remains a separate human-approved account action.
