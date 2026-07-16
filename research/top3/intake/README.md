@@ -361,5 +361,3 @@ freezes the analysis. Captured output is in `design_power_synthetic.txt`.
   as the intake abandonment kill) and
   [`../personalisation/README.md`](../personalisation/README.md) (the single-user data
   limitation shared by all TOP-3 work).
-</content>
-</invoke>
