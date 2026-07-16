@@ -251,6 +251,11 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 @media(max-width:640px){.vcard .vcontrols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 10px;width:100%}.vcard .vcontrols label{grid-column:1/-1;min-width:0}.vcard .gval{min-width:72px}.vcard .plot{overflow:hidden}.vcard .plot svg{display:block;width:100%;max-width:100%;height:auto}}
 @media(max-width:430px){.tabs,.claude-kinds,.vault-stats,.vault-truth{grid-template-columns:1fr}.tab{min-height:82px}.vault-offer-actions .btn,.vault-recovery-actions .btn{width:100%;justify-content:center}.vault-path-row{align-items:stretch;flex-direction:column}.vault-path-row .btn{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.journey-world,.journey-sun,.journey-moon,.journey-track span{transition:none!important}}
+/* Two-question pilot journey. The normal analyzer remains available without ?pilot=1. */
+.pilot-flow{max-width:820px;margin:0 auto}.pilot-bubble{max-width:690px;margin:0 0 18px;padding:18px 20px;border-radius:8px 24px 24px 24px;background:#fff;box-shadow:0 12px 28px rgba(22,65,88,.1);font-size:16px;line-height:1.55}.pilot-bubble strong{display:block;font-size:20px;margin-bottom:5px}.pilot-question{margin:24px 0}.pilot-question h2{margin-bottom:8px}.pilot-question>p{color:var(--muted);margin:0 0 14px}.pilot-progress{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#087f87}.pilot-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pilot-choice{min-height:118px;padding:19px;border:2px solid rgba(71,92,112,.18);border-radius:20px;background:rgba(255,255,255,.9);color:var(--text);text-align:left;cursor:pointer;box-shadow:0 12px 26px rgba(22,65,88,.08)}.pilot-choice:hover,.pilot-choice:focus-visible{border-color:#7565dc;transform:translateY(-2px)}.pilot-choice.on{border-color:#087f87;background:#effffd}.pilot-choice strong{display:block;font-size:19px;margin-bottom:6px}.pilot-choice span{display:block;color:var(--muted);line-height:1.45}.pilot-method-panel{margin-top:18px;padding:20px;border:1px solid #c8d9df;border-radius:20px;background:rgba(255,255,255,.82)}.pilot-method-panel h3{margin:0 0 8px}.pilot-method-panel p{color:var(--muted)}.pilot-prompt{width:100%;height:116px;min-height:116px;margin:12px 0;padding:14px;border:1px solid #c6d4dc;border-radius:14px;background:#f8fbfc;color:#213544;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}.pilot-file{display:block;margin-top:12px;padding:20px;border:2px dashed #7a9cad;border-radius:18px;background:#f7fcff;text-align:center;cursor:pointer}.pilot-file strong{display:block;font-size:18px}.pilot-file span{display:block;color:var(--muted);margin-top:4px}.pilot-file input{position:absolute;opacity:0;pointer-events:none}.pilot-path{display:block;padding:12px 14px;margin:12px 0;border-radius:12px;background:#edf5f8;overflow-wrap:anywhere}.pilot-status{display:none;margin:16px 0;padding:14px 16px;border-radius:14px}.pilot-status.show{display:block}.pilot-status.ok{background:#ebfff7;border:1px solid #77c9aa;color:#165d49}.pilot-status.error{background:#fff0f0;border:1px solid #df9696;color:#862e2e}.pilot-privacy{margin-top:14px;padding:13px 15px;border-left:4px solid #087f87;background:#effbf9;color:#31565d}.pilot-mobile-warning{display:none}.pilot-back{margin:0 0 8px}.pilot-mode #resonanceStep,.pilot-mode #providerStep,.pilot-mode #routechooser,.pilot-mode #obsidianPanel,.pilot-mode #routeb{display:none!important}.pilot-mode #routea>h2,.pilot-mode #routea>#routebanner,.pilot-mode #routea>#hint,.pilot-mode #routea>#historyFolderChoice,.pilot-mode #routea>#historyPathHelper,.pilot-mode #routea>#fileFallback,.pilot-mode #routea>#fileStatus,.pilot-mode #routea>#exportsteps,.pilot-mode #routea>#modenote,.pilot-mode #routea>#err{display:none!important}.pilot-mode #routea{padding-top:0}.pilot-mode #shareWithTopHeading{font-size:clamp(25px,4vw,38px)}
+.pilot-mode header{padding:20px 0 12px}.pilot-mode header .badge{margin-bottom:9px;padding:6px 13px}.pilot-mode header h1{max-width:26ch;margin-bottom:8px;font-size:clamp(28px,3.8vw,39px);line-height:1.08}.pilot-mode header .sub{max-width:66ch;padding:9px 14px;font-size:15px}.pilot-mode .flow-shell{margin-top:0;padding:18px 24px}.pilot-mode .journey-rail{position:static;margin-bottom:12px;padding:10px 14px}.pilot-mode .pilot-bubble{display:none}.pilot-mode .pilot-question{margin:10px 0 16px}.pilot-mode .pilot-choice{min-height:96px;padding:16px 18px}
+.pilot-mode #pilotMethodStep.method-selected>.pilot-progress,.pilot-mode #pilotMethodStep.method-selected>h2,.pilot-mode #pilotMethodStep.method-selected>p,.pilot-mode #pilotMethodStep.method-selected>#pilotMethodChoices{display:none}
+@media(max-width:760px){.pilot-choices{grid-template-columns:1fr}.pilot-choice{min-height:96px}.pilot-method-panel{padding:16px}.pilot-bubble{font-size:15px}.pilot-mode header{padding:13px 0 9px}.pilot-mode header h1{font-size:28px}.pilot-mode header .sub{font-size:14px}.pilot-mode .flow-shell{padding:14px}.pilot-mobile-warning{display:block;margin:0 0 16px;padding:13px 15px;border:1px solid #e8bd6f;border-radius:14px;background:#fff8e6;color:#704e16}}
 </style>
 </head>
 <body>
@@ -276,6 +281,45 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
       <div class="journey-meta"><span id="journeyLabel">Sunrise: tell us what you want to improve</span><strong id="journeyPercent">8%</strong></div>
       <div class="journey-track" aria-hidden="true"><span id="journeyFill"></span></div>
     </div>
+
+    <section class="pilot-flow" id="pilotFlow" hidden aria-labelledby="pilotHeading">
+      <div class="pilot-bubble"><strong id="pilotHeading">Let us get your usage report in two choices.</strong>Your raw AI history stays on this computer. Nothing is uploaded while TOP prepares your report.</div>
+      <div class="pilot-mobile-warning">Complete this analysis on the computer that holds your Claude Code or Codex history. A phone does not contain those local usage files.</div>
+      <div class="pilot-question" id="pilotSourceStep">
+        <div class="pilot-progress">Choice 1 of 2</div>
+        <h2><span class="flow-kicker">1</span>Which coding assistant do you use?</h2>
+        <p>Choose the app whose usage you want to understand.</p>
+        <div class="pilot-choices" id="pilotSourceChoices">
+          <button type="button" class="pilot-choice" data-pilot-source="cc" aria-pressed="false"><strong>Claude Code</strong><span>Usage saved by Claude while it works in coding projects.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-source="codex" aria-pressed="false"><strong>Codex</strong><span>Usage counters saved in your local Codex sessions.</span></button>
+        </div>
+      </div>
+      <div class="pilot-question" id="pilotMethodStep" hidden>
+        <button type="button" class="step-back pilot-back" id="pilotBackToSource">← Back</button>
+        <div class="pilot-progress">Choice 2 of 2</div>
+        <h2><span class="flow-kicker">2</span>How would you like to prepare it?</h2>
+        <p>The recommended option makes one small file containing usage numbers only. You can inspect it before TOP reads it.</p>
+        <div class="pilot-choices" id="pilotMethodChoices">
+          <button type="button" class="pilot-choice" data-pilot-method="agent" aria-pressed="false"><strong>Let My AI Prepare One Safe File</strong><span>Recommended. Copy one prompt into Claude Code or Codex, then choose the file it creates.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-method="folder" aria-pressed="false"><strong>Choose The Folder Myself</strong><span>Use the browser's folder picker. Nothing is copied or sent.</span></button>
+        </div>
+        <div class="pilot-method-panel" id="pilotAgentPanel" hidden>
+          <h3>Copy this into your AI</h3>
+          <p>It tells your AI to verify the pinned TOP collector, run it locally, and create one file containing usage counters only.</p>
+          <textarea class="pilot-prompt" id="pilotAgentPrompt" readonly aria-label="Prompt for your AI"></textarea>
+          <button type="button" class="btn p" id="pilotCopyPrompt">Copy Prompt</button>
+          <label class="pilot-file" id="pilotSafeFileLabel" tabindex="0" role="button"><strong>Choose The Safe File My AI Created</strong><span>Choose the small TOP file from your Downloads folder</span><input type="file" id="pilotSafeFile" accept=".json,application/json"></label>
+        </div>
+        <div class="pilot-method-panel" id="pilotFolderPanel" hidden>
+          <h3 id="pilotFolderHeading">Choose the usage folder</h3>
+          <p>The button copies the exact Windows address and opens the folder chooser. Paste the address into the chooser, press Enter, then select that folder.</p>
+          <code class="pilot-path" id="pilotFolderPath">%USERPROFILE%\.claude\projects</code>
+          <button type="button" class="btn p" id="pilotChooseFolder">Copy Address And Choose Folder</button>
+        </div>
+      </div>
+      <div class="pilot-status" id="pilotStatus" role="status" aria-live="polite"></div>
+      <div class="pilot-privacy">Nothing is sent automatically. After the report, you can inspect the complete numbers-only copy, then deliberately download or share it.</div>
+    </section>
 
     <section class="resonance-step" id="resonanceStep" aria-labelledby="resonanceHeading">
       <h2 id="resonanceHeading" tabindex="-1"><span class="flow-kicker">1</span>Which Of These Applies To You?</h2>
@@ -818,7 +862,7 @@ if __name__ == "__main__":
       <h3>Complete Research-Safe JSON</h3>
       <p>This separate file keeps every privacy-safe usage aggregate TOP calculated and the exact pricing rates applied. It includes the current value-model scenario only when the report qualifies for that illustration. Any included scenario is clearly marked as unvalidated, not a forecast result.</p>
       <p><strong>Before sharing it:</strong> download the JSON, open it in a text editor, inspect it, then attach it deliberately to the message you choose. It contains no prompts, replies, code, tool output, paths, filenames, project or account identifiers, email addresses, exact times or original IDs. Nothing is sent by TOP.</p>
-      <button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button>
+      <div class="share-buttons"><button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button><button type="button" class="btn" id="shareResearchJSON">Share Reviewed JSON</button></div>
     </div>
     <div class="share-form">
       <label for="shareRecipients">Email address or addresses</label>
@@ -1237,6 +1281,105 @@ function selectRoute(route){
   document.getElementById(route==="b"&&mode==="cc"?"routeBHeading":"routeAHeading").focus({preventScroll:true});
 }
 document.querySelector(".routechoices").addEventListener("click",function(e){var p=e.target.closest(".routepick");if(p) selectRoute(p.dataset.route)});
+
+// ---------- guided two-question pilot ----------
+var PILOT_MODE=false,PILOT_SOURCE="";
+var PILOT_COLLECTOR_URL="https://adamhartley7.github.io/analyze/collector/top-collector.mjs";
+var PILOT_COLLECTOR_SHA256="36A1FEE0205B6676974559DD34C0E9D1527CA4807B4056689F4DEFD7F70EB304";
+var PILOT_COLLECTOR_VERSION="top.local-collector.2026-07-16.1";
+var PILOT_ACCEPTED_COLLECTOR_VERSION="top.local-collector.2026-07-16.1";
+var PILOT_ACCEPTED_PARSER_VERSION="top.usage-parser.2026-07-16.2";
+function pilotStatus(message,kind){var box=document.getElementById("pilotStatus");box.textContent=message;box.className="pilot-status show "+(kind||"");}
+function pilotExactObject(value,keys){
+  if(!value||Object.prototype.toString.call(value)!=="[object Object]")throw new Error("unexpected_object_shape");
+  var actual=Object.keys(value),allowed={};keys.forEach(function(key){allowed[key]=1});
+  if(actual.length!==keys.length||actual.some(function(key){return !allowed[key]}))throw new Error("unexpected_object_fields");
+  return value;
+}
+function pilotCount(value){if(!Number.isSafeInteger(value)||value<0)throw new Error("invalid_count");return value}
+function pilotModel(value){
+  if(typeof value!=="string"||value.length<1||value.length>96||value.trim()!==value)throw new Error("invalid_model_label");
+  if(value==="Unrecognized AI version")return value;
+  if(/^claude-(?:(?:opus|sonnet|haiku|fable|mythos)-\d{1,2}(?:-\d{1,2}){0,2}|\d{1,2}(?:-\d{1,2}){0,2}-(?:opus|sonnet|haiku|fable|mythos))$/i.test(value))return value;
+  if(/^gpt-\d{1,2}(?:[.-]\d{1,2})*(?:-(?:sol|terra|luna|mini|nano|codex(?:-mini)?|chat|pro|turbo|preview))?$/i.test(value))return value;
+  if(/^o[1-9](?:-(?:mini|pro|preview|latest))?$/i.test(value))return value;
+  if(/^deepseek-v\d{1,2}(?:[.-]\d{1,2})*(?:-(?:pro|lite|chat|coder|reasoner))?$/i.test(value))return value;
+  if(/^codex-(?:mini|large|latest)(?:-latest)?$/i.test(value))return value;
+  throw new Error("invalid_model_label");
+}
+function pilotValidateSafeUsage(value){
+  var top=pilotExactObject(value,["schema_version","collector_version","parser_version","generated_date","source","coverage","totals","activity","by_model"]);
+  if(top.schema_version!=="top.safe-usage.v1"||top.collector_version!==PILOT_ACCEPTED_COLLECTOR_VERSION||top.parser_version!==PILOT_ACCEPTED_PARSER_VERSION)throw new Error("unsupported_safe_file_version");
+  if(typeof top.generated_date!=="string"||!/^(?:19|20)\d{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/.test(top.generated_date))throw new Error("invalid_generated_date");
+  var source=pilotExactObject(top.source,["provider","surface"]),validPair=(source.provider==="anthropic"&&source.surface==="claude_code")||(source.provider==="openai"&&source.surface==="codex");
+  if(!validPair||PILOT_SOURCE&&(PILOT_SOURCE==="cc"?source.surface!=="claude_code":source.surface!=="codex"))throw new Error("source_mismatch");
+  var coverage=pilotExactObject(top.coverage,["files_discovered","files_parsed","files_with_usage","files_skipped","malformed_lines","oversized_lines","counter_resets","duplicate_usage_records","complete"]);
+  ["files_discovered","files_parsed","files_with_usage","files_skipped","malformed_lines","oversized_lines","counter_resets","duplicate_usage_records"].forEach(function(key){pilotCount(coverage[key])});
+  if(typeof coverage.complete!=="boolean"||coverage.files_parsed+coverage.files_skipped!==coverage.files_discovered||coverage.files_with_usage>coverage.files_parsed)throw new Error("invalid_coverage");
+  if((coverage.files_skipped||coverage.malformed_lines||coverage.oversized_lines||coverage.counter_resets)&&coverage.complete)throw new Error("invalid_complete_claim");
+  var totalKeys=["input_tokens","cache_write_input_tokens","cache_read_input_tokens","output_tokens","reasoning_output_tokens","total_tokens","usage_records"],totals=pilotExactObject(top.totals,totalKeys);
+  totalKeys.forEach(function(key){pilotCount(totals[key])});
+  if(totals.reasoning_output_tokens>totals.output_tokens||totals.total_tokens!==totals.input_tokens+totals.cache_write_input_tokens+totals.cache_read_input_tokens+totals.output_tokens)throw new Error("invalid_total_math");
+  var activity=pilotExactObject(top.activity,["sessions","active_days"]);pilotCount(activity.sessions);pilotCount(activity.active_days);
+  if(!Array.isArray(top.by_model)||!top.by_model.length||top.by_model.length>1000)throw new Error("invalid_model_rows");
+  var sums={input_tokens:0,cache_write_input_tokens:0,cache_read_input_tokens:0,output_tokens:0,reasoning_output_tokens:0,total_tokens:0,usage_records:0},previous="";
+  top.by_model.forEach(function(raw,index){var row=pilotExactObject(raw,["model"].concat(totalKeys)),model=pilotModel(row.model);if(index&&previous.localeCompare(model)>=0)throw new Error("models_not_sorted_unique");previous=model;totalKeys.forEach(function(key){var count=pilotCount(row[key]);sums[key]+=count;if(!Number.isSafeInteger(sums[key]))throw new Error("aggregate_overflow")});if(row.reasoning_output_tokens>row.output_tokens||row.total_tokens!==row.input_tokens+row.cache_write_input_tokens+row.cache_read_input_tokens+row.output_tokens)throw new Error("invalid_model_math")});
+  totalKeys.forEach(function(key){if(sums[key]!==totals[key])throw new Error("model_total_mismatch")});
+  return top;
+}
+function pilotResultFromSafeUsage(data){
+  var by={};data.by_model.forEach(function(row){by[row.model]={inp:row.input_tokens,out:row.output_tokens,cw:row.cache_write_input_tokens,cr:row.cache_read_input_tokens,reasoning:row.reasoning_output_tokens,turns:row.usage_records}});
+  var codex=data.source.surface==="codex";
+  return {by:by,turns:data.totals.usage_records,sessions:data.activity.sessions,days:data.activity.active_days,kind:codex?"Codex safe usage file":"Claude Code safe usage file",codex:codex,estimate:true,costLabel:codex?"API-rate comparison":"Estimated pay-as-you-go cost",estimateReason:codex?"recorded token counts priced only where an exact public API rate is available; ChatGPT subscription limits and charges may differ":"recorded token counts priced at editable public API rates; Claude subscription charges may differ",pilotSafe:true,pilotCollectorVersion:data.collector_version,pilotParserVersion:data.parser_version,pilotCoverage:data.coverage,coverage:codex?{files_selected:data.coverage.files_discovered,files_parsed:data.coverage.files_parsed,files_with_usage:data.coverage.files_with_usage,files_skipped:data.coverage.files_skipped,malformed_lines:data.coverage.malformed_lines,oversized_lines:data.coverage.oversized_lines,counter_resets:data.coverage.counter_resets,duplicate_usage_records:data.coverage.duplicate_usage_records,complete:data.coverage.complete}:undefined};
+}
+function pilotPromptFor(source){
+  var sourceName=source==="codex"?"codex":"claude-code";
+  return "Prepare one privacy-safe TOP usage file for me. Do not print, quote, summarize, copy or transmit any prompt, reply, code, tool data, source path, source filename, project or account identifier, email address, exact timestamp, credential or raw history.\n\nDownload the pinned collector from "+PILOT_COLLECTOR_URL+" to a temporary local folder. Before running it, verify its SHA-256 is exactly "+PILOT_COLLECTOR_SHA256+" and its expected collector version is "+PILOT_COLLECTOR_VERSION+". If either check fails, stop and tell me only that verification failed.\n\nAfter verification, run it locally with Node for source "+sourceName+" and write its single top.safe-usage.v1 JSON output to my Downloads folder. The collector may read only usage counters needed for that schema. Do not upload or send the file. When finished, return only the generated TOP filename without its full path, the schema version, collector version, number of files parsed, and whether coverage is complete.";
+}
+function pilotChooseSource(source){
+  PILOT_SOURCE=source;mode=source;selectedRoute="a";providerChosen=true;
+  document.querySelectorAll("[data-pilot-source]").forEach(function(button){var on=button.dataset.pilotSource===source;button.classList.toggle("on",on);button.setAttribute("aria-pressed",on?"true":"false")});
+  document.getElementById("pilotSourceStep").hidden=true;
+  document.getElementById("pilotMethodStep").hidden=false;document.getElementById("pilotAgentPrompt").value=pilotPromptFor(source);
+  var path=source==="codex"?"%USERPROFILE%\\.codex\\sessions":"%USERPROFILE%\\.claude\\projects";document.getElementById("pilotFolderPath").textContent=path;
+  document.getElementById("pilotMethodStep").scrollIntoView({behavior:"smooth",block:"start"});setJourney(.34,"Choice one complete. Choose the simplest preparation method.");
+}
+function pilotChooseMethod(method){
+  document.querySelectorAll("[data-pilot-method]").forEach(function(button){var on=button.dataset.pilotMethod===method;button.classList.toggle("on",on);button.setAttribute("aria-pressed",on?"true":"false")});
+  var methodStep=document.getElementById("pilotMethodStep"),panel=method==="agent"?document.getElementById("pilotAgentPanel"):document.getElementById("pilotFolderPanel");
+  methodStep.classList.add("method-selected");document.getElementById("pilotAgentPanel").hidden=method!=="agent";document.getElementById("pilotFolderPanel").hidden=method!=="folder";pilotStatus(method==="agent"?"Copy the prompt, let your AI create the safe file, then choose that one file here.":"The folder address is ready. Nothing will be sent.","ok");setJourney(.48,"Choice two complete. Prepare one safe file or choose the local folder.");panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function pilotComplete(data){
+  document.getElementById("pilotSourceStep").hidden=true;document.getElementById("pilotMethodStep").hidden=true;
+  var c=data.pilotCoverage||{},coverage=c.complete?"complete":"marked incomplete";
+  var privacy=data.pilotSafe?"Safe format verified. This format does not permit prompts, code, paths, filenames, emails, exact times or original IDs.":"Local folder read completed. TOP used the supported usage counters for this report; the raw history stayed in this browser and was not transmitted.";
+  pilotStatus(privacy+" "+fmtN(c.files_parsed||0)+" of "+fmtN(c.files_discovered||0)+" files were parsed, with "+fmtN(data.turns||0)+" usage records. Coverage is "+coverage+".","ok");
+}
+function pilotReadSafeFile(file){
+  if(!file){pilotStatus("Choose the single JSON file your AI created. Nothing was read or sent.","error");return}
+  if(file.size>5*1024*1024){pilotStatus("That file is too large to be the small safe aggregate. It was not opened.","error");return}
+  pilotStatus("Checking the safe file structure on this device. Nothing is being sent.","ok");var reader=new FileReader();
+  reader.onload=function(){try{var safe=pilotValidateSafeUsage(JSON.parse(String(reader.result||""))),result=pilotResultFromSafeUsage(safe);document.getElementById("routea").hidden=false;pilotComplete(result);finishParsedResult(result,1)}catch(error){pilotStatus("This file was not accepted. It must be an unmodified top.safe-usage.v1 file from the pinned collector. Nothing was sent.","error")}};
+  reader.onerror=function(){pilotStatus("The file could not be opened on this device. Nothing was sent.","error")};reader.readAsText(file);
+}
+function initPilot(){
+  var query=new URLSearchParams(window.location.search);if(query.get("pilot")!=="1")return;
+  PILOT_MODE=true;document.documentElement.classList.add("pilot-mode");document.getElementById("pilotFlow").hidden=false;
+  document.querySelector("header h1").textContent="Understand your coding-assistant usage in two choices.";document.querySelector("header .sub").textContent="Your raw history stays on this computer. Start with Claude Code or Codex, then choose one preparation method.";
+  setJourney(.12,"Choice one of two: choose Claude Code or Codex.");
+}
+document.getElementById("pilotSourceChoices").addEventListener("click",function(event){var button=event.target.closest("[data-pilot-source]");if(button)pilotChooseSource(button.dataset.pilotSource)});
+document.getElementById("pilotMethodChoices").addEventListener("click",function(event){var button=event.target.closest("[data-pilot-method]");if(button)pilotChooseMethod(button.dataset.pilotMethod)});
+document.getElementById("pilotBackToSource").addEventListener("click",function(){PILOT_SOURCE="";var methodStep=document.getElementById("pilotMethodStep");methodStep.hidden=true;methodStep.classList.remove("method-selected");document.getElementById("pilotAgentPanel").hidden=true;document.getElementById("pilotFolderPanel").hidden=true;document.getElementById("pilotSourceStep").hidden=false;document.querySelectorAll("[data-pilot-source],[data-pilot-method]").forEach(function(button){button.classList.remove("on");button.setAttribute("aria-pressed","false")});pilotStatus("Choose Claude Code or Codex.","ok");document.getElementById("pilotSourceStep").scrollIntoView({behavior:"smooth",block:"start"})});
+document.getElementById("pilotCopyPrompt").addEventListener("click",function(){var prompt=document.getElementById("pilotAgentPrompt");copyPlainText(prompt.value,this,"Prompt Copied").then(function(ok){if(!ok){prompt.focus();prompt.select()}})});
+document.getElementById("pilotSafeFile").addEventListener("change",function(){var files=this.files;if(!files||files.length!==1){pilotStatus("Choose exactly one safe JSON file.","error");return}pilotReadSafeFile(files[0])});
+document.getElementById("pilotSafeFileLabel").addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();document.getElementById("pilotSafeFile").click()}});
+document.getElementById("pilotChooseFolder").addEventListener("click",function(){
+  if(!PILOT_SOURCE){pilotStatus("Choose Claude Code or Codex first.","error");return}
+  mode=PILOT_SOURCE;selectedRoute="a";providerChosen=true;document.getElementById("routea").hidden=false;
+  var path=document.getElementById("pilotFolderPath").textContent;copyPlainText(path,this,"Address Copied");
+  pilotStatus("The address is copied. In the folder window, paste it into the address bar, press Enter, then select that folder.","ok");document.getElementById("historyFolder").click();
+});
 
 // ---------- parsers ----------
 function createClaudeCodeAccumulator(){
@@ -2133,6 +2276,13 @@ function finishParsedResult(res,openedCount){
     else showErr("TOP could not find usage data for the source you chose. Try the matching Claude Code JSONL, Claude Chat conversations.json, or ChatGPT conversations.json file.");
     return;
   }
+  if(PILOT_MODE&&!res.pilotSafe){
+    if(!res.pilotCoverage){
+      var rawCoverage=res.coverage||{};
+      res.pilotCoverage={files_discovered:rawCoverage.files_selected===undefined?openedCount:rawCoverage.files_selected,files_parsed:rawCoverage.files_parsed===undefined?openedCount:rawCoverage.files_parsed,files_with_usage:rawCoverage.files_with_usage===undefined?openedCount:rawCoverage.files_with_usage,files_skipped:rawCoverage.files_skipped||0,malformed_lines:rawCoverage.malformed_lines||0,oversized_lines:rawCoverage.oversized_lines||0,counter_resets:rawCoverage.counter_resets||0,duplicate_usage_records:rawCoverage.duplicate_usage_records||0,complete:rawCoverage.complete===true};
+    }
+    pilotComplete(res);
+  }
   render(res);
   var status=(AUTO_DETECTED_NOTE?AUTO_DETECTED_NOTE+" ":"")+"Report ready from "+fmtN(openedCount)+" file"+(openedCount===1?"":"s")+" opened only on this device.";
   if(res.codex&&res.coverage&&!res.coverage.complete) status+=" Some malformed, oversized or reset usage records were skipped, so coverage may be incomplete.";
@@ -2145,7 +2295,7 @@ function finishParsedResult(res,openedCount){
 function readClaudeFiles(files){
   var accumulator=createClaudeCodeAccumulator(),index=0,failed=0;
   function next(){
-    if(index>=files.length){try{finishParsedResult(accumulator.result(),files.length-failed)}catch(err){showErr("TOP could not read those files: "+err.message+". Nothing was sent.")}return}
+    if(index>=files.length){try{var result=accumulator.result();if(PILOT_MODE)result.pilotCoverage={files_discovered:files.length,files_parsed:files.length-failed,files_with_usage:files.length-failed,files_skipped:failed,malformed_lines:0,oversized_lines:0,counter_resets:0,duplicate_usage_records:0,complete:false};finishParsedResult(result,files.length-failed)}catch(err){showErr("TOP could not read those files: "+err.message+". Nothing was sent.")}return}
     var file=files[index],fileIndex=index,reader=new FileReader();index++;
     reader.onload=function(){try{accumulator.addText(String(reader.result||""),fileIndex)}catch(err){failed++}document.getElementById("fileStatus").textContent="Reading Claude Code history on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.";setTimeout(next,0)};
     reader.onerror=function(){failed++;setTimeout(next,0)};
@@ -2399,7 +2549,7 @@ function strictResearchModelLabel(value){
   if(/^(?:claude\.ai \(est\.\)|ChatGPT export \(est\.\)|Unknown Codex model)$/i.test(model))return model;
   model=model.replace(/-(?:\d{8}|\d{4}-\d{2}-\d{2})$/i,"");
   if(/^claude-(?:(?:opus|sonnet|haiku|fable|mythos)-\d{1,2}(?:-\d{1,2}){0,2}|\d{1,2}(?:-\d{1,2}){0,2}-(?:opus|sonnet|haiku|fable|mythos))$/i.test(model))return model;
-  if(/^gpt-\d{1,2}(?:[.-]\d{1,2})*(?:-(?:sol|terra|luna|mini|nano|codex|chat|pro|turbo|preview))?$/i.test(model))return model;
+  if(/^gpt-\d{1,2}(?:[.-]\d{1,2})*(?:-(?:sol|terra|luna|mini|nano|codex(?:-mini)?|chat|pro|turbo|preview))?$/i.test(model))return model;
   if(/^o[1-9](?:-(?:mini|pro|preview|latest))?$/i.test(model))return model;
   if(/^deepseek-v\d{1,2}(?:[.-]\d{1,2})*(?:-(?:pro|lite|chat|coder|reasoner))?$/i.test(model))return model;
   if(/^codex-(?:mini|large|latest)(?:-latest)?$/i.test(model))return model;
@@ -2407,6 +2557,7 @@ function strictResearchModelLabel(value){
 }
 function researchSource(result,routeB){
   if(routeB)return {provider:"anthropic",surface:"claude_code",input_form:"locally_cleaned_usage_export"};
+  if(result.pilotSafe)return {provider:result.codex?"openai":"anthropic",surface:result.codex?"codex":"claude_code",input_form:"validated_top_safe_usage_export"};
   if(result.codex)return {provider:"openai",surface:"codex",input_form:"local_session_usage_records"};
   if(result.chatProvider==="ChatGPT")return {provider:"openai",surface:"chatgpt",input_form:"conversation_export"};
   if(result.chatProvider==="Claude Chat")return {provider:"anthropic",surface:"claude_chat",input_form:"conversation_export"};
@@ -2421,7 +2572,11 @@ function researchMeasurement(result){
 function researchCoverage(result,routeB){
   var coverage={status:"limited_to_current_parser_checks",files_opened:result.filesOpened===null||result.filesOpened===undefined?null:researchCount(result.filesOpened)};
   if(routeB&&routeB.res)coverage.files_opened=routeB.res.filesOpened===undefined?null:researchCount(routeB.res.filesOpened);
-  if(result.codex&&result.coverage){
+  if(result.pilotCoverage){
+    coverage.status="available_from_local_collector";
+    ["files_discovered","files_parsed","files_with_usage","files_skipped","malformed_lines","oversized_lines","counter_resets","duplicate_usage_records"].forEach(function(key){coverage[key]=researchCount(result.pilotCoverage[key])});
+    coverage.complete=result.pilotCoverage.complete===true;
+  }else if(result.codex&&result.coverage){
     coverage.status="available";
     ["files_selected","files_parsed","files_with_usage","files_skipped","malformed_lines","oversized_lines","counter_resets"].forEach(function(key){coverage[key]=researchCount(result.coverage[key])});
     coverage.complete=result.coverage.complete===true;
@@ -2519,7 +2674,7 @@ function buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,creat
   if(routeB&&valueModel.truth_status==="not_available")valueModel.reason="scenario_control_not_shown_for_this_route";
   appliedRates.forEach(function(rate){Object.keys(rate.field_provenance).forEach(function(field){var origin=rate.field_provenance[field];if(origin==="user_edited_in_tab"||origin==="derived_from_user_edited_input")editedFields++;else referenceFields++})});
   if(current.chatExport)pricingStatus="not_applied";else if(current.csv&&current.costComplete)pricingStatus="not_needed_recorded_cost";else if(!appliedRates.length)pricingStatus="not_applied_no_recognized_rate";else if(editedFields&&referenceFields)pricingStatus=allComplete?"mixed_checked_and_user_edited_rates":"partially_applied_mixed_rate_provenance";else if(editedFields)pricingStatus=allComplete?"user_edited_in_tab":"partially_applied_user_edited_rates";else pricingStatus=allComplete?"checked_reference_rates":"partially_applied_checked_rates";
-  return {schema_version:RESEARCH_SCHEMA_VERSION,collector:{collector_version:RESEARCH_COLLECTOR_VERSION,parser_version:RESEARCH_PARSER_VERSION},generated_date:researchDateOnly(createdDate),source:researchSource(current,routeB),measurement:researchMeasurement(current),scope:{selection:"supported_records_in_user_selected_local_data",full_account_or_subscription_claim:false,original_source_content_included:false},coverage:researchCoverage(current,routeB),totals:totals,activity:activity,cost:{status:costStatus,usd:anyCost?researchMoney(totalCost):null,basis:costBasis,currency:"USD",subscription_bill:false},pricing:{status:pricingStatus,reference_checked_date:PRICING_CHECKED_DATE,unit:"usd_per_million_tokens",applied_rates:appliedRates,unpriced_model_groups:modelRows.filter(function(row){return row.cost.status==="unavailable"}).length},permission_mode_counts:routeB&&routeB.res?safePermissionModeCounts(routeB.res.perm):null,by_model:modelRows,questionnaire:safeResearchQuestionnaire(questionnaire),value_model:valueModel,privacy:{network_delivery:"none",inspect_before_attaching:true,excluded:["prompts","replies","code","tool_output","paths","filenames","project_and_account_identifiers","email_addresses","exact_timestamps","original_ids"]}};
+  return {schema_version:RESEARCH_SCHEMA_VERSION,collector:{collector_version:current.pilotCollectorVersion||RESEARCH_COLLECTOR_VERSION,parser_version:current.pilotParserVersion||RESEARCH_PARSER_VERSION},generated_date:researchDateOnly(createdDate),source:researchSource(current,routeB),measurement:researchMeasurement(current),scope:{selection:"supported_records_in_user_selected_local_data",full_account_or_subscription_claim:false,original_source_content_included:false},coverage:researchCoverage(current,routeB),totals:totals,activity:activity,cost:{status:costStatus,usd:anyCost?researchMoney(totalCost):null,basis:costBasis,currency:"USD",subscription_bill:false},pricing:{status:pricingStatus,reference_checked_date:PRICING_CHECKED_DATE,unit:"usd_per_million_tokens",applied_rates:appliedRates,unpriced_model_groups:modelRows.filter(function(row){return row.cost.status==="unavailable"}).length},permission_mode_counts:routeB&&routeB.res?safePermissionModeCounts(routeB.res.perm):null,by_model:modelRows,questionnaire:safeResearchQuestionnaire(questionnaire),value_model:valueModel,privacy:{network_delivery:"none",inspect_before_attaching:true,excluded:["prompts","replies","code","tool_output","paths","filenames","project_and_account_identifiers","email_addresses","exact_timestamps","original_ids"]}};
 }
 function buildResearchSafeJSON(result,routeB,questionnaire,scenarioValue,createdDate){var data=buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,createdDate);return data?JSON.stringify(data,null,2):""}
 function downloadResearchSafeJSON(){
@@ -2530,6 +2685,22 @@ function downloadResearchSafeJSON(){
   return true;
 }
 document.getElementById("downloadResearchJSON").addEventListener("click",downloadResearchSafeJSON);
+function researchSharePayload(){
+  var slider=document.getElementById("vmg"),scenario=slider?parseFloat(slider.value):.4,json=buildResearchSafeJSON(LAST_RESULT,ROUTEB,collectResearchQuestionnaire(),scenario,new Date().toISOString().slice(0,10));
+  if(!json)return null;var name="top-research-safe-usage-"+new Date().toISOString().slice(0,10)+".json";
+  try{return {json:json,file:new File([json],name,{type:"application/json"}),name:name}}catch(error){return {json:json,file:null,name:name}}
+}
+function canShareResearchFile(payload){try{return !!(payload&&payload.file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[payload.file]}))}catch(error){return false}}
+async function shareResearchSafeJSON(){
+  var payload=researchSharePayload(),status=document.getElementById("shareStatus");
+  if(!payload){status.textContent="No completed usage report is available. Nothing was shared.";return false}
+  if(!canShareResearchFile(payload)){
+    dlFile(payload.name,payload.json,"application/json");status.textContent="This browser cannot share a file directly, so the research-safe JSON was downloaded instead. Inspect it, then attach it deliberately. Nothing was submitted.";return false;
+  }
+  try{await navigator.share({files:[payload.file],title:"TOP research-safe usage data",text:"Research-safe aggregate prepared locally. Review the selected destination before sending."});status.textContent="Your device closed its share chooser. TOP cannot confirm where the file went or whether it was delivered.";return true}
+  catch(error){status.textContent=error&&error.name==="AbortError"?"The share chooser was closed. Nothing was submitted by TOP.":"The device share did not complete. Download the JSON and attach it deliberately instead.";return false}
+}
+var shareResearchButton=document.getElementById("shareResearchJSON");if(shareResearchButton)shareResearchButton.addEventListener("click",shareResearchSafeJSON);
 // ---------- Route B: content-free stripped export (built locally by strip_claude_logs.py) ----------
 var ROUTEB=null;
 function parseStripped(texts){
@@ -2691,6 +2862,7 @@ document.getElementById("dljsonb").addEventListener("click",function(){ if(ROUTE
 
 renderSteps("cc");
 setJourney(.08,"Sunrise: tell us what you want to improve.");
+initPilot();
 </script>
 <script src="../assets/analyzer-water.js" defer></script>
 </body>

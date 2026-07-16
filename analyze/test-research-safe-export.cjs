@@ -33,6 +33,7 @@ const modelCases = [
   ["claude-3-5-sonnet-2024-10-22", "claude-3-5-sonnet"],
   ["gpt-5.6-sol-20260716", "gpt-5.6-sol"],
   ["gpt-5.6-terra-2026-07-16", "gpt-5.6-terra"],
+  ["gpt-5.6-codex-mini", "gpt-5.6-codex-mini"],
   ["o3-20260716", "o3"],
   ["o3-mini-2026-07-16", "o3-mini"],
   ["deepseek-v4-pro-20260716", "deepseek-v4-pro"],
@@ -139,7 +140,7 @@ for (const item of [lowScenario, highScenario, fallbackScenario]) assert.equal(i
 
 // Codex records expose reasoning, usage-event, and detailed parser coverage fields.
 const codex = plain(context.buildResearchSafeObject({
-  by: { "gpt-5.6-sol-20260716": { inp: 80, out: 30, cw: 0, cr: 20, reasoning: 10, turns: 3 } },
+  by: { "gpt-5.6-codex-mini": { inp: 80, out: 30, cw: 0, cr: 20, reasoning: 10, turns: 3 } },
   turns: 3, sessions: 2, days: 2, filesOpened: 3, estimate: true, valueModelEligible: true, codex: true,
   coverage: { files_selected: 3, files_parsed: 3, files_with_usage: 2, files_skipped: 0, malformed_lines: 1, oversized_lines: 0, counter_resets: 1, complete: false },
 }, null, null, 0.4, "2026-07-16"));
@@ -149,7 +150,7 @@ assert.equal(codex.activity.usage_events, 3);
 assert.equal(codex.activity.ai_replies, null);
 assert.equal(codex.coverage.files_selected, 3);
 assert.equal(codex.coverage.complete, false);
-assert.equal(codex.by_model[0].model, "gpt-5.6-sol");
+assert.equal(codex.by_model[0].model, "gpt-5.6-codex-mini");
 
 // Cleaned Claude data keeps only allowlisted permission modes and never exports a hidden Route A scenario.
 const routeB = { res: {
