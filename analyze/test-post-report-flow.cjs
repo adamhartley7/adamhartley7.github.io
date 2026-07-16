@@ -39,4 +39,30 @@ assert.equal(nodes.resultsHeading.focusOptions.preventScroll, true);
 assert.equal(journey.progress, 0.68);
 assert.match(journey.message, /optional questions below/);
 
+const pilotNodes = {
+  shareSummaryBox: { hidden: false },
+  survey: { hidden: false },
+  shareWithTop: { hidden: false },
+  pilotQuickReport: { hidden: true, scrollIntoViewOptions: null, scrollIntoView(options) { this.scrollIntoViewOptions = options; } },
+  pilotQuickHeading: { focusOptions: null, focus(options) { this.focusOptions = options; } },
+};
+let pilotJourney = null;
+const pilotContext = {
+  PILOT_MODE: true,
+  document: { getElementById(id) { return pilotNodes[id]; } },
+  setJourney(progress, message) { pilotJourney = { progress, message }; },
+};
+vm.createContext(pilotContext);
+vm.runInContext(html.slice(start, end), pilotContext);
+pilotContext.revealStandardPostReport();
+
+assert.equal(pilotNodes.shareSummaryBox.hidden, true);
+assert.equal(pilotNodes.survey.hidden, true);
+assert.equal(pilotNodes.shareWithTop.hidden, true);
+assert.equal(pilotNodes.pilotQuickReport.hidden, false);
+assert.equal(pilotNodes.pilotQuickReport.scrollIntoViewOptions.behavior, "smooth");
+assert.equal(pilotNodes.pilotQuickHeading.focusOptions.preventScroll, true);
+assert.equal(pilotJourney.progress, 0.72);
+assert.match(pilotJourney.message, /Review the short summary/);
+
 console.log("TOP Analyzer post-report flow regression tests passed");

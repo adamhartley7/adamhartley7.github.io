@@ -256,8 +256,9 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .pilot-mode header{padding:20px 0 12px}.pilot-mode header .badge{margin-bottom:9px;padding:6px 13px}.pilot-mode header h1{max-width:26ch;margin-bottom:8px;font-size:clamp(28px,3.8vw,39px);line-height:1.08}.pilot-mode header .sub{max-width:66ch;padding:9px 14px;font-size:15px}.pilot-mode .flow-shell{margin-top:0;padding:18px 24px}.pilot-mode .journey-rail{position:static;margin-bottom:12px;padding:10px 14px}.pilot-mode .pilot-bubble{display:none}.pilot-mode .pilot-question{margin:10px 0 16px}.pilot-mode .pilot-choice{min-height:96px;padding:16px 18px}
 .pilot-mode #pilotMethodStep.method-selected>.pilot-progress,.pilot-mode #pilotMethodStep.method-selected>h2,.pilot-mode #pilotMethodStep.method-selected>p,.pilot-mode #pilotMethodStep.method-selected>#pilotMethodChoices{display:none}
 .pilot-report{display:none;margin:4px 0 24px}.pilot-mode .pilot-report{display:block}.pilot-report[hidden]{display:none!important}.pilot-result-head{padding:22px;border:1px solid rgba(8,127,98,.24);border-radius:22px;background:linear-gradient(145deg,#f4fff9,#f7fbff);box-shadow:0 18px 42px rgba(25,66,92,.10)}.pilot-result-head h2{margin:0 0 7px;font-size:clamp(26px,4vw,38px)}.pilot-result-head p{margin:0;color:var(--muted);line-height:1.55}.pilot-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:14px 0}.pilot-metric{padding:17px;border:1px solid #cbdbe2;border-radius:17px;background:rgba(255,255,255,.92)}.pilot-metric strong{display:block;font-size:clamp(22px,3vw,30px);overflow-wrap:anywhere}.pilot-metric span{display:block;margin-top:5px;color:var(--muted);font-size:13px;line-height:1.35}.pilot-cost-note{margin:0 0 16px;padding:12px 14px;border-left:4px solid #d99a2b;background:#fff8e6;color:#65470e;line-height:1.5}.pilot-section{margin:15px 0;padding:18px;border:1px solid #cadbe2;border-radius:19px;background:rgba(255,255,255,.91)}.pilot-section h3{margin:0 0 10px;font-size:20px}.pilot-model-row{display:grid;grid-template-columns:minmax(120px,1.25fr) minmax(110px,2fr) auto;gap:10px;align-items:center;margin:9px 0;font-size:13.5px}.pilot-model-row strong{overflow-wrap:anywhere}.pilot-model-track{height:9px;border-radius:99px;background:#e4ebef;overflow:hidden}.pilot-model-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7565dc,#23b6ae)}.pilot-value-list{display:grid;gap:9px}.pilot-value-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #e0e8ec}.pilot-value-row:last-child{border-bottom:0}.pilot-value-row span{color:var(--muted)}.pilot-value-row strong{text-align:right}.pilot-report details{margin:14px 0;border:1px solid #cadbe2;border-radius:16px;background:#fff}.pilot-report summary{padding:14px 16px;font-weight:800;cursor:pointer}.pilot-detail-body{padding:0 16px 16px}.pilot-detail-body table{width:100%}.pilot-result-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.pilot-result-actions .btn{min-width:210px;justify-content:center}.pilot-mode #out>#reportScope,.pilot-mode #out>#cards,.pilot-mode #out>#tokenhelp,.pilot-mode #out>#resultsHeading,.pilot-mode #out>div[style*="overflow-x:auto"],.pilot-mode #out>#vm,.pilot-mode #out>#shareSummaryBox,.pilot-mode #out>.note,.pilot-mode #out>.technical-details,.pilot-mode #survey{display:none!important}
+.pilot-share-preview{display:none}.pilot-mode .pilot-share-preview{display:block;margin:12px 0;border:1px solid #cadbe2;border-radius:14px;background:#fff}.pilot-share-preview summary{padding:13px 15px;font-weight:800;cursor:pointer}.pilot-share-preview textarea{width:calc(100% - 30px);height:220px;margin:0 15px 15px;padding:12px;border:1px solid #cadbe2;border-radius:10px;background:#f7fafb;color:#263c4d;font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}.pilot-mode #shareWithTop>.summbox:not(.research-safe-box),.pilot-mode #shareWithTop>.share-buttons,.pilot-mode #shareWithTop>.share-form{display:none!important}.pilot-mode #shareWithTop{max-width:760px;margin-left:auto;margin-right:auto}.pilot-mode #shareWithTop .research-safe-box{margin:14px auto 0;text-align:left}.pilot-mode #shareWithTop .research-safe-box>p:nth-of-type(2){display:none}.pilot-mode #shareWithTop .research-safe-box .share-buttons{justify-content:flex-start}
 @media(max-width:760px){.pilot-choices{grid-template-columns:1fr}.pilot-choice{min-height:96px}.pilot-method-panel{padding:16px}.pilot-bubble{font-size:15px}.pilot-mode header{padding:13px 0 9px}.pilot-mode header h1{font-size:28px}.pilot-mode header .sub{font-size:14px}.pilot-mode .flow-shell{padding:14px}.pilot-mobile-warning{display:block;margin:0 0 16px;padding:13px 15px;border:1px solid #e8bd6f;border-radius:14px;background:#fff8e6;color:#704e16}}
-@media(max-width:640px){.pilot-metrics{grid-template-columns:1fr}.pilot-model-row{grid-template-columns:1fr auto}.pilot-model-track{grid-column:1/-1;grid-row:2}.pilot-value-row{display:block}.pilot-value-row strong{display:block;margin-top:4px;text-align:left}}
+@media(max-width:640px){.pilot-metrics{grid-template-columns:1fr 1fr}.pilot-metric:first-child{grid-column:1/-1}.pilot-model-row{grid-template-columns:1fr auto}.pilot-model-track{grid-column:1/-1;grid-row:2}.pilot-value-row{display:block}.pilot-value-row strong{display:block;margin-top:4px;text-align:left}}
 </style>
 </head>
 <body>
@@ -406,22 +407,22 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <section class="pilot-report" id="pilotQuickReport" hidden aria-labelledby="pilotQuickHeading">
       <div class="pilot-result-head">
         <h2 id="pilotQuickHeading" tabindex="-1">Your report is ready</h2>
-        <p>Your prompts, replies, code and files stayed on this computer. TOP used the numbers-only file you chose.</p>
+        <p id="pilotQuickPrivacy">Your prompts, replies, code and files stayed on this computer.</p>
       </div>
       <div class="pilot-metrics">
-        <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span>Estimated API-equivalent cost</span></div>
+        <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span>What this usage would cost at API prices</span></div>
         <div class="pilot-metric"><strong id="pilotQuickSessions">0</strong><span>Work sessions found</span></div>
         <div class="pilot-metric"><strong id="pilotQuickDays">0</strong><span>Active days found</span></div>
       </div>
       <p class="pilot-cost-note" id="pilotQuickCostNote"></p>
       <section class="pilot-section" aria-labelledby="pilotUsageMixHeading">
-        <h3 id="pilotUsageMixHeading">Where the priced estimate went</h3>
+        <h3 id="pilotUsageMixHeading">Which models drove that estimate?</h3>
         <div id="pilotUsageMix"></div>
       </section>
       <section class="pilot-section" aria-labelledby="pilotValueHeading">
-        <h3 id="pilotValueHeading">Your Value Model To Date</h3>
+        <h3 id="pilotValueHeading">What TOP Can Measure Today</h3>
         <div class="pilot-value-list">
-          <div class="pilot-value-row"><span>Cost baseline</span><strong id="pilotValueCost">Ready</strong></div>
+          <div class="pilot-value-row"><span>Estimated cost so far</span><strong id="pilotValueCost">Not available</strong></div>
           <div class="pilot-value-row"><span>Value of completed work</span><strong>Not measured yet</strong></div>
           <div class="pilot-value-row"><span>Verified savings forecast</span><strong>Coming soon</strong></div>
         </div>
@@ -435,7 +436,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         </div>
       </details>
       <div class="pilot-result-actions">
-        <button type="button" class="btn p" id="pilotContinueToShare">Share My Safe Report</button>
+        <button type="button" class="btn p" id="pilotContinueToShare">Review Sharing Options</button>
       </div>
     </section>
     <p class="scope-callout" id="reportScope"></p>
@@ -899,6 +900,7 @@ if __name__ == "__main__":
       <h3>Complete Research-Safe JSON</h3>
       <p>This separate file keeps every privacy-safe usage aggregate TOP calculated and the exact pricing rates applied. It includes the current value-model scenario only when the report qualifies for that illustration. Any included scenario is clearly marked as unvalidated, not a forecast result.</p>
       <p><strong>Before sharing it:</strong> download the JSON, open it in a text editor, inspect it, then attach it deliberately to the message you choose. It contains no prompts, replies, code, tool output, paths, filenames, project or account identifiers, email addresses, exact times or original IDs. Nothing is sent by TOP.</p>
+      <details class="pilot-share-preview"><summary>See exactly what will be shared</summary><textarea id="pilotResearchPreview" readonly aria-label="Exact research-safe JSON preview"></textarea></details>
       <div class="share-buttons"><button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button><button type="button" class="btn" id="shareResearchJSON">Share Reviewed JSON</button></div>
     </div>
     <div class="share-form">
@@ -1864,17 +1866,22 @@ function render(res){
     document.getElementById("pilotQuickCost").textContent=costText;
     document.getElementById("pilotQuickSessions").textContent=fmtN(res.sessions||0);
     document.getElementById("pilotQuickDays").textContent=fmtN(res.days||0);
+    document.getElementById("pilotQuickPrivacy").textContent=res.pilotSafe
+      ?"Your prompts, replies, code and files stayed on this computer. TOP used the numbers-only file you chose."
+      :"TOP read usage counters locally from the folder you chose. Your raw history was not sent.";
     document.getElementById("pilotQuickCostNote").textContent=res.chatExport
       ?"This download does not contain reliable cost data. TOP has not invented a charge."
       :(unpriced.length
         ?"TOP priced "+fmtN(pricedRows.length)+" of "+fmtN(rows.length)+" AI versions. This is a partial API-rate comparison, not your subscription bill."
         :"This is an API-rate comparison based on recorded usage, not your subscription bill.");
-    var shownRows=pricedRows.slice().sort(function(a,b){return b.cost-a.cost}).slice(0,5);
+    var shownRows=pricedRows.slice().sort(function(a,b){return b.cost-a.cost}).slice(0,3);
     document.getElementById("pilotUsageMix").innerHTML=shownRows.length?shownRows.map(function(row){
       var share=pricedTotal>0?Math.round(row.cost/pricedTotal*100):0;
       return '<div class="pilot-model-row"><strong>'+esc(safePublicModelLabel(row.model))+'</strong><div class="pilot-model-track"><span style="width:'+Math.max(2,share)+'%"></span></div><span>'+fmtN(share)+'%</span></div>';
     }).join(""):"<p>TOP could not calculate a priced model mix from this file.</p>";
-    document.getElementById("pilotValueCost").textContent=pricedTotal>0?"Ready: "+costText+" priced usage":"Not available from this file";
+    document.getElementById("pilotValueCost").textContent=pricedTotal>0
+      ?(unpriced.length?"Partial: "+costText+" for models TOP could price":"Ready: "+costText+" across all models")
+      :"Not available from this file";
     document.getElementById("pilotFullScope").textContent=document.getElementById("reportScope").textContent;
     document.getElementById("pilotFullModelTable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
   }
@@ -2555,6 +2562,16 @@ function finishSurvey(skipped){
   var message=skipped?"Sunset: questions skipped. Your own copy is ready.":"Sunset: context added. Your own copy is ready.";
   setJourney(.88,message);
   var share=document.getElementById("shareWithTop");
+  if(PILOT_MODE){
+    document.getElementById("shareWithTopHeading").textContent="Share Your Safe Report";
+    share.querySelector(".share-lead").textContent="Only the complete numbers-only report below can leave this page. Your prompts, replies, code, files, paths and original identifiers are excluded.";
+    document.getElementById("shareHold").innerHTML="<strong>Nothing has been sent.</strong> Review the exact JSON, then deliberately download it or ask your device to share it. TOP cannot confirm delivery yet.";
+    share.querySelector(".research-safe-box h3").textContent="Your Complete Safe Report";
+    document.getElementById("downloadResearchJSON").textContent="Download My Safe Report";
+    document.getElementById("shareResearchJSON").textContent="Share My Safe Report";
+    var scenario=document.getElementById("vmg")?parseFloat(document.getElementById("vmg").value):.4;
+    document.getElementById("pilotResearchPreview").value=buildResearchSafeJSON(LAST_RESULT,ROUTEB,collectResearchQuestionnaire(),scenario,new Date().toISOString().slice(0,10));
+  }
   share.hidden=false;
   share.scrollIntoView({behavior:"smooth",block:"start"});
   document.getElementById("shareWithTopHeading").focus({preventScroll:true});
