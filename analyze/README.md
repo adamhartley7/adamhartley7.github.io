@@ -11,6 +11,7 @@ node analyze/test-privacy.cjs
 node analyze/test-openai-parser.cjs
 node analyze/test-post-report-flow.cjs
 node analyze/test-codex-parser.cjs
+node analyze/test-obsidian-vault.cjs
 ```
 
 The parser checks cover duplicate Claude Code usage rows, stable call identities, cumulative Codex token snapshots, Codex model changes, Route B deduplication, Claude Chat and ChatGPT schema detection, conversation-export scope labels, and safe rendering of imported labels. Conversation imports accept only `conversations.json` or numbered variants, switch to the matching reader when the schema is unambiguous, and reject project or arbitrary JSON instead of presenting it as usage. Chat-history estimates are explicitly limited to visible text in the selected files and are not account, subscription, Claude Code, or Codex totals. The Codex parser accepts explicit `rollout-*.jsonl` files or one TOP aggregate `ai-events.jsonl`, processes large rollout files in bounded chunks, and retains only token counters, dates and the active model. It rejects mixing raw and aggregate inputs because that could count the same usage twice. It ignores transcript text, tool output, paths, IDs, account limits and Git details. The privacy check rejects browser network primitives, the old relay path, visitor notification code, remote fonts, old send actions, persistent storage, direct vault writing, and unsupported anonymous-data claims. It also verifies that the intake pause appears before route selection and that each provider has truthful Route A and Route B copy.

@@ -95,6 +95,7 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .obsidian-panel h2{margin-top:8px}.vault-truth{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;margin:14px 0 18px;padding:17px 18px;border:1px solid rgba(101,86,221,.24);border-radius:18px;background:linear-gradient(145deg,#f6f2ff,#edf9f5)}.vault-truth .mark{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:#6956d5;color:#fff;font-weight:900}.vault-truth strong{display:block;margin-bottom:4px;font-size:17px}.vault-truth p{color:var(--muted);font-size:14.5px}
 .vault-actions{display:grid;grid-template-columns:1.25fr .75fr;gap:12px}.vault-actions .drop{padding:28px 18px}.vault-fallback{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:128px;padding:18px;border:1px solid #b7cdd6;border-radius:20px;background:rgba(250,253,254,.94);text-align:center;cursor:pointer;font-weight:800}.vault-fallback span{display:block;color:var(--muted);font-size:13px;font-weight:550;margin-top:5px}.vault-fallback input{display:none}
 .vault-support{margin:12px 0;color:var(--muted);font-size:13.5px;text-align:center}.vault-support strong{color:var(--text)}
+.vault-recovery{margin:14px 0;padding:18px;border:1px solid rgba(101,86,221,.3);border-radius:18px;background:linear-gradient(145deg,rgba(247,244,255,.98),rgba(237,250,246,.95))}.vault-recovery h3{margin:0 0 7px;font-size:18px}.vault-recovery p{margin:0;color:var(--muted);font-size:14px}.vault-recovery-actions{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0 10px}.vault-recovery-actions .btn{justify-content:center}.vault-paths{font-size:13px!important}.vault-path-row{display:flex;align-items:center;gap:8px;margin-top:10px}.vault-path-row code{flex:1;padding:10px 12px;border:1px solid rgba(101,86,221,.24);border-radius:11px;background:#fff;font-family:"JetBrains Mono",monospace;font-size:12px;overflow-wrap:anywhere}.vault-path-row .btn{flex:0 0 auto}
 .vault-error{display:none;margin:14px 0;padding:14px 16px;border:1px solid rgba(242,109,109,.35);border-radius:13px;background:rgba(242,109,109,.08);color:#a32f2f;font-size:14px}
 .vault-report{margin-top:20px}.vault-report[hidden]{display:none}.vault-status{margin:0 0 14px;padding:13px 15px;border:1px solid rgba(8,127,98,.25);border-radius:14px;background:rgba(227,250,241,.8);color:#075f4b;font-weight:750}.vault-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.vault-stat{padding:15px;border:1px solid #c9dce3;border-radius:16px;background:#fff}.vault-stat strong{display:block;font-family:"JetBrains Mono",monospace;font-size:24px}.vault-stat span{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}
 .vault-split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.vault-box{padding:17px;border:1px solid #c9dce3;border-radius:17px;background:rgba(255,255,255,.88)}.vault-box h3{font-size:17px;margin:0 0 8px}.vault-box p,.vault-box li{color:var(--muted);font-size:13.5px}.vault-box ul{margin:8px 0 0 18px}.vault-source-buttons{display:grid;gap:8px;margin-top:12px}.vault-source-buttons button{width:100%;justify-content:center}.vault-empty{color:var(--muted);font-size:13.5px}
@@ -247,7 +248,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .technical-details>.details-body{padding:0 17px 17px}
 @media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.claude-kinds,.routechoices,.resonance-grid,.vault-actions,.vault-split{grid-template-columns:1fr}.vault-stats{grid-template-columns:1fr 1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.claude-kind{min-height:88px}.chipgroup.arch{grid-template-columns:1fr}.resonance-choice{min-height:88px}.resonance-actions .btn{width:100%}}
 @media(max-width:640px){.vcard .vcontrols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 10px;width:100%}.vcard .vcontrols label{grid-column:1/-1;min-width:0}.vcard .gval{min-width:72px}.vcard .plot{overflow:hidden}.vcard .plot svg{display:block;width:100%;max-width:100%;height:auto}}
-@media(max-width:430px){.tabs,.claude-kinds,.vault-stats,.vault-truth{grid-template-columns:1fr}.tab{min-height:82px}.vault-offer-actions .btn{width:100%;justify-content:center}}
+@media(max-width:430px){.tabs,.claude-kinds,.vault-stats,.vault-truth{grid-template-columns:1fr}.tab{min-height:82px}.vault-offer-actions .btn,.vault-recovery-actions .btn{width:100%;justify-content:center}.vault-path-row{align-items:stretch;flex-direction:column}.vault-path-row .btn{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.journey-world,.journey-sun,.journey-moon,.journey-track span{transition:none!important}}
 </style>
 </head>
@@ -660,12 +661,23 @@ if __name__ == "__main__":
         <div class="small">TOP checks file names and folder structure first. It does not read your Markdown notes, settings or attachments.</div>
         <input type="file" id="vaultFolder" webkitdirectory directory multiple>
       </label>
-      <label class="vault-fallback">Choose AI History Files Instead
-        <span>Use this only for conversations.json, Claude Code JSONL, Codex usage JSONL, or an Anthropic Console CSV.</span>
+      <label class="vault-fallback">Choose Individual History Files
+        <span>Use this if you already have conversations.json, one or more Claude Code JSONL files, Codex usage JSONL, or an Anthropic Console CSV.</span>
         <input type="file" id="vaultFiles" accept=".json,.jsonl,.csv,application/json,text/csv" multiple>
       </label>
     </div>
     <p class="vault-support" id="vaultSupport"><strong>Desktop first:</strong> folder selection works best in a current desktop browser. A manual file option remains available.</p>
+    <div class="vault-recovery" aria-labelledby="vaultRecoveryHeading">
+      <h3 id="vaultRecoveryHeading">Looking for your AI usage numbers?</h3>
+      <p>Opening Claude Code inside an Obsidian vault does not put its usage logs inside that vault. Choose the separate Claude Code folder below. TOP reads the JSONL session files locally and keeps only their usage fields for this report. Your prompts, code and notes stay on this device.</p>
+      <div class="vault-recovery-actions">
+        <button type="button" class="btn p" id="vaultChooseClaudeCodeFolder">Choose My Claude Code Folder</button>
+        <button type="button" class="btn" id="vaultChooseConversations">Choose conversations.json</button>
+        <button type="button" class="btn" id="vaultChooseCodexFolder">Choose My Codex Sessions Folder</button>
+      </div>
+      <p class="vault-paths">For Claude Code on Windows, copy this path. In the folder picker, paste it into the address bar, press Enter, then choose the folder. Do not copy raw history into a synced Obsidian vault.</p>
+      <div class="vault-path-row"><code>%USERPROFILE%\.claude\projects</code><button type="button" class="btn" id="vaultCopyClaudePath">Copy Path</button></div>
+    </div>
     <div class="vault-error" id="vaultError" role="alert" aria-live="polite"></div>
     <div class="vault-report" id="vaultReport" hidden>
       <div class="vault-status" id="vaultStatus">Vault check ready.</div>
@@ -1780,7 +1792,7 @@ function vaultCandidateKind(file,strictFolder){
   if(/^(?:projects?|memories?|users?)(?:[-_]\d+)?\.json$/i.test(name)) return "claude-context";
   if(/\.json$/i.test(name)&&!/^conversations?(?:[-_]\d+)?\.json$/i.test(name)) return "regular-json";
   if(name==="ai-events.jsonl") return "codex";
-  if(/^rollout-.+\.jsonl$/i.test(name)&&/(?:^|\/)(?:codex|codex-sessions|codex-archived-sessions)(?:\/|$)/i.test(path)) return "codex";
+  if(/^rollout-.+\.jsonl$/i.test(name)&&(!strictFolder||/(?:^|\/)(?:codex|codex-sessions|codex-archived-sessions)(?:\/|$)/i.test(path))) return "codex";
   if(name==="history.jsonl"||/^rollout-.+\.jsonl$/i.test(name)) return "other-data";
   if(/\.jsonl$/i.test(name)){
     if(!strictFolder||name==="claude-usage-only.jsonl"||/(?:^|\/)(?:\.claude\/projects|claude[-_ ]?(?:code|history))(?:\/|$)/i.test(path)) return "cc";
@@ -1792,7 +1804,7 @@ function vaultCandidateKind(file,strictFolder){
 }
 function scanVaultFiles(files,strictFolder,now){
   var list=Array.prototype.slice.call(files||[]), folders={}, structures={agents:false,claude:false,index:false,priorities:false,birds:false,daily:false};
-  var scan={notes:0,recent:0,skipped:0,oversized:0,folders:0,tooMany:false,individualFiles:!strictFolder,claudeContext:0,regularJson:0,archives:0,otherData:0,candidates:{cc:[],codex:[],csv:[],conversation:[]},structures:structures};
+  var scan={selected:list.length,notes:0,recent:0,skipped:0,oversized:0,folders:0,tooMany:false,individualFiles:!strictFolder,claudeContext:0,regularJson:0,archives:0,otherData:0,candidates:{cc:[],codex:[],csv:[],conversation:[]},structures:structures};
   if(list.length>VAULT_LIMITS.maxEntries){scan.tooMany=true;return scan}
   var current=Number(now)||Date.now(),candidateBytes=0;
   list.forEach(function(file){
@@ -1869,7 +1881,7 @@ function renderVaultScan(scan){
   document.getElementById("vaultFolders").textContent=fmtN(scan.folders);
   document.getElementById("vaultRecent").textContent=fmtN(scan.recent);
   document.getElementById("vaultCandidates").textContent=fmtN(vaultCandidateCount(scan));
-  var status=scan.individualFiles?"Individual files were selected, so the note and folder totals below are not a scan of your whole vault. ":"Vault structure checked on this device. ";
+  var status=scan.individualFiles?"This was not a whole-vault scan. You selected "+fmtN(scan.selected)+" individual file"+(scan.selected===1?"":"s")+", so the note and folder totals below do not describe your vault. ":"Vault structure checked on this device. ";
   status+="No Markdown note contents were read. "+fmtN(scan.skipped)+" hidden, attachment or unsupported file"+(scan.skipped===1?" was":"s were")+" skipped.";
   if(scan.claudeContext)status+=" "+fmtN(scan.claudeContext)+" Claude project, memory or user file"+(scan.claudeContext===1?" was":"s were")+" recognized as private context, not usage history, and not opened.";
   if(scan.regularJson)status+=" "+fmtN(scan.regularJson)+" regular JSON file"+(scan.regularJson===1?" did":"s did")+" not have a supported history filename and "+(scan.regularJson===1?"was":"were")+" not opened.";
@@ -1879,7 +1891,7 @@ function renderVaultScan(scan){
   var buttons=document.getElementById("vaultSourceButtons");buttons.textContent="";
   var candidateCount=vaultCandidateCount(scan),historyHeading=document.getElementById("vaultHistoryHeading"),historyCopy=document.getElementById("vaultHistoryCopy");
   historyHeading.textContent=candidateCount?"Files ready for a private format check":"No supported AI history files found";
-  historyCopy.textContent=candidateCount?"TOP recognized the file names or types below. Their contents are checked only after you choose one. Markdown notes are never sent into a usage parser.":"That is normal. Obsidian notes, Claude projects, memories, user files and ordinary JSON are context, not token ledgers.";
+  historyCopy.textContent=candidateCount?"TOP recognized the file names or types below. Their contents are checked only after you choose one. Markdown notes are never sent into a usage parser.":"That is normal. Obsidian notes and ordinary JSON are context, not token ledgers. Claude Code usage is normally in the separate .claude\\projects folder, even when Claude Code worked inside this vault.";
   if(scan.candidates.cc.length) addVaultSourceButton(buttons,"Check "+fmtN(scan.candidates.cc.length)+" Claude Code file"+(scan.candidates.cc.length===1?"":"s"),"cc",scan.candidates.cc);
   if(scan.candidates.codex.length){
     var codexAggregates=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()==="ai-events.jsonl"}),codexRollouts=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()!=="ai-events.jsonl"});
@@ -1890,7 +1902,7 @@ function renderVaultScan(scan){
   if(scan.candidates.conversation.length){
     addVaultSourceButton(buttons,scan.candidates.conversation.length===1?"Check conversation export":"Check "+fmtN(scan.candidates.conversation.length)+" conversation export files together","chat",scan.candidates.conversation);
   }
-  if(!vaultCandidateCount(scan)){var empty=document.createElement("p");empty.className="vault-empty";empty.textContent="No supported AI history file was found. That is normal. Obsidian notes are memory, not a token ledger. Use a downloaded Claude, ChatGPT or Codex history if you want a usage report.";buttons.appendChild(empty)}
+  if(!vaultCandidateCount(scan)){var empty=document.createElement("p");empty.className="vault-empty";empty.textContent="No supported usage file was found here. Use Choose My Claude Code Folder above for coding usage, or choose the extracted conversations.json for Claude Chat or ChatGPT.";buttons.appendChild(empty)}
   var labels=[
     ["Vault index",scan.structures.index],["Active priorities",scan.structures.priorities],["Agent instructions",scan.structures.agents||scan.structures.claude],["Bird's-eye view",scan.structures.birds],["Daily notes",scan.structures.daily]
   ];
@@ -1906,8 +1918,9 @@ function startVaultScan(files,strictFolder){
 }
 var vaultFolder=document.getElementById("vaultFolder"),vaultFiles=document.getElementById("vaultFiles"),vaultDrop=document.getElementById("vaultDrop");
 if(!("webkitdirectory" in vaultFolder)) document.getElementById("vaultSupport").innerHTML="<strong>This browser cannot choose a whole folder here.</strong> Choose supported JSON, JSONL or CSV files individually instead. Nothing has been read or sent.";
-vaultFolder.addEventListener("change",function(){startVaultScan(vaultFolder.files,true)});
-vaultFiles.addEventListener("change",function(){startVaultScan(vaultFiles.files,false)});
+function takeChosenFiles(input){var selected=Array.prototype.slice.call(input.files||[]);input.value="";return selected}
+vaultFolder.addEventListener("change",function(){startVaultScan(takeChosenFiles(vaultFolder),true)});
+vaultFiles.addEventListener("change",function(){startVaultScan(takeChosenFiles(vaultFiles),false)});
 vaultDrop.addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();vaultFolder.click()}});
 ["dragenter","dragover"].forEach(function(name){vaultDrop.addEventListener(name,function(event){event.preventDefault();vaultDrop.classList.add("over")})});
 ["dragleave","drop"].forEach(function(name){vaultDrop.addEventListener(name,function(event){event.preventDefault();vaultDrop.classList.remove("over")})});
@@ -1916,6 +1929,19 @@ document.getElementById("download7CsPlan").addEventListener("click",function(){i
 function returnToSources(){document.getElementById("obsidianPanel").hidden=true;document.getElementById("providerStep").hidden=false;document.getElementById("providerStep").scrollIntoView({behavior:"smooth",block:"start"});document.getElementById("providerHeading").focus({preventScroll:true})}
 document.getElementById("changeSourceFromVault").addEventListener("click",returnToSources);
 document.getElementById("useHistoryInstead").addEventListener("click",returnToSources);
+function chooseHistoryFromVault(targetMode,pickerId){
+  setMode(targetMode);selectRoute("a");
+  document.getElementById("fileStatus").textContent="Nothing has been read yet. Choose the folder or file in the Windows picker.";
+  document.getElementById(pickerId).click();
+}
+document.getElementById("vaultChooseClaudeCodeFolder").addEventListener("click",function(){chooseHistoryFromVault("cc","historyFolder")});
+document.getElementById("vaultChooseConversations").addEventListener("click",function(){chooseHistoryFromVault("chat","file")});
+document.getElementById("vaultChooseCodexFolder").addEventListener("click",function(){chooseHistoryFromVault("codex","historyFolder")});
+document.getElementById("vaultCopyClaudePath").addEventListener("click",function(){
+  var button=this,path="%USERPROFILE%\\.claude\\projects",done=function(){button.textContent="Path Copied";setTimeout(function(){button.textContent="Copy Path"},1600)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(path).then(done).catch(function(){button.textContent=path});
+  else{var helper=document.createElement("textarea");helper.value=path;helper.setAttribute("readonly","");helper.style.position="fixed";helper.style.opacity="0";document.body.appendChild(helper);helper.select();try{document.execCommand("copy");done()}catch(error){button.textContent=path}document.body.removeChild(helper)}
+});
 
 // ---------- file handling ----------
 var HISTORY_LIMITS={maxFiles:10000,maxFileBytes:350*1024*1024,maxConversationDesktopBytes:64*1024*1024,maxConversationMobileBytes:12*1024*1024,maxCodexFileBytes:4*1024*1024*1024,maxTotalBytes:128*1024*1024,maxClaudeTotalBytes:8*1024*1024*1024,maxCodexTotalBytes:12*1024*1024*1024};
@@ -2076,8 +2102,8 @@ function run(texts,openedCount){
   }catch(err){showErr("TOP could not read that file: "+err.message+". Nothing was uploaded or sent. Try a different file or AI source.");}
 }
 var drop=document.getElementById("drop"),fileInput=document.getElementById("file"),historyFolderInput=document.getElementById("historyFolder"),historyFolderChoice=document.getElementById("historyFolderChoice");
-fileInput.addEventListener("change",function(){handle(fileInput.files)});
-historyFolderInput.addEventListener("change",function(){handle(historyFolderInput.files)});
+fileInput.addEventListener("change",function(){handle(takeChosenFiles(fileInput))});
+historyFolderInput.addEventListener("change",function(){handle(takeChosenFiles(historyFolderInput))});
 historyFolderChoice.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();historyFolderInput.click()}});
 drop.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fileInput.click();}});
 ["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("over")})});
