@@ -12,7 +12,7 @@ The single candidate is a nested recent-calibration scale:
 
 1. Fit the unchanged forecast engine on the first 55% of rows.
 2. Use the first three quarters of the following 20% calibration block to fit the engine's existing conformal quantiles.
-3. Use the final quarter of that calibration block to learn one global description-only interval scale. For each row, calculate the absolute log error divided by the current upper log half-width, then take the finite-sample 80% conformal quantile of those ratios.
+3. Use the final quarter of that calibration block to learn one global description-only interval scale. For each row, calculate the absolute log error divided by the current upper log half-width, then take the `ceil((n + 1) * 0.80)`th smallest ratio, capped at the largest observed ratio.
 4. Keep P50 unchanged. Multiply both lower and upper log half-widths by that one scale for every development forecast.
 
 The scale may shrink or expand the interval. It uses no development row, raw text, original project identifier, realised turn count in description mode, model search, clipping, or parameter tuning. It preserves asymmetric dollar distances implied by a symmetric interval in log space. The candidate changes interval width only, so its point-error metrics should equal baseline apart from numeric rounding.
