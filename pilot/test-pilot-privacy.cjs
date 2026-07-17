@@ -12,6 +12,12 @@ assert.doesNotMatch(app, /\.name\b|webkitRelativePath|\.path\b/,
 assert.doesNotMatch(app, /innerHTML|outerHTML|insertAdjacentHTML|document\.write/,
   "imported values must be rendered with textContent, not HTML parsing");
 assert.match(html, /No task text, names, prompts, replies, file contents, paths, credentials, account identifiers, or notes/);
+assert.match(html, /never asks for the task's title, description, prompt, reply, or files/);
+assert.doesNotMatch(html, /never asks what the task was/i);
+assert.match(html, /pseudonymous, not anonymous/);
+assert.doesNotMatch(html, /Four anonymous participant slots|Anonymous participant/);
+assert.match(html, /task-text-free file still retains the coded slot, export date, task class, forecast version, P10, P50, P90, actual, attempt state and sequence, invalidation reason, and completeness counts/);
+assert.match(html, /Downloaded files are not signed or tamper-evident/);
 assert.match(app, /No free-text explanation is collected/);
 
 let participant = Pilot.startDraft(Pilot.createParticipant(1));
@@ -44,7 +50,7 @@ inspectKeys(exported);
 assert.doesNotMatch(serialized, /C:\\|Users\\|@|https?:\/\//i);
 assert.match(serialized, /"state":"invalidated"/);
 assert.match(serialized, /"invalidation_reason":"task_abandoned"/,
-  "abandoned attempts must remain as content-free structured records");
+  "abandoned attempts must remain as task-text-free structured records");
 
 const injectedTop = JSON.parse(serialized);
 injectedTop.notes = "private";

@@ -38,7 +38,7 @@ assert.equal((html.match(/<script\s+src=/g) || []).length, 2);
 assert.match(html, /<script src="pilot-core\.js"><\/script>/);
 assert.match(html, /<script src="pilot-app\.js"><\/script>/);
 assert.doesNotMatch(html, /<form\b|\saction=/i);
-assert.match(html, /It makes no network requests/);
-assert.match(html, /never uploaded/);
+assert.match(html, /makes no runtime request that transmits participant data/);
+assert.match(html, /makes no runtime request that transmits them/);
 
 console.log("TOP prospective pilot no-network and CSP tests passed");
