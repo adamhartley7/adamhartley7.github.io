@@ -89,7 +89,7 @@ function makeFixture() {
         requestId: `synthetic-request-${id}`,
         message: {
           id: `synthetic-message-${id}`,
-          model: "claude-sonnet-4-5-synthetic",
+          model: "claude-sonnet-4-5-20260101",
           usage: {
             input_tokens: 800 + index * 75,
             output_tokens: 120 + index * 13,
@@ -263,6 +263,21 @@ async function stopBrowser(browser) {
   }
 }
 
+async function removeProfile(profile) {
+  let lastError;
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try {
+      fs.rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (!error || !["EBUSY", "ENOTEMPTY", "EPERM"].includes(error.code)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+  throw lastError || new Error(`Could not remove browser profile ${profile}`);
+}
+
 async function runOnce(runNumber, texts) {
   const port = await getFreePort();
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), `top-forecast-browser-${runNumber}-`));
@@ -406,9 +421,12 @@ async function runOnce(runNumber, texts) {
       local_requests: [...new Set(requests)].map((url) => path.basename(new URL(url).pathname)).sort()
     };
   } finally {
-    if (client) client.close();
+    if (client) {
+      try { await client.send("Browser.close"); } catch (error) { /* socket may close before reply */ }
+      client.close();
+    }
     await stopBrowser(browser);
-    fs.rmSync(profile, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 });
+    await removeProfile(profile);
   }
 }
 
@@ -429,7 +447,7 @@ async function runOnce(runNumber, texts) {
     synthetic_sessions: 13,
     priced_sessions: 12,
     unpriced_sessions: 1,
-    priced_model: "claude-sonnet-4-5-synthetic",
+    priced_model: "claude-sonnet-4-5-20260101",
     unpriced_model: "synthetic-unpriced-model",
     projects: ["/synthetic/project-a", "/synthetic/project-b", "/synthetic/project-c"],
     timestamps: ["2026-01-01T12:00:00.000Z", "2026-01-13T12:00:00.000Z"],
