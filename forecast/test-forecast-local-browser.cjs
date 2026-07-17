@@ -4,7 +4,8 @@
  * Reproducibility gate for the shipped browser path, not an accuracy test.
  * It loads /forecast from file:// in a fresh Chromium profile, blocks page
  * network APIs and non-file requests, feeds only generated JSONL strings into
- * the same run() path used after FileReader completes, and repeats three times.
+ * the same run() path used after FileReader completes in a 320px viewport,
+ * and repeats three times.
  *
  * Deliberate limits: Chromium only; no OS file-picker/drop traversal; one
  * generic "misc" archetype; tiny synthetic chronology; no real user data.
@@ -23,6 +24,7 @@ const { spawn } = require("node:child_process");
 const RUNS = 3;
 const PAGE_PATH = path.join(__dirname, "index.html");
 const EXPECTED_CORE = {
+  layout: { inner_width: 320, no_horizontal_overflow: true },
   sessions_seen: 13,
   priced_sessions_used: 12,
   split: { fit: 7, calibration: 3, test: 2 },
@@ -303,6 +305,12 @@ async function runOnce(runNumber, texts) {
     });
     await client.send("Runtime.enable");
     await client.send("Page.enable");
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: 320,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false
+    });
     await client.send("Page.addScriptToEvaluateOnNewDocument", {
       source: `
         globalThis.fetch = function () { throw new Error("fixture blocks fetch"); };
@@ -342,6 +350,11 @@ async function runOnce(runNumber, texts) {
       }, QP, "oracle");
 
       return {
+        layout: {
+          inner_width: window.innerWidth,
+          no_horizontal_overflow:
+            document.documentElement.scrollWidth <= document.documentElement.clientWidth
+        },
         sessions_seen: SESSIONS.length,
         priced_sessions_used: BT.usable.length,
         split: { fit: BT.nFit, calibration: BT.nCalib, test: BT.nTest },
@@ -372,6 +385,8 @@ async function runOnce(runNumber, texts) {
     browserResult.summary_sha256 = crypto.createHash("sha256").update(summary).digest("hex");
 
     assert.equal(pageErrors.length, 0, `run ${runNumber} raised browser errors`);
+    assert.equal(browserResult.layout.no_horizontal_overflow, true,
+      "the forecast page must not overflow horizontally at 320px");
     assert.ok(requests.length >= 2, "the local HTML and forecaster script must both load");
     assert.ok(requests.every((url) => url.startsWith("file:")),
       `run ${runNumber} attempted a non-file request: ${requests.join(", ")}`);

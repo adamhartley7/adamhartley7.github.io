@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TOP Forecast — predict your Claude Code spend, locally</title>
-<meta name="description" content="Drop your Claude Code logs in and see your real spend, then back-test TOP's cost forecast on your own sessions — parsed 100% in your browser. Nothing is uploaded.">
+<meta name="description" content="Select Claude Code logs and see your real spend, then back-test TOP's cost forecast on your own sessions. The selected log contents are processed locally and are not sent by this page.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -15,11 +15,13 @@
   --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
   background-image:radial-gradient(800px 460px at 72% -8%,rgba(110,123,242,.13),transparent 60%)}
 .mono{font-family:var(--mono)}
 a{color:var(--iris2);text-decoration:none}
-.wrap{max-width:960px;margin:0 auto;padding:0 22px}
+.wrap{width:100%;max-width:960px;margin:0 auto;padding:0 22px}
 nav{border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,10,.8);backdrop-filter:blur(10px);z-index:5}
 nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
 .logo{display:flex;align-items:center;gap:9px;font-weight:700}
@@ -32,7 +34,8 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .sub{color:var(--muted);max-width:60ch;margin:0 auto;font-size:17px}
 .sub b{color:var(--text)}
 .hint{text-align:center;color:var(--faint);font-size:13.5px;margin:14px auto 18px;max-width:66ch}
-.hint code{color:var(--muted);background:var(--panel);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:12.5px}
+.hint code{color:var(--muted);background:var(--panel);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:12.5px;overflow-wrap:anywhere;word-break:break-word}
+#agentcmd{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
 .drop{display:block;width:100%;border:1.5px dashed var(--border2);border-radius:16px;background:var(--panel);padding:clamp(26px,6vw,40px) 20px;text-align:center;cursor:pointer;transition:.2s}
 .drop .big{overflow-wrap:anywhere}
 .drop.over{border-color:var(--iris);background:rgba(110,123,242,.08)}
@@ -86,6 +89,16 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .sw{width:14px;height:10px;border-radius:3px;display:inline-block}
 .sw.rng{background:rgba(110,123,242,.5);border:1px solid var(--iris2)}
 .sw.act{width:3px;height:14px;background:var(--mint);border-radius:1px}
+@media(max-width:480px){
+  .wrap{padding-left:14px;padding-right:14px}
+  header{padding:34px 0 18px}
+  h1{font-size:30px}
+  .sub{font-size:15.5px}
+  .priv{font-size:12px;line-height:1.45}
+  .hint{font-size:12.5px}
+  .drop{padding:24px 12px}
+  #agentcmd{font-size:11.5px;line-height:1.45}
+}
 </style>
 </head>
 <body>
@@ -95,13 +108,13 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 </div></nav>
 
 <header class="wrap">
-  <div class="badge"><span class="lk"></span> raw data never leaves your browser</div>
+  <div class="badge"><span class="lk"></span> selected log contents stay in this browser</div>
   <h1>Forecast your Claude Code spend — before you spend it.</h1>
-  <p class="sub">Drop your Claude Code logs in below. Files are parsed <b>entirely on your own machine</b> — <b>your raw logs, prompts and code never leave your browser, and nothing is uploaded anywhere.</b> First you see exactly what you've already spent; then TOP <b>back-tests its cost forecast on your own history</b> and shows you the honest result.</p>
+  <p class="sub">Select Claude Code logs below. This page reads the selected files inside your browser tab and <b>does not send their contents to TOP or another service.</b> Loading the hosted page still creates routine web requests. First you see what you have already spent; then TOP <b>back-tests its cost forecast on your own history</b> and shows you the result.</p>
 </header>
 
 <div class="wrap">
-  <div class="priv"><span>🔒</span> 100% client-side · no network calls · your logs stay on your device · view source and check</div>
+  <div class="priv"><span>🔒</span> local log processing · no log-content upload request · source available to inspect</div>
 
   <div class="hint">
     Your Claude Code logs live in <code>~/.claude/projects/</code> (Windows: <code>C:\Users\YOU\.claude\projects\</code>).
@@ -170,13 +183,14 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     </div>
 
     <div class="summbox">
-      <h3>Share your (anonymised) result <span style="color:var(--faint);font-weight:400;font-size:13px">— totals only, never prompts or code</span></h3>
-      <p>Nothing here has been sent anywhere. If you want to help calibrate TOP, copy this summary and send it to Adam yourself. It contains <b>aggregate numbers only</b> — no prompt text, no code, no file names, no project names.</p>
+      <h3>Review a content-free aggregate summary <span style="color:var(--faint);font-weight:400;font-size:13px">(totals and labels only, never prompts or code)</span></h3>
+      <p>Nothing in this summary has been sent by this page. External collection is currently paused. You can copy or download it to your own device for inspection, but do not send it to TOP until an approved consent and privacy process is available. It contains <b>aggregate numbers and labels only</b>, with no prompt text, code, file names or project names. These exclusions reduce disclosure risk, but they do not guarantee anonymity.</p>
       <textarea id="summary" readonly></textarea>
       <div>
-        <button class="btn p" id="copybtn">Copy anonymised summary</button>
-        <button class="btn" id="dlbtn">Download .txt</button>
+        <button class="btn p" id="copybtn" aria-describedby="summarycopy-status">Copy aggregate summary</button>
+        <button class="btn" id="dlbtn">Download local .txt</button>
       </div>
+      <p class="note" id="summarycopy-status" role="status" aria-live="polite" style="text-align:left;margin:8px 0 0">Copies only the aggregate text shown above.</p>
     </div>
 
     <div class="pricerow" id="prices"></div>
@@ -184,7 +198,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
   </div>
 </div>
 
-<footer><div class="wrap">TOP Forecast · built by <a href="/">Adam Hartley</a> · everything above happens in your browser, with no network calls — <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/forecast/index.html">read the source</a></div></footer>
+<footer><div class="wrap">TOP Forecast · built by <a href="/">Adam Hartley</a> · selected log contents are processed in this browser and are not sent by this page · <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/forecast/index.html">read the source</a></div></footer>
 
 <script src="forecaster.js"></script>
 <script>
@@ -518,7 +532,7 @@ function renderBacktest(){
   else verdict="On your data the bands under-cover (they should catch 80%, they caught "+fmtPct(cov)+") — a sign your sessions are varied enough that v1 struggles. That's the honest state of the art here.";
   var caveat="";
   if(BT.thin) caveat=" These numbers come from a small test set ("+BT.nTest+" sessions), so treat them as noisy.";
-  statusEl.innerHTML="<b>Early v1.</b> Accuracy depends heavily on how varied your workloads are. "+verdict+caveat+" Sharing your (anonymised) result below helps calibrate it.";
+  statusEl.innerHTML="<b>Early v1.</b> Accuracy depends heavily on how varied your workloads are. "+verdict+caveat+" The content-free aggregate summary below is for local inspection only while external collection is paused.";
 }
 
 function renderRegime(){
@@ -582,7 +596,7 @@ function renderQuote(){
     return;
   }
   form.style.display="block";
-  lead.textContent="Type what you're about to ask Claude Code to do, pick the project, and get a price band before you run it. Classified and priced entirely on your device, from a model fitted on your own "+BT.usable.length+" uploaded sessions.";
+  lead.textContent="Type what you're about to ask Claude Code to do, pick the project, and get a price band before you run it. Classified and priced inside this browser, from a model fitted on your own "+BT.usable.length+" selected local sessions.";
   // option value = the RAW cwd (the exact group key the priors were fitted on); the label is
   // the short name. The empty value = a project not in your history: the model cold-starts
   // to the pure archetype prior, which is the honest, wider answer.
@@ -599,8 +613,8 @@ function renderQuote(){
 
 function buildSummary(rows,t){
   var L=[];
-  L.push("TOP Forecast — anonymised result summary");
-  L.push("generated locally in the browser; never uploaded");
+  L.push("TOP Forecast - content-free aggregate summary");
+  L.push("generated locally in the browser; not sent by this page");
   L.push("");
   L.push("[spend]");
   L.push("total_cost_usd: "+t.totCost.toFixed(2));
@@ -637,7 +651,7 @@ function buildSummary(rows,t){
     L.push("not_enough_sessions: "+BT.n+" (need "+BT.min+")");
   }
   L.push("");
-  L.push("[aggregates only — no prompts, no code, no file names, no project names]");
+  L.push("[content-free aggregates only: no prompts, no code, no file names, no project names]");
   document.getElementById("summary").value=L.join("\n");
 }
 
@@ -652,7 +666,7 @@ function handle(files){
     if(!texts.length && failed){
       // every read failed — the classic cause is a dropped folder in a browser whose drag
       // API can't open directories. Say that, instead of the generic "no usage found" error.
-      showErr("Couldn't read what was dropped. If that was a folder, this browser can't open folders from a drag. Use the \"choose a whole folder\" link instead, or drop the .jsonl files themselves. Nothing was uploaded.");
+      showErr("Couldn't read what was dropped. If that was a folder, this browser can't open folders from a drag. Use the \"choose a whole folder\" link instead, or drop the .jsonl files themselves. No selected log contents were sent.");
       return;
     }
     run(texts);
@@ -666,17 +680,17 @@ function handle(files){
 }
 function run(texts){
   try{
-    if(typeof Forecaster==="undefined" || !Forecaster.forecast){ showErr("forecaster.js didn't load — the forecast engine is missing. Nothing was uploaded. Reload the page and try again."); return; }
+    if(typeof Forecaster==="undefined" || !Forecaster.forecast){ showErr("forecaster.js didn't load — the forecast engine is missing. No selected log contents were sent. Reload the page and try again."); return; }
     var agg=parseClaudeCode(texts);
     if(!Object.keys(agg.by).length || agg.turns===0){
-      showErr("Couldn't find Claude Code usage in those files. Make sure they're the .jsonl session logs from ~/.claude/projects (not a CSV or claude.ai export). Nothing was uploaded.");
+      showErr("Couldn't find Claude Code usage in those files. Make sure they're the .jsonl session logs from ~/.claude/projects (not a CSV or claude.ai export). No selected log contents were sent.");
       return;
     }
     SESSIONS=buildSessions(texts);
     document.getElementById("busy").style.display="none";
     render();
     document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
-  }catch(err){ showErr("Something went wrong parsing that on your device: "+err.message+". Nothing was uploaded. Try different files."); }
+  }catch(err){ showErr("Something went wrong while parsing in this browser: "+err.message+". No selected log contents were sent. Try different files."); }
 }
 
 // ---- folder support ----
@@ -785,7 +799,7 @@ document.getElementById("qbtn").addEventListener("click",function(){
   }
   cards.innerHTML=html;
   var msg='Read the task as "'+arch+'"'+(projVal===""?" in a project the model has never seen, so this is the archetype-wide band":"")+
-    ". Fitted and calibrated on your own "+BT.usable.length+" uploaded sessions only, on this device. The back-test line on each card is how this same model scored on your most recent sessions, so trust the band about that much.";
+    ". Fitted and calibrated on your own "+BT.usable.length+" selected local sessions only, in this browser. The back-test line on each card is how this same model scored on your most recent sessions, so trust the band about that much.";
   if(BT.thin) msg+=" That score came from a small test set ("+BT.nTest+" sessions), so it is noisy.";
   if(tRaw!=="" && !hasTurns) msg+=" The expected-turns value was ignored (enter a whole number of at least 1).";
   note.style.display="block";
@@ -793,11 +807,23 @@ document.getElementById("qbtn").addEventListener("click",function(){
 });
 
 document.getElementById("copybtn").addEventListener("click",function(){
-  var t=document.getElementById("summary"); t.select();
-  var b=this;
-  if(navigator.clipboard){ navigator.clipboard.writeText(t.value).then(function(){b.textContent="Copied ✓";}).catch(function(){document.execCommand("copy");b.textContent="Copied ✓";}); }
-  else { document.execCommand("copy"); b.textContent="Copied ✓"; }
-  setTimeout(function(){b.textContent="Copy anonymised summary";},1600);
+  var t=document.getElementById("summary"), b=this, status=document.getElementById("summarycopy-status");
+  function copied(){
+    b.textContent="Summary copied";
+    status.textContent="Copied. No data was submitted by this page.";
+    b.focus();
+    setTimeout(function(){b.textContent="Copy aggregate summary";},1600);
+  }
+  function fallback(){
+    t.focus(); t.select();
+    var ok=false;
+    try{ok=document.execCommand("copy");}catch(ignore){}
+    if(ok) copied();
+    else status.textContent="Automatic copy was blocked. The aggregate summary is selected; press Ctrl+C or Command+C.";
+  }
+  if(navigator.clipboard&&typeof navigator.clipboard.writeText==="function"&&window.isSecureContext){
+    navigator.clipboard.writeText(t.value).then(copied,fallback);
+  }else fallback();
 });
 document.getElementById("dlbtn").addEventListener("click",function(){
   var blob=new Blob([document.getElementById("summary").value],{type:"text/plain"});
