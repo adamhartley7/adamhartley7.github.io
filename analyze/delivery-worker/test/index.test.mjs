@@ -945,7 +945,7 @@ test("Copilot never accepts estimated cost or a false zero-dollar missing-cost c
   falseMissing.cost = { status: "partial", usd: 0, basis: "recorded_where_present_never_estimated", currency: "USD", subscription_bill: false };
   falseMissing.pricing.status = "not_applied_no_recognized_rate";
   falseMissing.by_model[0].cost = { status: "partial", usd: 0 };
-  assert.throws(() => validateResearchSafeUsage(falseMissing), /cannot claim a recorded cost/i);
+  assert.throws(() => validateResearchSafeUsage(falseMissing), /partial Copilot model cost|cost-row coverage/i);
 
   const honestPartial = copilotReportFixture();
   honestPartial.measurement.cost_basis = "recorded_where_present_never_estimated";
@@ -960,7 +960,53 @@ test("Copilot never accepts estimated cost or a false zero-dollar missing-cost c
 
   const hiddenMissing = structuredClone(honestPartial);
   hiddenMissing.by_model[0].cost.status = "recorded";
-  assert.throws(() => validateResearchSafeUsage(hiddenMissing), /not represented in model cost states/i);
+  assert.throws(() => validateResearchSafeUsage(hiddenMissing), /cost-row coverage|not represented in model cost states/i);
+
+  const impossibleSingleEventPartial = structuredClone(honestPartial);
+  impossibleSingleEventPartial.by_model[0].events_or_replies = 1;
+  impossibleSingleEventPartial.by_model.push({
+    model: "Claude Haiku 4.5",
+    input_tokens: 0,
+    output_tokens: 0,
+    cache_write_tokens: 0,
+    cache_read_tokens: 0,
+    reasoning_tokens: null,
+    total_tokens: 0,
+    events_or_replies: 1,
+    cost: { status: "unavailable", usd: null },
+  });
+  impossibleSingleEventPartial.pricing.unpriced_model_groups = 1;
+  assert.throws(() => validateResearchSafeUsage(impossibleSingleEventPartial), /partial Copilot model cost/i);
+
+  const undercountedRecordedRows = copilotReportFixture();
+  undercountedRecordedRows.measurement.cost_basis = "recorded_where_present_never_estimated";
+  undercountedRecordedRows.coverage.rows_without_recorded_cost = 2;
+  undercountedRecordedRows.activity.usage_events = 3;
+  undercountedRecordedRows.cost = { status: "partial", usd: 0.6, basis: "recorded_where_present_never_estimated", currency: "USD", subscription_bill: false };
+  undercountedRecordedRows.pricing.status = "not_applied_no_recognized_rate";
+  undercountedRecordedRows.pricing.unpriced_model_groups = 1;
+  undercountedRecordedRows.by_model.push({
+    model: "Claude Haiku 4.5",
+    input_tokens: 0,
+    output_tokens: 0,
+    cache_write_tokens: 0,
+    cache_read_tokens: 0,
+    reasoning_tokens: null,
+    total_tokens: 0,
+    events_or_replies: 1,
+    cost: { status: "recorded", usd: 0.2 },
+  }, {
+    model: "Claude Opus 4.6",
+    input_tokens: 0,
+    output_tokens: 0,
+    cache_write_tokens: 0,
+    cache_read_tokens: 0,
+    reasoning_tokens: null,
+    total_tokens: 0,
+    events_or_replies: 1,
+    cost: { status: "unavailable", usd: null },
+  });
+  assert.throws(() => validateResearchSafeUsage(undercountedRecordedRows), /cost-row coverage/i);
 });
 
 test("Cursor cost states require truthful row coverage and per-model checked rates", () => {

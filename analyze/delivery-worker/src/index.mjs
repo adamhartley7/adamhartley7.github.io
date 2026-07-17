@@ -644,6 +644,31 @@ function validateMultiToolContract(report, eventSum, pricing) {
     if (rates.length !== 0) fail("invalid_reconciliation", "Copilot reports cannot apply token prices.");
     const allowedModelStatuses = new Set(["recorded", "partial", "unavailable"]);
     if (modelStatuses.some((status) => !allowedModelStatuses.has(status))) fail("invalid_reconciliation", "Copilot model cost status is not supported.");
+    let minimumRecordedRows = 0;
+    let maximumRecordedRows = 0;
+    let minimumMissingRows = 0;
+    let maximumMissingRows = 0;
+    for (const row of report.by_model) {
+      if (row.cost.status === "recorded") {
+        minimumRecordedRows += row.events_or_replies;
+        maximumRecordedRows += row.events_or_replies;
+      } else if (row.cost.status === "unavailable") {
+        minimumMissingRows += row.events_or_replies;
+        maximumMissingRows += row.events_or_replies;
+      } else if (row.cost.status === "partial") {
+        if (row.events_or_replies < 2) {
+          fail("invalid_reconciliation", "A partial Copilot model cost requires both a recorded and a missing-cost event.");
+        }
+        minimumRecordedRows += 1;
+        maximumRecordedRows += row.events_or_replies - 1;
+        minimumMissingRows += 1;
+        maximumMissingRows += row.events_or_replies - 1;
+      }
+    }
+    if (recordedRows < minimumRecordedRows || recordedRows > maximumRecordedRows
+        || missingRows < minimumMissingRows || missingRows > maximumMissingRows) {
+      fail("invalid_reconciliation", "Copilot cost-row coverage cannot be allocated to model cost provenance.");
+    }
 
     const complete = report.measurement.cost_basis === "recorded_in_export_as_billed_by_github";
     if (complete) {
