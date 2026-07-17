@@ -87,6 +87,71 @@ node --test test/*.test.mjs
 
 Tests cover strict v1 preservation, v2 exact keys and enums, calendar ordering, cardinality, bucket ranges, cross-section reconciliation, fixed server-side recipients, idempotency, CORS, the 256 KiB limit, JSON-only input, HTML escaping and synthetic 400, 409, 413, 429 and upstream-500 failures.
 
+## Morning production-smoke gate
+
+The smoke tool contains no secret, recipient address or personal report content. Its report is a fixed synthetic `top.research-safe-usage.v1` shape that the same Worker validator checks. The endpoint and Origin are constants, not command-line options:
+
+```text
+endpoint: https://submit.tokenoptimisationprotocol.org/
+Origin:   https://tokenoptimisationprotocol.org
+```
+
+Default execution is a dry run. It validates and hashes the synthetic report, prints a client submission UUID preview and makes zero network calls:
+
+```powershell
+Set-Location C:\path\to\adamhartley7.github.io\analyze\delivery-worker
+npm run smoke:production
+```
+
+A live synthetic request is deliberately awkward. It requires `--live`, two different exact confirmation phrases and a new absolute retention-log path outside the repository. The parent folder must already exist. The tool reserves the log before its single request and refuses to overwrite an earlier record:
+
+```powershell
+npm run smoke:production -- `
+  --live `
+  --confirm-synthetic SYNTHETIC-REPORT-ONLY `
+  --confirm-send SEND-ONE-PRODUCTION-SMOKE `
+  --retention-log "C:\private\top-smoke-retention-YYYY-MM-DD.json"
+```
+
+The committed [`scripts/retention-log.template.json`](scripts/retention-log.template.json) documents the private record shape. The live tool materializes it with the synthetic report hash and dates. Keep the actual log outside Git, OneDrive-shared folders and this repository. Its `receipt_id` is the client submission UUID used for idempotency. It is never proof that Resend delivered a message. Even an exact HTTP 202 response leaves `provider_delivery_confirmed` set to `false` and both received-attachment hashes pending.
+
+A timeout or other transport failure is recorded as `delivery_outcome_unknown`, because the server may already have processed the request. Do not retry automatically. If an HTTP response arrives but the final local log write fails, the tool reports the known response separately and stops without claiming a clean smoke. Reconcile the private record before any further live request.
+
+After the two approved recipients save their received JSON attachments locally, compare both files with the expected hash without granting this tool mailbox access:
+
+```powershell
+npm run verify:attachments -- `
+  --retention-log "C:\private\top-smoke-retention-YYYY-MM-DD.json" `
+  --attachment "C:\Downloads\received-copy-1.json" `
+  --attachment "C:\Downloads\received-copy-2.json"
+```
+
+The helper reads only the three explicit local paths. It makes zero network calls, stores both observed SHA-256 values in the private log and fails unless both equal `report_sha256`.
+
+### Exact morning order
+
+1. **No-email probes.** Check the pinned route before any POST. These paths return before the Worker reads a report or calls the email provider:
+
+   ```powershell
+   curl.exe --silent --show-error --output NUL --write-out "%{http_code}`n" `
+     --request OPTIONS `
+     --header "Origin: https://tokenoptimisationprotocol.org" `
+     --header "Access-Control-Request-Method: POST" `
+     https://submit.tokenoptimisationprotocol.org/
+
+   curl.exe --silent --show-error --output NUL --write-out "%{http_code}`n" `
+     --request GET `
+     --header "Origin: https://tokenoptimisationprotocol.org" `
+     https://submit.tokenoptimisationprotocol.org/
+   ```
+
+   Expect `204` for the preflight and `405` for GET. Stop if either differs. Neither response proves email delivery.
+2. **Synthetic smoke.** Run the zero-network default first. Review the pinned route and hash. Then run one live synthetic request with both exact confirmations and a new private retention-log path. Stop unless the tool records HTTP `202` and `accepted_status: "accepted_for_delivery"`. This is provider acceptance only, not delivery proof.
+3. **Attachment hash check.** Save the two received JSON attachments, run `verify:attachments`, and stop unless both hashes match `report_sha256`. Leave `provider_delivery_confirmed: false`; the hash proves attachment identity, not provider delivery telemetry.
+4. **Adam's one real self-report.** Only after steps 1 to 3 pass should Adam deliberately submit one reviewed research-safe report through the analyzer. Do not substitute the smoke tool for the analyzer consent flow.
+
+No step here deploys the Worker, changes a dashboard, reads a credential, discovers a recipient, opens a mailbox or activates the frontend endpoint.
+
 ## Human setup gates before any deployment
 
 Do not deploy until all of these are decided and documented:
