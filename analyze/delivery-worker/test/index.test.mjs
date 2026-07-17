@@ -304,6 +304,19 @@ function environment(rateSuccess = true) {
   };
 }
 
+function cloudflareEnvironment({ send, rateSuccess = true } = {}) {
+  return {
+    SUBMISSION_TO: "adam-review@example.com",
+    SUBMISSION_CC: "sam-review@example.com",
+    EMAIL: { send: send || (async () => ({ messageId: "synthetic-binding-message-id" })) },
+    SUBMIT_RATE_LIMITER: { limit: async () => ({ success: rateSuccess }) },
+  };
+}
+
+function mustNotFetch() {
+  return async () => { throw new Error("the Cloudflare path must not call external fetch"); };
+}
+
 function requestFor(body, options = {}) {
   return new Request("https://submit.example.workers.dev/v1/reports", {
     method: options.method || "POST",
@@ -568,6 +581,172 @@ test("incomplete coverage is prominent in both email bodies with nonzero exclusi
   assert.match(captured.html, /Oversized lines 1/);
 });
 
+test("Cloudflare binding is the default delivery path when no Resend key is configured", async () => {
+  let captured;
+  const handler = createHandler({
+    now: () => new Date("2026-07-17T12:34:56.000Z"),
+    fetchImpl: mustNotFetch(),
+  });
+  const env = cloudflareEnvironment({
+    send: async (message) => {
+      captured = message;
+      return { messageId: "synthetic-binding-message-id" };
+    },
+  });
+  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+  assert.equal(response.status, 202);
+  assert.equal(body.status, "accepted_for_delivery");
+  assert.equal(body.delivered, false);
+  assert.equal(body.receipt_id, SUBMISSION_ID);
+  assert.match(body.report_sha256, /^[0-9a-f]{64}$/);
+  assert.deepEqual(captured.from, { email: "reports@tokenoptimisationprotocol.org", name: "TOP Analyzer" });
+  assert.deepEqual(captured.to, ["adam-review@example.com"]);
+  assert.deepEqual(captured.cc, ["sam-review@example.com"]);
+  assert.equal(captured.subject, `TOP research-safe usage submission ${SUBMISSION_ID.slice(0, 8)}`);
+  assert.equal(captured.headers["X-TOP-Idempotency-Key"], `top-usage/${SUBMISSION_ID}`);
+  assert.match(captured.text, /Total tokens: 65/);
+  assert.match(captured.text, /Delivery request date: 2026-07-17/);
+  assert.match(captured.text, /Deletion due date: 2026-08-16 \(30 days after the delivery request date\)/);
+  assert.match(captured.html, /deepseek-v4-pro/);
+  assert.equal(captured.attachments.length, 1);
+  assert.equal(captured.attachments[0].type, "application/json");
+  assert.equal(captured.attachments[0].disposition, "attachment");
+  assert.match(captured.attachments[0].filename, /^top-research-safe-usage-2026-07-16-[0-9a-f]{8}\.json$/);
+  const attachment = JSON.parse(Buffer.from(captured.attachments[0].content, "base64").toString("utf8"));
+  assert.deepEqual(attachment, reportFixture());
+});
+
+test("Cloudflare binding errors map to truthful not-sent responses", async () => {
+  const cases = [
+    ["E_RATE_LIMIT_EXCEEDED", 429, "delivery_rate_limited"],
+    ["E_DAILY_LIMIT_EXCEEDED", 429, "delivery_rate_limited"],
+    ["E_SENDER_NOT_VERIFIED", 502, "delivery_rejected"],
+    ["E_RECIPIENT_NOT_ALLOWED", 502, "delivery_rejected"],
+    ["E_UNKNOWN_SYNTHETIC_FAILURE", 503, "delivery_unavailable"],
+    [null, 503, "delivery_unavailable"],
+  ];
+  for (const [code, expectedStatus, expectedCode] of cases) {
+    const handler = createHandler({ fetchImpl: mustNotFetch() });
+    const env = cloudflareEnvironment({
+      send: async () => {
+        const error = new Error("synthetic binding failure");
+        if (code) error.code = code;
+        throw error;
+      },
+    });
+    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+    assert.equal(response.status, expectedStatus);
+    assert.equal(body.status, "not_sent");
+    assert.equal(body.error.code, expectedCode);
+    assert.equal(body.receipt_id, SUBMISSION_ID);
+  }
+});
+
+test("oversized content rejected by the Cloudflare binding is a truthful not-sent 502", async () => {
+  const handler = createHandler({ fetchImpl: mustNotFetch() });
+  const env = cloudflareEnvironment({
+    send: async () => {
+      const error = new Error("message too large");
+      error.code = "E_CONTENT_TOO_LARGE";
+      throw error;
+    },
+  });
+  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+  assert.equal(response.status, 502);
+  assert.equal(body.status, "not_sent");
+  assert.equal(body.error.code, "delivery_rejected");
+});
+
+test("413 body limit stops a Cloudflare-path request before the binding is called", async () => {
+  let called = false;
+  const handler = createHandler({ fetchImpl: mustNotFetch() });
+  const env = cloudflareEnvironment({ send: async () => { called = true; throw new Error("must not send"); } });
+  const oversized = JSON.stringify({ padding: "x".repeat(MAX_JSON_BYTES) });
+  const { response, body } = await responseJson(await handler.fetch(requestFor(oversized), env));
+  assert.equal(response.status, 413);
+  assert.equal(body.error.code, "payload_too_large");
+  assert.equal(called, false);
+});
+
+test("a resolved binding call is accepted whatever its result shape, since both binding generations only throw on failure", async () => {
+  for (const result of [undefined, {}, null]) {
+    const handler = createHandler({ fetchImpl: mustNotFetch() });
+    const env = cloudflareEnvironment({ send: async () => result });
+    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+    assert.equal(response.status, 202);
+    assert.equal(body.status, "accepted_for_delivery");
+    assert.equal(body.provider_message_id, null);
+  }
+});
+
+test("a resolved binding call with a message id records it", async () => {
+  const handler = createHandler({ fetchImpl: mustNotFetch() });
+  const env = cloudflareEnvironment({ send: async () => ({ messageId: "cf-msg-123" }) });
+  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+  assert.equal(response.status, 202);
+  assert.equal(body.provider_message_id, "cf-msg-123");
+});
+
+test("a whitespace-only Resend key does not silently reroute delivery to Resend", async () => {
+  const handler = createHandler({ fetchImpl: mustNotFetch() });
+  const env = cloudflareEnvironment({ send: async () => ({ messageId: "cf-msg-9" }) });
+  delete env.DELIVERY_PROVIDER;
+  env.RESEND_API_KEY = "   ";
+  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+  assert.equal(response.status, 202);
+  assert.equal(body.status, "accepted_for_delivery");
+});
+
+test("missing binding or invalid fixed recipients fail closed on the Cloudflare path", async () => {
+  for (const mutate of [
+    (env) => { delete env.EMAIL; },
+    (env) => { env.EMAIL = {}; },
+    (env) => { delete env.SUBMISSION_CC; },
+    (env) => { env.SUBMISSION_TO = "first@example.com,second@example.com"; },
+  ]) {
+    const handler = createHandler({ fetchImpl: mustNotFetch() });
+    const env = cloudflareEnvironment();
+    mutate(env);
+    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+    assert.equal(response.status, 503);
+    assert.equal(body.status, "not_sent");
+    assert.equal(body.error.code, "delivery_unavailable");
+  }
+});
+
+test("DELIVERY_PROVIDER flag selects the provider explicitly and rejects unknown values", async () => {
+  let bindingCalls = 0;
+  let fetchCalls = 0;
+  const flaggedCloudflare = cloudflareEnvironment({ send: async () => { bindingCalls++; return { messageId: "synthetic-flagged-id" }; } });
+  flaggedCloudflare.RESEND_API_KEY = "synthetic-sending-only-key";
+  flaggedCloudflare.RESEND_FROM = "TOP Analyzer <reports@send.tokenoptimisationprotocol.org>";
+  flaggedCloudflare.DELIVERY_PROVIDER = "cloudflare";
+  const cloudflareHandler = createHandler({ fetchImpl: async () => { fetchCalls++; throw new Error("must not fetch"); } });
+  const flagged = await responseJson(await cloudflareHandler.fetch(requestFor(JSON.stringify(submissionFixture())), flaggedCloudflare));
+  assert.equal(flagged.response.status, 202);
+  assert.equal(bindingCalls, 1);
+  assert.equal(fetchCalls, 0);
+
+  const flaggedResend = environment();
+  flaggedResend.DELIVERY_PROVIDER = "resend";
+  const resendHandler = createHandler({
+    fetchImpl: async () => {
+      fetchCalls++;
+      return new Response(JSON.stringify({ id: "synthetic-email-id" }), { status: 200, headers: { "Content-Type": "application/json" } });
+    },
+  });
+  const resendResult = await responseJson(await resendHandler.fetch(requestFor(JSON.stringify(submissionFixture())), flaggedResend));
+  assert.equal(resendResult.response.status, 202);
+  assert.equal(fetchCalls, 1);
+
+  const invalidFlag = cloudflareEnvironment();
+  invalidFlag.DELIVERY_PROVIDER = "sendgrid";
+  const invalidHandler = createHandler({ fetchImpl: mustNotFetch() });
+  const invalid = await responseJson(await invalidHandler.fetch(requestFor(JSON.stringify(submissionFixture())), invalidFlag));
+  assert.equal(invalid.response.status, 503);
+  assert.equal(invalid.body.error.code, "delivery_unavailable");
+});
+
 test("400 rejects unknown and forbidden report fields before delivery", async () => {
   let called = false;
   const handler = createHandler({ fetchImpl: async () => { called = true; throw new Error("must not send"); } });
@@ -735,4 +914,19 @@ test("wrangler config pins the one production custom domain and disables alterna
   assert.equal(config.workers_dev, false);
   assert.equal(config.preview_urls, false);
   assert.deepEqual(config.routes, [{ pattern: "submit.tokenoptimisationprotocol.org", custom_domain: true }]);
+});
+
+test("wrangler config pins the send_email binding to the two approved recipients", async () => {
+  const config = JSON.parse(await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
+  assert.deepEqual(config.send_email, [{
+    name: "EMAIL",
+    allowed_destination_addresses: ["adam2hartley@gmail.com", "oconns89@tcd.ie"],
+  }]);
+  assert.deepEqual(config.vars, {
+    DELIVERY_PROVIDER: "cloudflare",
+    SUBMISSION_TO: "adam2hartley@gmail.com",
+    SUBMISSION_CC: "oconns89@tcd.ie",
+  });
+  assert.equal(config.send_email[0].allowed_destination_addresses.includes(config.vars.SUBMISSION_TO), true);
+  assert.equal(config.send_email[0].allowed_destination_addresses.includes(config.vars.SUBMISSION_CC), true);
 });

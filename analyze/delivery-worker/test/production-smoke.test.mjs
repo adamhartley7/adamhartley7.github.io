@@ -39,6 +39,7 @@ function acceptedFetch(assertRequest) {
       ok: true,
       status: "accepted_for_delivery",
       delivered: false,
+      provider_message_id: null,
       receipt_id: submission.submission_id,
       report_sha256: hash,
       message: "TOP accepted the reviewed report for email delivery. This does not confirm mailbox delivery.",

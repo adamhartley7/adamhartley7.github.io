@@ -15,7 +15,7 @@ export const RECEIPT_ID_SEMANTICS = "client_submission_uuid_not_delivery_proof";
 
 const RETENTION_DAYS = 30;
 const REPOSITORY_ROOT = path.resolve(fileURLToPath(new URL("../../../", import.meta.url)));
-const ACCEPTED_RESPONSE_KEYS = ["delivered", "message", "ok", "receipt_id", "report_sha256", "status"];
+const ACCEPTED_RESPONSE_KEYS = ["delivered", "message", "ok", "provider_message_id", "receipt_id", "report_sha256", "status"];
 
 function dateOnly(value) {
   const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
@@ -302,6 +302,7 @@ function acceptedResponseIsExact(body, submissionId, reportSha256) {
     && body.delivered === false
     && body.receipt_id === submissionId
     && body.report_sha256 === reportSha256
+    && (body.provider_message_id === null || (typeof body.provider_message_id === "string" && body.provider_message_id.length > 0))
     && typeof body.message === "string"
     && /does not confirm mailbox delivery/i.test(body.message);
 }

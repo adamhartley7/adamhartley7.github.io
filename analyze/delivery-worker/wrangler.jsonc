@@ -14,6 +14,20 @@
   "observability": {
     "enabled": false
   },
+  "vars": {
+    "DELIVERY_PROVIDER": "cloudflare",
+    "SUBMISSION_TO": "adam2hartley@gmail.com",
+    "SUBMISSION_CC": "oconns89@tcd.ie"
+  },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_destination_addresses": [
+        "adam2hartley@gmail.com",
+        "oconns89@tcd.ie"
+      ]
+    }
+  ],
   "ratelimits": [
     {
       "name": "SUBMIT_RATE_LIMITER",
