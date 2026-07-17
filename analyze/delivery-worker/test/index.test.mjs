@@ -970,7 +970,7 @@ test("Cursor cost states require truthful row coverage and per-model checked rat
   falseMissing.cost = { status: "partial", usd: 0, basis: "recorded_and_or_estimated_where_possible", currency: "USD", subscription_bill: false };
   falseMissing.pricing.status = "not_applied_no_recognized_rate";
   falseMissing.by_model[0].cost = { status: "partial", usd: 0 };
-  assert.throws(() => validateResearchSafeUsage(falseMissing), /cannot claim a cost/i);
+  assert.throws(() => validateResearchSafeUsage(falseMissing), /recorded-cost rows/i);
 
   const internalStatus = cursorReportFixture();
   internalStatus.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
@@ -1057,6 +1057,35 @@ test("Cursor cost states require truthful row coverage and per-model checked rat
   hiddenMissing.pricing.status = "not_applied_no_recognized_rate";
   hiddenMissing.by_model[0].events_or_replies = 2;
   assert.throws(() => validateResearchSafeUsage(hiddenMissing), /not represented in model cost states/i);
+
+  const honestRecordedAndMissing = cursorReportFixture();
+  honestRecordedAndMissing.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
+  honestRecordedAndMissing.coverage.rows_without_recorded_cost = 1;
+  honestRecordedAndMissing.activity.usage_events = 2;
+  honestRecordedAndMissing.cost.status = "partial";
+  honestRecordedAndMissing.cost.basis = "recorded_and_or_estimated_where_possible";
+  honestRecordedAndMissing.pricing.status = "not_applied_no_recognized_rate";
+  honestRecordedAndMissing.by_model[0].events_or_replies = 2;
+  honestRecordedAndMissing.by_model[0].cost.status = "partial";
+  assert.equal(validateResearchSafeUsage(honestRecordedAndMissing), true);
+
+  const hiddenRecordedAsUnavailable = structuredClone(honestRecordedAndMissing);
+  hiddenRecordedAsUnavailable.cost = { status: "unavailable", usd: null, basis: "recorded_and_or_estimated_where_possible", currency: "USD", subscription_bill: false };
+  hiddenRecordedAsUnavailable.by_model[0].cost = { status: "unavailable", usd: null };
+  hiddenRecordedAsUnavailable.pricing.unpriced_model_groups = 1;
+  assert.throws(() => validateResearchSafeUsage(hiddenRecordedAsUnavailable), /recorded-cost rows/i);
+
+  const hiddenRecordedAsEstimated = structuredClone(estimatedWithRate);
+  hiddenRecordedAsEstimated.coverage.rows_with_recorded_cost = 1;
+  hiddenRecordedAsEstimated.coverage.rows_without_recorded_cost = 1;
+  hiddenRecordedAsEstimated.activity.usage_events = 2;
+  hiddenRecordedAsEstimated.by_model[0].events_or_replies = 2;
+  assert.throws(() => validateResearchSafeUsage(hiddenRecordedAsEstimated), /recorded-cost rows/i);
+
+  const inventedRecordedProvenance = structuredClone(honestRecordedAndMissing);
+  inventedRecordedProvenance.coverage.rows_with_recorded_cost = 0;
+  inventedRecordedProvenance.coverage.rows_without_recorded_cost = 2;
+  assert.throws(() => validateResearchSafeUsage(inventedRecordedProvenance), /recorded-cost rows/i);
 
   const completeButEstimated = cursorReportFixture();
   completeButEstimated.cost.status = "estimated";
