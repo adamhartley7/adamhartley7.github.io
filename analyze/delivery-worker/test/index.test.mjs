@@ -115,7 +115,7 @@ function submissionFixture() {
     submission_schema_version: "top.explicit-submission.v1",
     submission_id: SUBMISSION_ID,
     consent: {
-      notice_version: "top.research-consent.2026-07-16.1",
+      notice_version: "top.research-consent.2026-07-17.1",
       accepted: true,
       purposes: ["analyzer_validation", "forecast_calibration"],
       retention_days: 30,
@@ -297,7 +297,7 @@ function researchReportFromVettedCollectorFixture() {
 function environment(rateSuccess = true) {
   return {
     RESEND_API_KEY: "synthetic-sending-only-key",
-    RESEND_FROM: "TOP Analyzer <reports@example.com>",
+    RESEND_FROM: "TOP Analyzer <reports@send.tokenoptimisationprotocol.org>",
     SUBMISSION_TO: "adam-review@example.com",
     SUBMISSION_CC: "sam-review@example.com",
     SUBMIT_RATE_LIMITER: { limit: async () => ({ success: rateSuccess }) },
@@ -477,6 +477,7 @@ test("strict validator accepts current analyzer-generated Claude, Codex, chat an
 test("successful email body contains aggregates but not private source fields", async () => {
   let captured;
   const handler = createHandler({
+    now: () => new Date("2026-07-17T12:34:56.000Z"),
     fetchImpl: async (url, init) => {
       captured = { url, init, email: JSON.parse(init.body) };
       return new Response(JSON.stringify({ id: "synthetic-email-id" }), { status: 200, headers: { "Content-Type": "application/json" } });
@@ -494,7 +495,12 @@ test("successful email body contains aggregates but not private source fields", 
   assert.equal(captured.init.headers["Idempotency-Key"], `top-usage/${SUBMISSION_ID}`);
   assert.match(captured.email.text, /Total tokens: 65/);
   assert.match(captured.email.text, /privacy\.network_delivery value describes the analyzer state/i);
+  assert.match(captured.email.text, /Delivery request date: 2026-07-17/);
+  assert.match(captured.email.text, /Deletion due date: 2026-08-16 \(30 days after the delivery request date\)/);
+  assert.match(captured.email.text, /Worker does not delete mailbox copies automatically/);
   assert.match(captured.email.html, /deepseek-v4-pro/);
+  assert.match(captured.email.html, /<strong>Deletion due date:<\/strong> 2026-08-16/);
+  assert.match(captured.email.html, /earlier if Adam receives an early deletion request/);
   assert.equal(/prompt text|reply text|source path|project identifier/i.test(captured.email.text), false);
   const attachment = JSON.parse(Buffer.from(captured.email.attachments[0].content, "base64").toString("utf8"));
   assert.deepEqual(attachment, reportFixture());
@@ -631,6 +637,35 @@ test("rate-limit service failure is a truthful not-sent response", async () => {
   assert.equal(called, false);
 });
 
+test("sender secret must use the verified sending subdomain", async () => {
+  let called = false;
+  const handler = createHandler({ fetchImpl: async () => { called = true; throw new Error("must not send"); } });
+  const env = environment();
+  env.RESEND_FROM = "TOP Analyzer <reports@example.com>";
+  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+  assert.equal(response.status, 503);
+  assert.equal(body.status, "not_sent");
+  assert.equal(body.error.code, "delivery_unavailable");
+  assert.equal(called, false);
+});
+
+test("both fixed recipient secrets are required and accept one address each", async () => {
+  let called = false;
+  const handler = createHandler({ fetchImpl: async () => { called = true; throw new Error("must not send"); } });
+  for (const mutate of [
+    (env) => { delete env.SUBMISSION_CC; },
+    (env) => { env.SUBMISSION_TO = "first@example.com,second@example.com"; },
+  ]) {
+    const env = environment();
+    mutate(env);
+    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+    assert.equal(response.status, 503);
+    assert.equal(body.status, "not_sent");
+    assert.equal(body.error.code, "delivery_unavailable");
+  }
+  assert.equal(called, false);
+});
+
 test("upstream 500 is converted to a truthful not-sent 502", async () => {
   const handler = createHandler({ fetchImpl: async () => new Response(JSON.stringify({ message: "provider failed" }), { status: 500, headers: { "Content-Type": "application/json" } }) });
   const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), environment()));
@@ -666,4 +701,12 @@ test("worker source contains no report logging or persistence bindings", async (
   assert.doesNotMatch(source, /env\.(?:DB|D1|KV|R2)|\.put\s*\(/);
   assert.doesNotMatch(source, /SUBMISSION_TO\s*[:=]\s*["'][^"']+@/);
   assert.doesNotMatch(source, /SUBMISSION_CC\s*[:=]\s*["'][^"']+@/);
+});
+
+test("wrangler config pins the one production custom domain and disables alternate public URLs", async () => {
+  const config = JSON.parse(await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
+  assert.equal(config.name, "top-analyzer-delivery");
+  assert.equal(config.workers_dev, false);
+  assert.equal(config.preview_urls, false);
+  assert.deepEqual(config.routes, [{ pattern: "submit.tokenoptimisationprotocol.org", custom_domain: true }]);
 });

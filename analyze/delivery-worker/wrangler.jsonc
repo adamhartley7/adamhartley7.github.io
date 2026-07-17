@@ -3,6 +3,14 @@
   "name": "top-analyzer-delivery",
   "main": "src/index.mjs",
   "compatibility_date": "2026-07-16",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "submit.tokenoptimisationprotocol.org",
+      "custom_domain": true
+    }
+  ],
   "observability": {
     "enabled": false
   },

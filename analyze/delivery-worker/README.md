@@ -1,6 +1,6 @@
 # TOP analyzer delivery Worker
 
-This is a review-only Cloudflare Worker scaffold for explicit submission of `top.research-safe-usage.v1` and `top.research-safe-usage.v2` reports. It is not deployed and the public analyzer does not call it.
+This is a review-ready Cloudflare Worker for explicit submission of `top.research-safe-usage.v1` and `top.research-safe-usage.v2` reports. It is not deployed by this repository change. `wrangler.jsonc` is the source of truth for the custom domain `submit.tokenoptimisationprotocol.org`; `workers_dev` and preview URLs are disabled. The analyzer integration remains dormant: its endpoint is blank and CSP remains `connect-src 'none'`. Delivery stays fail closed until the Worker, its custom domain, secrets and rate-limit binding are verified, followed by a separate frontend activation review.
 
 V1 remains unchanged. V2 is the exact v1 top-level object plus `timeline`, `session_distributions` and `workflow_shape`. It accepts only the vetted v2 local collector and parser versions for Claude Code or Codex safe-usage exports.
 
@@ -9,13 +9,18 @@ V1 remains unchanged. V2 is the exact v1 top-level object plus `timeline`, `sess
 - It accepts requests only from `https://adamhartley7.github.io`.
 - It accepts JSON only and stops reading after 256 KiB.
 - The client submits a strict consent envelope containing one exact research-safe report. Unknown fields, client-supplied recipients, private-content fields, unsupported labels and unreconciled totals fail closed.
-- Recipients, sender and the Resend API key come only from Worker secrets. They are not accepted from the browser.
+- Recipients, sender and the Resend API key come only from Worker secrets. They are not accepted from the browser. The sender secret must use the verified `send.tokenoptimisationprotocol.org` subdomain.
 - The API key must be a Resend `sending_access` key restricted to the verified sender domain.
 - The same submission UUID is passed to Resend as an idempotency key.
 - The Worker does not log, persist or place the report in KV, D1 or R2. The validated report is attached to one email; the message body contains only a readable aggregate summary.
+- Both email bodies include the UTC delivery-request date and an explicit deletion due date 30 calendar days later. They instruct recipients to delete the email and attachment by that date, or sooner after an early deletion request to Adam.
 - For v2, the email also contains a concise monthly timeline and structural session-shape summary. The attached JSON remains the exact validated report.
 - `report.privacy.network_delivery` records the analyzer's local state when it generated the report. A later email can occur only through the separate explicit-submission consent envelope.
 - A successful POST means only `accepted_for_delivery`. It does not mean mailbox delivery.
+
+The deletion date is an operational instruction, not technical deletion enforcement. The Worker keeps no report store and cannot remove copies from recipient mailboxes or processor systems. An early deletion request can cover Adam and Sam's mailbox copies, but it cannot promise early deletion of Resend's processor copy. Resend may retain that copy for its standard 30-day period. Deployment still requires a documented owner and procedure for early requests, due-date deletion and evidence that the procedure ran. This documentation does not claim legal compliance.
+
+Selecting Resend's Ireland region controls routing and sending only. Resend states that account data, email metadata, logs and API records remain stored in the United States regardless of the sending region.
 
 ## Exact v2 additions
 
@@ -89,12 +94,12 @@ Do not deploy until all of these are decided and documented:
 1. Identify the data controller and deletion contact.
 2. Approve the purposes, lawful basis, 30-day report-email retention rule and deletion procedure.
 3. Decide whether Adam alone or Adam and Sam receive reports. Add Sam only after he agrees to the responsibility.
-4. Verify a sending domain in Resend and create a domain-restricted `sending_access` API key.
+4. Verify `send.tokenoptimisationprotocol.org` as the sending domain in Resend and create a domain-restricted `sending_access` API key.
 5. Review Resend and Cloudflare as processors, including international-transfer disclosures.
 6. Confirm the rate-limit namespace is unique within the chosen Cloudflare account.
 7. Add an abuse-control decision for public rollout. The current rate limit is suitable only for a small pilot.
-8. Integrate the frontend in a separate reviewed change. It must display the exact payload, the consent notice, a deliberate Send button and truthful receipt states.
-9. Update the analyzer CSP from `connect-src 'none'` to only the final Worker endpoint. Keep `form-action 'none'`.
+8. Review the dormant frontend integration. It displays the exact payload, fixed recipient names, processor notice, explicit purposes, 30-day retention wording, a deliberate Submit button and truthful receipt states. It does not contain recipient addresses or an active endpoint.
+9. Deploy using the committed `wrangler.jsonc`, then verify that Cloudflare lists `submit.tokenoptimisationprotocol.org` under the Worker's Domains & Routes and verify its HTTPS and CORS preflight. Do not create a second dashboard-managed route. Then make a separate activation change: set `TOP_DELIVERY_ENDPOINT` to exactly `https://submit.tokenoptimisationprotocol.org/` and change CSP from `connect-src 'none'` to exactly `connect-src https://submit.tokenoptimisationprotocol.org`. Keep `form-action 'none'` and do not add a second Worker URL.
 10. Run a synthetic production smoke test before any real participant data.
 
 Once approved, set secrets interactively. Never put their values in this repository or command history:
@@ -103,14 +108,17 @@ Once approved, set secrets interactively. Never put their values in this reposit
 npx wrangler secret put RESEND_API_KEY
 npx wrangler secret put RESEND_FROM
 npx wrangler secret put SUBMISSION_TO
+npx wrangler secret put SUBMISSION_CC
 ```
 
-`SUBMISSION_TO` is required. Run `npx wrangler secret put SUBMISSION_CC` only if a CC recipient has been approved. The Worker never returns recipient addresses to the browser.
+`SUBMISSION_TO` and `SUBMISSION_CC` are both required for the approved Adam-and-Sam delivery. Each secret must contain exactly one address. The Worker fails closed if either is absent or contains a list, and it never returns recipient addresses to the browser.
+
+`RESEND_FROM` must be a display name plus a mailbox on the verified subdomain, for example `TOP Analyzer <reports@send.tokenoptimisationprotocol.org>`. Keep the exact value in the Worker secret rather than frontend code.
 
 ## Deliberately absent
 
 - No real credentials or recipient addresses.
-- No frontend integration.
-- No deployment configuration for a production route.
+- No active frontend endpoint or permissive network CSP. The future single allowed connection origin is documented but not enabled in this scaffold release.
+- No deployment has been performed. The reviewed production custom-domain route is declared in `wrangler.jsonc`.
 - No database, webhook or claim of final email delivery.
 - No automatic collection on file selection, parsing or report display.

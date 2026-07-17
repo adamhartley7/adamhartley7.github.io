@@ -6,8 +6,8 @@ const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf
 
 assert.match(html, /Show My Report First/);
 assert.match(html, /Every successful report is followed by optional questions/);
-assert.match(html, /Download Or Email My Own Copy/);
-assert.match(html, /Open Reviewed Email Draft/);
+assert.match(html, /Download Or Share My Safe Report/);
+assert.match(html, /Submit Reviewed Safe Report/);
 
 const start = html.indexOf("function revealStandardPostReport");
 const end = html.indexOf("function render(res)", start);

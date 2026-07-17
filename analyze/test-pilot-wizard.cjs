@@ -200,9 +200,12 @@ assert.match(html, /cannot share a file directly, so the research-safe JSON was 
 assert.match(html, /TOP cannot confirm where the file went or whether it was delivered/);
 assert.match(html, /Nothing was submitted by TOP/);
 
-// The pilot adds no automatic delivery or browser persistence.
+// The pilot adds no automatic delivery or browser persistence. The one fetch
+// path is disabled by a blank endpoint and can run only from the Submit click.
 assert.match(html, /connect-src 'none'/);
-for (const pattern of [/\bfetch\s*\(/, /XMLHttpRequest/, /sendBeacon/, /\bWebSocket\s*\(/, /localStorage/, /indexedDB/]) {
+assert.equal((html.match(/\bfetch\s*\(/g) || []).length, 1);
+assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/);
+for (const pattern of [/XMLHttpRequest/, /sendBeacon/, /\bWebSocket\s*\(/, /localStorage/, /indexedDB/]) {
   assert.equal(pattern.test(html), false, `forbidden network or persistence primitive: ${pattern}`);
 }
 

@@ -5,9 +5,9 @@ const vm = require("node:vm");
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 
 assert.match(html, /id="downloadResearchJSON">Download Complete Research-Safe JSON/);
-assert.match(html, /open it in a text editor, inspect it, then attach it deliberately/);
+assert.match(html, /inspect the exact JSON below/);
 assert.match(html, /scenario only when the report qualifies/);
-assert.match(html, /Nothing is sent by TOP\./);
+assert.match(html, /Nothing is sent until you deliberately use a sharing action\./);
 assert.match(html, /res\.valueModelEligible=false/,
   "the cleaned Claude route must not export a scenario that is not visibly shown");
 assert.doesNotMatch(html, /var PRICING_EDITED=false/,
