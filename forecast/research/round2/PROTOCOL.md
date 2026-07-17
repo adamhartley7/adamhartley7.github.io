@@ -30,4 +30,3 @@ The candidate passes development only if all four conditions hold:
 4. synthetic error and interval width pass both guardrails.
 
 If the candidate fails, record the negative result and leave the withheld splits closed. If it passes, leave the withheld splits closed until an independent review approves the exact candidate and explicitly authorizes one sealed evaluation. Passing development alone is not evidence for a public accuracy claim.
-
