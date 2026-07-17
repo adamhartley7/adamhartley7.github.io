@@ -47,7 +47,10 @@ assert.match(html, /create one content-free aggregate file/);
 assert.match(html, /%USERPROFILE%\\\.claude\\projects/);
 assert.match(html, /%USERPROFILE%\\\\\.codex\\\\sessions/);
 assert.match(html, /copyPlainText\(path,this,"Address Copied"\)/);
-assert.match(html, /document\.getElementById\("historyFolder"\)\.click\(\)/);
+assert.match(html, /document\.getElementById\("pilotHistoryFolder"\)\.click\(\)/);
+assert.match(html, /id="pilotHistoryFolder" webkitdirectory/);
+assert.match(html, /Reading "\+files\.length\+" files on this device/);
+assert.match(html, /No folder was chosen, or the picker was cancelled/);
 assert.match(html, /data\.pilotSafe\?"Safe format verified\./);
 assert.match(html, /Local folder read completed\. TOP used the supported usage counters/);
 

@@ -11,7 +11,7 @@ import {
   validateResearchSafeUsage,
 } from "../src/index.mjs";
 
-const ORIGIN = "https://adamhartley7.github.io";
+const ORIGIN = "https://tokenoptimisationprotocol.org";
 const SUBMISSION_ID = "018f62cc-d0cd-7bc0-bed9-1e0c86b41ef3";
 
 function reportFixture() {
@@ -682,6 +682,32 @@ test("only the production origin receives CORS permission", async () => {
   assert.equal(response.status, 403);
   assert.equal(response.headers.get("access-control-allow-origin"), null);
   assert.equal(body.status, "not_sent");
+  assert.equal(called, false);
+});
+
+test("custom-domain preflight passes while the retired GitHub origin and unsafe methods fail closed", async () => {
+  let called = false;
+  const handler = createHandler({ fetchImpl: async () => { called = true; throw new Error("must not send"); } });
+
+  const preflight = await handler.fetch(requestFor("", { method: "OPTIONS" }), environment());
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get("access-control-allow-origin"), ORIGIN);
+  assert.equal(preflight.headers.get("access-control-allow-methods"), "POST, OPTIONS");
+
+  const retiredOrigin = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture()), {
+    origin: "https://adamhartley7.github.io",
+  }), environment()));
+  assert.equal(retiredOrigin.response.status, 403);
+  assert.equal(retiredOrigin.response.headers.get("access-control-allow-origin"), null);
+  assert.equal(retiredOrigin.body.error.code, "origin_not_allowed");
+
+  const unsafeMethod = await responseJson(await handler.fetch(new Request("https://submit.tokenoptimisationprotocol.org/", {
+    method: "PATCH",
+    headers: { "Origin": ORIGIN, "Content-Type": "application/json" },
+  }), environment()));
+  assert.equal(unsafeMethod.response.status, 405);
+  assert.equal(unsafeMethod.response.headers.get("access-control-allow-origin"), ORIGIN);
+  assert.equal(unsafeMethod.body.error.code, "method_not_allowed");
   assert.equal(called, false);
 });
 

@@ -6,7 +6,7 @@ V1 remains unchanged. V2 is the exact v1 top-level object plus `timeline`, `sess
 
 ## Safety boundary
 
-- It accepts requests only from `https://adamhartley7.github.io`.
+- It accepts requests only from the live custom-domain frontend at `https://tokenoptimisationprotocol.org`. The GitHub Pages origin and every unrelated origin fail closed.
 - It accepts JSON only and stops reading after 256 KiB.
 - The client submits a strict consent envelope containing one exact research-safe report. Unknown fields, client-supplied recipients, private-content fields, unsupported labels and unreconciled totals fail closed.
 - Recipients, sender and the Resend API key come only from Worker secrets. They are not accepted from the browser. The sender secret must use the verified `send.tokenoptimisationprotocol.org` subdomain.
