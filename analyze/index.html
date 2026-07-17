@@ -281,7 +281,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
   <header>
     <div class="badge"><span class="lk"></span>Your chosen files stay on this device</div>
     <h1>Understand your AI usage, or prepare your Obsidian vault for private AI memory.</h1>
-    <p class="sub">Choose a Claude, ChatGPT or Codex history file for a usage report, or choose an Obsidian vault folder for a local 7C's readiness check. The files stay in this browser and are not sent to TOP.</p>
+    <p class="sub">Choose a Claude, ChatGPT, Codex, Cursor or GitHub Copilot history file for a usage report, or choose an Obsidian vault folder for a local 7C's readiness check. The files stay in this browser and are not sent to TOP.</p>
   </header>
   <div class="flow-shell">
     <div class="journey-rail" aria-live="polite">
@@ -299,6 +299,8 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         <div class="pilot-choices" id="pilotSourceChoices">
           <button type="button" class="pilot-choice" data-pilot-source="cc" aria-pressed="false"><strong>Claude Code</strong><span>Usage saved by Claude while it works in coding projects.</span></button>
           <button type="button" class="pilot-choice" data-pilot-source="codex" aria-pressed="false"><strong>Codex</strong><span>Usage counters saved in your local Codex sessions.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-source="cursor" aria-pressed="false"><strong>Cursor</strong><span>The usage CSV you export from Cursor Settings, then Usage, then Export.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-source="copilot" aria-pressed="false"><strong>GitHub Copilot</strong><span>The usage report CSV you download from github.com/settings/billing.</span></button>
         </div>
         <p class="pilot-full-link">Using Claude Chat, ChatGPT, Claude Console, or Obsidian? <a href="/analyze/">Open the full analyzer</a>.</p>
       </div>
@@ -323,6 +325,16 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
           <p>The button copies the exact Windows address and opens the folder chooser. Paste the address into the chooser, press Enter, then select that folder.</p>
           <code class="pilot-path" id="pilotFolderPath">%USERPROFILE%\.claude\projects</code>
           <button type="button" class="btn p" id="pilotChooseFolder">Copy Address And Choose Folder</button>
+        </div>
+        <div class="pilot-method-panel" id="pilotCursorPanel" hidden>
+          <h3>Export your Cursor usage CSV</h3>
+          <p>In Cursor, open <b>Settings</b>, then <b>Usage</b>, then choose <b>Export</b> to download your usage CSV. Then choose that file here. It is read on this computer and is not uploaded.</p>
+          <label class="pilot-file" id="pilotCursorFileLabel" tabindex="0" role="button"><strong>Choose The Exported Cursor CSV</strong><span>Choose the usage CSV you exported from Cursor</span><input type="file" id="pilotCursorFile" accept=".csv" multiple></label>
+        </div>
+        <div class="pilot-method-panel" id="pilotCopilotPanel" hidden>
+          <h3>Download your Copilot usage report</h3>
+          <p>On <b>github.com/settings/billing</b>, open <b>Usage</b> and choose <b>Get usage report</b>. GitHub emails you a download link that expires after 24 hours. Then choose that CSV here. It is read on this computer and is not uploaded. Copilot meters prompts and AI credits, not tokens, so this report shows credits and dollars instead of token counts.</p>
+          <label class="pilot-file" id="pilotCopilotFileLabel" tabindex="0" role="button"><strong>Choose The Downloaded Copilot Report</strong><span>Choose the usage report CSV from GitHub billing</span><input type="file" id="pilotCopilotFile" accept=".csv,.json" multiple></label>
         </div>
       </div>
       <div class="pilot-status" id="pilotStatus" role="status" aria-live="polite"></div>
@@ -350,11 +362,13 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <section class="provider-step" id="providerStep" hidden aria-labelledby="providerHeading">
       <button type="button" class="step-back" id="changeResonance">← Change Answers</button>
       <h2 id="providerHeading" tabindex="-1"><span class="flow-kicker">2</span>Choose Where Your Work Lives</h2>
-      <p class="step-lead">Choose Claude, Codex, ChatGPT or Obsidian. Claude then asks whether your history came from coding, chat or the pay-as-you-go Console.</p>
+      <p class="step-lead">Choose Claude, Codex, ChatGPT, Cursor, GitHub Copilot or Obsidian. Claude then asks whether your history came from coding, chat or the pay-as-you-go Console.</p>
       <div class="tabs" id="tabs" role="group" aria-label="Work source">
         <button type="button" class="tab" data-provider="claude" aria-controls="claudeSources" aria-expanded="false" aria-pressed="false">Claude<span class="st">Choose Claude Code, Claude Chat or Claude Console</span></button>
         <button type="button" class="tab" data-mode="codex" aria-pressed="false">Codex<span class="st">Uses recorded token counts from local Codex session logs</span></button>
         <button type="button" class="tab" data-mode="openai" aria-pressed="false">ChatGPT<span class="st">Estimates usage from the length of your ChatGPT conversations</span></button>
+        <button type="button" class="tab" data-mode="cursor" aria-pressed="false">Cursor<span class="st">Reads the usage CSV you export from Cursor Settings, then Usage, then Export</span></button>
+        <button type="button" class="tab" data-mode="copilot" aria-pressed="false">GitHub Copilot<span class="st">Reads the usage report CSV you download from github.com/settings/billing</span></button>
         <button type="button" class="tab" data-mode="obsidian" aria-pressed="false">Obsidian + 7C's<span class="st">Checks your vault locally and finds supported AI history files</span></button>
       </div>
       <div class="claude-sources" id="claudeSources" hidden role="group" aria-labelledby="claudeSourcesHeading">
@@ -415,7 +429,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         <p id="pilotQuickPrivacy">Your prompts, replies, code and files stayed on this computer.</p>
       </div>
       <div class="pilot-metrics">
-        <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span>What this usage would cost at API prices</span></div>
+        <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span id="pilotQuickCostLabel">What this usage would cost at API prices</span></div>
         <div class="pilot-metric"><strong id="pilotQuickSessions">0</strong><span id="pilotQuickSessionsLabel">Work sessions found</span></div>
         <div class="pilot-metric"><strong id="pilotQuickDays">0</strong><span>Active days found</span></div>
       </div>
@@ -461,6 +475,8 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <p class="scope-callout" id="reportScope"></p>
     <div class="cards" id="cards"></div>
     <p class="note" id="tokenhelp">Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.</p>
+    <p class="note" id="cursorBreakdown" hidden></p>
+    <p class="note" id="copilotBreakdown" hidden></p>
     <h2 id="resultsHeading" tabindex="-1">Usage By AI Version</h2>
     <div style="overflow-x:auto"><table id="modeltable"></table></div>
 
@@ -1116,6 +1132,10 @@ function fmt$(x){return "$"+(x<0.01&&x>0?x.toFixed(4):x.toLocaleString(undefined
 function fmtN(x){return Math.round(x).toLocaleString()}
 // plain ASCII integer for the emailed/downloaded text (no locale separators, no float noise)
 function fmtInt(x){return String(Math.round(Number(x)||0))}
+// Copilot credits and premium requests can be fractional because model multipliers are baked into the quantity.
+function fmtQty(x){return (Math.round((Number(x)||0)*100)/100).toLocaleString(undefined,{maximumFractionDigits:2})}
+// plain ASCII quantity for the emailed/downloaded text
+function fmtQtyPlain(x){return String(Math.round((Number(x)||0)*100)/100)}
 function esc(value){
   return String(value).replace(/[&<>"']/g,function(ch){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];
@@ -1124,10 +1144,19 @@ function esc(value){
 function safePublicModelLabel(value){
   var cleaned=String(value||"").replace(/[\u0000-\u001f\u007f<>\\/]/g," ").replace(/\s+/g," ").trim().slice(0,80);
   if(/^(?:claude\.ai \(est\.\)|ChatGPT export \(est\.\)|Unknown Codex model)$/i.test(cleaned))return cleaned;
+  // "Auto: " is GitHub Copilot's routed-model prefix; keep it only when the routed name itself is recognized.
+  if(/^auto: /i.test(cleaned))return safePublicModelLabel(cleaned.slice(6))==="Unrecognized AI version"?"Unrecognized AI version":cleaned;
+  // GitHub Copilot display-style names, for example "Claude Sonnet 4.5" or "Gemini 2.0 Flash".
+  if(/^(?:claude (?:opus|sonnet|haiku|fable|mythos)|gpt \d{1,2}(?:\.\d{1,2}){0,2}|gemini (?:\d{1,2}(?:\.\d{1,2}){0,2}|pro|flash|ultra)|grok (?:code|\d{1,2})|deepseek v\d{1,2}|o[1-9])(?: [a-z0-9][a-z0-9.]{0,11}){0,3}$/i.test(cleaned))return cleaned;
   if(/^claude-(?:(?:[0-9]+(?:-[0-9]+)*)-(?:opus|sonnet|haiku|fable|mythos)|(?:opus|sonnet|haiku|fable|mythos))(?:-[a-z0-9]+)+$/i.test(cleaned))return cleaned;
   if(/^gpt-[0-9]+(?:[.-][0-9]+)*(?:-[a-z0-9]+){0,3}$/i.test(cleaned))return cleaned;
   if(/^deepseek-v[0-9]+(?:-[a-z0-9]+){0,3}$/i.test(cleaned))return cleaned;
   if(/^(?:codex|o[1-9])-[a-z0-9.-]+$/i.test(cleaned))return cleaned;
+  if(/^composer-[0-9]+(?:[.-][0-9]+){0,2}(?:-[a-z0-9]+){0,2}$/i.test(cleaned))return cleaned;
+  if(/^(?:auto|cursor-small)$/i.test(cleaned))return cleaned;
+  if(/^claude-[0-9]+(?:[.-][0-9]+)*-(?:opus|sonnet|haiku|fable|mythos)(?:-[a-z0-9]+){0,3}$/i.test(cleaned))return cleaned;
+  if(/^gemini-[0-9]+(?:[.-][0-9]+)*(?:-[a-z0-9]+){0,3}$/i.test(cleaned))return cleaned;
+  if(/^grok(?:-[a-z0-9]+){1,4}$/i.test(cleaned))return cleaned;
   return "Unrecognized AI version";
 }
 function pricingDetailsHTML(keys){
@@ -1195,9 +1224,27 @@ var MODES={
         "A Markdown transcript downloaded from one chat is not the official account export and is not used for account-wide totals."],
       stepstip:"OpenAI says downloads may take up to seven days. TOP supports the conversation file, not the whole ZIP yet.",
       note:"ChatGPT history downloads do not provide a reliable cost for each conversation. TOP estimates usage from message length on this device and does not invent a dollar charge."},
+  cursor:{label:"Cursor", small:"usage CSV exported from Cursor (Settings, then Usage, then Export)",
+      hint:"In Cursor, open <b>Settings</b>, then <b>Usage</b>, then choose <b>Export</b> to download your usage CSV. Choose that file here. Composer, Cursor's own agent model, appears as model rows inside this report.",
+      steps:[
+        "Open Cursor and sign in.",
+        "Open <b>Settings</b>, then <b>Usage</b>. The same page is available at <code>cursor.com/dashboard</code>.",
+        "Choose <b>Export</b> at the usage events table to download the CSV.",
+        "Drop that CSV into the box above."],
+      stepstip:"The CSV records a cost for each usage event as billed by Cursor. Rows marked Included consume your plan's included allowance rather than billing extra money. TOP reads the file on this device only.",
+      note:""},
+  copilot:{label:"GitHub Copilot", small:"usage report CSV downloaded from github.com/settings/billing",
+      hint:"On <code>github.com/settings/billing</code>, open <b>Usage</b> and choose <b>Get usage report</b>. GitHub emails you a download link. Choose the downloaded CSV here. Copilot meters prompts and AI credits, not tokens, so this report shows credits and dollars instead of token counts.",
+      steps:[
+        "Sign in to GitHub and open <code>github.com/settings/billing</code>.",
+        "Open the <b>Usage</b> section and choose <b>Get usage report</b>. If GitHub asks for a report type, pick the AI usage report, which lists each AI version.",
+        "GitHub emails you a download link. The link expires after 24 hours, so download the CSV promptly.",
+        "Drop that CSV into the box above. A saved response from GitHub's AI-credit usage API is also accepted."],
+      stepstip:"Copilot bills prompts and AI credits, where one credit is one cent. Only the prompts you send are metered, so the autonomous steps an agent takes between prompts are not itemized and these figures understate the real model work.",
+      note:""},
   obsidian:{label:"Obsidian + 7C's",small:"an Obsidian vault folder checked locally",hint:"",steps:[],stepstip:"",note:""}
 };
-var MODE_ACCEPT={cc:".jsonl",codex:".jsonl",csv:".csv",chat:".json",openai:".json"};
+var MODE_ACCEPT={cc:".jsonl",codex:".jsonl",csv:".csv",chat:".json",openai:".json",cursor:".csv",copilot:".csv,.json"};
 var ROUTE_COPY={
   cc:{
     a:"Choose your Claude Code history files. This tab reads the usage numbers on your device. Your prompts, replies, code and files are not uploaded.",
@@ -1213,7 +1260,13 @@ var ROUTE_COPY={
     b:"Choose your ChatGPT history download. This tab reads it on your device, then prepares a new summary containing totals and optional answers, not conversation text. You inspect and download that summary yourself."},
   csv:{
     a:"Choose either an Anthropic Usage CSV for usage numbers or a Cost CSV for recorded cost. This tab reads the selected file on your device. It is not uploaded.",
-    b:"Choose either an Anthropic Usage CSV or Cost CSV. This tab prepares a smaller summary from the information that file contains. You inspect and download it yourself."}
+    b:"Choose either an Anthropic Usage CSV or Cost CSV. This tab prepares a smaller summary from the information that file contains. You inspect and download it yourself."},
+  cursor:{
+    a:"Choose the usage CSV you exported from Cursor. This tab reads the rows on your device. It is not uploaded. Dollar figures come from the Cost column Cursor recorded.",
+    b:"Choose the usage CSV you exported from Cursor. This tab prepares a smaller summary from the information that file contains. You inspect and download it yourself."},
+  copilot:{
+    a:"Choose the usage report CSV you downloaded from GitHub billing. This tab reads the rows on your device. It is not uploaded. Dollar figures come from the billed amounts GitHub recorded, and one AI credit equals one cent.",
+    b:"Choose the usage report CSV you downloaded from GitHub billing. This tab prepares a smaller summary from the information that file contains. You inspect and download it yourself."}
 };
 var CLAUDE_MODES={cc:true,chat:true,csv:true};
 function isClaudeMode(value){return !!CLAUDE_MODES[value]}
@@ -1429,9 +1482,20 @@ function pilotChooseSource(source){
   PILOT_SOURCE=source;mode=source;selectedRoute="a";providerChosen=true;
   document.querySelectorAll("[data-pilot-source]").forEach(function(button){var on=button.dataset.pilotSource===source;button.classList.toggle("on",on);button.setAttribute("aria-pressed",on?"true":"false")});
   document.getElementById("pilotSourceStep").hidden=true;
-  document.getElementById("pilotMethodStep").hidden=false;document.getElementById("pilotAgentPrompt").value=pilotPromptFor(source);
-  var path=source==="codex"?"%USERPROFILE%\\.codex\\sessions":"%USERPROFILE%\\.claude\\projects";document.getElementById("pilotFolderPath").textContent=path;
-  document.getElementById("pilotMethodStep").scrollIntoView({behavior:"smooth",block:"start"});setJourney(.34,"Choice one complete. Choose the simplest preparation method.");
+  var methodStep=document.getElementById("pilotMethodStep"),cursorSource=source==="cursor",copilotSource=source==="copilot",exportSource=cursorSource||copilotSource;
+  methodStep.hidden=false;
+  methodStep.classList.toggle("method-selected",exportSource);
+  document.getElementById("pilotCursorPanel").hidden=!cursorSource;
+  document.getElementById("pilotCopilotPanel").hidden=!copilotSource;
+  document.getElementById("pilotAgentPanel").hidden=true;
+  document.getElementById("pilotFolderPanel").hidden=true;
+  if(cursorSource)pilotStatus("In Cursor, open Settings, then Usage, then Export to download your usage CSV. Then choose that file here. Nothing is uploaded.","ok");
+  else if(copilotSource)pilotStatus("On github.com/settings/billing, open Usage and choose Get usage report, then choose the downloaded CSV here. Nothing is uploaded.","ok");
+  else{
+    document.getElementById("pilotAgentPrompt").value=pilotPromptFor(source);
+    var path=source==="codex"?"%USERPROFILE%\\.codex\\sessions":"%USERPROFILE%\\.claude\\projects";document.getElementById("pilotFolderPath").textContent=path;
+  }
+  methodStep.scrollIntoView({behavior:"smooth",block:"start"});setJourney(.34,cursorSource?"Choice one complete. Export your Cursor usage CSV, then choose it here.":(copilotSource?"Choice one complete. Download your Copilot usage report, then choose it here.":"Choice one complete. Choose the simplest preparation method."));
 }
 function pilotChooseMethod(method){
   document.querySelectorAll("[data-pilot-method]").forEach(function(button){var on=button.dataset.pilotMethod===method;button.classList.toggle("on",on);button.setAttribute("aria-pressed",on?"true":"false")});
@@ -1440,7 +1504,7 @@ function pilotChooseMethod(method){
 }
 function pilotComplete(data){
   document.getElementById("pilotSourceStep").hidden=true;document.getElementById("pilotMethodStep").hidden=true;
-  var privacy=data.pilotSafe?"Safe format verified. This format does not permit prompts, code, paths, filenames, emails, exact times or original IDs.":"Local folder read completed. TOP used the supported usage counters for this report; the raw history stayed in this browser and was not transmitted.";
+  var privacy=data.pilotSafe?"Safe format verified. This format does not permit prompts, code, paths, filenames, emails, exact times or original IDs.":(data.cursor?"Local CSV read completed. TOP used the usage rows Cursor exported; the file stayed in this browser and was not transmitted.":(data.copilot?"Local file read completed. TOP used the usage rows GitHub exported; the file stayed in this browser and was not transmitted.":"Local folder read completed. TOP used the supported usage counters for this report; the raw history stayed in this browser and was not transmitted."));
   pilotStatus(privacy,"ok");
 }
 function pilotReadSafeFile(file){
@@ -1453,15 +1517,19 @@ function pilotReadSafeFile(file){
 function initPilot(){
   var query=new URLSearchParams(window.location.search);if(query.get("pilot")!=="1")return;
   PILOT_MODE=true;document.documentElement.classList.add("pilot-mode");document.getElementById("pilotFlow").hidden=false;
-  document.querySelector("header h1").textContent="Understand your coding-assistant usage in two choices.";document.querySelector("header .sub").textContent="Your raw history stays on this computer. Start with Claude Code or Codex, then choose one preparation method.";
-  setJourney(.12,"Choice one of two: choose Claude Code or Codex.");
+  document.querySelector("header h1").textContent="Understand your coding-assistant usage in two choices.";document.querySelector("header .sub").textContent="Your raw history stays on this computer. Start with Claude Code, Codex, Cursor or GitHub Copilot, then choose one preparation method.";
+  setJourney(.12,"Choice one of two: choose Claude Code, Codex, Cursor or GitHub Copilot.");
 }
 document.getElementById("pilotSourceChoices").addEventListener("click",function(event){var button=event.target.closest("[data-pilot-source]");if(button)pilotChooseSource(button.dataset.pilotSource)});
 document.getElementById("pilotMethodChoices").addEventListener("click",function(event){var button=event.target.closest("[data-pilot-method]");if(button)pilotChooseMethod(button.dataset.pilotMethod)});
-document.getElementById("pilotBackToSource").addEventListener("click",function(){PILOT_SOURCE="";var methodStep=document.getElementById("pilotMethodStep");methodStep.hidden=true;methodStep.classList.remove("method-selected");document.getElementById("pilotAgentPanel").hidden=true;document.getElementById("pilotFolderPanel").hidden=true;document.getElementById("pilotSourceStep").hidden=false;document.querySelectorAll("[data-pilot-source],[data-pilot-method]").forEach(function(button){button.classList.remove("on");button.setAttribute("aria-pressed","false")});pilotStatus("Choose Claude Code or Codex.","ok");document.getElementById("pilotSourceStep").scrollIntoView({behavior:"smooth",block:"start"})});
+document.getElementById("pilotBackToSource").addEventListener("click",function(){PILOT_SOURCE="";var methodStep=document.getElementById("pilotMethodStep");methodStep.hidden=true;methodStep.classList.remove("method-selected");document.getElementById("pilotAgentPanel").hidden=true;document.getElementById("pilotFolderPanel").hidden=true;document.getElementById("pilotCursorPanel").hidden=true;document.getElementById("pilotCopilotPanel").hidden=true;document.getElementById("pilotSourceStep").hidden=false;document.querySelectorAll("[data-pilot-source],[data-pilot-method]").forEach(function(button){button.classList.remove("on");button.setAttribute("aria-pressed","false")});pilotStatus("Choose Claude Code, Codex, Cursor or GitHub Copilot.","ok");document.getElementById("pilotSourceStep").scrollIntoView({behavior:"smooth",block:"start"})});
 document.getElementById("pilotCopyPrompt").addEventListener("click",function(){var prompt=document.getElementById("pilotAgentPrompt");copyPlainText(prompt.value,this,"Prompt Copied").then(function(ok){if(!ok){prompt.focus();prompt.select()}})});
 document.getElementById("pilotSafeFile").addEventListener("change",function(){var files=this.files;if(!files||files.length!==1){pilotStatus("Choose exactly one safe JSON file.","error");return}pilotReadSafeFile(files[0])});
 document.getElementById("pilotSafeFileLabel").addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();document.getElementById("pilotSafeFile").click()}});
+document.getElementById("pilotCursorFile").addEventListener("change",function(){var files=takeChosenFiles(this);if(!files.length){pilotStatus("Choose the usage CSV you exported from Cursor. Nothing was read or sent.","error");return}document.getElementById("routea").hidden=false;handle(files,"files")});
+document.getElementById("pilotCursorFileLabel").addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();document.getElementById("pilotCursorFile").click()}});
+document.getElementById("pilotCopilotFile").addEventListener("change",function(){var files=takeChosenFiles(this);if(!files.length){pilotStatus("Choose the usage report you downloaded from GitHub billing. Nothing was read or sent.","error");return}document.getElementById("routea").hidden=false;handle(files,"files")});
+document.getElementById("pilotCopilotFileLabel").addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();document.getElementById("pilotCopilotFile").click()}});
 document.getElementById("pilotChooseFolder").addEventListener("click",function(){
   if(!PILOT_SOURCE){pilotStatus("Choose Claude Code or Codex first.","error");return}
   mode=PILOT_SOURCE;selectedRoute="a";providerChosen=true;document.getElementById("routea").hidden=false;
@@ -1682,6 +1750,208 @@ function parseCSV(texts){
     costRows:costRows,missingCostRows:missingCostRows,costComplete:allRowsHaveCost,
     estimateReason:allRowsHaveCost?"":"one or more rows lacked a valid billed cost; recognized missing rows use editable comparison rates and unrecognized models remain unpriced"};
 }
+function cursorNormalizeHeader(value){return String(value||"").replace(/^\uFEFF/,"").trim().toLowerCase()}
+function cursorHeaderColumns(line){
+  var hd=splitCSV(String(line||"")).map(cursorNormalizeHeader);
+  function find(test){for(var i=0;i<hd.length;i++){if(test(hd[i]))return i}return -1}
+  function exact(){var names=Array.prototype.slice.call(arguments);return find(function(h){return names.indexOf(h)>=0})}
+  var ci={
+    date:exact("date","timestamp"),
+    user:exact("user"),
+    kind:exact("kind"),
+    model:exact("model"),
+    maxMode:exact("max mode"),
+    inpWith:find(function(h){return h==="input (w/ cache write)"||(h.indexOf("input")===0&&h.indexOf("cache write")>=0&&h.indexOf("w/o")<0&&h.indexOf("without")<0)}),
+    inpWithout:find(function(h){return h==="input (w/o cache write)"||(h.indexOf("input")===0&&(h.indexOf("w/o")>=0||h.indexOf("without")>=0))}),
+    cacheRead:exact("cache read","cache read tokens"),
+    out:exact("output tokens","output"),
+    total:exact("total tokens","total"),
+    cost:exact("cost","cost ($)","cost (usd)")
+  };
+  var hasTokenColumns=ci.inpWith>=0||ci.inpWithout>=0||ci.cacheRead>=0||ci.out>=0;
+  if(ci.date<0||ci.kind<0||ci.model<0||ci.cost<0||!hasTokenColumns)return null;
+  return ci;
+}
+function cursorSafeModelLabel(value){return String(value||"").replace(/[\u0000-\u001f\u007f<>\\/]/g," ").replace(/\s+/g," ").trim().slice(0,80)}
+// Exact recognition on purpose. Rows whose model is outside these observed Cursor families are excluded and named, never guessed.
+function cursorRecognizedModel(model){
+  var m=String(model||"").toLowerCase();
+  if(/^composer-\d{1,2}(?:\.\d{1,2}){0,2}(?:-fast)?$/.test(m))return true;
+  if(m==="auto"||m==="cursor-small")return true;
+  return /^(?:claude|gpt|gemini|grok|deepseek|o[1-9])-[a-z0-9][a-z0-9.-]*$/.test(m);
+}
+function isComposerModel(model){return /^composer(?:-|$)/i.test(String(model||"").trim())}
+function parseCursor(texts){
+  var by={},days={},rows=0,costRows=0,missingCostRows=0,malformedRows=0,excludedRows=0,unrecognizedFiles=0,filesWithRows=0,includedRows=0,includedCost=0,notChargedRows=0;
+  var excludedModels=Object.create(null);
+  var composer={rows:0,tokens:0,cost:0},others={rows:0,tokens:0,cost:0};
+  texts.forEach(function(txt){
+    var lines=String(txt||"").split(/\r?\n/).filter(function(l){return l.trim()});
+    if(!lines.length){unrecognizedFiles++;return}
+    var ci=cursorHeaderColumns(lines[0]);
+    if(!ci){unrecognizedFiles++;return}
+    var fileRows=0;
+    for(var i=1;i<lines.length;i++){
+      var f=splitCSV(lines[i]);
+      if(f.length<=Math.max(ci.model,ci.kind,ci.cost)){malformedRows++;continue}
+      function num(idx){if(idx<0)return 0;var v=parseFloat(String(f[idx]===undefined?"":f[idx]).replace(/[^0-9.\-]/g,""));return Number.isFinite(v)&&v>0?v:0}
+      var inpWith=num(ci.inpWith),inpWithout=num(ci.inpWithout);
+      var tok={inp:ci.inpWithout>=0?inpWithout:inpWith,out:num(ci.out),cw:ci.inpWith>=0&&ci.inpWithout>=0?Math.max(0,inpWith-inpWithout):0,cr:num(ci.cacheRead)};
+      var kind=String(f[ci.kind]===undefined?"":f[ci.kind]).trim().toLowerCase();
+      var notCharged=/^(?:errored|aborted)/.test(kind);
+      var rawCost=String(f[ci.cost]===undefined?"":f[ci.cost]).trim();
+      var recordedCost=null;
+      if(notCharged||/^(?:-|free)$/i.test(rawCost))recordedCost=0;
+      else if(rawCost){var parsedCost=parseFloat(rawCost.replace(/[^0-9.\-]/g,""));if(Number.isFinite(parsedCost))recordedCost=Math.max(0,parsedCost)}
+      var hasTokenValues=tok.inp>0||tok.out>0||tok.cw>0||tok.cr>0;
+      if(!hasTokenValues&&recordedCost===null)continue;
+      var model=cursorSafeModelLabel(ci.model>=0?f[ci.model]:"");
+      if(!model||!cursorRecognizedModel(model)){
+        var excludedLabel=model||"(missing model name)";
+        excludedModels[excludedLabel]=(excludedModels[excludedLabel]||0)+1;excludedRows++;continue;
+      }
+      var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0}});
+      e.inp+=tok.inp; e.out+=tok.out; e.cw+=tok.cw; e.cr+=tok.cr;
+      if(recordedCost!==null){e.cost+=recordedCost;e.costRows++;costRows++;}
+      else{e.missingCostRows++;missingCostRows++;e.missing.inp+=tok.inp;e.missing.out+=tok.out;e.missing.cw+=tok.cw;e.missing.cr+=tok.cr;}
+      e.turns++; rows++; fileRows++;
+      if(kind==="included"){includedRows++;includedCost+=recordedCost||0}
+      if(notCharged)notChargedRows++;
+      var dayMatch=String(f[ci.date]===undefined?"":f[ci.date]).trim().match(/^(\d{4}-\d{2}-\d{2})/);
+      if(dayMatch)days[dayMatch[1]]=1;
+      var bucket=isComposerModel(model)?composer:others;
+      bucket.rows++;bucket.tokens+=tok.inp+tok.out+tok.cw+tok.cr;bucket.cost+=recordedCost||0;
+    }
+    if(fileRows)filesWithRows++;
+  });
+  var allRowsHaveCost=rows>0&&missingCostRows===0;
+  return {by:by, turns:rows, sessions:rows, days:Object.keys(days).length, kind:"Cursor usage CSV", estimate:!allRowsHaveCost, csv:true, cursor:true, topSource:"cursor",
+    costRows:costRows,missingCostRows:missingCostRows,costComplete:allRowsHaveCost,costLabel:"Recorded plus estimated cost",
+    composer:composer,otherModels:others,includedRows:includedRows,includedCost:includedCost,notChargedRows:notChargedRows,
+    excludedRows:excludedRows,excludedModels:excludedModels,malformedRows:malformedRows,unrecognizedFiles:unrecognizedFiles,
+    coverage:{files_selected:texts.length,files_parsed:texts.length-unrecognizedFiles,files_with_usage:filesWithRows,files_skipped:unrecognizedFiles,malformed_lines:malformedRows,oversized_lines:0,counter_resets:0,complete:unrecognizedFiles===0&&malformedRows===0&&excludedRows===0},
+    estimateReason:allRowsHaveCost?"":"one or more rows lacked a recorded cost; recognized missing rows use editable comparison rates and unrecognized models remain unpriced"};
+}
+function detectUsageCsvKind(texts){
+  var kinds={};
+  texts.forEach(function(txt){
+    var text=String(txt||"");
+    if(copilotUsageItems(text)!==null){kinds.copilot=1;return}
+    var lines=text.split(/\r?\n/).filter(function(l){return l.trim()});
+    if(!lines.length){kinds.other=1;return}
+    if(cursorHeaderColumns(lines[0]))kinds.cursor=1;
+    else if(copilotHeaderColumns(lines[0]))kinds.copilot=1;
+    else kinds.other=1;
+  });
+  if(Object.keys(kinds).length>1)return "mixed";
+  if(kinds.cursor)return "cursor";
+  if(kinds.copilot)return "copilot";
+  return "";
+}
+// GitHub Copilot billing exports meter prompts and AI credits, never tokens, so this parser records
+// quantities and billed dollars only. One AI credit is one cent as billed by GitHub.
+// Known Copilot billing SKUs. Rows with any other SKU are excluded and named, never guessed.
+var COPILOT_KNOWN_SKUS={copilot_premium_request:1,coding_agent_premium_request:1,copilot_ai_credit:1,coding_agent_ai_credit:1,spark_ai_credit:1};
+function copilotNormalizedSku(value){return String(value||"").replace(/^\uFEFF/,"").trim().toLowerCase().replace(/[ -]+/g,"_").replace(/s$/,"")}
+// Exact recognition on purpose. Rows whose model is outside these observed Copilot families are excluded and named, never guessed.
+function copilotRecognizedModel(model){
+  var m=String(model||"").toLowerCase().replace(/^auto:\s*/,"").trim();
+  if(m==="auto")return true;
+  if(/^o[1-9](?:[ .-][a-z0-9]+)*$/.test(m))return true;
+  return /^(?:claude|gpt|gemini|grok|deepseek)(?:[ .-][a-z0-9]+)+$/.test(m);
+}
+function copilotHeaderColumns(line){
+  var hd=splitCSV(String(line||"")).map(cursorNormalizeHeader);
+  function exact(){var names=Array.prototype.slice.call(arguments);for(var i=0;i<hd.length;i++){if(names.indexOf(hd[i])>=0)return i}return -1}
+  // Billing usage reports (the AI usage report carries the model column TOP needs).
+  var billing={date:exact("date"),sku:exact("sku"),model:exact("model"),quantity:exact("quantity"),unitType:exact("unit_type","unit type"),gross:exact("gross_amount","gross amount"),discount:exact("discount_amount","discount amount"),net:exact("net_amount","net amount")};
+  if(billing.date>=0&&billing.sku>=0&&billing.model>=0&&billing.quantity>=0&&billing.unitType>=0&&(billing.net>=0||billing.gross>=0))return {shape:"billing",ci:billing};
+  // Legacy premium-request reports: per-interaction (Timestamp, Requests Used) and daily-aggregate (date, quantity, exceeds_quota).
+  var legacy={date:exact("timestamp","date"),model:exact("model"),quantity:exact("requests used","quantity"),exceeds:exact("exceeds monthly quota","exceeds_quota")};
+  if(legacy.date>=0&&legacy.model>=0&&legacy.quantity>=0&&legacy.exceeds>=0)return {shape:"legacy",ci:legacy};
+  return null;
+}
+// Accepts a saved GET .../billing/ai_credit/usage (or premium_request/usage) JSON response.
+// Returns null when the text is not that shape, so CSV handling can proceed.
+function copilotUsageItems(text){
+  var trimmed=String(text||"").replace(/^\uFEFF/,"").trim();
+  if(trimmed[0]!=="{"&&trimmed[0]!=="[")return null;
+  var data;try{data=JSON.parse(trimmed)}catch(error){return null}
+  var payloads=Array.isArray(data)?data:[data],items=[],found=false;
+  payloads.forEach(function(payload){
+    if(!payload||typeof payload!=="object"||!Array.isArray(payload.usageItems))return;
+    found=true;
+    var period=payload.timePeriod&&typeof payload.timePeriod==="object"?payload.timePeriod:{};
+    var year=Number(period.year),month=Number(period.month),dayOfMonth=Number(period.day);
+    var day=Number.isInteger(year)&&year>0&&Number.isInteger(month)&&month>=1&&month<=12&&Number.isInteger(dayOfMonth)&&dayOfMonth>=1&&dayOfMonth<=31
+      ?String(year)+"-"+(month<10?"0":"")+month+"-"+(dayOfMonth<10?"0":"")+dayOfMonth:"";
+    payload.usageItems.forEach(function(item){
+      if(!item||typeof item!=="object")return;
+      items.push({day:day,sku:item.sku,model:item.model,unitType:item.unitType,
+        quantity:item.netQuantity!==undefined?item.netQuantity:item.grossQuantity,
+        net:item.netAmount,gross:item.grossAmount,discount:item.discountAmount});
+    });
+  });
+  return found?items:null;
+}
+function parseCopilot(texts){
+  var by={},days={},rows=0,costRows=0,missingCostRows=0,malformedRows=0,excludedRows=0,unrecognizedFiles=0,filesWithRows=0,credits=0,requests=0,creditRows=0,requestRows=0,apiFiles=0;
+  var excludedModels=Object.create(null),excludedSkus=Object.create(null);
+  function money(value){var text=String(value===undefined||value===null?"":value).trim();if(!text)return null;var v=parseFloat(text.replace(/[^0-9.\-]/g,""));return Number.isFinite(v)?v:null}
+  function addRecord(record){
+    var quantity=money(record.quantity);if(quantity!==null)quantity=Math.max(0,quantity);
+    // Prefer the billed net amount; never combine it with the retired preview-era aic_* fields.
+    var net=money(record.net),gross=money(record.gross),discount=money(record.discount);
+    var amount=net!==null?net:(gross!==null?gross-(discount===null?0:discount):null);
+    if(amount!==null)amount=Math.max(0,amount);
+    var hasQuantity=quantity!==null&&quantity>0;
+    if(!hasQuantity&&amount===null)return;
+    if(record.sku!==undefined&&!COPILOT_KNOWN_SKUS[copilotNormalizedSku(record.sku)]){
+      var skuLabel=cursorSafeModelLabel(record.sku)||"(missing SKU)";
+      excludedSkus[skuLabel]=(excludedSkus[skuLabel]||0)+1;excludedRows++;return;
+    }
+    var model=cursorSafeModelLabel(record.model);
+    if(!model||!copilotRecognizedModel(model)){
+      var excludedLabel=model||"(missing model name)";
+      excludedModels[excludedLabel]=(excludedModels[excludedLabel]||0)+1;excludedRows++;return;
+    }
+    // GitHub's own rule: unit_type "requests" means premium-request billing; any other value means AI credits.
+    var isRequests=String(record.unitType===undefined?"":record.unitType).trim().toLowerCase()==="requests";
+    var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0},credits:0,requests:0});
+    if(hasQuantity){if(isRequests){e.requests+=quantity;requests+=quantity;requestRows++}else{e.credits+=quantity;credits+=quantity;creditRows++}}
+    if(amount!==null){e.cost+=amount;e.costRows++;costRows++}
+    else{e.missingCostRows++;missingCostRows++}
+    e.turns++;rows++;
+    if(record.day)days[record.day]=1;
+  }
+  texts.forEach(function(txt){
+    var items=copilotUsageItems(txt);
+    if(items!==null){apiFiles++;var beforeItems=rows;items.forEach(addRecord);if(rows>beforeItems)filesWithRows++;return}
+    var lines=String(txt||"").split(/\r?\n/).filter(function(l){return l.trim()});
+    if(!lines.length){unrecognizedFiles++;return}
+    var head=copilotHeaderColumns(lines[0]);
+    if(!head){unrecognizedFiles++;return}
+    var ci=head.ci,billing=head.shape==="billing",beforeRows=rows;
+    for(var i=1;i<lines.length;i++){
+      var f=splitCSV(lines[i]);
+      if(f.length<=Math.max(ci.date,ci.model,ci.quantity)){malformedRows++;continue}
+      function cell(idx){return idx>=0&&f[idx]!==undefined?f[idx]:undefined}
+      var dayMatch=String(cell(ci.date)===undefined?"":cell(ci.date)).trim().match(/^(\d{4}-\d{2}-\d{2})/);
+      addRecord({day:dayMatch?dayMatch[1]:"",sku:billing?cell(ci.sku):undefined,model:cell(ci.model),
+        unitType:billing?cell(ci.unitType):"requests",quantity:cell(ci.quantity),
+        net:billing?cell(ci.net):undefined,gross:billing?cell(ci.gross):undefined,discount:billing?cell(ci.discount):undefined});
+    }
+    if(rows>beforeRows)filesWithRows++;
+  });
+  var allRowsHaveCost=rows>0&&missingCostRows===0;
+  // estimate stays false on purpose: rows without a billed amount are excluded from dollar totals, never priced by guess.
+  return {by:by,turns:rows,sessions:rows,days:Object.keys(days).length,kind:"GitHub Copilot usage report",estimate:false,csv:true,copilot:true,topSource:"copilot",
+    costRows:costRows,missingCostRows:missingCostRows,costComplete:allRowsHaveCost,
+    credits:credits,requests:requests,creditRows:creditRows,requestRows:requestRows,apiFiles:apiFiles,
+    excludedRows:excludedRows,excludedModels:excludedModels,excludedSkus:excludedSkus,malformedRows:malformedRows,unrecognizedFiles:unrecognizedFiles,
+    coverage:{files_selected:texts.length,files_parsed:texts.length-unrecognizedFiles,files_with_usage:filesWithRows,files_skipped:unrecognizedFiles,malformed_lines:malformedRows,oversized_lines:0,counter_resets:0,complete:unrecognizedFiles===0&&malformedRows===0&&excludedRows===0},
+    estimateReason:""};
+}
 function estTokens(s){return Math.ceil(String(s||"").length/4)}
 function conversationRecords(data){return Array.isArray(data)?data:(data&&Array.isArray(data.conversations)?data.conversations:(data&&typeof data==="object"?[data]:[]))}
 function conversationPrivateKey(record,provider,fileIndex,recordIndex){
@@ -1831,7 +2101,11 @@ function parseOpenAI(texts){
 // ---------- render ----------
 function resolveCostRow(model,e,res){
   var key=priceKeyFor(model),cost=null,complete=!res.chatExport;
-  if(!res.chatExport&&res.csv){
+  if(!res.chatExport&&res.copilot){
+    // Copilot exports carry no token counts, so rows without a billed amount are never priced by guess.
+    cost=e.costRows?e.cost:0;
+    if(e.missingCostRows)complete=false;
+  }else if(!res.chatExport&&res.csv){
     cost=e.costRows?e.cost:0;
     if(e.missingCostRows){
       var missingCost=costOf(model,e.missing.inp,e.missing.out,e.missing.cw,e.missing.cr);
@@ -1848,9 +2122,32 @@ function valueModelAllowed(rows,costAvailable){
   return costAvailable&&rows.length>0&&rows.every(function(r){return !!priceKeyFor(r.model);});
 }
 function resultCountLabels(res){
+  if(res.copilot) return {card:"Usage records",table:"Usage records",summary:"Usage records"};
+  if(res.cursor) return {card:"Usage events",table:"Usage events",summary:"Usage events"};
   if(res.csv) return {card:"Records",table:"Records",summary:"Records"};
   if(res.chatExport) return {card:"Text messages found",table:"Text messages found",summary:"Text messages found in selected file"};
   return {card:"AI replies with usage data",table:"AI replies",summary:"AI replies with usage data"};
+}
+function cursorExcludedNames(res){
+  var models=res.excludedModels||{};
+  return Object.keys(models).sort().map(function(name){return name+" ("+fmtN(models[name])+" row"+(models[name]===1?"":"s")+")"}).join(", ");
+}
+function cursorBreakdownText(res){
+  var text="Composer, Cursor's own agent model: "+fmtN(res.composer.tokens)+" tokens and "+fmt$(res.composer.cost)+" recorded across "+fmtN(res.composer.rows)+" usage events. Other AI versions: "+fmtN(res.otherModels.tokens)+" tokens and "+fmt$(res.otherModels.cost)+" recorded across "+fmtN(res.otherModels.rows)+" usage events.";
+  if(res.includedRows)text+=" "+fmtN(res.includedRows)+" usage event"+(res.includedRows===1?"":"s")+" marked Included consume the plan's included allowance; that cost is value consumed, not extra money billed.";
+  if(res.excludedRows)text+=" Excluded because the AI version was not recognized: "+cursorExcludedNames(res)+".";
+  return text;
+}
+function copilotExcludedNames(res){
+  var models=res.excludedModels||{},skus=res.excludedSkus||{},names=[];
+  Object.keys(models).sort().forEach(function(name){names.push(name+" ("+fmtN(models[name])+" row"+(models[name]===1?"":"s")+")")});
+  Object.keys(skus).sort().forEach(function(name){names.push("billing code "+name+" ("+fmtN(skus[name])+" row"+(skus[name]===1?"":"s")+")")});
+  return names.join(", ");
+}
+function copilotBreakdownText(res){
+  var text="GitHub Copilot meters prompts and AI credits, not tokens, so this report has no token counts. Premium requests recorded: "+fmtQty(res.requests)+". AI credits recorded: "+fmtQty(res.credits)+", where one credit is one cent as billed by GitHub. Only the prompts you send are metered; the autonomous tool calls an agent makes between your prompts are not itemized, so these figures understate the real model work behind agent tasks.";
+  if(res.excludedRows)text+=" Excluded because the AI version or billing code was not recognized: "+copilotExcludedNames(res)+".";
+  return text;
 }
 function pilotMonthLabel(value){if(value==="undated")return "Date unavailable";var parts=String(value).split("-"),months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return months[Number(parts[1])-1]+" "+parts[0]}
 function pilotCoverageWarning(c){
@@ -1896,7 +2193,7 @@ function render(res){
   document.getElementById("codexObsidianDownloads").hidden=!res.codex;
   document.getElementById("reportScope").textContent=res.chatExport
     ?"This report covers only the conversation records and visible text inside the file you selected. It is not your full account total, subscription allowance, Claude Code usage or Codex usage."
-    :(res.codex?"This report covers only recorded token counters found in the selected Codex files.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files."));
+    :(res.codex?"This report covers only recorded token counters found in the selected Codex files.":(res.cursor?"This report covers only the rows found in the selected Cursor usage export.":(res.copilot?"This report covers only the rows found in the selected GitHub Copilot usage report.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files."))));
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[];
   Object.keys(by).forEach(function(model){
     var e=by[model],resolved=resolveCostRow(model,e,res),key=resolved.key,cost=resolved.cost,complete=resolved.complete;
@@ -1910,32 +2207,49 @@ function render(res){
   var totTok=totInp+totOut+totCw+totCr;
   res.costAvailable=allCostsAvailable&&rows.length>0;
   res.partialCost=!res.chatExport&&!allCostsAvailable&&totCost>0;
-  res.valueModelEligible=valueModelAllowed(rows,res.costAvailable);
-  var costCard=res.chatExport?["Recorded dollar cost","Not included",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):"Recorded spend",(res.estimate?"~":"")+fmt$(totCost),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""]));
+  // The Copilot routing scenario is withheld because credit metering undercounts agent work, so the mix is not a routing baseline.
+  res.valueModelEligible=valueModelAllowed(rows,res.costAvailable)&&!res.copilot;
+  var costCard=res.chatExport?["Recorded dollar cost","Not included",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):(res.cursor?"Cost as billed by Cursor":(res.copilot?"Cost as billed by GitHub":"Recorded spend")),(res.estimate?"~":"")+fmt$(totCost),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""]));
   var countLabels=resultCountLabels(res), tokenPrefix=res.chatExport?"about ":"";
   var cards=[costCard,
-    [res.chatExport?"Rough text-only estimate":"Total AI usage",tokenPrefix+fmtN(totTok)+" tokens","i"],
+    res.copilot?["AI credits recorded",fmtQty(res.credits),"i"]:[res.chatExport?"Rough text-only estimate":"Total AI usage",tokenPrefix+fmtN(totTok)+" tokens","i"],
     [countLabels.card,fmtN(res.turns),""]
   ];
+  if(res.copilot) cards.push(["Premium requests recorded",fmtQty(res.requests),""]);
   if(res.days) cards.push(["Days used",fmtN(res.days),"g"]);
   else if(res.chatExport) cards.push(["Conversation records found",fmtN(res.sessions),"g"]);
   else if(!res.csv) cards.push(["Work sessions",fmtN(res.sessions),"g"]);
   document.getElementById("cards").innerHTML=cards.map(function(c){return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div></div>'}).join("");
+  var cursorNote=document.getElementById("cursorBreakdown");
+  if(res.cursor){cursorNote.textContent=cursorBreakdownText(res);cursorNote.hidden=false;}
+  else{cursorNote.textContent="";cursorNote.hidden=true;}
+  var copilotNote=document.getElementById("copilotBreakdown");
+  if(res.copilot){copilotNote.textContent=copilotBreakdownText(res);copilotNote.hidden=false;}
+  else{copilotNote.textContent="";copilotNote.hidden=true;}
   document.getElementById("tokenhelp").textContent=res.chatExport
     ?"This file has no recorded token counts. TOP divides visible message-text characters by four to make a rough text-only estimate. It excludes context replay, hidden instructions, tools, attachments, thinking, caching and every file you did not choose."
-    :"Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.";
+    :(res.copilot
+      ?"GitHub Copilot meters prompts and AI credits, not tokens, so this report shows credits and billed dollars instead of token counts. One AI credit is one cent. Only the prompts you send are metered, so agent work between prompts is undercounted."
+      :"Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.");
   var estimateWord=res.chatExport?"Estimated ":"";
   var th='<thead><tr><th>AI version</th><th>'+estimateWord+'text sent to the AI</th><th>'+estimateWord+'text returned by the AI</th><th>'+estimateWord+'previously saved text: added / reused</th><th>'+countLabels.table+'</th><th>Cost</th></tr></thead>';
   var tb=rows.map(function(r){var shown=res.chatExport?"Not in export":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
   var totalShown=res.chatExport?"Not in export":(res.costAvailable?((res.estimate?"~":"")+fmt$(totCost)):(res.partialCost?("Partial "+fmt$(totCost)):"Not available"));
   var tf='<tfoot><tr><td>Total</td><td class="n">'+tokenPrefix+fmtN(totInp)+'</td><td class="n">'+tokenPrefix+fmtN(totOut)+'</td><td class="n">'+(res.chatExport?"Not in export":(fmtN(totCw)+' / '+fmtN(totCr)))+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
+  if(res.copilot){
+    // Copilot exports contain no token counts, so the table shows what GitHub actually meters: requests, credits and billed dollars.
+    th='<thead><tr><th>AI version</th><th>Premium requests</th><th>AI credits</th><th>'+countLabels.table+'</th><th>Cost as billed</th></tr></thead>';
+    tb=rows.map(function(r){var shown=r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):fmt$(r.cost));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+fmtQty(r.e.requests)+'</td><td class="n">'+fmtQty(r.e.credits)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
+    tf='<tfoot><tr><td>Total</td><td class="n">'+fmtQty(res.requests)+'</td><td class="n">'+fmtQty(res.credits)+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
+  }
   document.getElementById("modeltable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
   if(PILOT_MODE){
     var pricedRows=rows.filter(function(row){return row.cost!==null&&row.cost>0}),pricedTotal=pricedRows.reduce(function(sum,row){return sum+row.cost},0);
     var costText=res.chatExport?"Not included":(pricedTotal>0?((res.estimate?"~":"")+fmt$(pricedTotal)):"Not available");
     document.getElementById("pilotQuickCost").textContent=costText;
+    document.getElementById("pilotQuickCostLabel").textContent=res.cursor?"Cost recorded in Cursor's export":(res.copilot?"Cost as billed by GitHub":"What this usage would cost at API prices");
     document.getElementById("pilotQuickSessions").textContent=fmtN(res.sessions||0);
-    document.getElementById("pilotQuickSessionsLabel").textContent=res.pilotSafeSchemaVersion==="top.safe-usage.v2"?"Deduplicated logical sessions":"Work sessions found";
+    document.getElementById("pilotQuickSessionsLabel").textContent=res.pilotSafeSchemaVersion==="top.safe-usage.v2"?"Deduplicated logical sessions":(res.cursor?"Usage events found":(res.copilot?"Usage records found":"Work sessions found"));
     document.getElementById("pilotQuickDays").textContent=fmtN(res.days||0);
     var coverage=res.pilotCoverage||{},coverageWarning=pilotCoverageWarning(coverage),coverageNote=document.getElementById("pilotCoverageNote");coverageNote.hidden=!coverageWarning;coverageNote.textContent=coverageWarning;
     document.getElementById("pilotQuickPrivacy").textContent=res.pilotSafe
@@ -1943,9 +2257,13 @@ function render(res){
       :"TOP read usage counters locally from the folder you chose. Your raw history was not sent.";
     document.getElementById("pilotQuickCostNote").textContent=res.chatExport
       ?"This download does not contain reliable cost data. TOP has not invented a charge."
-      :(unpriced.length
-        ?"TOP priced "+fmtN(pricedRows.length)+" of "+fmtN(rows.length)+" AI versions. This is a partial API-rate comparison, not your subscription bill."
-        :"This is an API-rate comparison based on recorded usage, not your subscription bill.");
+      :(res.cursor
+        ?"These dollar figures come from the Cost column Cursor exported, as billed by Cursor. "+cursorBreakdownText(res)
+        :res.copilot
+        ?"These dollar figures come from the billed amounts GitHub exported. "+copilotBreakdownText(res)
+        :(unpriced.length
+          ?"TOP priced "+fmtN(pricedRows.length)+" of "+fmtN(rows.length)+" AI versions. This is a partial API-rate comparison, not your subscription bill."
+          :"This is an API-rate comparison based on recorded usage, not your subscription bill."));
     var shownRows=pricedRows.slice().sort(function(a,b){return b.cost-a.cost}).slice(0,3);
     document.getElementById("pilotUsageMix").innerHTML=shownRows.length?shownRows.map(function(row){
       var share=pricedTotal>0?Math.round(row.cost/pricedTotal*100):0;
@@ -1969,24 +2287,38 @@ function render(res){
   if(res.estimate&&!res.chatExport) lines.push("About the dollar figures: They are estimates based on the usage numbers in your file and checked pay-as-you-go prices, where each amount of AI use is billed separately. They are not your subscription bill.");
   lines.push("");
   if(res.chatExport) lines.push("Cost information: This download does not include a reliable dollar cost, so TOP has not guessed one.");
-  else if(res.costAvailable) lines.push("Cost information: "+(res.estimate?"Estimated pay-as-you-go cost: about ":"Cost recorded in the file: ")+fmt$(totCost)+".");
+  else if(res.costAvailable) lines.push("Cost information: "+(res.estimate?"Estimated pay-as-you-go cost: about ":(res.cursor?"Cost as billed by Cursor: ":(res.copilot?"Cost as billed by GitHub: ":"Cost recorded in the file: ")))+fmt$(totCost)+".");
   else if(res.partialCost) lines.push("Cost information: TOP could price only part of the usage. The "+(res.estimate?"estimated":"recorded")+" amount for the rows it could price is "+fmt$(totCost)+".");
   else lines.push("Cost information: TOP could not calculate a reliable dollar cost.");
   if(unpriced.length) lines.push("AI versions without a checked price: "+unpriced.join(", ")+".");
   lines.push("");
+  if(res.copilot){
+    lines.push("Metering: GitHub Copilot bills prompts and AI credits, not tokens, so this report has no token counts. One AI credit is one cent.");
+    lines.push("Premium requests recorded: "+fmtQtyPlain(res.requests)+".");
+    lines.push("AI credits recorded: "+fmtQtyPlain(res.credits)+".");
+    lines.push("Undercount warning: only the prompts you send are metered. The autonomous tool calls an agent makes between your prompts are not itemized, so these figures understate the real model work behind agent tasks.");
+  }else{
   lines.push((res.chatExport?"Rough text-only estimate from selected file: about ":"Total AI usage: ")+fmtInt(totTok)+" tokens.");
   lines.push("Tokens are small pieces of text that AI companies use to measure usage.");
   if(res.chatExport) lines.push("TOP divided visible message-text characters by four because this file contains no recorded token counts. This is not a full account total, subscription allowance, Claude Code total or Codex total.");
   lines.push((res.chatExport?"Estimated text sent to the AI: about ":"Text sent to the AI: ")+fmtInt(totInp)+" tokens.");
   lines.push((res.chatExport?"Estimated text returned by the AI: about ":"Text returned by the AI: ")+fmtInt(totOut)+" tokens.");
   lines.push(res.chatExport?"Previously saved text: Not included in this download.":("Previously saved text: "+fmtInt(totCw)+" tokens added, "+fmtInt(totCr)+" tokens reused."));
+  }
   lines.push(countLabels.summary+": "+fmtInt(res.turns)+".");
   if(res.chatExport&&res.sessions) lines.push("Conversation records found in selected file: "+fmtInt(res.sessions)+".");
   else if(!res.csv&&res.sessions) lines.push("Work sessions: "+fmtInt(res.sessions)+".");
   if(res.chatExport&&res.ignoredRecords) lines.push("Objects ignored because they did not match conversation records with readable user and AI text: "+fmtInt(res.ignoredRecords)+".");
   if(res.chatExport&&res.duplicateRecords) lines.push("Duplicate conversation copies skipped: "+fmtInt(res.duplicateRecords)+".");
   if(res.days) lines.push("Days used: "+fmtInt(res.days)+".");
-  if(perTurn!==null) lines.push("Average cost per "+(res.csv?"record":"AI reply")+": "+fmt$(perTurn)+".");
+  if(perTurn!==null) lines.push("Average cost per "+(res.cursor?"usage event":(res.copilot?"usage record":(res.csv?"record":"AI reply")))+": "+fmt$(perTurn)+".");
+  if(res.copilot&&res.excludedRows) lines.push("Rows excluded because the AI version or billing code was not recognized: "+copilotExcludedNames(res)+".");
+  if(res.cursor){
+    lines.push("Composer, Cursor's own agent model: "+fmtInt(res.composer.tokens)+" tokens, "+fmtInt(res.composer.rows)+" usage events, recorded cost "+fmt$(res.composer.cost)+".");
+    lines.push("Other AI versions in this export: "+fmtInt(res.otherModels.tokens)+" tokens, "+fmtInt(res.otherModels.rows)+" usage events, recorded cost "+fmt$(res.otherModels.cost)+".");
+    if(res.includedRows) lines.push("Included-plan usage events: "+fmtInt(res.includedRows)+". Their cost is value consumed from the plan's included allowance, not extra money billed.");
+    if(res.excludedRows) lines.push("Rows excluded because the AI version was not recognized: "+cursorExcludedNames(res)+".");
+  }
   if(!res.chatExport&&priceKeys.length){
     lines.push("Pricing basis: pay-as-you-go API rates checked "+PRICING_CHECKED+". Five-minute cache writes use 1.25 times the input rate and cache reads use 0.1 times the input rate.");
     if(priceKeys.some(function(key){return PRICES[key].source===ANTHROPIC_PRICING_SOURCE}))lines.push("Anthropic pricing source: "+ANTHROPIC_PRICING_SOURCE+".");
@@ -1996,7 +2328,7 @@ function render(res){
   lines.push("Usage by AI version:");
   rows.forEach(function(r){
     var rowCost=r.cost===null?"cost not available":(!r.complete?("partial cost "+fmt$(r.cost)):((res.estimate?"estimated cost about ":"cost ")+fmt$(r.cost)));
-    lines.push("  "+safePublicModelLabel(r.model)+": "+(res.chatExport?("about "+fmtInt(r.e.inp)+" sent, about "+fmtInt(r.e.out)+" returned"):(fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused"))+", "+fmtInt(r.e.turns)+" "+countLabels.table.toLowerCase()+", "+rowCost+".");
+    lines.push("  "+safePublicModelLabel(r.model)+": "+(res.copilot?(fmtQtyPlain(r.e.requests)+" premium requests, "+fmtQtyPlain(r.e.credits)+" AI credits"):(res.chatExport?("about "+fmtInt(r.e.inp)+" sent, about "+fmtInt(r.e.out)+" returned"):(fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused")))+", "+fmtInt(r.e.turns)+" "+countLabels.table.toLowerCase()+", "+rowCost+".");
   });
   lines.push("");
   lines.push("Privacy note: This summary contains no conversation text, AI reply text, code, file contents or original internal ID numbers.");
@@ -2355,7 +2687,7 @@ document.getElementById("vaultCopyClaudePath").addEventListener("click",function
 
 // ---------- file handling ----------
 var HISTORY_LIMITS={maxFiles:10000,maxFileBytes:350*1024*1024,maxConversationDesktopBytes:64*1024*1024,maxConversationMobileBytes:12*1024*1024,maxCodexFileBytes:4*1024*1024*1024,maxTotalBytes:128*1024*1024,maxClaudeTotalBytes:8*1024*1024*1024,maxCodexTotalBytes:12*1024*1024*1024};
-function showErr(msg){var e=document.getElementById("err");e.textContent=msg;e.style.display="block";document.getElementById("out").style.display="none";document.getElementById("fileStatus").textContent="";}
+function showErr(msg){var e=document.getElementById("err");e.textContent=msg;e.style.display="block";document.getElementById("out").style.display="none";document.getElementById("fileStatus").textContent="";if(PILOT_MODE)pilotStatus(msg,"error");}
 function conversationLimitBytes(){
   var width=typeof window!=="undefined"?Number(window.innerWidth||0):0,touch=typeof navigator!=="undefined"?Number(navigator.maxTouchPoints||0):0;
   return (width&&width<=768)||(touch&&width&&width<=1024)?HISTORY_LIMITS.maxConversationMobileBytes:HISTORY_LIMITS.maxConversationDesktopBytes;
@@ -2398,7 +2730,7 @@ function historyFilesForMode(files,targetMode,origin){
   var unsafeCodexRoot=targetMode==="codex"&&list.some(function(file){return /^(?:\.codex)(?:\/|\\)/i.test(String(file.webkitRelativePath||""))});
   var claudeFolderRoots=Object.keys(folderRoots),unsafeClaudeRoot=targetMode==="cc"&&origin==="folder"&&claudeFolderRoots.indexOf(".claude")>=0;
   var invalidClaudeFolder=targetMode==="cc"&&origin==="folder"&&!unsafeClaudeRoot&&(claudeFolderRoots.length!==1||claudeFolderRoots[0]!=="projects");
-  var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:(targetMode==="csv"?/\.csv$/i:/^conversations?(?:[-_]\d+)?\.json$/i));
+  var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:(targetMode==="csv"||targetMode==="cursor"?/\.csv$/i:(targetMode==="copilot"?/\.(?:csv|json)$/i:/^conversations?(?:[-_]\d+)?\.json$/i)));
   var fileLimit=targetMode==="codex"?HISTORY_LIMITS.maxCodexFileBytes:((targetMode==="chat"||targetMode==="openai")?conversationLimitBytes():HISTORY_LIMITS.maxFileBytes);
   list.forEach(function(file){
     var name=String(file.name||"");
@@ -2420,6 +2752,8 @@ function finishParsedResult(res,openedCount){
   var n=Object.keys(res.by).length;
   if(!n||res.turns===0){
     if(mode==="csv") showErr("TOP could not find recognized usage or cost columns with real values in that CSV. An Obsidian note is not a Console export. Choose an Anthropic Usage or Cost CSV.");
+    else if(mode==="cursor") showErr("TOP could not find recognized Cursor usage rows in that file. In Cursor, open Settings, then Usage, then Export to download the usage CSV, then choose that file.");
+    else if(mode==="copilot") showErr("TOP could not find recognized GitHub Copilot usage rows in that file. On github.com/settings/billing, open Usage and choose Get usage report, then choose the downloaded CSV here.");
     else if(mode==="codex") showErr("TOP found no recorded token usage in those Codex session files. Some older or incomplete Codex sessions have no token_count records. TOP will not estimate usage from transcript text.");
     else showErr("TOP could not find usage data for the source you chose. Try the matching Claude Code JSONL, Claude Chat conversations.json, or ChatGPT conversations.json file.");
     return;
@@ -2434,6 +2768,10 @@ function finishParsedResult(res,openedCount){
   render(res);
   var status=(AUTO_DETECTED_NOTE?AUTO_DETECTED_NOTE+" ":"")+"Report ready from "+fmtN(openedCount)+" file"+(openedCount===1?"":"s")+" opened only on this device.";
   if(res.codex&&res.coverage&&!res.coverage.complete) status+=" Some malformed, oversized or reset usage records were skipped, so coverage may be incomplete.";
+  if(res.cursor&&res.unrecognizedFiles) status+=" "+fmtN(res.unrecognizedFiles)+" file"+(res.unrecognizedFiles===1?" was":"s were")+" skipped because the Cursor usage CSV header was not recognized.";
+  if(res.cursor&&res.excludedRows) status+=" "+fmtN(res.excludedRows)+" row"+(res.excludedRows===1?" was":"s were")+" excluded because the AI version was not recognized. The report names them.";
+  if(res.copilot&&res.unrecognizedFiles) status+=" "+fmtN(res.unrecognizedFiles)+" file"+(res.unrecognizedFiles===1?" was":"s were")+" skipped because the Copilot usage report format was not recognized.";
+  if(res.copilot&&res.excludedRows) status+=" "+fmtN(res.excludedRows)+" row"+(res.excludedRows===1?" was":"s were")+" excluded because the AI version or billing code was not recognized. The report names them.";
   if(res.chatExport&&res.ignoredRecords) status+=" "+fmtN(res.ignoredRecords)+" object"+(res.ignoredRecords===1?" was":"s were")+" ignored because "+(res.ignoredRecords===1?"it did":"they did")+" not contain readable conversation messages.";
   if(res.chatExport&&res.duplicateRecords) status+=" "+fmtN(res.duplicateRecords)+" duplicate conversation cop"+(res.duplicateRecords===1?"y was":"ies were")+" skipped.";
   document.getElementById("fileStatus").textContent=status;
@@ -2489,7 +2827,8 @@ function handle(files,origin){
   AUTO_DETECTED_NOTE="";
   var inferred=inferModeFromFileNames(files);
   if(inferred==="conversation"){openDetectedConversationFiles(files);return}
-  if(inferred&&inferred!==mode)switchToDetectedMode(inferred);
+  // A .csv extension alone cannot distinguish Console, Cursor and Copilot exports; run() re-checks the header after reading.
+  if(inferred&&inferred!==mode&&!(inferred==="csv"&&(mode==="cursor"||mode==="copilot")))switchToDetectedMode(inferred);
   var checked=historyFilesForMode(files,mode,origin);
   if(!checked.files.length){
     if(checked.unsafeCodexRoot) showErr("Do not choose the whole .codex folder. It can contain account and prompt history files. Choose only .codex\\sessions, .codex\\archived_sessions, explicit rollout-*.jsonl files, or TOP's ai-events.jsonl.");
@@ -2519,10 +2858,18 @@ function handle(files,origin){
 }
 function run(texts,openedCount){
   try{
+    if(mode==="csv"||mode==="cursor"||mode==="copilot"){
+      var csvKind=detectUsageCsvKind(texts);
+      if(csvKind==="mixed"){showErr("That selection mixes different usage export formats. Choose one tool's export at a time so totals are not blended.");return}
+      if(csvKind==="cursor"&&mode!=="cursor")switchToDetectedMode("cursor");
+      if(csvKind==="copilot"&&mode!=="copilot")switchToDetectedMode("copilot");
+    }
     var res;
     if(mode==="cc") res=parseClaudeCode(texts);
     else if(mode==="codex") res=parseCodex(texts);
     else if(mode==="csv") res=parseCSV(texts);
+    else if(mode==="cursor") res=parseCursor(texts);
+    else if(mode==="copilot") res=parseCopilot(texts);
     else if(mode==="chat") res=parseChat(texts);
     else if(mode==="openai") res=parseOpenAI(texts);
     else{showErr("Choose an AI history source before opening usage data.");return}
@@ -2731,12 +3078,21 @@ function researchDateOnly(value){var match=String(value||"").match(/^(\d{4}-\d{2
 function strictResearchModelLabel(value){
   var model=String(value||"").replace(/[\u0000-\u001f\u007f<>\\/]/g," ").replace(/\s+/g," ").trim();
   if(/^(?:claude\.ai \(est\.\)|ChatGPT export \(est\.\)|Unknown Codex model)$/i.test(model))return model;
+  // "Auto: " is GitHub Copilot's routed-model prefix; keep it only when the routed name itself is recognized.
+  if(/^auto: /i.test(model)){var routed=strictResearchModelLabel(model.slice(6));return routed==="Unrecognized AI version"?routed:"Auto: "+routed}
   model=model.replace(/-(?:\d{8}|\d{4}-\d{2}-\d{2})$/i,"");
+  // GitHub Copilot display-style names, for example "Claude Sonnet 4.5" or "Gemini 2.0 Flash".
+  if(/^(?:claude (?:opus|sonnet|haiku|fable|mythos)|gpt \d{1,2}(?:\.\d{1,2}){0,2}|gemini (?:\d{1,2}(?:\.\d{1,2}){0,2}|pro|flash|ultra)|grok (?:code|\d{1,2})|deepseek v\d{1,2}|o[1-9])(?: [a-z0-9][a-z0-9.]{0,11}){0,3}$/i.test(model))return model;
   if(/^claude-(?:(?:opus|sonnet|haiku|fable|mythos)-\d{1,2}(?:-\d{1,2}){0,2}|\d{1,2}(?:-\d{1,2}){0,2}-(?:opus|sonnet|haiku|fable|mythos))$/i.test(model))return model;
   if(/^gpt-\d{1,2}(?:[.-]\d{1,2})*(?:-(?:sol|terra|luna|mini|nano|codex(?:-mini)?|chat|pro|turbo|preview))?$/i.test(model))return model;
   if(/^o[1-9](?:-(?:mini|pro|preview|latest))?$/i.test(model))return model;
   if(/^deepseek-v\d{1,2}(?:[.-]\d{1,2})*(?:-(?:pro|lite|chat|coder|reasoner))?$/i.test(model))return model;
   if(/^codex-(?:mini|large|latest)(?:-latest)?$/i.test(model))return model;
+  if(/^composer-\d{1,2}(?:[.-]\d{1,2}){0,2}(?:-fast)?$/i.test(model))return model;
+  if(/^(?:auto|cursor-small)$/i.test(model))return model;
+  if(/^claude-\d{1,2}(?:[.-]\d{1,2}){0,2}-(?:opus|sonnet|haiku|fable|mythos)(?:-(?:low|medium|high))?(?:-thinking)?$/i.test(model))return model;
+  if(/^gemini-\d{1,2}(?:[.-]\d{1,2}){0,2}(?:-(?:pro|flash|ultra|lite|nano)){0,2}(?:-preview)?$/i.test(model))return model;
+  if(/^grok-[a-z0-9]{1,20}(?:-[a-z0-9]{1,20}){0,3}$/i.test(model))return model;
   return "Unrecognized AI version";
 }
 function researchSource(result,routeB){
@@ -2745,11 +3101,15 @@ function researchSource(result,routeB){
   if(result.codex)return {provider:"openai",surface:"codex",input_form:"local_session_usage_records"};
   if(result.chatProvider==="ChatGPT")return {provider:"openai",surface:"chatgpt",input_form:"conversation_export"};
   if(result.chatProvider==="Claude Chat")return {provider:"anthropic",surface:"claude_chat",input_form:"conversation_export"};
+  if(result.cursor)return {provider:"cursor",surface:"cursor_ide",input_form:"usage_csv_export"};
+  if(result.copilot)return {provider:"github",surface:"copilot",input_form:"billing_usage_export"};
   if(result.csv)return {provider:"anthropic",surface:"console",input_form:"console_csv_export"};
   return {provider:"anthropic",surface:"claude_code",input_form:"local_session_usage_records"};
 }
 function researchMeasurement(result){
   if(result.chatExport)return {token_basis:"estimated_from_visible_message_text",cache_basis:"not_available",reasoning_basis:"not_available",cost_basis:"not_available"};
+  if(result.cursor)return {token_basis:"exported_columns_where_present",cache_basis:"exported_columns_where_present",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export_as_billed_by_cursor":"recorded_where_present_then_checked_rates_for_recognized_missing_rows"};
+  if(result.copilot)return {token_basis:"not_available_copilot_meters_prompts_and_credits",cache_basis:"not_available",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export_as_billed_by_github":"recorded_where_present_never_estimated"};
   if(result.csv)return {token_basis:"exported_columns_where_present",cache_basis:"exported_columns_where_present",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export":"recorded_where_present_then_checked_rates_for_recognized_missing_rows"};
   return {token_basis:"recorded_usage_counters",cache_basis:"recorded_usage_counters",reasoning_basis:result.codex?"recorded_subset_of_output":"not_separately_available",cost_basis:"checked_pay_as_you_go_rate_comparison"};
 }
@@ -2768,6 +3128,18 @@ function researchCoverage(result,routeB){
     coverage.records_ignored=researchCount(result.ignoredRecords);
     coverage.messages_ignored=researchCount(result.ignoredMessages);
     coverage.duplicate_records_skipped=researchCount(result.duplicateRecords);
+  }else if(result.cursor){
+    coverage.rows_with_recorded_cost=researchCount(result.costRows);
+    coverage.rows_without_recorded_cost=researchCount(result.missingCostRows);
+    coverage.rows_excluded_unrecognized_model=researchCount(result.excludedRows);
+    coverage.files_skipped_unrecognized_header=researchCount(result.unrecognizedFiles);
+  }else if(result.copilot){
+    coverage.rows_with_recorded_cost=researchCount(result.costRows);
+    coverage.rows_without_recorded_cost=researchCount(result.missingCostRows);
+    coverage.rows_excluded_unrecognized_model_or_sku=researchCount(result.excludedRows);
+    coverage.files_skipped_unrecognized_format=researchCount(result.unrecognizedFiles);
+    coverage.premium_request_quantity=researchMoney(result.requests);
+    coverage.ai_credit_quantity=researchMoney(result.credits);
   }else if(result.csv){
     coverage.rows_with_recorded_cost=researchCount(result.costRows);
     coverage.rows_without_recorded_cost=researchCount(result.missingCostRows);
@@ -2797,7 +3169,7 @@ function selectedResearchEnums(name,map,useDataValue){
 function collectResearchQuestionnaire(){
   if(!includeSurveyContext)return null;
   var resonance=Array.prototype.map.call(document.querySelectorAll("#resonanceChoices .resonance-choice.on"),function(choice){return RESEARCH_ENUM_MAPS.resonance[choice.dataset.value]||null}).filter(Boolean);
-  var source={cc:"claude_code",codex:"codex",csv:"claude_console",chat:"claude_chat",openai:"chatgpt"}[mode]||"unrecognized";
+  var source={cc:"claude_code",codex:"codex",csv:"claude_console",chat:"claude_chat",openai:"chatgpt",cursor:"cursor",copilot:"github_copilot"}[mode]||"unrecognized";
   var route={a:"show_report_first",b:"make_shareable_summary"}[selectedRoute]||"not_selected";
   return {what_to_improve:resonance,source_selected:source,route_selected:route,kinds_of_work:selectedResearchEnums("archetype",RESEARCH_ENUM_MAPS.archetype,true),frequency:selectedResearchEnums("frequency",RESEARCH_ENUM_MAPS.frequency,false),main_uses:selectedResearchEnums("primary",RESEARCH_ENUM_MAPS.primary,false),effort_level:selectedResearchEnums("thinking",RESEARCH_ENUM_MAPS.thinking,false),goals:selectedResearchEnums("goal",RESEARCH_ENUM_MAPS.goal,false),account_category:selectedResearchEnums("account",RESEARCH_ENUM_MAPS.account,false)};
 }
@@ -2805,12 +3177,20 @@ function safeResearchQuestionnaire(value){
   if(!value||typeof value!=="object")return null;
   function allowedValues(map){var set={};Object.keys(map).forEach(function(key){set[map[key]]=1});return set}
   function filtered(items,map){var allowed=allowedValues(map);return Array.isArray(items)?items.filter(function(item){return allowed[item]}):[]}
-  var sources={claude_code:1,codex:1,claude_console:1,claude_chat:1,chatgpt:1,unrecognized:1},routes={show_report_first:1,make_shareable_summary:1,not_selected:1};
+  var sources={claude_code:1,codex:1,claude_console:1,claude_chat:1,chatgpt:1,cursor:1,github_copilot:1,unrecognized:1},routes={show_report_first:1,make_shareable_summary:1,not_selected:1};
   return {what_to_improve:filtered(value.what_to_improve,RESEARCH_ENUM_MAPS.resonance),source_selected:sources[value.source_selected]?value.source_selected:"unrecognized",route_selected:routes[value.route_selected]?value.route_selected:"not_selected",kinds_of_work:filtered(value.kinds_of_work,RESEARCH_ENUM_MAPS.archetype),frequency:filtered(value.frequency,RESEARCH_ENUM_MAPS.frequency),main_uses:filtered(value.main_uses,RESEARCH_ENUM_MAPS.primary),effort_level:filtered(value.effort_level,RESEARCH_ENUM_MAPS.thinking),goals:filtered(value.goals,RESEARCH_ENUM_MAPS.goal),account_category:filtered(value.account_category,RESEARCH_ENUM_MAPS.account)};
 }
 function researchCostRow(rawModel,entry,result){
   var model=strictResearchModelLabel(rawModel),key=model==="Unrecognized AI version"?null:priceKeyFor(model),cost=null,complete=false,status="unavailable",rateApplied=false;
   if(result.chatExport)return {model:model,key:null,cost:null,complete:false,status:status,rateApplied:false};
+  if(result.copilot){
+    // Copilot rows without a billed amount stay unpriced: the export has no token counts to price.
+    var billedRecorded=!!entry.costRows,billedMissing=!!entry.missingCostRows;
+    if(billedRecorded)cost=Number(entry.cost)||0;
+    complete=!billedMissing;
+    status=billedRecorded?(billedMissing?"partial_recorded":"recorded"):"unavailable";
+    return {model:model,key:null,cost:researchMoney(cost),complete:complete,status:status,rateApplied:false};
+  }
   if(result.csv){
     var recorded=entry.costRows?Number(entry.cost)||0:0,hasRecorded=!!entry.costRows,hasMissing=!!entry.missingCostRows,estimated=null;
     if(hasMissing&&key)estimated=costOf(model,researchCount(entry.missing&&entry.missing.inp),researchCount(entry.missing&&entry.missing.out),researchCount(entry.missing&&entry.missing.cw),researchCount(entry.missing&&entry.missing.cr));
@@ -2853,8 +3233,8 @@ function buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,creat
   var modelRows=Object.keys(grouped).sort().map(function(model){var row=grouped[model],clean={model:row.model,input_tokens:row.input_tokens,output_tokens:row.output_tokens,cache_write_tokens:row.cache_write_tokens,cache_read_tokens:row.cache_read_tokens,reasoning_tokens:row.reasoning_tokens,total_tokens:row.total_tokens,events_or_replies:row.events_or_replies,cost:{status:mergeResearchCostStatus(row._statuses,row._anyCost,row._allComplete),usd:row._anyCost?researchMoney(row._cost):null}};return clean});
   var totals=modelRows.reduce(function(out,row){out.input_tokens+=row.input_tokens;out.output_tokens+=row.output_tokens;if(row.cache_write_tokens!==null)out.cache_write_tokens+=row.cache_write_tokens;if(row.cache_read_tokens!==null)out.cache_read_tokens+=row.cache_read_tokens;if(row.reasoning_tokens!==null)out.reasoning_tokens+=row.reasoning_tokens;out.total_tokens+=row.total_tokens;return out},{input_tokens:0,output_tokens:0,cache_write_tokens:current.chatExport?null:0,cache_read_tokens:current.chatExport?null:0,reasoning_tokens:current.codex?0:null,total_tokens:0});
   var activity={ai_replies:null,usage_events:null,console_records:null,text_messages:null,sessions:current.csv?null:researchCount(current.sessions),active_days:current.pilotSafeSchemaVersion==="top.safe-usage.v2"?researchCount(current.days):(researchCount(current.days)||null)};
-  if(current.codex)activity.usage_events=researchCount(current.turns);else if(current.csv)activity.console_records=researchCount(current.turns);else if(current.chatExport)activity.text_messages=researchCount(current.turns);else activity.ai_replies=researchCount(current.turns);
-  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.chatExport?"not_available":(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison"),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
+  if(current.codex||current.cursor||current.copilot)activity.usage_events=researchCount(current.turns);else if(current.csv)activity.console_records=researchCount(current.turns);else if(current.chatExport)activity.text_messages=researchCount(current.turns);else activity.ai_replies=researchCount(current.turns);
+  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.chatExport?"not_available":(current.copilot?(current.costComplete?"recorded_in_export":"recorded_where_present_never_estimated"):(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison")),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
   if(routeB&&valueModel.truth_status==="not_available")valueModel.reason="scenario_control_not_shown_for_this_route";
   appliedRates.forEach(function(rate){Object.keys(rate.field_provenance).forEach(function(field){var origin=rate.field_provenance[field];if(origin==="user_edited_in_tab"||origin==="derived_from_user_edited_input")editedFields++;else referenceFields++})});
   if(current.chatExport)pricingStatus="not_applied";else if(current.csv&&current.costComplete)pricingStatus="not_needed_recorded_cost";else if(!appliedRates.length)pricingStatus="not_applied_no_recognized_rate";else if(editedFields&&referenceFields)pricingStatus=allComplete?"mixed_checked_and_user_edited_rates":"partially_applied_mixed_rate_provenance";else if(editedFields)pricingStatus=allComplete?"user_edited_in_tab":"partially_applied_user_edited_rates";else pricingStatus=allComplete?"checked_reference_rates":"partially_applied_checked_rates";
