@@ -26,7 +26,9 @@ The coordinator imports one latest file per participant slot. The page reports e
 - relative and absolute interval width;
 - the mean 80% interval score in log space;
 - attrition;
-- the missing-data floor;
+- the missing-actual rate;
+- the share of frozen forecasts excluded from accuracy metrics;
+- the coverage floor obtained by treating every excluded forecast as a miss;
 - participant, forecast-version, and task-class splits.
 
 These results are exploratory. A later confirmatory study requires a frozen sample size, exclusions, analysis plan, and stopping rule.

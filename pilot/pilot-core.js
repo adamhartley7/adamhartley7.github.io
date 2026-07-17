@@ -332,6 +332,7 @@
     var missingActual = all.filter(function (attempt) {
       return attempt.state === "frozen" || (attempt.state === "invalidated" && attempt.actual_usd === null);
     });
+    var analysisExcluded = frozen.length - paired.length;
     var within = paired.filter(function (attempt) { return attempt.actual_usd >= attempt.p10_usd && attempt.actual_usd <= attempt.p90_usd; });
     var below = paired.filter(function (attempt) { return attempt.actual_usd < attempt.p10_usd; });
     var atOrBelowP50 = paired.filter(function (attempt) { return attempt.actual_usd <= attempt.p50_usd; });
@@ -350,6 +351,7 @@
       paired_usable: paired.length,
       invalidated: invalidated.length,
       actual_missing: missingActual.length,
+      analysis_excluded: analysisExcluded,
       nominal_interval_coverage: NOMINAL_INTERVAL_COVERAGE,
       within_p10_p90_count: within.length,
       within_p10_p90_rate: rate(within.length, paired.length),
@@ -365,7 +367,9 @@
       median_absolute_interval_width_usd: round(median(absoluteWidth)),
       mean_log_space_interval_score: round(mean(scores)),
       attrition_rate: rate(invalidated.length, frozen.length),
-      missing_data_floor_rate: rate(missingActual.length, frozen.length)
+      missing_actual_rate: rate(missingActual.length, frozen.length),
+      analysis_exclusion_rate: rate(analysisExcluded, frozen.length),
+      coverage_floor_if_excluded_miss: rate(within.length, frozen.length)
     };
   }
 

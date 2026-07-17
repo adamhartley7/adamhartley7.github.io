@@ -16,7 +16,6 @@ html { min-width: 320px; background: #eef1fa; }
 body {
   margin: 0;
   min-height: 100vh;
-  overflow-x: hidden;
   color: var(--ink);
   background:
     radial-gradient(circle at 12% 8%, rgba(134, 114, 238, 0.2), transparent 30rem),

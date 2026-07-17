@@ -48,7 +48,8 @@ assert.match(app, /Pilot\.coordinatorSummary\(exports\)/);
 
 assert.match(html, /This is an instrumentation check, not evidence that TOP is accurate/);
 assert.match(html, /observed coverage is reported, not assumed/i);
-assert.match(html, /Missing attempts are not silently discarded/i);
+assert.match(html, /every forecast excluded from accuracy remain visible/i);
+assert.match(html, /coverage floor treats every excluded forecast as a miss/i);
 assert.match(html, /No accuracy or savings claim/);
 
 console.log("TOP prospective pilot UI flow tests passed");

@@ -134,7 +134,7 @@
             <li>Multiplicative error is 1.0 at a perfect P50 forecast. Lower is better.</li>
             <li>Mean log bias is positive when P50 tends to be too high, and negative when it tends to be too low.</li>
             <li>The log-space interval score rewards narrow intervals but penalizes misses. Lower is better.</li>
-            <li>Attrition and the missing-data floor remain in the denominator. Missing attempts are not silently discarded.</li>
+            <li>Missing actuals and every forecast excluded from accuracy remain visible. The coverage floor treats every excluded forecast as a miss.</li>
           </ul>
         </div>
       </section>

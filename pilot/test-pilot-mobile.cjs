@@ -6,7 +6,8 @@ const css = fs.readFileSync(new URL("pilot.css", `file://${__dirname}/`), "utf8"
 
 assert.match(html, /name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/);
 assert.match(css, /html \{ min-width: 320px;/);
-assert.match(css, /body \{[\s\S]*?overflow-x: hidden;/);
+assert.doesNotMatch(css, /overflow-x:\s*(?:hidden|clip)/,
+  "the responsive check must not hide horizontal overflow");
 assert.match(css, /button \{ min-height: 48px; touch-action: manipulation; \}/);
 assert.match(css, /\.numeric-field input, \.reason-field select \{[\s\S]*?font-size: 16px;/);
 assert.match(css, /\.shell \{ width: min\(calc\(100% - 28px\), 980px\);/);

@@ -387,7 +387,9 @@
       ["Absolute interval width", summary.median_absolute_interval_width_usd === null ? "Not available" : formatMoney(summary.median_absolute_interval_width_usd), "median P90 minus P10"],
       ["Log-space interval score", fixed(summary.mean_log_space_interval_score, 3), "lower is better"],
       ["Attrition", percent(summary.attrition_rate), summary.invalidated + " invalidated / " + summary.forecasts_frozen + " frozen"],
-      ["Missing-data floor", percent(summary.missing_data_floor_rate), summary.actual_missing + " actuals missing / " + summary.forecasts_frozen + " frozen"]
+      ["Missing actuals", percent(summary.missing_actual_rate), summary.actual_missing + " actuals missing / " + summary.forecasts_frozen + " frozen"],
+      ["Excluded from accuracy", percent(summary.analysis_exclusion_rate), summary.analysis_excluded + " excluded / " + summary.forecasts_frozen + " frozen"],
+      ["Coverage floor if exclusions missed", percent(summary.coverage_floor_if_excluded_miss), summary.within_p10_p90_count + " covered / " + summary.forecasts_frozen + " frozen"]
     ].forEach(function (item) {
       var card = document.createElement("div");
       card.className = "metric-card";
@@ -416,7 +418,8 @@
     byId("protocolBadge").textContent = summary.protocol_complete ? "24 usable tasks complete" : "Incomplete pilot";
     byId("denominatorNote").textContent = summary.participants_imported + " of " + summary.participant_target + " participant slots imported. " +
       summary.overall.paired_usable + " paired usable tasks, " + summary.overall.invalidated + " invalidated attempts, and " +
-      summary.overall.actual_missing + " frozen attempts without an actual. No missing attempt was silently removed.";
+      summary.overall.actual_missing + " frozen attempts without an actual. " + summary.overall.analysis_excluded +
+      " frozen attempts are excluded from accuracy metrics. No excluded or missing attempt was silently removed.";
     renderMetricCards(summary.overall);
     renderSplits("participantSplits", summary.by_participant, null);
     renderSplits("versionSplits", summary.by_forecast_version, versionLabels);
