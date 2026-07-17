@@ -1,0 +1,30 @@
+{
+  "schema_version": "top.synthetic-retention-log.v1",
+  "synthetic_only": true,
+  "receipt_id": "<client-submission-uuid>",
+  "receipt_id_semantics": "client_submission_uuid_not_delivery_proof",
+  "report_sha256": "<64-character-lowercase-sha256>",
+  "request_date": "YYYY-MM-DD",
+  "deletion_due_date": "YYYY-MM-DD",
+  "endpoint": "https://submit.tokenoptimisationprotocol.org/",
+  "origin": "https://tokenoptimisationprotocol.org",
+  "request_attempted": false,
+  "http_status": null,
+  "accepted_status": "prepared_not_sent",
+  "provider_delivery_confirmed": false,
+  "attachment_hash_verification_status": "pending",
+  "attachment_hashes": [
+    {
+      "slot": "received_copy_1",
+      "status": "pending",
+      "sha256": null,
+      "matches_report_sha256": null
+    },
+    {
+      "slot": "received_copy_2",
+      "status": "pending",
+      "sha256": null,
+      "matches_report_sha256": null
+    }
+  ]
+}

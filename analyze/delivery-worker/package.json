@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test test/*.test.mjs",
+    "smoke:production": "node scripts/production-smoke.mjs",
+    "verify:attachments": "node scripts/verify-attachment-hashes.mjs",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },
