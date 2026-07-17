@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; worker-src 'none'">
   <title>TOP Prospective Forecast Pilot</title>
-  <meta name="description" content="Record an API-rate-equivalent forecast before each task and pair it with the measured result afterward. Everything stays in this browser unless you deliberately download a content-free pilot file.">
+  <meta name="description" content="Record an API-rate-equivalent forecast before each task and pair it with the measured result afterward. Everything stays in this browser unless you deliberately download a task-text-free structured pilot file.">
   <link rel="stylesheet" href="pilot.css">
 </head>
 <body>
@@ -19,10 +19,10 @@
     <section class="hero" aria-labelledby="pageTitle">
       <p class="eyebrow">24-task instrumentation pilot</p>
       <h1 id="pageTitle">Forecast first. Record the real result after.</h1>
-      <p>Four anonymous participant slots complete six usable tasks each. Each person uses at least three task classes. This is an instrumentation check, not evidence that TOP is accurate.</p>
+      <p>Four coded participant slots complete six usable tasks each. Each person uses at least three task classes. Slots are pseudonymous, not anonymous, when the coordinator can link a slot to a person. This is an instrumentation check, not evidence that TOP is accurate.</p>
       <div class="privacy-card">
         <strong>This page never asks what the task was.</strong>
-        <span>No task text, names, prompts, replies, file contents, paths, credentials, account identifiers, or notes. It makes no network requests.</span>
+        <span>No task text, names, prompts, replies, file contents, paths, credentials, account identifiers, or notes. The task-text-free file still retains the coded slot, export date, task class, forecast version, P10, P50, P90, actual, attempt state and sequence, invalidation reason, and completeness counts. The pilot makes no runtime request that transmits participant data.</span>
       </div>
     </section>
 
@@ -36,7 +36,7 @@
         </button>
         <button type="button" class="choice-card" id="coordinatorRole">
           <strong>Combine pilot files</strong>
-          <span>Import one content-free file per participant and calculate the honest denominators.</span>
+          <span>Import one task-text-free structured file per participant and calculate the honest denominators.</span>
         </button>
       </div>
     </section>
@@ -46,10 +46,10 @@
         <button type="button" class="quiet-button" data-action="home">Back</button>
         <span id="participantStatus">Participant setup</span>
       </div>
-      <h2 id="participantTitle">Anonymous participant</h2>
+      <h2 id="participantTitle">Coded participant</h2>
 
       <div id="slotChooser">
-        <p class="question-lead">Choose the slot assigned by the coordinator. A slot is a study label, not your name.</p>
+        <p class="question-lead">Choose the slot assigned by the coordinator. A slot is a study label, not your name, but the coordinator may hold a separate key that links it to you.</p>
         <div class="slot-grid" id="slotButtons" aria-label="Participant slot"></div>
       </div>
 
@@ -73,9 +73,9 @@
 
         <section class="records-card" aria-labelledby="recordsTitle">
           <div>
-            <p class="step-label">Immutable record</p>
+            <p class="step-label">App-enforced freeze</p>
             <h3 id="recordsTitle">Attempts retained</h3>
-            <p>Frozen values cannot be edited. A mistake is retained, invalidated with a fixed reason, and replaced.</p>
+            <p>The app does not edit frozen values. A mistake is retained, invalidated with a fixed reason, and replaced. Downloaded files are not signed or tamper-evident.</p>
           </div>
           <div id="attemptList" class="attempt-list"></div>
         </section>
@@ -83,7 +83,7 @@
         <section class="backup-card" aria-labelledby="backupTitle">
           <div>
             <p class="step-label">Local backup</p>
-            <h3 id="backupTitle">Keep a content-free copy</h3>
+            <h3 id="backupTitle">Keep a task-text-free structured copy</h3>
             <p>The browser saves this slot locally. Download a backup after every usable task.</p>
           </div>
           <div class="button-row">
@@ -109,7 +109,7 @@
       <p class="question-lead">Use one latest <code>top.prospective-pilot.v1</code> file per participant slot. Duplicate slots or malformed files fail closed.</p>
       <label class="file-picker" for="coordinatorFiles">
         <strong>Choose participant files</strong>
-        <span>JSON only. The files are read in this tab and never uploaded.</span>
+        <span>JSON only. The files are read in this tab. The pilot makes no runtime request that transmits them.</span>
       </label>
       <input type="file" id="coordinatorFiles" accept=".json,application/json" multiple hidden>
       <p id="coordinatorError" class="error" role="alert"></p>
@@ -129,13 +129,14 @@
         <div class="method-note">
           <h4>How to read this</h4>
           <ul>
-            <li>The target interval contains 80% of actual outcomes. Observed coverage is reported, not assumed.</li>
+            <li>The P10-to-P90 interval is intended to target 80% coverage. Observed coverage is reported and may differ.</li>
             <li>The 95% uncertainty range is a Wilson interval around observed coverage. Even 24 tasks cannot establish precise calibration.</li>
             <li>The USD values are API-rate equivalents, not subscription bills.</li>
             <li>Multiplicative error is 1.0 at a perfect P50 forecast. Lower is better.</li>
             <li>Mean log bias is positive when P50 tends to be too high, and negative when it tends to be too low.</li>
             <li>The log-space interval score rewards narrow intervals but penalizes misses. Lower is better.</li>
             <li>Missing actuals and every forecast excluded from accuracy remain visible. The coverage floor treats every excluded forecast as a miss.</li>
+            <li>Forecast-version splits are descriptive. This tool does not randomize or balance assignments and cannot establish causal differences between versions.</li>
           </ul>
         </div>
       </section>

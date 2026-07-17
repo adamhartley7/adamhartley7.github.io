@@ -292,7 +292,7 @@
     if (status.target_met) {
       setQuestion("Participant complete", "Six usable tasks are paired", "This slot also includes at least three task classes. Download the latest pilot file for the coordinator.", false, "Download final pilot file", function () {
         downloadJSON(Pilot.toExport(currentParticipant), "top-prospective-pilot-participant-" + currentSlot + ".json");
-        byId("backupStatus").textContent = "Latest content-free pilot file downloaded.";
+        byId("backupStatus").textContent = "Latest task-text-free structured pilot file downloaded.";
       });
       return;
     }
@@ -420,7 +420,7 @@
   }
   function renderCoordinator(summary) {
     byId("coordinatorResults").hidden = false;
-    byId("protocolBadge").textContent = summary.protocol_complete ? "24 usable tasks complete" : "Incomplete pilot";
+    byId("protocolBadge").textContent = summary.protocol_complete ? "24 structurally complete self-entered records" : "Incomplete pilot";
     byId("denominatorNote").textContent = summary.participants_imported + " of " + summary.participant_target + " participant slots imported. " +
       summary.overall.paired_usable + " paired usable tasks, " + summary.overall.invalidated + " invalidated attempts, and " +
       summary.overall.actual_missing + " frozen attempts without an actual. " + summary.overall.analysis_excluded +
@@ -449,7 +449,7 @@
   byId("downloadBackup").addEventListener("click", function () {
     if (!currentParticipant) return;
     downloadJSON(Pilot.toExport(currentParticipant), "top-prospective-pilot-participant-" + currentSlot + ".json");
-    byId("backupStatus").textContent = "Content-free pilot file downloaded. It contains every attempt, including drafts and invalidations.";
+    byId("backupStatus").textContent = "Task-text-free structured pilot file downloaded. It contains every attempt, including drafts and invalidations.";
   });
   byId("chooseBackup").addEventListener("click", function () { byId("backupFile").click(); });
   byId("backupFile").addEventListener("change", async function () {
@@ -461,7 +461,7 @@
       byId("restoreSummary").textContent = "Participant slot " + pendingRestore.participant_slot + ", " + pendingRestore.attempts.length +
         " attempts, " + pendingRestore.completeness.paired_usable_tasks + " paired usable tasks. Restore only if this is the intended latest copy.";
       byId("restorePreview").hidden = false;
-      byId("backupStatus").textContent = "Backup validated. Nothing has been overwritten yet.";
+      byId("backupStatus").textContent = "Backup structure checked. Nothing has been overwritten yet.";
     } catch (error) { byId("backupStatus").textContent = humanError(error); }
     this.value = "";
   });
