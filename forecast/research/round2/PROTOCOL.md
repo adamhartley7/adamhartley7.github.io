@@ -2,7 +2,7 @@
 
 ## Question
 
-Can an archetype-local recency window improve the description-only forecast under time drift without using project identity, realised turn count, or any raw task text?
+Can an archetype-local recency window improve the description-only forecast under time drift without adding a new project-identity feature, project residual, realised turn count, or any raw task text?
 
 This is a research-only experiment. It does not change `/forecast` and it cannot support a public accuracy claim.
 
@@ -10,7 +10,7 @@ This is a research-only experiment. It does not change `/forecast` and it cannot
 
 The single candidate keeps the most recent 128 fit rows within each precomputed archetype before calling the unchanged forecast engine. If an archetype has 128 or fewer fit rows, all of its rows remain. Calibration remains unchanged.
 
-The fixed window is a power-of-two engineering choice, not a value selected from development outcomes. There is no window search, hyperparameter search, or second candidate. The candidate may use only chronology and the already-derived content-free archetype label. It must not use raw descriptions, project-wide residuals, realised turn count in description mode, or any row from the withheld split.
+The fixed window is a power-of-two engineering choice, not a value selected from development outcomes. There is no window search, hyperparameter search, or second candidate. The recency selection may use only chronology and the already-derived content-free archetype label. It must not add raw descriptions, a new project-identity feature, project-wide residuals, realised turn count in description mode, or any row from the withheld split. The delegated baseline engine remains unchanged and still uses its existing content-free project pseudonym.
 
 ## Frozen data and split
 
