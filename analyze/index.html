@@ -324,7 +324,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
           <h3 id="pilotFolderHeading">Choose the usage folder</h3>
           <p>The button copies the exact Windows address and opens the folder chooser. Paste the address into the chooser, press Enter, then select that folder.</p>
           <code class="pilot-path" id="pilotFolderPath">%USERPROFILE%\.claude\projects</code>
-          <button type="button" class="btn p" id="pilotChooseFolder">Copy Address And Choose Folder</button>
+          <button type="button" class="btn p" id="pilotChooseFolder">Copy Address And Choose Folder</button><input type="file" id="pilotHistoryFolder" webkitdirectory directory multiple style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-hidden="true" tabindex="-1">
         </div>
         <div class="pilot-method-panel" id="pilotCursorPanel" hidden>
           <h3>Export your Cursor usage CSV</h3>
@@ -1541,7 +1541,14 @@ document.getElementById("pilotChooseFolder").addEventListener("click",function()
   if(!PILOT_SOURCE){pilotStatus("Choose Claude Code or Codex first.","error");return}
   mode=PILOT_SOURCE;selectedRoute="a";providerChosen=true;document.getElementById("routea").hidden=false;
   var path=document.getElementById("pilotFolderPath").textContent;copyPlainText(path,this,"Address Copied");
-  pilotStatus("The address is copied. In the folder window, paste it into the address bar, press Enter, then select that folder.","ok");document.getElementById("historyFolder").click();
+  pilotStatus("The address is copied. In the folder window, paste it into the address bar, press Enter, then select that folder.","ok");document.getElementById("pilotHistoryFolder").click();
+});
+document.getElementById("pilotHistoryFolder").addEventListener("change",function(){
+  var files=takeChosenFiles(this);
+  if(!files.length){pilotStatus("No folder was chosen, or the picker was cancelled. Nothing was read or sent. You can try again, or use the safe-file method instead.","error");return}
+  pilotStatus("Reading "+files.length+" files on this device. A large history can take a minute or two; keep this tab open. Nothing is uploaded.","ok");
+  document.getElementById("routea").hidden=false;
+  handle(files,"folder");
 });
 
 // ---------- parsers ----------
@@ -2781,8 +2788,7 @@ function finishParsedResult(res,openedCount){
   if(res.copilot&&res.excludedRows) status+=" "+fmtN(res.excludedRows)+" row"+(res.excludedRows===1?" was":"s were")+" excluded because the AI version or billing code was not recognized. The report names them.";
   if(res.chatExport&&res.ignoredRecords) status+=" "+fmtN(res.ignoredRecords)+" object"+(res.ignoredRecords===1?" was":"s were")+" ignored because "+(res.ignoredRecords===1?"it did":"they did")+" not contain readable conversation messages.";
   if(res.chatExport&&res.duplicateRecords) status+=" "+fmtN(res.duplicateRecords)+" duplicate conversation cop"+(res.duplicateRecords===1?"y was":"ies were")+" skipped.";
-  document.getElementById("fileStatus").textContent=status;
-  AUTO_DETECTED_NOTE="";
+  document.getElementById("fileStatus").textContent=status;if(PILOT_MODE)pilotStatus(status,"ok");AUTO_DETECTED_NOTE="";
   document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function readClaudeFiles(files){
@@ -2790,7 +2796,7 @@ function readClaudeFiles(files){
   function next(){
     if(index>=files.length){try{var result=accumulator.result();if(PILOT_MODE)result.pilotCoverage={files_discovered:files.length,files_parsed:files.length-failed,files_with_usage:files.length-failed,files_skipped:failed,malformed_lines:0,oversized_lines:0,counter_resets:0,duplicate_usage_records:0,complete:false};finishParsedResult(result,files.length-failed)}catch(err){showErr("TOP could not read those files: "+err.message+". Nothing was sent.")}return}
     var file=files[index],fileIndex=index,reader=new FileReader();index++;
-    reader.onload=function(){try{accumulator.addText(String(reader.result||""),fileIndex)}catch(err){failed++}document.getElementById("fileStatus").textContent="Reading Claude Code history on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.";setTimeout(next,0)};
+    reader.onload=function(){try{accumulator.addText(String(reader.result||""),fileIndex)}catch(err){failed++}document.getElementById("fileStatus").textContent="Reading Claude Code history on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.";if(PILOT_MODE&&index%25===0)pilotStatus("Reading Claude Code history on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.","ok");setTimeout(next,0)};
     reader.onerror=function(){failed++;setTimeout(next,0)};
     reader.readAsText(file);
   }
@@ -2801,7 +2807,7 @@ function readTextFiles(files,done){
   function next(){
     if(index>=files.length){done(texts,failed);return}
     var file=files[index],reader=new FileReader();index++;
-    reader.onload=function(){texts.push(String(reader.result||""));document.getElementById("fileStatus").textContent="Reading on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.";setTimeout(next,0)};
+    reader.onload=function(){texts.push(String(reader.result||""));document.getElementById("fileStatus").textContent="Reading on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.";if(PILOT_MODE&&index%25===0)pilotStatus("Reading on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.","ok");setTimeout(next,0)};
     reader.onerror=function(){failed++;setTimeout(next,0)};
     reader.readAsText(file);
   }
@@ -2817,7 +2823,7 @@ async function streamCodexFile(file,fileIndex,accumulator){
     while(offset<file.size){
       var end=Math.min(file.size,offset+chunkSize),buffer=await readBlobChunk(file.slice(offset,end));
       collector.push(decoder.decode(buffer,{stream:end<file.size}));offset=end;
-      document.getElementById("fileStatus").textContent="Reading Codex sessions on this device: file "+fmtN(fileIndex+1)+", "+Math.round(100*offset/Math.max(file.size,1))+"%.";
+      document.getElementById("fileStatus").textContent="Reading Codex sessions on this device: file "+fmtN(fileIndex+1)+", "+Math.round(100*offset/Math.max(file.size,1))+"%.";if(PILOT_MODE)pilotStatus("Reading Codex sessions on this device: file "+fmtN(fileIndex+1)+", "+Math.round(100*offset/Math.max(file.size,1))+"%.","ok");
       await new Promise(function(resolve){setTimeout(resolve,0)});
     }
     collector.push(decoder.decode());collector.finish();accumulator.endFile(state,false);return true;
