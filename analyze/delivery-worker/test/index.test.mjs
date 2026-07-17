@@ -118,6 +118,144 @@ function reportFixture() {
   };
 }
 
+function cursorReportFixture() {
+  const report = reportFixture();
+  report.collector = {
+    collector_version: "top.local-analyzer.2026-07-16.1",
+    parser_version: "top.usage-parser.2026-07-16.1",
+  };
+  report.source = { provider: "cursor", surface: "cursor_ide", input_form: "usage_csv_export" };
+  report.measurement = {
+    token_basis: "exported_columns_where_present",
+    cache_basis: "exported_columns_where_present",
+    reasoning_basis: "not_available",
+    cost_basis: "recorded_in_export_as_billed_by_cursor",
+  };
+  report.coverage = {
+    status: "limited_to_current_parser_checks",
+    files_opened: null,
+    rows_with_recorded_cost: 1,
+    rows_without_recorded_cost: 0,
+    rows_excluded_unrecognized_model: 0,
+    files_skipped_unrecognized_header: 0,
+  };
+  report.totals = {
+    input_tokens: 1500,
+    output_tokens: 400,
+    cache_write_tokens: 500,
+    cache_read_tokens: 500,
+    reasoning_tokens: null,
+    total_tokens: 2900,
+  };
+  report.activity = {
+    ai_replies: null,
+    usage_events: 1,
+    console_records: null,
+    text_messages: null,
+    sessions: null,
+    active_days: 1,
+  };
+  report.cost = { status: "recorded", usd: 1.95, basis: "recorded_in_export", currency: "USD", subscription_bill: false };
+  report.pricing = {
+    status: "not_needed_recorded_cost",
+    reference_checked_date: "2026-07-16",
+    unit: "usd_per_million_tokens",
+    applied_rates: [],
+    unpriced_model_groups: 0,
+  };
+  report.by_model = [{
+    model: "claude-4.5-sonnet",
+    input_tokens: 1500,
+    output_tokens: 400,
+    cache_write_tokens: 500,
+    cache_read_tokens: 500,
+    reasoning_tokens: null,
+    total_tokens: 2900,
+    events_or_replies: 1,
+    cost: { status: "recorded", usd: 1.95 },
+  }];
+  return report;
+}
+
+function copilotReportFixture() {
+  const report = reportFixture();
+  report.collector = {
+    collector_version: "top.local-analyzer.2026-07-16.1",
+    parser_version: "top.usage-parser.2026-07-16.1",
+  };
+  report.source = { provider: "github", surface: "copilot", input_form: "billing_usage_export" };
+  report.measurement = {
+    token_basis: "not_available_copilot_meters_prompts_and_credits",
+    cache_basis: "not_available",
+    reasoning_basis: "not_available",
+    cost_basis: "recorded_in_export_as_billed_by_github",
+  };
+  report.coverage = {
+    status: "limited_to_current_parser_checks",
+    files_opened: null,
+    rows_with_recorded_cost: 1,
+    rows_without_recorded_cost: 0,
+    rows_excluded_unrecognized_model_or_sku: 0,
+    files_skipped_unrecognized_format: 0,
+    premium_request_quantity: 12.25,
+    ai_credit_quantity: 0,
+  };
+  report.totals = {
+    input_tokens: 0,
+    output_tokens: 0,
+    cache_write_tokens: 0,
+    cache_read_tokens: 0,
+    reasoning_tokens: null,
+    total_tokens: 0,
+  };
+  report.activity = {
+    ai_replies: null,
+    usage_events: 1,
+    console_records: null,
+    text_messages: null,
+    sessions: null,
+    active_days: 1,
+  };
+  report.cost = { status: "recorded", usd: 0.4, basis: "recorded_in_export", currency: "USD", subscription_bill: false };
+  report.pricing = {
+    status: "not_needed_recorded_cost",
+    reference_checked_date: "2026-07-16",
+    unit: "usd_per_million_tokens",
+    applied_rates: [],
+    unpriced_model_groups: 0,
+  };
+  report.by_model = [{
+    model: "Auto: Claude Sonnet 4.5",
+    input_tokens: 0,
+    output_tokens: 0,
+    cache_write_tokens: 0,
+    cache_read_tokens: 0,
+    reasoning_tokens: null,
+    total_tokens: 0,
+    events_or_replies: 1,
+    cost: { status: "recorded", usd: 0.4 },
+  }];
+  return report;
+}
+
+function cursorRateFixture(model = "claude-4.5-sonnet") {
+  return {
+    model,
+    rate_family: "Claude Sonnet 3.5 to 4.6",
+    input_usd_per_million: 3,
+    cache_write_usd_per_million: 3.75,
+    cache_read_usd_per_million: 0.3,
+    output_usd_per_million: 15,
+    field_provenance: {
+      input: "checked_reference_rate",
+      cache_write: "derived_from_checked_reference_input",
+      cache_read: "derived_from_checked_reference_input",
+      output: "checked_reference_rate",
+    },
+    reference_source_url: "https://platform.claude.com/docs/en/about-claude/pricing",
+  };
+}
+
 function submissionFixture() {
   return {
     submission_schema_version: "top.explicit-submission.v1",
@@ -636,6 +774,328 @@ test("transition validator accepts current analyzer not-available output and rej
   for (const report of notAvailableReports) assert.equal(validateResearchSafeUsage(report), true);
   for (const report of legacyIllustrativeReports) {
     assert.throws(() => validateResearchSafeUsage(report), /legacy value model|unsupported or missing fields/i);
+  }
+});
+
+test("the strict Worker accepts the exact PR22 Cursor and Copilot report families", () => {
+  assert.equal(validateResearchSafeUsage(cursorReportFixture()), true);
+  assert.equal(validateResearchSafeUsage(copilotReportFixture()), true);
+});
+
+test("the live analyzer builders and strict Worker agree on Cursor and Copilot reports", async () => {
+  const html = await readFile(new URL("../../index.html", import.meta.url), "utf8");
+  const pricingStart = html.indexOf("var PRICING_CHECKED=");
+  const pricingEnd = html.indexOf("var VM=", pricingStart);
+  const parserStart = html.indexOf("function splitCSV");
+  const parserEnd = html.indexOf("function estTokens", parserStart);
+  const researchStart = html.indexOf("var RESEARCH_SCHEMA_VERSION=");
+  const researchEnd = html.indexOf('document.getElementById("downloadResearchJSON")', researchStart);
+  assert.ok(pricingStart >= 0 && pricingEnd > pricingStart && parserStart >= 0 && parserEnd > parserStart && researchStart >= 0 && researchEnd > researchStart);
+  const context = { Date, JSON, Math, Number, Object, String, Array, RegExp, Map, Set };
+  vm.createContext(context);
+  vm.runInContext(html.slice(pricingStart, pricingEnd), context);
+  vm.runInContext(html.slice(parserStart, parserEnd), context);
+  vm.runInContext(html.slice(researchStart, researchEnd), context);
+  const cursor = context.parseCursor([[
+    "Date,Kind,Model,Max Mode,Input (w/ Cache Write),Input (w/o Cache Write),Cache Read,Output,Total Tokens,Cost",
+    "2026-07-10T10:00:00.000Z,On-Demand,claude-4.5-sonnet,No,2000,1500,500,400,2400,1.95",
+  ].join("\n")]);
+  const copilot = context.parseCopilot([[
+    "date,product,sku,quantity,unit_type,price_per_unit,gross_amount,discount_amount,net_amount,organization,cost_center,model,user",
+    '2026-06-02,copilot,copilot_premium_request,12.25,requests,0.04,0.49,0.09,0.40,private-org,private-center,"Auto: Claude Sonnet 4.5",private-user',
+  ].join("\n")]);
+  const questionnaire = (source) => ({
+    what_to_improve: [], source_selected: source, route_selected: "show_report_first",
+    kinds_of_work: [], frequency: [], main_uses: [], effort_level: [], goals: [], account_category: [],
+  });
+  const reports = [
+    context.buildResearchSafeObject(cursor, null, questionnaire("cursor"), 0.4, "2026-07-17"),
+    context.buildResearchSafeObject(copilot, null, questionnaire("github_copilot"), 0.4, "2026-07-17"),
+  ].map((value) => JSON.parse(JSON.stringify(value)));
+  assert.equal(reports[0].source.surface, "cursor_ide");
+  assert.equal(reports[1].source.surface, "copilot");
+  assert.equal(JSON.stringify(reports).includes("private-org"), false);
+  assert.equal(JSON.stringify(reports).includes("private-user"), false);
+  for (const report of reports) assert.equal(validateResearchSafeUsage(report), true);
+});
+
+test("Cursor and Copilot source, measurement and questionnaire contracts remain exact", () => {
+  const wrongCursorSource = cursorReportFixture();
+  wrongCursorSource.source.provider = "github";
+  assert.throws(() => validateResearchSafeUsage(wrongCursorSource), /source combination/i);
+
+  const wrongCursorMeasurement = cursorReportFixture();
+  wrongCursorMeasurement.measurement.cost_basis = "recorded_in_export_as_billed_by_github";
+  assert.throws(() => validateResearchSafeUsage(wrongCursorMeasurement), /measurement/i);
+
+  const wrongCopilotMeasurement = copilotReportFixture();
+  wrongCopilotMeasurement.measurement.token_basis = "exported_columns_where_present";
+  assert.throws(() => validateResearchSafeUsage(wrongCopilotMeasurement), /measurement/i);
+
+  const falseCursorProvenance = cursorReportFixture();
+  falseCursorProvenance.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
+  falseCursorProvenance.cost.basis = "recorded_and_or_estimated_where_possible";
+  assert.throws(() => validateResearchSafeUsage(falseCursorProvenance), /cost provenance/i);
+
+  const falseCopilotProvenance = copilotReportFixture();
+  falseCopilotProvenance.measurement.cost_basis = "recorded_where_present_never_estimated";
+  falseCopilotProvenance.cost.basis = "recorded_where_present_never_estimated";
+  assert.throws(() => validateResearchSafeUsage(falseCopilotProvenance), /cost provenance/i);
+
+  const cursorWithQuestionnaire = cursorReportFixture();
+  cursorWithQuestionnaire.questionnaire = {
+    what_to_improve: [], source_selected: "cursor", route_selected: "show_report_first",
+    kinds_of_work: [], frequency: [], main_uses: [], effort_level: [], goals: [], account_category: [],
+  };
+  assert.equal(validateResearchSafeUsage(cursorWithQuestionnaire), true);
+  cursorWithQuestionnaire.questionnaire.source_selected = "github_copilot";
+  assert.throws(() => validateResearchSafeUsage(cursorWithQuestionnaire), /Questionnaire source/i);
+});
+
+test("multi-tool coverage accepts fractional Copilot quantities and rejects unreconciled or unsafe values", () => {
+  const fractional = copilotReportFixture();
+  fractional.coverage.premium_request_quantity = 0.25;
+  fractional.coverage.ai_credit_quantity = 290.5;
+  assert.equal(validateResearchSafeUsage(fractional), true);
+
+  const negativeQuantity = copilotReportFixture();
+  negativeQuantity.coverage.ai_credit_quantity = -0.25;
+  assert.throws(() => validateResearchSafeUsage(negativeQuantity), /nonnegative finite quantity/i);
+
+  const wrongRows = cursorReportFixture();
+  wrongRows.coverage.rows_without_recorded_cost = 1;
+  assert.throws(() => validateResearchSafeUsage(wrongRows), /cost-row coverage/i);
+
+  const falseCopilotTokens = copilotReportFixture();
+  falseCopilotTokens.totals.input_tokens = 1;
+  falseCopilotTokens.totals.total_tokens = 1;
+  falseCopilotTokens.by_model[0].input_tokens = 1;
+  falseCopilotTokens.by_model[0].total_tokens = 1;
+  assert.throws(() => validateResearchSafeUsage(falseCopilotTokens), /cannot claim token counts/i);
+});
+
+test("multi-tool labels are finite, source-specific and case-insensitive", () => {
+  const cursorCase = cursorReportFixture();
+  cursorCase.by_model[0].model = "CLAUDE-4.5-SONNET";
+  assert.equal(validateResearchSafeUsage(cursorCase), true);
+
+  const cursorPrivate = cursorReportFixture();
+  cursorPrivate.by_model[0].model = "grok-private-account-identifier";
+  assert.throws(() => validateResearchSafeUsage(cursorPrivate), /model label/i);
+
+  for (const model of ["Claude Sonnet Private Client", "Auto: Claude Sonnet Private Client"]) {
+    const copilotPrivate = copilotReportFixture();
+    copilotPrivate.by_model[0].model = model;
+    assert.throws(() => validateResearchSafeUsage(copilotPrivate), /model label/i);
+  }
+});
+
+test("coverage and activity cannot be swapped across sources", () => {
+  const wrongCoverage = reportFixture();
+  wrongCoverage.coverage = structuredClone(cursorReportFixture().coverage);
+  assert.throws(() => validateResearchSafeUsage(wrongCoverage), /coverage/i);
+
+  const wrongEvents = cursorReportFixture();
+  wrongEvents.by_model[0].events_or_replies = 2;
+  assert.throws(() => validateResearchSafeUsage(wrongEvents), /model events/i);
+
+  const impossibleFiles = cursorReportFixture();
+  impossibleFiles.coverage.files_opened = 1;
+  impossibleFiles.coverage.files_skipped_unrecognized_header = 999;
+  assert.throws(() => validateResearchSafeUsage(impossibleFiles), /file coverage/i);
+});
+
+test("multi-tool questionnaire context stays optional but must match its source when present", () => {
+  assert.equal(validateResearchSafeUsage(cursorReportFixture()), true);
+  assert.equal(validateResearchSafeUsage(copilotReportFixture()), true);
+
+  const wrongSource = cursorReportFixture();
+  wrongSource.questionnaire = {
+    what_to_improve: [], source_selected: "github_copilot", route_selected: "show_report_first",
+    kinds_of_work: [], frequency: [], main_uses: [], effort_level: [], goals: [], account_category: [],
+  };
+  assert.throws(() => validateResearchSafeUsage(wrongSource), /Questionnaire source/i);
+});
+
+test("Copilot never accepts estimated cost or a false zero-dollar missing-cost claim", () => {
+  const estimated = copilotReportFixture();
+  estimated.cost.status = "estimated";
+  estimated.by_model[0].cost.status = "estimated";
+  assert.throws(() => validateResearchSafeUsage(estimated), /Copilot model cost status/i);
+
+  const internalStatus = copilotReportFixture();
+  internalStatus.by_model[0].cost.status = "partial_recorded";
+  assert.throws(() => validateResearchSafeUsage(internalStatus), /Copilot model cost status/i);
+
+  const falseMissing = copilotReportFixture();
+  falseMissing.measurement.cost_basis = "recorded_where_present_never_estimated";
+  falseMissing.coverage.rows_with_recorded_cost = 0;
+  falseMissing.coverage.rows_without_recorded_cost = 1;
+  falseMissing.cost = { status: "partial", usd: 0, basis: "recorded_where_present_never_estimated", currency: "USD", subscription_bill: false };
+  falseMissing.pricing.status = "not_applied_no_recognized_rate";
+  falseMissing.by_model[0].cost = { status: "partial", usd: 0 };
+  assert.throws(() => validateResearchSafeUsage(falseMissing), /cannot claim a recorded cost/i);
+
+  const honestPartial = copilotReportFixture();
+  honestPartial.measurement.cost_basis = "recorded_where_present_never_estimated";
+  honestPartial.coverage.rows_without_recorded_cost = 1;
+  honestPartial.activity.usage_events = 2;
+  honestPartial.cost.status = "partial";
+  honestPartial.cost.basis = "recorded_where_present_never_estimated";
+  honestPartial.pricing.status = "not_applied_no_recognized_rate";
+  honestPartial.by_model[0].events_or_replies = 2;
+  honestPartial.by_model[0].cost.status = "partial";
+  assert.equal(validateResearchSafeUsage(honestPartial), true);
+
+  const hiddenMissing = structuredClone(honestPartial);
+  hiddenMissing.by_model[0].cost.status = "recorded";
+  assert.throws(() => validateResearchSafeUsage(hiddenMissing), /not represented in model cost states/i);
+});
+
+test("Cursor cost states require truthful row coverage and per-model checked rates", () => {
+  const falseMissing = cursorReportFixture();
+  falseMissing.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
+  falseMissing.coverage.rows_with_recorded_cost = 0;
+  falseMissing.coverage.rows_without_recorded_cost = 1;
+  falseMissing.cost = { status: "partial", usd: 0, basis: "recorded_and_or_estimated_where_possible", currency: "USD", subscription_bill: false };
+  falseMissing.pricing.status = "not_applied_no_recognized_rate";
+  falseMissing.by_model[0].cost = { status: "partial", usd: 0 };
+  assert.throws(() => validateResearchSafeUsage(falseMissing), /cannot claim a cost/i);
+
+  const internalStatus = cursorReportFixture();
+  internalStatus.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
+  internalStatus.coverage.rows_without_recorded_cost = 1;
+  internalStatus.activity.usage_events = 2;
+  internalStatus.cost.status = "partial";
+  internalStatus.cost.basis = "recorded_and_or_estimated_where_possible";
+  internalStatus.pricing.status = "not_applied_no_recognized_rate";
+  internalStatus.by_model[0].events_or_replies = 2;
+  internalStatus.by_model[0].cost.status = "partial_recorded";
+  assert.throws(() => validateResearchSafeUsage(internalStatus), /Cursor model cost status/i);
+
+  const estimatedWithoutRate = cursorReportFixture();
+  estimatedWithoutRate.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
+  estimatedWithoutRate.coverage.rows_with_recorded_cost = 0;
+  estimatedWithoutRate.coverage.rows_without_recorded_cost = 1;
+  estimatedWithoutRate.cost.status = "estimated";
+  estimatedWithoutRate.cost.basis = "recorded_and_or_estimated_where_possible";
+  estimatedWithoutRate.pricing.status = "not_applied_no_recognized_rate";
+  estimatedWithoutRate.by_model[0].cost.status = "estimated";
+  assert.throws(() => validateResearchSafeUsage(estimatedWithoutRate), /applied rates/i);
+
+  const estimatedWithRate = structuredClone(estimatedWithoutRate);
+  estimatedWithRate.cost.usd = 0.012525;
+  estimatedWithRate.by_model[0].cost.usd = 0.012525;
+  estimatedWithRate.pricing.status = "checked_reference_rates";
+  estimatedWithRate.pricing.applied_rates = [cursorRateFixture()];
+  assert.equal(validateResearchSafeUsage(estimatedWithRate), true);
+
+  const inventedCost = structuredClone(estimatedWithRate);
+  inventedCost.cost.usd = 999;
+  inventedCost.by_model[0].cost.usd = 999;
+  assert.throws(() => validateResearchSafeUsage(inventedCost), /tokens and applied rates/i);
+
+  const falseEditedLabel = structuredClone(estimatedWithRate);
+  falseEditedLabel.pricing.status = "user_edited_in_tab";
+  assert.throws(() => validateResearchSafeUsage(falseEditedLabel), /rate provenance and cost completeness/i);
+
+  const falseReportStatus = structuredClone(estimatedWithRate);
+  falseReportStatus.cost.status = "recorded";
+  assert.throws(() => validateResearchSafeUsage(falseReportStatus), /Fully priced Cursor cost/i);
+
+  const unverifiableMixedModel = structuredClone(estimatedWithRate);
+  unverifiableMixedModel.cost.status = "mixed_recorded_and_estimated";
+  unverifiableMixedModel.by_model[0].cost.status = "mixed_recorded_and_estimated";
+  assert.throws(() => validateResearchSafeUsage(unverifiableMixedModel), /Cursor model cost status/i);
+
+  const wrongRateContract = structuredClone(estimatedWithRate);
+  wrongRateContract.pricing.applied_rates[0].rate_family = "GPT-5.6 Sol";
+  wrongRateContract.pricing.applied_rates[0].reference_source_url = "https://openai.com/index/gpt-5-6/";
+  assert.throws(() => validateResearchSafeUsage(wrongRateContract), /Cursor model rate contract/i);
+
+  const wrongCheckedAmount = structuredClone(estimatedWithRate);
+  wrongCheckedAmount.pricing.applied_rates[0].input_usd_per_million = 4;
+  wrongCheckedAmount.pricing.applied_rates[0].cache_write_usd_per_million = 5;
+  wrongCheckedAmount.pricing.applied_rates[0].cache_read_usd_per_million = 0.4;
+  assert.throws(() => validateResearchSafeUsage(wrongCheckedAmount), /rate provenance/i);
+
+  const userEditedRate = structuredClone(estimatedWithRate);
+  userEditedRate.pricing.status = "user_edited_in_tab";
+  userEditedRate.pricing.applied_rates[0].input_usd_per_million = 4;
+  userEditedRate.pricing.applied_rates[0].cache_write_usd_per_million = 5;
+  userEditedRate.pricing.applied_rates[0].cache_read_usd_per_million = 0.4;
+  userEditedRate.pricing.applied_rates[0].output_usd_per_million = 20;
+  userEditedRate.pricing.applied_rates[0].field_provenance = {
+    input: "user_edited_in_tab",
+    cache_write: "derived_from_user_edited_input",
+    cache_read: "derived_from_user_edited_input",
+    output: "user_edited_in_tab",
+  };
+  userEditedRate.cost.usd = 0.0167;
+  userEditedRate.by_model[0].cost.usd = 0.0167;
+  assert.equal(validateResearchSafeUsage(userEditedRate), true);
+
+  const falseCheckedLabel = structuredClone(userEditedRate);
+  falseCheckedLabel.pricing.status = "checked_reference_rates";
+  assert.throws(() => validateResearchSafeUsage(falseCheckedLabel), /rate provenance and cost completeness/i);
+
+  const hiddenMissing = cursorReportFixture();
+  hiddenMissing.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
+  hiddenMissing.coverage.rows_without_recorded_cost = 1;
+  hiddenMissing.activity.usage_events = 2;
+  hiddenMissing.cost.basis = "recorded_and_or_estimated_where_possible";
+  hiddenMissing.pricing.status = "not_applied_no_recognized_rate";
+  hiddenMissing.by_model[0].events_or_replies = 2;
+  assert.throws(() => validateResearchSafeUsage(hiddenMissing), /not represented in model cost states/i);
+
+  const completeButEstimated = cursorReportFixture();
+  completeButEstimated.cost.status = "estimated";
+  completeButEstimated.by_model[0].cost.status = "estimated";
+  assert.throws(() => validateResearchSafeUsage(completeButEstimated), /Complete Cursor cost provenance/i);
+});
+
+test("complete multi-tool reports cannot claim zero usage events", () => {
+  for (const report of [cursorReportFixture(), copilotReportFixture()]) {
+    report.coverage.rows_with_recorded_cost = 0;
+    report.activity.usage_events = 0;
+    report.activity.active_days = null;
+    report.cost.usd = 0;
+    report.by_model[0].events_or_replies = 0;
+    report.by_model[0].cost.usd = 0;
+    assert.throws(() => validateResearchSafeUsage(report), /at least one usage event/i);
+  }
+
+  const zeroModelRow = cursorReportFixture();
+  const second = structuredClone(zeroModelRow.by_model[0]);
+  second.model = "composer-1";
+  second.input_tokens = 0;
+  second.output_tokens = 0;
+  second.cache_write_tokens = 0;
+  second.cache_read_tokens = 0;
+  second.total_tokens = 0;
+  second.events_or_replies = 0;
+  second.cost.usd = 0;
+  zeroModelRow.by_model.push(second);
+  assert.throws(() => validateResearchSafeUsage(zeroModelRow), /Every multi-tool model row/i);
+});
+
+test("Cursor and Copilot reports pass the complete consent and Resend request path", async () => {
+  for (const report of [cursorReportFixture(), copilotReportFixture()]) {
+    let captured;
+    const handler = createHandler({
+      fetchImpl: async (_url, init) => {
+        captured = JSON.parse(init.body);
+        return new Response(JSON.stringify({ id: `synthetic-${report.source.surface}-id` }), { status: 200, headers: { "Content-Type": "application/json" } });
+      },
+    });
+    const submission = submissionFixture();
+    submission.report = report;
+    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submission)), environment()));
+    assert.equal(response.status, 202);
+    assert.equal(body.status, "accepted_for_delivery");
+    assert.equal(captured.attachments.length, 1);
+    const attached = JSON.parse(Buffer.from(captured.attachments[0].content, "base64").toString("utf8"));
+    assert.deepEqual(attached, report);
   }
 });
 
