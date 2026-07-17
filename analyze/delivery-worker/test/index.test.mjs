@@ -239,13 +239,14 @@ function copilotReportFixture() {
 }
 
 function cursorRateFixture(model = "claude-4.5-sonnet") {
+  const opus = model === "claude-4.6-opus";
   return {
     model,
-    rate_family: "Claude Sonnet 3.5 to 4.6",
-    input_usd_per_million: 3,
-    cache_write_usd_per_million: 3.75,
-    cache_read_usd_per_million: 0.3,
-    output_usd_per_million: 15,
+    rate_family: opus ? "Claude Opus 4.5 to 4.8" : "Claude Sonnet 3.5 to 4.6",
+    input_usd_per_million: opus ? 5 : 3,
+    cache_write_usd_per_million: opus ? 6.25 : 3.75,
+    cache_read_usd_per_million: opus ? 0.5 : 0.3,
+    output_usd_per_million: opus ? 25 : 15,
     field_provenance: {
       input: "checked_reference_rate",
       cache_write: "derived_from_checked_reference_input",
@@ -970,7 +971,7 @@ test("Cursor cost states require truthful row coverage and per-model checked rat
   falseMissing.cost = { status: "partial", usd: 0, basis: "recorded_and_or_estimated_where_possible", currency: "USD", subscription_bill: false };
   falseMissing.pricing.status = "not_applied_no_recognized_rate";
   falseMissing.by_model[0].cost = { status: "partial", usd: 0 };
-  assert.throws(() => validateResearchSafeUsage(falseMissing), /recorded-cost rows/i);
+  assert.throws(() => validateResearchSafeUsage(falseMissing), /cost-row coverage|partial Cursor model cost/i);
 
   const internalStatus = cursorReportFixture();
   internalStatus.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
@@ -1073,19 +1074,76 @@ test("Cursor cost states require truthful row coverage and per-model checked rat
   hiddenRecordedAsUnavailable.cost = { status: "unavailable", usd: null, basis: "recorded_and_or_estimated_where_possible", currency: "USD", subscription_bill: false };
   hiddenRecordedAsUnavailable.by_model[0].cost = { status: "unavailable", usd: null };
   hiddenRecordedAsUnavailable.pricing.unpriced_model_groups = 1;
-  assert.throws(() => validateResearchSafeUsage(hiddenRecordedAsUnavailable), /recorded-cost rows/i);
+  assert.throws(() => validateResearchSafeUsage(hiddenRecordedAsUnavailable), /cost-row coverage/i);
 
   const hiddenRecordedAsEstimated = structuredClone(estimatedWithRate);
   hiddenRecordedAsEstimated.coverage.rows_with_recorded_cost = 1;
   hiddenRecordedAsEstimated.coverage.rows_without_recorded_cost = 1;
   hiddenRecordedAsEstimated.activity.usage_events = 2;
   hiddenRecordedAsEstimated.by_model[0].events_or_replies = 2;
-  assert.throws(() => validateResearchSafeUsage(hiddenRecordedAsEstimated), /recorded-cost rows/i);
+  assert.throws(() => validateResearchSafeUsage(hiddenRecordedAsEstimated), /cost-row coverage/i);
 
   const inventedRecordedProvenance = structuredClone(honestRecordedAndMissing);
   inventedRecordedProvenance.coverage.rows_with_recorded_cost = 0;
   inventedRecordedProvenance.coverage.rows_without_recorded_cost = 2;
-  assert.throws(() => validateResearchSafeUsage(inventedRecordedProvenance), /recorded-cost rows/i);
+  assert.throws(() => validateResearchSafeUsage(inventedRecordedProvenance), /cost-row coverage/i);
+
+  const validCrossModelMixed = cursorReportFixture();
+  validCrossModelMixed.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
+  validCrossModelMixed.coverage.rows_without_recorded_cost = 1;
+  validCrossModelMixed.totals.input_tokens += 1;
+  validCrossModelMixed.totals.total_tokens += 1;
+  validCrossModelMixed.activity.usage_events = 2;
+  validCrossModelMixed.cost = { status: "mixed", usd: 1.950005, basis: "recorded_and_or_estimated_where_possible", currency: "USD", subscription_bill: false };
+  validCrossModelMixed.pricing.status = "checked_reference_rates";
+  validCrossModelMixed.pricing.applied_rates = [cursorRateFixture("claude-4.6-opus")];
+  validCrossModelMixed.by_model.push({
+    model: "claude-4.6-opus",
+    input_tokens: 1,
+    output_tokens: 0,
+    cache_write_tokens: 0,
+    cache_read_tokens: 0,
+    reasoning_tokens: null,
+    total_tokens: 1,
+    events_or_replies: 1,
+    cost: { status: "estimated", usd: 0.000005 },
+  });
+  assert.equal(validateResearchSafeUsage(validCrossModelMixed), true);
+
+  const undercountedRecordedRows = structuredClone(validCrossModelMixed);
+  undercountedRecordedRows.coverage.rows_without_recorded_cost = 2;
+  undercountedRecordedRows.totals.input_tokens += 1;
+  undercountedRecordedRows.totals.total_tokens += 1;
+  undercountedRecordedRows.activity.usage_events = 3;
+  undercountedRecordedRows.cost.usd = 2.450005;
+  undercountedRecordedRows.by_model.push({
+    model: "composer-1",
+    input_tokens: 1,
+    output_tokens: 0,
+    cache_write_tokens: 0,
+    cache_read_tokens: 0,
+    reasoning_tokens: null,
+    total_tokens: 1,
+    events_or_replies: 1,
+    cost: { status: "recorded", usd: 0.5 },
+  });
+  assert.throws(() => validateResearchSafeUsage(undercountedRecordedRows), /cost-row coverage/i);
+
+  const impossibleSingleEventPartial = structuredClone(honestRecordedAndMissing);
+  impossibleSingleEventPartial.by_model[0].events_or_replies = 1;
+  impossibleSingleEventPartial.by_model.push({
+    model: "composer-1",
+    input_tokens: 0,
+    output_tokens: 0,
+    cache_write_tokens: 0,
+    cache_read_tokens: 0,
+    reasoning_tokens: null,
+    total_tokens: 0,
+    events_or_replies: 1,
+    cost: { status: "unavailable", usd: null },
+  });
+  impossibleSingleEventPartial.pricing.unpriced_model_groups = 1;
+  assert.throws(() => validateResearchSafeUsage(impossibleSingleEventPartial), /partial Cursor model cost/i);
 
   const completeButEstimated = cursorReportFixture();
   completeButEstimated.cost.status = "estimated";
