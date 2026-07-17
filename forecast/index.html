@@ -714,7 +714,7 @@ function handle(files){
 }
 function run(texts){
   try{
-    if(typeof Forecaster==="undefined" || !Forecaster.forecast){ showErr("forecaster.js didn't load — the forecast engine is missing. No selected log contents were sent. Reload the page and try again."); return; }
+    if(typeof Forecaster==="undefined" || !Forecaster.forecast){ showErr("forecaster.js didn't load. The forecast engine is missing. No selected log contents were sent. Reload the page and try again."); return; }
     var agg=parseClaudeCode(texts);
     if(!Object.keys(agg.by).length || agg.turns===0){
       showErr("Couldn't find Claude Code usage in those files. Make sure they're the .jsonl session logs from ~/.claude/projects (not a CSV or claude.ai export). No selected log contents were sent.");
