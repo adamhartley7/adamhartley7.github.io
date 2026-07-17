@@ -7,7 +7,7 @@ const UUID = "123e4567-e89b-42d3-a456-426614174000";
 const REPORT = { schema_version: "top.research-safe-usage.v1", totals: { total_tokens: 42 } };
 
 assert.match(html, /connect-src 'none'/,
-  "CSP must stay closed while the checked-in endpoint is blank");
+  "CSP must stay closed while the Worker endpoint is not live");
 assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/);
 assert.equal((html.match(/\bfetch\s*\(/g) || []).length, 1,
   "only the deliberate direct-submit handler may use fetch");

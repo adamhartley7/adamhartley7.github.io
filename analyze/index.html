@@ -2878,7 +2878,7 @@ async function shareResearchSafeJSON(){
   catch(error){status.textContent=error&&error.name==="AbortError"?"The share chooser was closed. Nothing was submitted by TOP.":"The device share did not complete. Download the JSON and attach it deliberately instead.";return false}
 }
 var shareResearchButton=document.getElementById("shareResearchJSON");if(shareResearchButton)shareResearchButton.addEventListener("click",shareResearchSafeJSON);
-// ---------- explicit research-safe delivery (disabled until one exact HTTPS endpoint is configured) ----------
+// ---------- explicit research-safe delivery (disabled until the reviewed Worker endpoint is live) ----------
 var TOP_DELIVERY_ENDPOINT="";
 var DIRECT_SUBMISSION_SCHEMA_VERSION="top.explicit-submission.v1";
 var DIRECT_CONSENT_NOTICE_VERSION="top.research-consent.2026-07-17.1";

@@ -31,7 +31,7 @@ for (const [pattern, label] of forbiddenPatterns) {
 const fetchCalls = html.match(/\bfetch\s*\(/g) || [];
 assert.equal(fetchCalls.length, 1, "only the deliberate, configuration-gated submission may use fetch");
 assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/,
-  "the repository must keep direct delivery disabled until an exact endpoint is reviewed");
+  "the repository must keep direct delivery disabled until the Worker endpoint is verified");
 assert.match(html, /fetch\(endpoint,\{method:"POST"/,
   "the one fetch call must use only the validated configuration constant");
 

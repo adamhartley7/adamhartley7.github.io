@@ -297,7 +297,7 @@ function researchReportFromVettedCollectorFixture() {
 function environment(rateSuccess = true) {
   return {
     RESEND_API_KEY: "synthetic-sending-only-key",
-    RESEND_FROM: "TOP Analyzer <reports@example.com>",
+    RESEND_FROM: "TOP Analyzer <reports@send.tokenoptimisationprotocol.org>",
     SUBMISSION_TO: "adam-review@example.com",
     SUBMISSION_CC: "sam-review@example.com",
     SUBMIT_RATE_LIMITER: { limit: async () => ({ success: rateSuccess }) },
@@ -637,6 +637,35 @@ test("rate-limit service failure is a truthful not-sent response", async () => {
   assert.equal(called, false);
 });
 
+test("sender secret must use the verified sending subdomain", async () => {
+  let called = false;
+  const handler = createHandler({ fetchImpl: async () => { called = true; throw new Error("must not send"); } });
+  const env = environment();
+  env.RESEND_FROM = "TOP Analyzer <reports@example.com>";
+  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+  assert.equal(response.status, 503);
+  assert.equal(body.status, "not_sent");
+  assert.equal(body.error.code, "delivery_unavailable");
+  assert.equal(called, false);
+});
+
+test("both fixed recipient secrets are required and accept one address each", async () => {
+  let called = false;
+  const handler = createHandler({ fetchImpl: async () => { called = true; throw new Error("must not send"); } });
+  for (const mutate of [
+    (env) => { delete env.SUBMISSION_CC; },
+    (env) => { env.SUBMISSION_TO = "first@example.com,second@example.com"; },
+  ]) {
+    const env = environment();
+    mutate(env);
+    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
+    assert.equal(response.status, 503);
+    assert.equal(body.status, "not_sent");
+    assert.equal(body.error.code, "delivery_unavailable");
+  }
+  assert.equal(called, false);
+});
+
 test("upstream 500 is converted to a truthful not-sent 502", async () => {
   const handler = createHandler({ fetchImpl: async () => new Response(JSON.stringify({ message: "provider failed" }), { status: 500, headers: { "Content-Type": "application/json" } }) });
   const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), environment()));
@@ -672,4 +701,12 @@ test("worker source contains no report logging or persistence bindings", async (
   assert.doesNotMatch(source, /env\.(?:DB|D1|KV|R2)|\.put\s*\(/);
   assert.doesNotMatch(source, /SUBMISSION_TO\s*[:=]\s*["'][^"']+@/);
   assert.doesNotMatch(source, /SUBMISSION_CC\s*[:=]\s*["'][^"']+@/);
+});
+
+test("wrangler config pins the one production custom domain and disables alternate public URLs", async () => {
+  const config = JSON.parse(await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
+  assert.equal(config.name, "top-analyzer-delivery");
+  assert.equal(config.workers_dev, false);
+  assert.equal(config.preview_urls, false);
+  assert.deepEqual(config.routes, [{ pattern: "submit.tokenoptimisationprotocol.org", custom_domain: true }]);
 });

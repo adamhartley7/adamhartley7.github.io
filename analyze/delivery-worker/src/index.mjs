@@ -1,5 +1,6 @@
 const PRODUCTION_ORIGIN = "https://adamhartley7.github.io";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
+const RESEND_SENDER_DOMAIN = "send.tokenoptimisationprotocol.org";
 
 export const MAX_JSON_BYTES = 256 * 1024;
 export const SUBMISSION_SCHEMA_VERSION = "top.explicit-submission.v1";
@@ -681,23 +682,23 @@ export function escapeHtml(value) {
   })[character]);
 }
 
-function parseFixedRecipients(raw, required) {
-  const values = String(raw || "").split(",").map((item) => item.trim()).filter(Boolean);
-  if ((!values.length && required) || values.length > 3) throw new Error("Delivery recipient configuration is invalid.");
+function parseFixedRecipient(raw) {
+  const value = String(raw || "").trim();
   const emailPattern = /^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i;
-  if (!values.every((item) => emailPattern.test(item))) throw new Error("Delivery recipient configuration is invalid.");
-  return values;
+  if (!emailPattern.test(value)) throw new Error("Delivery recipient configuration is invalid.");
+  return [value];
 }
 
 function configuredDelivery(env) {
   if (!env || typeof env.RESEND_API_KEY !== "string" || !env.RESEND_API_KEY || typeof env.RESEND_FROM !== "string" || !env.RESEND_FROM) {
     throw new Error("Delivery service is not configured.");
   }
-  if (!/^[^\r\n<>]+ <[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+>$/i.test(env.RESEND_FROM)) {
+  const senderMatch = env.RESEND_FROM.match(/^[^\r\n<>]+ <([A-Z0-9.!#$%&'*+/=?^_`{|}~-]+)@([A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+)>$/i);
+  if (!senderMatch || senderMatch[2].toLowerCase() !== RESEND_SENDER_DOMAIN) {
     throw new Error("Delivery sender configuration is invalid.");
   }
-  const to = parseFixedRecipients(env.SUBMISSION_TO, true);
-  const cc = parseFixedRecipients(env.SUBMISSION_CC, false);
+  const to = parseFixedRecipient(env.SUBMISSION_TO);
+  const cc = parseFixedRecipient(env.SUBMISSION_CC);
   return { to, cc };
 }
 
