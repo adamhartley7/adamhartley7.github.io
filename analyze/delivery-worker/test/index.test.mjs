@@ -597,7 +597,7 @@ test("v2 workflow shape is structural, exact and reconciled to usage buckets", (
   assert.throws(() => validateResearchSafeUsage(wrongShape), /does not reconcile with usage-record buckets/i);
 });
 
-test("transition validator accepts current analyzer not-available output and rejects legacy illustrative output", async () => {
+test("current analyzer value-model outputs match the strict transition contract", async () => {
   const html = await readFile(new URL("../../index.html", import.meta.url), "utf8");
   const pricingStart = html.indexOf("var PRICING_CHECKED=");
   const pricingEnd = html.indexOf("var VM=", pricingStart);
@@ -609,34 +609,38 @@ test("transition validator accepts current analyzer not-available output and rej
   vm.runInContext(html.slice(pricingStart, pricingEnd), context);
   vm.runInContext(html.slice(researchStart, researchEnd), context);
   const plain = (value) => JSON.parse(JSON.stringify(value));
+  const missingValue = { status: "missing" };
+  const validValue = { status: "complete", hours_saved: 8, value_per_hour: 40, currency: "EUR" };
   const reports = [
     context.buildResearchSafeObject({
       by: { "claude-opus-4-8": { inp: 100, out: 20, cw: 30, cr: 40, turns: 2 } },
       turns: 2, sessions: 1, days: 1, filesOpened: 4, estimate: true, valueModelEligible: true,
-    }, null, null, 0.4, "2026-07-16"),
+    }, null, null, missingValue, "2026-07-16"),
     context.buildResearchSafeObject({
       by: { "gpt-5.6-codex-mini": { inp: 80, out: 30, cw: 0, cr: 20, reasoning: 10, turns: 3 } },
       turns: 3, sessions: 2, days: 2, filesOpened: 3, estimate: true, valueModelEligible: true, codex: true,
       coverage: { files_selected: 3, files_parsed: 3, files_with_usage: 2, files_skipped: 0, malformed_lines: 1, oversized_lines: 0, counter_resets: 1, complete: false },
-    }, null, null, 0.4, "2026-07-16"),
+    }, null, null, validValue, "2026-07-16"),
     context.buildResearchSafeObject({
       by: { "claude.ai (est.)": { inp: 100, out: 200, cw: 0, cr: 0, turns: 6 } },
       turns: 6, sessions: 2, days: 0, filesOpened: 1, chatExport: true, chatProvider: "Claude Chat", valueModelEligible: false,
       ignoredRecords: 3, ignoredMessages: 4, duplicateRecords: 1,
-    }, null, null, 0.4, "2026-07-16"),
+    }, null, null, missingValue, "2026-07-16"),
     context.buildResearchSafeObject({
       by: { "claude-opus-4-8": { inp: 10, out: 5, cw: 0, cr: 0, turns: 1, cost: 4.2, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } } },
       turns: 1, sessions: 1, days: 0, filesOpened: 1, csv: true, costComplete: true, costRows: 1, missingCostRows: 0, valueModelEligible: true,
-    }, null, null, 0.4, "2026-07-16"),
+    }, null, null, validValue, "2026-07-16"),
+    context.buildResearchSafeObject(null, { res: {
+      by: { "claude-opus-4-8": { inp: 10, out: 5, cw: 2, cr: 3, turns: 1 } },
+      turns: 1, sessions: 1, days: 1, filesOpened: 1, valueModelEligible: false, perm: {},
+    } }, null, validValue, "2026-07-16"),
   ].map(plain);
-  const notAvailableReports = reports.filter((report) => report.value_model.truth_status === "not_available");
-  const legacyIllustrativeReports = reports.filter((report) => report.value_model.truth_status === "illustrative_unvalidated");
-  assert.ok(notAvailableReports.length > 0, "fixture must include legacy not-available output");
-  assert.ok(legacyIllustrativeReports.length > 0, "fixture must include legacy illustrative output");
-  for (const report of notAvailableReports) assert.equal(validateResearchSafeUsage(report), true);
-  for (const report of legacyIllustrativeReports) {
-    assert.throws(() => validateResearchSafeUsage(report), /legacy value model|unsupported or missing fields/i);
-  }
+  for (const report of reports) assert.equal(validateResearchSafeUsage(report), true);
+  assert.ok(reports.some((report) => report.value_model.truth_status === "not_provided"));
+  assert.ok(reports.some((report) => report.value_model.truth_status === "self_reported_unverified"));
+  assert.ok(reports.some((report) => report.value_model.truth_status === "not_available" && report.value_model.algorithm_version === "top.value-model.v0.1-illustrative"));
+  assert.equal(reports.some((report) => report.value_model.truth_status === "illustrative_unvalidated"), false);
+  assert.equal(reports.some((report) => report.value_model.truth_status === "not_available" && report.value_model.algorithm_version === "top.value-model.v0.2-self-reported"), false);
 });
 
 test("successful email body contains aggregates but not private source fields", async () => {

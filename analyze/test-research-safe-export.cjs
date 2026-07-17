@@ -6,10 +6,10 @@ const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf
 
 assert.match(html, /id="downloadResearchJSON">Download Complete Research-Safe JSON/);
 assert.match(html, /inspect the exact JSON below/);
-assert.match(html, /scenario only when the report qualifies/);
+assert.match(html, /self-reported numbers and the multiplication TOP performed/);
 assert.match(html, /Nothing is sent until you deliberately use a sharing action\./);
 assert.match(html, /res\.valueModelEligible=false/,
-  "the cleaned Claude route must not export a scenario that is not visibly shown");
+  "the cleaned Claude route must not export value inputs that are not visibly shown");
 assert.doesNotMatch(html, /var PRICING_EDITED=false/,
   "pricing provenance must be tracked per exact family and field");
 
@@ -76,7 +76,8 @@ function claudeResult(model = "claude-opus-4-8") {
   };
 }
 
-const exported = plain(context.buildResearchSafeObject(claudeResult(), null, questionnaire, 0.4, "2026-07-16"));
+const selfReportedValue = { status: "complete", hours_saved: 10, value_per_hour: 50, currency: "USD" };
+const exported = plain(context.buildResearchSafeObject(claudeResult(), null, questionnaire, selfReportedValue, "2026-07-16"));
 for (const key of ["schema_version", "collector", "generated_date", "source", "measurement", "scope", "coverage", "totals", "activity", "cost", "pricing", "permission_mode_counts", "by_model", "questionnaire", "value_model", "privacy"]) {
   assert.ok(Object.prototype.hasOwnProperty.call(exported, key), `missing top-level field: ${key}`);
 }
@@ -100,10 +101,13 @@ assert.equal(exported.cost.subscription_bill, false);
 assert.equal(exported.pricing.reference_checked_date, "2026-07-16");
 assert.equal(exported.pricing.status, "checked_reference_rates");
 assert.equal(exported.pricing.applied_rates[0].field_provenance.input, "checked_reference_rate");
-assert.equal(exported.value_model.truth_status, "illustrative_unvalidated");
-assert.equal(exported.value_model.algorithm_version, "top.value-model.v0.1-illustrative");
+assert.equal(exported.value_model.truth_status, "self_reported_unverified");
+assert.equal(exported.value_model.algorithm_version, "top.value-model.v0.2-self-reported");
 assert.ok(exported.value_model.inputs && exported.value_model.outputs);
-assert.ok(exported.value_model.assumptions.includes("the_output_value_index_is_not_measured"));
+assert.equal(exported.value_model.inputs.hours_saved, 10);
+assert.equal(exported.value_model.inputs.value_per_hour, 50);
+assert.equal(exported.value_model.outputs.self_reported_time_value, 500);
+assert.ok(exported.value_model.limitations.includes("hours_saved_was_not_measured_or_verified_by_top"));
 assert.deepEqual(exported.questionnaire.what_to_improve, ["running_out_of_ai_usage"]);
 assert.deepEqual(exported.questionnaire.kinds_of_work, ["bounded_agent_loop"]);
 assert.equal(Object.prototype.hasOwnProperty.call(exported.questionnaire, "arbitrary_free_text"), false);
@@ -150,7 +154,7 @@ function v2Result() {
   return result;
 }
 
-const exportedV2 = plain(context.buildResearchSafeObject(v2Result(), null, null, 0.4, "2026-07-16"));
+const exportedV2 = plain(context.buildResearchSafeObject(v2Result(), null, null, selfReportedValue, "2026-07-16"));
 assert.equal(exportedV2.schema_version, "top.research-safe-usage.v2");
 assert.deepEqual(Object.keys(exportedV2), Object.keys(exported).concat(["timeline", "session_distributions", "workflow_shape"]));
 assert.equal(exportedV2.collector.collector_version, "top.local-collector.2026-07-16.2");
@@ -162,7 +166,7 @@ assert.deepEqual(Object.keys(exportedV2.session_distributions), ["status", "sess
 assert.deepEqual(Object.keys(exportedV2.workflow_shape), ["status", "algorithm_version", "basis", "sessions"]);
 const earlyYearResearchV2 = v2Result();
 earlyYearResearchV2.pilotV2Aggregate.timeline.periods[0].period = "0000-02";
-assert.equal(context.buildResearchSafeObject(earlyYearResearchV2, null, null, 0.4, "2026-07-16").timeline.periods[0].period, "0000-02");
+assert.equal(context.buildResearchSafeObject(earlyYearResearchV2, null, null, selfReportedValue, "2026-07-16").timeline.periods[0].period, "0000-02");
 for (const forbidden of ["prompt", "reply", "code", "tool_output", "filename", "path", "semantic_category"]) {
   assert.equal(Object.prototype.hasOwnProperty.call(exportedV2.timeline, forbidden), false);
   assert.equal(Object.prototype.hasOwnProperty.call(exportedV2.session_distributions, forbidden), false);
@@ -170,26 +174,26 @@ for (const forbidden of ["prompt", "reply", "code", "tool_output", "filename", "
 }
 const v2WithPrivateField = v2Result();
 v2WithPrivateField.pilotV2Aggregate.timeline.periods[0].prompt = "PRIVATE";
-assert.throws(() => context.buildResearchSafeObject(v2WithPrivateField, null, null, 0.4, "2026-07-16"), /v2_period_unsupported_field/);
+assert.throws(() => context.buildResearchSafeObject(v2WithPrivateField, null, null, selfReportedValue, "2026-07-16"), /v2_period_unsupported_field/);
 const v2WithBadTotals = v2Result();
 v2WithBadTotals.pilotV2Aggregate.timeline.periods[0].input_tokens++;
 v2WithBadTotals.pilotV2Aggregate.timeline.periods[0].total_tokens++;
-assert.throws(() => context.buildResearchSafeObject(v2WithBadTotals, null, null, 0.4, "2026-07-16"), /v2_reconciliation_failed/);
+assert.throws(() => context.buildResearchSafeObject(v2WithBadTotals, null, null, selfReportedValue, "2026-07-16"), /v2_reconciliation_failed/);
 const v2WithUnknownCollector = v2Result();
 v2WithUnknownCollector.pilotCollectorVersion = "latest";
-assert.throws(() => context.buildResearchSafeObject(v2WithUnknownCollector, null, null, 0.4, "2026-07-16"), /v2_source_not_accepted/);
+assert.throws(() => context.buildResearchSafeObject(v2WithUnknownCollector, null, null, selfReportedValue, "2026-07-16"), /v2_source_not_accepted/);
 const undatedV2 = v2Result();
 undatedV2.days = 0;
 undatedV2.pilotV2Aggregate.timeline.periods[0].period = "undated";
 undatedV2.pilotV2Aggregate.timeline.periods[0].active_days = 0;
-const exportedUndatedV2 = plain(context.buildResearchSafeObject(undatedV2, null, null, 0.4, "2026-07-16"));
+const exportedUndatedV2 = plain(context.buildResearchSafeObject(undatedV2, null, null, selfReportedValue, "2026-07-16"));
 assert.equal(exportedUndatedV2.activity.active_days, 0, "v2 must preserve a valid zero active-day count");
 const codexResearchV2 = v2Result();
 codexResearchV2.by = { "gpt-5.6-codex-mini": { inp: 100, out: 20, cw: 30, cr: 40, reasoning: 10, turns: 2 } };
 codexResearchV2.codex = true;
 codexResearchV2.pilotV2Aggregate.timeline.periods[0].reasoning_output_tokens = 10;
 codexResearchV2.pilotV2Aggregate.session_distributions.session_definition = "codex_rollout_file_proxy";
-const exportedCodexV2 = plain(context.buildResearchSafeObject(codexResearchV2, null, null, 0.4, "2026-07-16"));
+const exportedCodexV2 = plain(context.buildResearchSafeObject(codexResearchV2, null, null, selfReportedValue, "2026-07-16"));
 assert.equal(exportedCodexV2.schema_version, "top.research-safe-usage.v2");
 assert.equal(exportedCodexV2.activity.usage_events, 2);
 assert.equal(exportedCodexV2.activity.ai_replies, null);
@@ -198,7 +202,7 @@ assert.equal(exportedCodexV2.timeline.periods[0].reasoning_output_tokens, 10);
 
 // Exact edit provenance persists by price family and affects only the edited fields.
 context.PRICING_EDITED_FIELDS["opusNew:in"] = true;
-let edited = plain(context.buildResearchSafeObject(claudeResult(), null, null, 0.4, "2026-07-16"));
+let edited = plain(context.buildResearchSafeObject(claudeResult(), null, null, selfReportedValue, "2026-07-16"));
 let opusRate = edited.pricing.applied_rates[0];
 assert.equal(opusRate.field_provenance.input, "user_edited_in_tab");
 assert.equal(opusRate.field_provenance.cache_write, "derived_from_user_edited_input");
@@ -206,29 +210,42 @@ assert.equal(opusRate.field_provenance.cache_read, "derived_from_user_edited_inp
 assert.equal(opusRate.field_provenance.output, "checked_reference_rate");
 assert.equal(edited.pricing.status, "mixed_checked_and_user_edited_rates");
 const laterReport = claudeResult("claude-sonnet-5");
-edited = plain(context.buildResearchSafeObject(laterReport, null, null, 0.4, "2026-07-16"));
+edited = plain(context.buildResearchSafeObject(laterReport, null, null, selfReportedValue, "2026-07-16"));
 assert.equal(edited.pricing.applied_rates[0].field_provenance.input, "checked_reference_rate",
   "editing Opus input must not label Sonnet input as edited on a later report");
 context.PRICING_EDITED_FIELDS["opusNew:out"] = true;
-edited = plain(context.buildResearchSafeObject(claudeResult(), null, null, 0.4, "2026-07-16"));
+edited = plain(context.buildResearchSafeObject(claudeResult(), null, null, selfReportedValue, "2026-07-16"));
 assert.equal(edited.pricing.status, "user_edited_in_tab");
 assert.equal(edited.pricing.applied_rates[0].field_provenance.output, "user_edited_in_tab");
 
-// Invalid scenario values clamp or fall back without changing the truth label.
-const lowScenario = plain(context.buildResearchSafeObject(claudeResult(), null, null, -100, "2026-07-16"));
-const highScenario = plain(context.buildResearchSafeObject(claudeResult(), null, null, Infinity, "2026-07-16"));
-const fallbackScenario = plain(context.buildResearchSafeObject(claudeResult(), null, null, NaN, "2026-07-16"));
-assert.equal(lowScenario.value_model.inputs.scenario_slider, 0);
-assert.equal(highScenario.value_model.inputs.scenario_slider, 1);
-assert.equal(fallbackScenario.value_model.inputs.scenario_slider, 0.4);
-for (const item of [lowScenario, highScenario, fallbackScenario]) assert.equal(item.value_model.truth_status, "illustrative_unvalidated");
+// Blank, complete non-USD, and invalid user inputs follow the strict Worker contract.
+const missingValue = plain(context.buildResearchSafeObject(claudeResult(), null, null, { status: "missing" }, "2026-07-16"));
+const euroValue = plain(context.buildResearchSafeObject(claudeResult(), null, null,
+  { status: "complete", hours_saved: 2.5, value_per_hour: 40, currency: "EUR" }, "2026-07-16"));
+assert.equal(missingValue.value_model.truth_status, "not_provided");
+assert.equal(missingValue.value_model.algorithm_version, "top.value-model.v0.2-self-reported");
+assert.equal(missingValue.value_model.reason, "user_did_not_enter_both_value_inputs");
+assert.equal(euroValue.value_model.truth_status, "self_reported_unverified");
+assert.equal(euroValue.value_model.outputs.self_reported_time_value, 100);
+assert.equal(euroValue.value_model.outputs.net_after_ai_cost_usd, null);
+assert.throws(() => context.buildResearchSafeObject(claudeResult(), null, null,
+  { status: "complete", hours_saved: Infinity, value_per_hour: 40, currency: "USD" }, "2026-07-16"), /invalid_self_reported_value_inputs/);
+const zeroCost = plain(context.buildResearchSafeObject({
+  by: { "claude-opus-4-8": { inp: 0, out: 0, cw: 0, cr: 0, turns: 0 } },
+  turns: 0, sessions: 0, days: 0, filesOpened: 1, estimate: true, valueModelEligible: true,
+}, null, null, selfReportedValue, "2026-07-16"));
+assert.deepEqual(zeroCost.value_model, {
+  truth_status: "not_available",
+  algorithm_version: "top.value-model.v0.1-illustrative",
+  reason: "current_report_not_eligible",
+});
 
 // Codex records expose reasoning, usage-event, and detailed parser coverage fields.
 const codex = plain(context.buildResearchSafeObject({
   by: { "gpt-5.6-codex-mini": { inp: 80, out: 30, cw: 0, cr: 20, reasoning: 10, turns: 3 } },
   turns: 3, sessions: 2, days: 2, filesOpened: 3, estimate: true, valueModelEligible: true, codex: true,
   coverage: { files_selected: 3, files_parsed: 3, files_with_usage: 2, files_skipped: 0, malformed_lines: 1, oversized_lines: 0, counter_resets: 1, complete: false },
-}, null, null, 0.4, "2026-07-16"));
+}, null, null, selfReportedValue, "2026-07-16"));
 assert.equal(codex.source.surface, "codex");
 assert.equal(codex.totals.reasoning_tokens, 10);
 assert.equal(codex.activity.usage_events, 3);
@@ -237,16 +254,17 @@ assert.equal(codex.coverage.files_selected, 3);
 assert.equal(codex.coverage.complete, false);
 assert.equal(codex.by_model[0].model, "gpt-5.6-codex-mini");
 
-// Cleaned Claude data keeps only allowlisted permission modes and never exports a hidden Route A scenario.
+// Cleaned Claude data keeps only allowlisted permission modes and never exports hidden Route A value inputs.
 const routeB = { res: {
   by: { "claude-opus-4-8": { inp: 10, out: 5, cw: 2, cr: 3, turns: 1 } },
   turns: 1, sessions: 1, days: 1, filesOpened: 1, valueModelEligible: false,
   perm: { plan: 2, acceptEdits: 1, "C:\\Users\\Adam\\PRIVATE_MODE": 4 },
 } };
-const cleaned = plain(context.buildResearchSafeObject(null, routeB, null, 0.4, "2026-07-16"));
+const cleaned = plain(context.buildResearchSafeObject(null, routeB, null, selfReportedValue, "2026-07-16"));
 assert.equal(cleaned.source.input_form, "locally_cleaned_usage_export");
 assert.deepEqual(cleaned.permission_mode_counts, { plan: 2, accept_edits: 1, unrecognized: 4 });
 assert.equal(cleaned.value_model.truth_status, "not_available");
+assert.equal(cleaned.value_model.algorithm_version, "top.value-model.v0.1-illustrative");
 assert.equal(cleaned.value_model.reason, "scenario_control_not_shown_for_this_route");
 
 // Chat export fields remain unavailable rather than being silently represented as zero or billed usage.
@@ -254,7 +272,7 @@ const chat = plain(context.buildResearchSafeObject({
   by: { "claude.ai (est.)": { inp: 100, out: 200, cw: 0, cr: 0, turns: 6 } },
   turns: 6, sessions: 2, days: 0, filesOpened: 1, chatExport: true, chatProvider: "Claude Chat", valueModelEligible: false,
   ignoredRecords: 3, ignoredMessages: 4, duplicateRecords: 1,
-}, null, null, 0.4, "2026-07-16"));
+}, null, null, selfReportedValue, "2026-07-16"));
 assert.equal(chat.totals.cache_write_tokens, null);
 assert.equal(chat.totals.cache_read_tokens, null);
 assert.equal(chat.totals.reasoning_tokens, null);
@@ -262,12 +280,14 @@ assert.equal(chat.cost.status, "unavailable");
 assert.equal(chat.pricing.status, "not_applied");
 assert.equal(chat.activity.text_messages, 6);
 assert.equal(chat.value_model.truth_status, "not_available");
+assert.equal(chat.value_model.algorithm_version, "top.value-model.v0.1-illustrative");
+assert.equal(chat.value_model.reason, "current_report_not_eligible");
 
 // Console costs distinguish complete recorded exports from mixed recorded and estimated rows.
 const completeCsv = plain(context.buildResearchSafeObject({
   by: { "claude-opus-4-8": { inp: 10, out: 5, cw: 0, cr: 0, turns: 1, cost: 4.2, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } } },
   turns: 1, sessions: 1, days: 0, filesOpened: 1, csv: true, costComplete: true, costRows: 1, missingCostRows: 0, valueModelEligible: true,
-}, null, null, 0.4, "2026-07-16"));
+}, null, null, selfReportedValue, "2026-07-16"));
 assert.equal(completeCsv.cost.status, "recorded");
 assert.equal(completeCsv.cost.usd, 4.2);
 assert.equal(completeCsv.pricing.status, "not_needed_recorded_cost");
@@ -276,7 +296,7 @@ assert.equal(completeCsv.activity.sessions, null, "Console rows are not work-ses
 const mixedCsv = plain(context.buildResearchSafeObject({
   by: { "claude-sonnet-5": { inp: 100, out: 50, cw: 10, cr: 20, turns: 2, cost: 1.5, costRows: 1, missingCostRows: 1, missing: { inp: 40, out: 10, cw: 5, cr: 8 } } },
   turns: 2, sessions: 2, days: 0, filesOpened: 1, csv: true, costComplete: false, costRows: 1, missingCostRows: 1, valueModelEligible: true,
-}, null, null, 0.4, "2026-07-16"));
+}, null, null, selfReportedValue, "2026-07-16"));
 assert.equal(mixedCsv.cost.status, "mixed_recorded_and_estimated");
 assert.ok(mixedCsv.cost.usd > 1.5);
 assert.equal(mixedCsv.pricing.applied_rates.length, 1);
@@ -284,7 +304,7 @@ assert.equal(mixedCsv.pricing.applied_rates.length, 1);
 // Private fields and arbitrary questionnaire text never flow through the whitelist-based builder.
 const privateResult = claudeResult("C:\\Users\\Adam\\PRIVATE_PROJECT\\claude-opus-4-8");
 Object.assign(privateResult, { prompt: "PRIVATE PROMPT TEXT", email: "adam@example.com", timestamp: "2026-07-16T18:46:19.288Z", sessionId: "ORIGINAL-SESSION-ID" });
-const privateJson = context.buildResearchSafeJSON(privateResult, null, questionnaire, 0.4, "2026-07-16");
+const privateJson = context.buildResearchSafeJSON(privateResult, null, questionnaire, selfReportedValue, "2026-07-16");
 for (const sentinel of ["PRIVATE_PROJECT", "C:\\\\Users", "PRIVATE PROMPT TEXT", "adam@example.com", "2026-07-16T18:46:19.288Z", "ORIGINAL-SESSION-ID", "private-customer"]) {
   assert.equal(privateJson.includes(sentinel), false, `privacy sentinel leaked: ${sentinel}`);
 }
@@ -298,7 +318,8 @@ let downloaded = null, registered = null;
 const statusNode = { textContent: "" };
 const buttonNode = { addEventListener(type, handler) { registered = { type, handler }; } };
 context.document = { getElementById(id) {
-  if (id === "vmg") return { value: "0.4" };
+  if (id === "pilotResearchPreview") return previewNode;
+  if (id === "researchConsent") return consentNode;
   if (id === "shareStatus") return statusNode;
   if (id === "downloadResearchJSON") return buttonNode;
   return null;
@@ -306,7 +327,24 @@ context.document = { getElementById(id) {
 context.LAST_RESULT = claudeResult();
 context.ROUTEB = null;
 context.collectResearchQuestionnaire = () => null;
+context.selfReportedValueInput = () => selfReportedValue;
+const previewNode = { value: "" };
+const consentNode = { checked: false, addEventListener() {} };
 context.dlFile = (name, text, type) => { downloaded = { name, text, type }; };
+let invalidResetCount = 0;
+context.resetDirectSubmissionForReport = () => { invalidResetCount++; };
+context.updateDirectSubmitState = () => {};
+context.researchSafePackage = "STALE_PRIVATE_PACKAGE";
+previewNode.value = "STALE_PRIVATE_PREVIEW";
+consentNode.checked = true;
+context.selfReportedValueInput = () => ({ status: "invalid", reason: "enter_both_or_clear_both" });
+assert.equal(context.prepareResearchSafePackage(true), "", "partial value input must block package creation");
+assert.equal(context.researchSafePackage, "");
+assert.equal(previewNode.value, "");
+assert.equal(consentNode.checked, false);
+assert.equal(invalidResetCount, 1);
+assert.match(statusNode.textContent, /No safe report was prepared/);
+context.selfReportedValueInput = () => selfReportedValue;
 vm.runInContext(html.slice(researchEnd, routeBStart), context);
 assert.equal(registered.type, "click");
 assert.equal(registered.handler, context.downloadResearchSafeJSON);

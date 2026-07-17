@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://submit.tokenoptimisationprotocol.org; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>TOP: understand AI usage or prepare an Obsidian vault for 7C's</title>
-<meta name="description" content="Open Claude, ChatGPT or Codex history for a private usage report, or check an Obsidian vault locally for a future 7C's memory setup. Nothing is sent to TOP.">
+<meta name="description" content="Open Claude, ChatGPT or Codex history locally for a private usage report. Source files stay on your device, and only a report you review and explicitly submit can be sent to TOP.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -177,23 +177,6 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .vlead{color:var(--muted);font-size:14.5px;margin:2px 0 16px;max-width:72ch}
 .vlead b{color:var(--text)}
 .vcard{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border2);border-radius:16px;padding:clamp(16px,3vw,26px)}
-.vcard .vlegend{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:center;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted);margin-bottom:6px}
-.vcard .vlegend span{display:flex;align-items:center;gap:7px}
-.vcard .vlegend em{color:var(--faint);font-style:normal}
-.vcard .vlegend .sw{width:16px;height:3px;border-radius:2px}
-.vcard .vlegend .sd{width:16px;height:0;border-top:3px dashed currentColor;border-radius:2px}
-.vcard .vlegend .sq{width:12px;height:12px;border-radius:3px}
-.vbody{display:grid;gap:18px}
-.vside{min-width:0}
-.vcard .plot{position:relative;background:rgba(255,255,255,.44);border:1px solid var(--border);border-radius:12px;padding:6px 10px 2px;max-width:600px;margin:0 auto;width:100%}
-.vcard .vcontrols{display:flex;align-items:center;gap:14px;margin:18px auto 6px;max-width:640px}
-.vcard .vcontrols label{font-size:13.5px;color:var(--muted);min-width:214px}
-.vcard input[type=range]{-webkit-appearance:none;appearance:none;width:100%;min-width:0;height:6px;border-radius:100px;background:linear-gradient(90deg,var(--mint) 0%,var(--amber) 55%,var(--red) 100%);outline:none;flex:1}
-.vcard input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.5)}
-.vcard input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer}
-.vcard .gval{font-family:"JetBrains Mono",monospace;font-size:13px;min-width:92px;text-align:right;color:var(--iris2)}
-.vcap{font-size:14px;color:var(--muted);margin:2px auto 16px;min-height:22px;max-width:640px;text-align:center}
-.vcap b{color:var(--text)}
 .vcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:640px){.vcards{grid-template-columns:1fr}}
 .vcards .vstat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
@@ -204,22 +187,23 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .tag{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:5px;font-weight:500;white-space:nowrap}
 .tag.measured{color:var(--mint);background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3)}
 .tag.est{color:var(--amber);background:rgba(232,178,58,.1);border:1px solid rgba(232,178,58,.3)}
-.villus{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--faint);margin:14px 2px 0;text-align:center;line-height:1.55}
 .vnote{max-width:100%;margin:16px 0 0;border:1px solid var(--border2);background:var(--panel);border-radius:12px;padding:14px 18px;color:var(--faint);font-size:13px;line-height:1.55}
 .vnote b{color:var(--muted)}
-@media(min-width:900px){
-  .vbody{grid-template-columns:minmax(0,1.32fr) minmax(275px,.68fr);align-items:start}
-  .vcard .plot{max-width:none;margin:0}
-  .vcard .vcontrols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;margin:0 0 10px;max-width:none}
-  .vcard .vcontrols label{grid-column:1/-1;min-width:0;font-weight:700;color:var(--text)}
-  .vcard .gval{min-width:78px}
-  .vcap{margin:4px 0 12px;min-height:0;max-width:none;text-align:left}
-  .vcards{grid-template-columns:1fr;gap:8px}
-  .vcards .vstat{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px}
-  .vcards .vstat .k{margin:0;max-width:19ch}
-  .vcards .vstat .n{font-size:20px;white-space:nowrap}
-  .villus{text-align:left;margin-top:10px}
-}
+.vm-truth{padding:14px 16px;border-left:4px solid var(--iris);border-radius:10px;background:rgba(101,86,221,.08);color:var(--muted);line-height:1.55}
+.vm-truth strong{display:block;color:var(--text);margin-bottom:3px}
+.vm-inputs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.vm-inputs>label{display:flex;flex-direction:column;gap:7px;padding:16px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.62)}
+.vm-inputs label>span{font-weight:800;line-height:1.35}
+.vm-inputs label>small{min-height:38px;color:var(--muted);line-height:1.45}
+.vm-inputs input,.vm-inputs select{width:100%;min-height:48px;border:1px solid #b8cad6;border-radius:10px;background:#fff;color:var(--text);padding:10px 12px;font:700 16px/1.2 "Inter",system-ui,sans-serif}
+.vm-money-input{display:grid;grid-template-columns:92px 1fr;gap:8px}
+.vm-status{margin:14px 0 0;color:var(--muted);font-size:13.5px;line-height:1.55}
+.vm-rd{margin-top:16px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.56)}
+.vm-rd summary{padding:13px 15px;cursor:pointer;font-weight:800}
+.vm-rd>div{padding:0 15px 13px;color:var(--muted);font-size:13.5px;line-height:1.5}
+.vm-rd p{margin:7px 0}
+.tag.self{color:#5f4fc7;background:rgba(101,86,221,.1);border:1px solid rgba(101,86,221,.28)}
+.tag.calc{color:#087f62;background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3)}
 /* survey helpers + varied archetype chips */
 .fhelp{color:var(--faint);font-size:12.5px;line-height:1.5;margin:-4px 0 12px;max-width:70ch}
 .fhelp code{color:var(--muted);background:var(--panel);padding:1px 5px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:11.5px}
@@ -248,7 +232,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .technical-details>summary::-webkit-details-marker{display:none}.technical-details>summary::after{content:"Show";float:right;color:var(--iris2);font-size:13px}.technical-details[open]>summary::after{content:"Hide"}
 .technical-details>.details-body{padding:0 17px 17px}.pricing-table{width:100%;border-collapse:collapse;font-size:12.5px}.pricing-table th,.pricing-table td{padding:8px 7px;border-bottom:1px solid #dce5e9;text-align:right}.pricing-table th:first-child,.pricing-table td:first-child{text-align:left}.pricing-table input{max-width:76px;padding:5px}.pricing-table a{color:var(--iris2)}
 @media(max-width:760px){.tabs{grid-template-columns:1fr 1fr}.claude-kinds,.routechoices,.resonance-grid,.vault-actions,.vault-split{grid-template-columns:1fr}.vault-stats{grid-template-columns:1fr 1fr}.flow-shell{border-radius:22px;padding:16px}.tab{min-height:98px}.claude-kind{min-height:88px}.chipgroup.arch{grid-template-columns:1fr}.resonance-choice{min-height:88px}.resonance-actions .btn{width:100%}}
-@media(max-width:640px){.vcard .vcontrols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 10px;width:100%}.vcard .vcontrols label{grid-column:1/-1;min-width:0}.vcard .gval{min-width:72px}.vcard .plot{overflow:hidden}.vcard .plot svg{display:block;width:100%;max-width:100%;height:auto}}
+@media(max-width:640px){.vm-inputs{grid-template-columns:1fr}.vm-inputs label>small{min-height:0}.vm-money-input{grid-template-columns:88px 1fr}}
 @media(max-width:430px){.tabs,.claude-kinds,.vault-stats,.vault-truth{grid-template-columns:1fr}.tab{min-height:82px}.vault-offer-actions .btn,.vault-recovery-actions .btn{width:100%;justify-content:center}.vault-path-row{align-items:stretch;flex-direction:column}.vault-path-row .btn{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.journey-world,.journey-sun,.journey-moon,.journey-track span{transition:none!important}}
 /* Two-question pilot journey. The normal analyzer remains available without ?pilot=1. */
@@ -481,37 +465,48 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <div style="overflow-x:auto"><table id="modeltable"></table></div>
 
     <div class="vm" id="vm">
-      <h2>A Simple Example Of Price And Quality <span class="vm-sub">· cost information, plus invented example values</span></h2>
+      <h2>What Was This Work Worth To You? <span class="vm-sub">self-reported, not measured by TOP</span></h2>
       <p class="vlead" id="vmlead"></p>
-      <p class="note">The green lines are invented only to explain the idea. TOP does not calculate what your work is worth.</p>
       <div class="vcard">
-        <div class="vlegend">
-          <span style="color:var(--red)" id="vmCurrentLegend"><span class="sw" style="background:var(--red)"></span>cost recorded in your file</span>
-          <span style="color:var(--red)"><span class="sd"></span>possible spend after changing AI versions <em>(estimate)</em></span>
-          <span><span class="sw" style="background:var(--mint)"></span>invented example of useful work <em>(not calculated)</em></span>
-          <span><span class="sq" style="background:rgba(62,207,142,.42)"></span>invented example after paying the AI cost <em>(not calculated)</em></span>
+        <div class="vm-truth">
+          <strong>TOP cannot measure the value of your work from an AI history file.</strong>
+          Enter your own estimate below. TOP only multiplies the two numbers you provide.
         </div>
-        <div class="vbody">
-          <div class="plot">
-            <svg id="vmsvg" viewBox="0 0 520 390" width="100%" role="img" aria-label="AI cost, invented example of useful work, and invented example of value left after cost. Any lower-cost line is an estimate, not a measured saving."></svg>
-          </div>
-          <div class="vside">
-            <div class="vcontrols">
-              <label for="vmg">How much simple work might you try with a cheaper AI version?</label>
-              <input id="vmg" type="range" min="0" max="1" step="0.01" value="0.4">
-              <span class="gval" id="vmgout">middle ground</span>
+        <div class="vm-inputs">
+          <label for="vmhours">
+            <span>How many hours do you think AI saved across this report?</span>
+            <small>Your estimate. Use 0 if it did not save time.</small>
+            <input id="vmhours" type="number" min="0" max="100000" step="0.25" inputmode="decimal" placeholder="For example, 8">
+          </label>
+          <label for="vmrate">
+            <span>What is one hour of that work worth to you?</span>
+            <small>Your estimate. Choose the currency you normally use.</small>
+            <div class="vm-money-input">
+              <select id="vmcurrency" aria-label="Currency for your self-reported hourly value">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+              </select>
+              <input id="vmrate" type="number" min="0" max="1000000" step="0.01" inputmode="decimal" placeholder="For example, 25">
             </div>
-            <p class="vcap" id="vmcap"></p>
-            <div class="vcards">
-              <div class="vstat"><div class="k" id="vmNowLabel">Cost recorded in your file</div><div class="n" id="vmnow">$0</div></div>
-              <div class="vstat after"><div class="k">Possible cost after changes <span class="tag est">estimate</span></div><div class="n" id="vmafter">$0</div></div>
-              <div class="vstat save"><div class="k">Possible saving <span class="tag est">estimate</span></div><div class="n" id="vmsave">$0</div></div>
-            </div>
-            <p class="villus" id="vmillus"></p>
-          </div>
+          </label>
         </div>
+        <div class="vcards">
+          <div class="vstat"><div class="k" id="vmNowLabel">AI cost in this report</div><div class="n" id="vmnow">$0</div></div>
+          <div class="vstat after"><div class="k">Value of time saved <span class="tag self">self-reported</span></div><div class="n" id="vmgross">Enter both numbers</div></div>
+          <div class="vstat save"><div class="k">Value after AI cost <span class="tag calc">calculated</span></div><div class="n" id="vmnet">Not calculated</div></div>
+        </div>
+        <p class="vm-status" id="vmstatus">Enter both numbers to make your own value estimate. They stay in this tab unless you deliberately include them in a downloaded or submitted safe report.</p>
+        <details class="vm-rd">
+          <summary>What TOP is still researching</summary>
+          <div>
+            <p><b>TOP-2 is R&amp;D:</b> testing which work can move to a lower-cost AI version without reducing quality.</p>
+            <p><b>TOP-3 is R&amp;D:</b> testing personalized cost forecasts before a task starts.</p>
+            <p>Neither is included in the value number above. There is no promised saving.</p>
+          </div>
+        </details>
       </div>
-      <p class="vnote" id="vmnote"></p>
+      <p class="vnote"><b>Honesty boundary.</b> Hours saved and hourly value come from you. TOP does not verify them, infer them from your files, or claim they were caused by TOP.</p>
     </div>
 
     <div class="summbox" id="shareSummaryBox" hidden>
@@ -933,8 +928,8 @@ if __name__ == "__main__":
     </div>
     <div class="summbox research-safe-box">
       <h3>Complete Research-Safe JSON</h3>
-      <p>This separate file keeps every privacy-safe usage aggregate TOP calculated and the exact pricing rates applied. It includes the current value-model scenario only when the report qualifies for that illustration. Any included scenario is clearly marked as unvalidated, not a forecast result.</p>
-      <p><strong>Before sharing it:</strong> inspect the exact JSON below. It contains aggregate usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. It contains no prompts, replies, code, tool output, paths, filenames, project or account identifiers, email addresses, exact times or original IDs. Nothing is sent until you deliberately use a sharing action.</p>
+      <p>This separate file keeps every privacy-safe usage aggregate TOP calculated and the exact pricing rates applied. If you entered hours saved and an hourly value, it can also include those self-reported numbers and the multiplication TOP performed.</p>
+      <p><strong>Before sharing it:</strong> inspect the exact JSON below. It contains aggregate usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and any self-reported value inputs you deliberately entered. It contains no prompts, replies, code, tool output, paths, filenames, project or account identifiers, email addresses, exact times or original IDs. Nothing is sent until you deliberately use a sharing action.</p>
       <p><code>privacy.network_delivery: "none"</code> records that TOP had not transmitted the report when it was generated. A later direct submission can happen only through the separate consent step below.</p>
       <details class="research-share-preview" open><summary>See the exact research-safe JSON that will be downloaded or submitted</summary><textarea id="pilotResearchPreview" readonly aria-label="Exact research-safe JSON preview"></textarea></details>
       <div class="share-buttons"><button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button><button type="button" class="btn" id="shareResearchJSON">Share Reviewed JSON</button></div>
@@ -944,8 +939,8 @@ if __name__ == "__main__":
       <p><strong>Fixed recipients:</strong> Adam and Sam. Their delivery addresses are configured only on the secure server. This page cannot choose, change or add recipients.</p>
       <p>If you submit, they will use this content-free aggregate for both approved purposes:</p>
       <ul><li>Validate whether the analyzer measures usage accurately.</li><li>Calibrate future forecasting research. This does not make the current value illustration a verified forecast.</li></ul>
-      <p>Cloudflare processes the submission request and Resend processes the email delivery. Resend sends from Ireland when the Ireland region is selected, but stores account data, email metadata, logs and API records in the United States. Even without prompts or code, unusual usage patterns may still identify you. Adam and Sam may retain the submitted report for up to 30 days. You can ask Adam to delete their mailbox copies earlier, but Resend may still retain its processor copy for its standard 30-day period.</p>
-      <label class="share-consent"><input type="checkbox" id="researchConsent"> <span>I reviewed the exact research-safe JSON and consent to Adam and Sam receiving it for <code>analyzer_validation</code> and <code>forecast_calibration</code>. I understand that the submitted report may be retained for up to 30 days, including in Resend systems in the United States, and that an early deletion request applies to Adam and Sam's mailbox copies. My original history files, prompts, replies, code and file contents are not included.</span></label>
+      <p>Cloudflare processes the submission request, then Resend processes the email delivery. TOP asks Resend to dispatch through its Ireland region. That routing choice affects dispatch only, not data storage. Resend stores account data, email metadata, logs and API records in the United States. Even without prompts or code, unusual usage patterns may still identify you. Adam and Sam may retain the submitted report for up to 30 days. You can ask Adam to delete their mailbox copies earlier, but Resend may still retain its processor copy for its standard 30-day period.</p>
+      <label class="share-consent"><input type="checkbox" id="researchConsent"> <span>I reviewed the exact research-safe JSON and consent to Cloudflare processing my submission request and Resend dispatching it through Ireland to Adam and Sam for <code>analyzer_validation</code> and <code>forecast_calibration</code>. I understand that Ireland is dispatch routing only, Resend stores data in the United States, and the submitted report may be retained for up to 30 days. An early deletion request applies to Adam and Sam's mailbox copies. My original history files, prompts, replies, code and file contents are not included.</span></label>
       <p class="delivery-readiness" id="deliveryReadiness">Direct submission is not configured yet. Download remains available.</p>
       <div class="share-buttons" style="margin-top:12px"><button type="button" class="btn p" id="submitResearchReport" disabled>Submit Reviewed Safe Report</button></div>
     </div>
@@ -1038,6 +1033,11 @@ function resetDownstream(){
   document.getElementById('shareStatus').textContent='';
   document.getElementById('researchConsent').checked=false;
   document.getElementById('submitResearchReport').disabled=true;
+  document.getElementById('vmhours').value='';
+  document.getElementById('vmrate').value='';
+  document.getElementById('vmcurrency').value='USD';
+  VM.cost=0;
+  VM.estimated=false;
   sharePackage='';
   researchSafePackage='';
   resetDirectSubmissionForReport();
@@ -1179,7 +1179,7 @@ function tierOf(model){
   return "mid";
 }
 // value-model state, seeded from the real parse and updated on price edits
-var VM={built:false};
+var VM={cost:0,estimated:false};
 
 var MODES={
   cc:{label:"Claude Code", small:"Claude Code history files (.jsonl), choose one or more",
@@ -2133,7 +2133,7 @@ function resolveCostRow(model,e,res){
   return {model:model,e:e,key:key,cost:cost,complete:complete};
 }
 function valueModelAllowed(rows,costAvailable){
-  return costAvailable&&rows.length>0&&rows.every(function(r){return !!priceKeyFor(r.model);});
+  return costAvailable&&rows.length>0&&rows.some(function(r){return r.cost!==null&&r.cost>0;})&&rows.every(function(r){return r.complete;});
 }
 function resultCountLabels(res){
   if(res.copilot) return {card:"Usage records",table:"Usage records",summary:"Usage records"};
@@ -2222,7 +2222,7 @@ function render(res){
   res.costAvailable=allCostsAvailable&&rows.length>0;
   res.partialCost=!res.chatExport&&!allCostsAvailable&&totCost>0;
   // The Copilot routing scenario is withheld because credit metering undercounts agent work, so the mix is not a routing baseline.
-  res.valueModelEligible=valueModelAllowed(rows,res.costAvailable)&&!res.copilot;
+  res.valueModelEligible=valueModelAllowed(rows,res.costAvailable);
   var costCard=res.chatExport?["Recorded dollar cost","Not included",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):(res.cursor?"Cost as billed by Cursor":(res.copilot?"Cost as billed by GitHub":"Recorded spend")),(res.estimate?"~":"")+fmt$(totCost),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""]));
   var countLabels=resultCountLabels(res), tokenPrefix=res.chatExport?"about ":"";
   var cards=[costCard,
@@ -2358,124 +2358,59 @@ function render(res){
   revealStandardPostReport();
 }
 
-// ---------- your value model (personalised source-labelled baseline + illustrative right-sizing estimate) ----------
-function renderValueModel(rows, totCost, res){
+// ---------- user-entered value model ----------
+function selfReportedValueInput(){
+  var hoursField=document.getElementById("vmhours"),rateField=document.getElementById("vmrate"),currencyField=document.getElementById("vmcurrency");
+  var hoursText=hoursField?hoursField.value.trim():"",rateText=rateField?rateField.value.trim():"",currency=currencyField?currencyField.value:"";
+  if(!/^(?:USD|EUR|GBP)$/.test(currency))return {status:"invalid",reason:"unsupported_currency",hours_saved:null,value_per_hour:null,currency:null};
+  if(hoursText===""&&rateText==="")return {status:"missing",hours_saved:null,value_per_hour:null,currency:currency};
+  if(hoursText===""||rateText==="")return {status:"invalid",reason:"enter_both_or_clear_both",hours_saved:null,value_per_hour:null,currency:currency};
+  var hours=Number(hoursText),rate=Number(rateText);
+  if(!Number.isFinite(hours)||hours<0||hours>100000||!Number.isFinite(rate)||rate<0||rate>1000000)return {status:"invalid",reason:"value_outside_supported_range",hours_saved:null,value_per_hour:null,currency:currency};
+  return {status:"complete",hours_saved:Number(hours.toFixed(2)),value_per_hour:Number(rate.toFixed(2)),currency:currency};
+}
+function selfReportedMoney(value,currency){
+  var symbol={USD:"$",EUR:"€",GBP:"£"}[currency]||"";
+  return symbol+Number(value||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function updateSelfReportedValue(){
+  var input=selfReportedValueInput(),gross=document.getElementById("vmgross"),net=document.getElementById("vmnet"),status=document.getElementById("vmstatus");
+  if(!gross||!net||!status)return;
+  if(input.status!=="complete"){
+    gross.textContent=input.status==="invalid"?"Check both numbers":"Enter both numbers";
+    net.textContent="Not calculated";
+    status.textContent=input.status==="invalid"?(input.reason==="enter_both_or_clear_both"?"Enter both value numbers, or clear both to continue without a value estimate. No safe report can be prepared until you fix this.":(input.reason==="unsupported_currency"?"Choose USD, EUR or GBP before preparing a safe report.":"Use non-negative numbers within the displayed limits, or clear both fields. No safe report can be prepared until you fix this.")):"Enter both numbers to make your own value estimate. They stay in this tab unless you deliberately include them in a downloaded or submitted safe report.";
+    return;
+  }
+  var value=Number((input.hours_saved*input.value_per_hour).toFixed(2));
+  gross.textContent=selfReportedMoney(value,input.currency);
+  if(input.currency==="USD"){
+    var netValue=Number((value-VM.cost).toFixed(2)),ratio=VM.cost>0?value/VM.cost:null;
+    net.textContent=selfReportedMoney(netValue,"USD");
+    status.textContent="Your inputs: "+input.hours_saved+" hours × "+selfReportedMoney(input.value_per_hour,"USD")+" per hour = "+selfReportedMoney(value,"USD")+". After the report's "+(VM.estimated?"estimated ":"")+"AI cost, that is "+selfReportedMoney(netValue,"USD")+(ratio===null?".":", or "+ratio.toFixed(2)+" of self-reported time value for each US dollar of AI cost.");
+  }else{
+    net.textContent="Not compared";
+    status.textContent="Your inputs: "+input.hours_saved+" hours × "+selfReportedMoney(input.value_per_hour,input.currency)+" per hour = "+selfReportedMoney(value,input.currency)+". The AI cost is in US dollars, so TOP does not subtract it or guess an exchange rate.";
+  }
+}
+function valueInputChanged(){
+  updateSelfReportedValue();
+  researchSafePackage="";
+  var preview=document.getElementById("pilotResearchPreview");if(preview)preview.value="";
+  if(typeof resetDirectSubmissionForReport==="function")resetDirectSubmissionForReport();
+  if(typeof updateDirectSubmitState==="function")updateDirectSubmitState(true);
+}
+function renderValueModel(rows,totCost,res){
   var vm=document.getElementById("vm");
-  if(!vm) return;
-  if(!res.valueModelEligible){vm.style.display="none";return;}
-  if(!(totCost>0)){ vm.style.display="none"; return; }
-  // real model mix -> frontier (right-sizable) vs mid vs already-cheap spend
-  var fS=0, mS=0, cS=0;
-  rows.forEach(function(r){ var t=tierOf(r.model);
-    if(t==="frontier") fS+=r.cost; else if(t==="cheap") cS+=r.cost; else mS+=r.cost; });
-  var fFrac = fS/totCost;
-  // Illustrative routing scenario only. Current listed flagship-to-low-cost ratios are about 5x
-  // in the compared OpenAI and Anthropic families. Whether work can move without quality loss is untested.
-  var RATIO_LO=5,RATIO_HI=5,MOVE_LO=.25,MOVE_HI=.5;
-  var saveLo=fS*MOVE_LO*(1-1/RATIO_LO);
-  var saveHi=fS*MOVE_HI*(1-1/RATIO_HI);
-  VM.C=totCost; VM.fS=fS; VM.fFrac=fFrac; VM.saveLo=saveLo; VM.saveHi=saveHi;
-  VM.RATIO_LO=RATIO_LO; VM.RATIO_HI=RATIO_HI; VM.MOVE_LO=MOVE_LO; VM.MOVE_HI=MOVE_HI;
-  VM.est = !!(res && res.estimate);
-  var pre = VM.est?"~":"";
-  document.getElementById("vmCurrentLegend").innerHTML=VM.est
-    ?'<span class="sw" style="background:var(--red)"></span>estimated pay-as-you-go cost of this usage <em>(calculated estimate)</em>'
-    :'<span class="sw" style="background:var(--red)"></span>cost recorded in your file';
-  document.getElementById("vmNowLabel").innerHTML=VM.est
-    ?'Estimated pay-as-you-go cost <span class="tag est">calculated estimate</span>'
-    :'Cost recorded in your file <span class="tag measured">from your file</span>';
-  var opening=VM.est
-    ?"TOP calculated <b>"+pre+fmt$(totCost)+"</b> from the usage counts in your file and the checked pay-as-you-go prices."
-    :"Your file records <b>"+fmt$(totCost)+"</b> of cost.";
-  var pct = Math.round(fFrac*100);
-  var lead;
-  if(fS<=0){
-    lead=opening+" Most of this already uses lower-cost AI versions, so there may be little room to cut costs by switching versions. That is a good sign. The chart still shows the idea, but the possible saving is small.";
-  } else {
-    lead=opening+" About <b>"+pre+fmt$(fS)+" ("+pct+"%)</b> was used by the most expensive AI versions we could match. This example moves some simpler work to an AI version that costs one fifth as much. That could mean <b>"+pre+fmt$(saveLo)+" to "+pre+fmt$(saveHi)+"</b> less spend, but only if the cheaper option still does the work well. We have not tested that yet.";
-  }
-  document.getElementById("vmlead").innerHTML=lead;
-  document.getElementById("vmillus").innerHTML="Example only, not a measured saving. Your current cost comes from "+(VM.est?"the usage numbers and checked AI prices":"the cost data")+" in your file. The lower-cost line assumes some tasks can move to a cheaper AI version without making the work worse.";
-  document.getElementById("vmnote").innerHTML="<b>What this means.</b> Your files are read on this device. Nothing here proves that a cheaper AI version will do the job as well. TOP still needs to test that on real work, so treat every saving as a possibility, not a promise.";
-  buildVMChart();
-  updateVM();
+  if(!vm)return;
+  if(!res.valueModelEligible||!(totCost>0)){vm.style.display="none";return;}
+  VM.cost=totCost;VM.estimated=!!res.estimate;
+  document.getElementById("vmlead").textContent=(VM.estimated?"TOP estimated ":"Your file records ")+fmt$(totCost)+" of pay-as-you-go AI cost for the supported usage in this report. Add your own time estimate only if it is meaningful to you.";
+  document.getElementById("vmNowLabel").innerHTML=VM.estimated?'Estimated AI cost <span class="tag est">calculated estimate</span>':'AI cost <span class="tag measured">from your file</span>';
+  document.getElementById("vmnow").textContent=(VM.estimated?"~":"")+fmt$(totCost);
+  if(!VM.bound){["vmhours","vmrate","vmcurrency"].forEach(function(id){var field=document.getElementById(id);if(field)field.addEventListener("input",valueInputChanged)});VM.bound=true}
+  updateSelfReportedValue();
   vm.style.display="block";
-}
-function vmMk(tag,a){ var e=document.createElementNS("http://www.w3.org/2000/svg",tag); for(var k in a) e.setAttribute(k,a[k]); return e; }
-function buildVMChart(){
-  if(VM.built) return;
-  var svg=document.getElementById("vmsvg"); if(!svg) return;
-  var g={X0:72,X1:504,YT:20,YB:342,BEND:3,spanX:6,vMax:1.7}; VM.geo=g;
-  function xToPx(x){ return g.X0+(x/g.spanX)*(g.X1-g.X0); }
-  function yToPx(v){ return g.YB-(Math.min(v,g.vMax)/g.vMax)*(g.YB-g.YT); }
-  VM.xToPx=xToPx; VM.yToPx=yToPx;
-  // gradient for the value area
-  var defs=vmMk("defs",{}), lg=vmMk("linearGradient",{id:"vmValGrad",x1:0,y1:0,x2:0,y2:1});
-  lg.appendChild(vmMk("stop",{offset:0,"stop-color":"#3ECF8E","stop-opacity":0.15}));
-  lg.appendChild(vmMk("stop",{offset:1,"stop-color":"#3ECF8E","stop-opacity":0}));
-  defs.appendChild(lg); svg.appendChild(defs);
-  // gridlines + zero axis
-  [0.5,1,1.5].forEach(function(v){ svg.appendChild(vmMk("line",{x1:g.X0,y1:yToPx(v),x2:g.X1,y2:yToPx(v),stroke:"rgba(20,38,58,.10)","stroke-width":1})); });
-  svg.appendChild(vmMk("line",{x1:g.X0,y1:yToPx(0),x2:g.X1,y2:yToPx(0),stroke:"rgba(20,38,58,.24)","stroke-width":1}));
-  var t0=vmMk("text",{x:g.X0-6,y:yToPx(0)+4,"text-anchor":"end","font-size":11,fill:"#536A80","font-family":"JetBrains Mono,monospace"}); t0.textContent="$0"; svg.appendChild(t0);
-  var yl=vmMk("text",{x:18,y:(g.YT+g.YB)/2,"text-anchor":"middle","font-size":10,fill:"#536A80","font-family":"Inter,system-ui,sans-serif",transform:"rotate(-90 18 "+((g.YT+g.YB)/2)+")"}); yl.textContent="AI cost · invented useful work · invented value after cost"; svg.appendChild(yl);
-  var xl=vmMk("text",{x:g.X1,y:g.YB+18,"text-anchor":"end","font-size":11,fill:"#536A80","font-family":"Inter,system-ui,sans-serif"}); xl.textContent="work completed over time →"; svg.appendChild(xl);
-  // measured-spend baseline (at relative 1.0) + label (text set in updateVM)
-  svg.appendChild(vmMk("line",{x1:g.X0,y1:yToPx(1),x2:g.X1,y2:yToPx(1),stroke:"rgba(242,109,109,.28)","stroke-width":1,"stroke-dasharray":"2 5"}));
-  VM.baseLbl=vmMk("text",{x:g.X0+8,y:yToPx(1)-7,"text-anchor":"start","font-size":11,fill:"#9B9BA6","font-family":"JetBrains Mono,monospace"}); svg.appendChild(VM.baseLbl);
-  // right-size marker
-  svg.appendChild(vmMk("line",{x1:xToPx(g.BEND),y1:g.YB,x2:xToPx(g.BEND),y2:g.YT+14,stroke:"#3ECF8E","stroke-width":1.2,"stroke-dasharray":"4 5","stroke-opacity":.55}));
-  var mlbl=vmMk("text",{x:xToPx(g.BEND)+6,y:g.YT+9,"text-anchor":"start","font-size":11,fill:"#087F62","font-family":"Inter,system-ui,sans-serif"}); mlbl.textContent="try a cheaper AI version"; svg.appendChild(mlbl);
-  // dynamic shapes (created once, updated on slider / price edits)
-  VM.valueArea=vmMk("polygon",{fill:"url(#vmValGrad)"}); svg.appendChild(VM.valueArea);
-  VM.surplus=vmMk("polygon",{fill:"#35F5A0","fill-opacity":.30}); svg.appendChild(VM.surplus);
-  VM.costLine=vmMk("polyline",{fill:"none",stroke:"#F26D6D","stroke-width":3,"stroke-linejoin":"round","stroke-linecap":"round"}); svg.appendChild(VM.costLine);
-  VM.costEst=vmMk("polyline",{fill:"none",stroke:"#F26D6D","stroke-width":3,"stroke-dasharray":"7 6","stroke-linecap":"round","stroke-opacity":.95}); svg.appendChild(VM.costEst);
-  VM.valueLine=vmMk("polyline",{fill:"none",stroke:"#3ECF8E","stroke-width":3,"stroke-linejoin":"round","stroke-linecap":"round"}); svg.appendChild(VM.valueLine);
-  VM.costDot=vmMk("circle",{r:5,fill:"#F26D6D"}); svg.appendChild(VM.costDot);
-  VM.valDot=vmMk("circle",{r:5,fill:"#3ECF8E"}); svg.appendChild(VM.valDot);
-  document.getElementById("vmg").addEventListener("input",updateVM);
-  VM.built=true;
-}
-function updateVM(){
-  if(!VM.built) return;
-  var g=VM.geo, xToPx=VM.xToPx, yToPx=VM.yToPx;
-  var a=parseFloat(document.getElementById("vmg").value);
-  var move=VM.MOVE_LO+(VM.MOVE_HI-VM.MOVE_LO)*a;
-  var ratio=VM.RATIO_LO+(VM.RATIO_HI-VM.RATIO_LO)*a;
-  var saving=VM.fS*move*(1-1/ratio);
-  var after=VM.C-saving;
-  var afterFrac=VM.C>0? after/VM.C : 1;
-  var pre=VM.est?"~":"";
-  function costAt(x){ if(x<=g.BEND) return 0.35+(1.0-0.35)*(x/g.BEND); return 1.0+(afterFrac-1.0)*((x-g.BEND)/(g.spanX-g.BEND)); }
-  var val6=1.26+0.24*a; // illustrative: reinvesting the saving (Jevons) lifts output further
-  function valAt(x){ if(x<=g.BEND) return 0.30+(0.92-0.30)*(x/g.BEND); return 0.92+(val6-0.92)*((x-g.BEND)/(g.spanX-g.BEND)); }
-  function seg(fn,x1,x2){ return xToPx(x1)+","+yToPx(fn(x1))+" "+xToPx(x2)+","+yToPx(fn(x2)); }
-  VM.costLine.setAttribute("points", seg(costAt,0,g.BEND));
-  VM.costEst.setAttribute("points", seg(costAt,g.BEND,g.spanX));
-  VM.valueLine.setAttribute("points", [0,g.BEND,g.spanX].map(function(x){ return xToPx(x)+","+yToPx(valAt(x)); }).join(" "));
-  VM.valueArea.setAttribute("points", xToPx(0)+","+yToPx(valAt(0))+" "+xToPx(g.BEND)+","+yToPx(valAt(g.BEND))+" "+xToPx(g.spanX)+","+yToPx(valAt(g.spanX))+" "+xToPx(g.spanX)+","+yToPx(0)+" "+xToPx(0)+","+yToPx(0));
-  // value surplus wedge, where the value line rises above the cost line after the bend
-  var vc=valAt(g.BEND), cc=costAt(g.BEND), vSlope=val6-vc, cSlope=afterFrac-cc, denom=vSlope-cSlope, poly="";
-  if(denom>0){
-    var tc=Math.max((cc-vc)/denom,0);
-    if(tc<1){ var xc=g.BEND+tc*(g.spanX-g.BEND);
-      poly=[xToPx(xc)+","+yToPx(valAt(xc)), xToPx(g.spanX)+","+yToPx(valAt(g.spanX)), xToPx(g.spanX)+","+yToPx(costAt(g.spanX)), xToPx(xc)+","+yToPx(costAt(xc))].join(" "); }
-  }
-  VM.surplus.setAttribute("points", poly);
-  VM.costDot.setAttribute("cx",xToPx(g.spanX)); VM.costDot.setAttribute("cy",yToPx(costAt(g.spanX)));
-  VM.valDot.setAttribute("cx",xToPx(g.spanX)); VM.valDot.setAttribute("cy",yToPx(valAt(g.spanX)));
-  VM.baseLbl.textContent=(VM.est?"estimated cost of this usage ":"cost recorded in your file ")+pre+fmt$(VM.C);
-  document.getElementById("vmnow").textContent=pre+fmt$(VM.C);
-  document.getElementById("vmafter").textContent=pre+fmt$(after);
-  document.getElementById("vmsave").textContent=pre+fmt$(saving);
-  document.getElementById("vmgout").textContent = a<=0.33?"change less":(a>=0.66?"change more":"middle ground");
-  document.getElementById("vmg").setAttribute("aria-valuetext",document.getElementById("vmgout").textContent+" AI version changes");
-  var cap;
-  if(a<=0.33) cap="<b>Change less.</b> Move only the simplest work to cheaper AI versions. This gives up some possible saving to protect quality.";
-  else if(a>=0.66) cap="<b>Change more.</b> Move more work to cheaper AI versions, then use the freed budget for extra work. This may save more, but it carries more quality risk.";
-  else cap="<b>Middle ground.</b> Move obvious low-risk work to cheaper AI versions and keep the strongest version for tasks where quality matters most.";
-  document.getElementById("vmcap").innerHTML=cap;
 }
 
 // ---------- Obsidian vault metadata check ----------
@@ -2991,16 +2926,22 @@ var includeSurveyContext=false;
 var sharePackage="";
 function finishSurvey(skipped){
   includeSurveyContext=!skipped;
+  var share=document.getElementById("shareWithTop");
+  if(!prepareResearchSafePackage(true)){
+    var invalidValue=selfReportedValueInput(),valueStatus=document.getElementById("vmstatus"),valueFocus=document.getElementById(invalidValue.reason==="unsupported_currency"?"vmcurrency":(invalidValue.reason==="enter_both_or_clear_both"&&document.getElementById("vmhours").value.trim()!==""?"vmrate":"vmhours"));
+    if(valueStatus)valueStatus.textContent=invalidValue.reason==="enter_both_or_clear_both"?"Enter both value numbers, or clear both, before preparing your safe report.":(invalidValue.reason==="unsupported_currency"?"Choose USD, EUR or GBP before preparing your safe report.":"Fix the value numbers, or clear both, before preparing your safe report.");
+    if(valueFocus)valueFocus.focus();
+    document.getElementById("shareStatus").textContent="No safe report was prepared. Fix or clear the value inputs first.";
+    return false;
+  }
   sharePackage=buildSafePackage();
   document.getElementById("finalPackagePreview").value=sharePackage;
   var message=skipped?"Sunset: questions skipped. Your own copy is ready.":"Sunset: context added. Your own copy is ready.";
   setJourney(.88,message);
-  var share=document.getElementById("shareWithTop");
-  prepareResearchSafePackage(true);
   if(PILOT_MODE){
     document.getElementById("shareWithTopHeading").textContent="Share Your Safe Report";
-    share.querySelector(".share-lead").textContent="Only the complete content-free aggregate report below can leave this page. It includes usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. Your prompts, replies, code, files, paths and original identifiers are excluded.";
-    document.getElementById("shareHold").innerHTML="<strong>Nothing has been sent.</strong> Review the exact JSON, then deliberately download it, use your device's share action, or consent and press Submit yourself. Direct submission remains off until its secure endpoint is configured.";
+    share.querySelector(".share-lead").textContent="Only the complete content-free aggregate report below can leave this page. It includes usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and any self-reported value inputs you entered. Your prompts, replies, code, files, paths and original identifiers are excluded.";
+    document.getElementById("shareHold").innerHTML="<strong>Nothing has been sent.</strong> Review the exact JSON, then deliberately download it, use your device's share action, or consent and press Submit yourself. No request is made until you press Submit.";
     share.querySelector(".research-safe-box h3").textContent="Your Complete Safe Report";
     document.getElementById("downloadResearchJSON").textContent="Download My Safe Report";
     document.getElementById("shareResearchJSON").textContent="Share My Safe Report";
@@ -3033,7 +2974,8 @@ document.getElementById("copySafePackage").addEventListener("click",function(){
 var RESEARCH_SCHEMA_VERSION="top.research-safe-usage.v1";
 var RESEARCH_SCHEMA_VERSION_V2="top.research-safe-usage.v2";
 var researchSafePackage="";
-var RESEARCH_VALUE_MODEL_VERSION="top.value-model.v0.1-illustrative";
+var RESEARCH_LEGACY_VALUE_MODEL_VERSION="top.value-model.v0.1-illustrative";
+var RESEARCH_VALUE_MODEL_VERSION="top.value-model.v0.2-self-reported";
 var RESEARCH_COLLECTOR_VERSION="top.local-analyzer.2026-07-16.1";
 var RESEARCH_PARSER_VERSION="top.usage-parser.2026-07-16.1";
 var RESEARCH_ACCEPTED_SAFE_V2_COLLECTOR="top.local-collector.2026-07-16.2";
@@ -3199,15 +3141,17 @@ function researchRateFieldProvenance(priceKey){
   var inputEdited=PRICING_EDITED_FIELDS[priceKey+":in"]===true,outputEdited=PRICING_EDITED_FIELDS[priceKey+":out"]===true;
   return {input:inputEdited?"user_edited_in_tab":"checked_reference_rate",cache_write:inputEdited?"derived_from_user_edited_input":"derived_from_checked_reference_input",cache_read:inputEdited?"derived_from_user_edited_input":"derived_from_checked_reference_input",output:outputEdited?"user_edited_in_tab":"checked_reference_rate"};
 }
-function buildResearchValueModel(result,modelRows,totalCost,scenarioValue){
-  if(!result.valueModelEligible||!(totalCost>0))return {truth_status:"not_available",algorithm_version:RESEARCH_VALUE_MODEL_VERSION,reason:"current_report_not_eligible"};
-  var frontierCost=0;modelRows.forEach(function(row){if(tierOf(row.model)==="frontier"&&row.cost.usd!==null)frontierCost+=row.cost.usd});
-  var amount=Math.max(0,Math.min(1,Number(scenarioValue)));if(!Number.isFinite(amount))amount=.4;
-  var ratioLow=5,ratioHigh=5,moveLow=.25,moveHigh=.5,ratio=ratioLow+(ratioHigh-ratioLow)*amount,move=moveLow+(moveHigh-moveLow)*amount;
-  var saving=frontierCost*move*(1-1/ratio),after=totalCost-saving,saveLow=frontierCost*moveLow*(1-1/ratioLow),saveHigh=frontierCost*moveHigh*(1-1/ratioHigh);
-  return {truth_status:"illustrative_unvalidated",algorithm_version:RESEARCH_VALUE_MODEL_VERSION,inputs:{baseline_cost_usd:researchMoney(totalCost),frontier_model_cost_usd:researchMoney(frontierCost),frontier_model_cost_share:totalCost?Number((frontierCost/totalCost).toFixed(6)):0,scenario_slider:amount,work_moved_share_low:moveLow,work_moved_share_high:moveHigh,work_moved_share_current:Number(move.toFixed(6)),flagship_to_lower_cost_ratio_low:ratioLow,flagship_to_lower_cost_ratio_high:ratioHigh,flagship_to_lower_cost_ratio_current:ratio},assumptions:["frontier_spend_is_only_a_proxy_for_work_that_might_be_routable","between_25_and_50_percent_of_frontier_spend_might_move","the_lower_cost_ai_is_one_fifth_of_the_flagship_price","work_quality_is_unchanged_after_routing","saved_budget_may_be_reinvested_in_more_ai_work","the_output_value_index_is_not_measured"],outputs:{illustrative_cost_after_routing_usd:researchMoney(after),illustrative_saving_usd:researchMoney(saving),illustrative_saving_range_low_usd:researchMoney(saveLow),illustrative_saving_range_high_usd:researchMoney(saveHigh),chart_cost_index_after_routing:totalCost?Number((after/totalCost).toFixed(6)):null,chart_output_value_index:Number((1.26+.24*amount).toFixed(6))}};
+function buildResearchValueModel(result,modelRows,totalCost,selfReportedValue,legacyReason){
+  if(legacyReason||!result.valueModelEligible||!(totalCost>0))return {truth_status:"not_available",algorithm_version:RESEARCH_LEGACY_VALUE_MODEL_VERSION,reason:legacyReason||"current_report_not_eligible"};
+  var value=selfReportedValue&&typeof selfReportedValue==="object"?selfReportedValue:null;
+  if(!value||value.status==="missing")return {truth_status:"not_provided",algorithm_version:RESEARCH_VALUE_MODEL_VERSION,reason:"user_did_not_enter_both_value_inputs"};
+  var hours=Number(value.hours_saved),rate=Number(value.value_per_hour),currency=/^(?:USD|EUR|GBP)$/.test(String(value.currency||""))?String(value.currency):null;
+  if(value.status!=="complete"||!Number.isFinite(hours)||hours<0||hours>100000||!Number.isFinite(rate)||rate<0||rate>1000000||!currency)throw new Error("invalid_self_reported_value_inputs");
+  hours=Number(hours.toFixed(2));rate=Number(rate.toFixed(2));
+  var costUsd=researchMoney(totalCost),gross=Number((hours*rate).toFixed(2)),net=currency==="USD"?Number((gross-costUsd).toFixed(2)):null,ratio=currency==="USD"&&costUsd>0?Number((gross/costUsd).toFixed(6)):null;
+  return {truth_status:"self_reported_unverified",algorithm_version:RESEARCH_VALUE_MODEL_VERSION,inputs:{hours_saved:hours,value_per_hour:rate,currency:currency,provenance:"entered_by_user_in_browser"},calculation:"hours_saved_multiplied_by_value_per_hour",outputs:{self_reported_time_value:gross,value_currency:currency,analyzed_ai_cost_usd:costUsd,net_after_ai_cost_usd:net,self_reported_value_per_ai_cost_usd:ratio},limitations:["hours_saved_was_not_measured_or_verified_by_top","value_per_hour_was_not_measured_or_verified_by_top","top_does_not_claim_the_reported_value_was_caused_by_top","non_usd_value_is_not_compared_with_usd_ai_cost","top_2_and_top_3_are_not_included"]};
 }
-function buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,createdDate){
+function buildResearchSafeObject(result,routeB,questionnaire,selfReportedValue,createdDate){
   var current=routeB&&routeB.res?routeB.res:result;if(!current)return null;
   var grouped={},statuses=[],rateMap={},totalCost=0,anyCost=false,allComplete=true;
   Object.keys(current.by||{}).forEach(function(rawModel){
@@ -3222,18 +3166,26 @@ function buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,creat
   var totals=modelRows.reduce(function(out,row){out.input_tokens+=row.input_tokens;out.output_tokens+=row.output_tokens;if(row.cache_write_tokens!==null)out.cache_write_tokens+=row.cache_write_tokens;if(row.cache_read_tokens!==null)out.cache_read_tokens+=row.cache_read_tokens;if(row.reasoning_tokens!==null)out.reasoning_tokens+=row.reasoning_tokens;out.total_tokens+=row.total_tokens;return out},{input_tokens:0,output_tokens:0,cache_write_tokens:current.chatExport?null:0,cache_read_tokens:current.chatExport?null:0,reasoning_tokens:current.codex?0:null,total_tokens:0});
   var activity={ai_replies:null,usage_events:null,console_records:null,text_messages:null,sessions:current.csv?null:researchCount(current.sessions),active_days:current.pilotSafeSchemaVersion==="top.safe-usage.v2"?researchCount(current.days):(researchCount(current.days)||null)};
   if(current.codex||current.cursor||current.copilot)activity.usage_events=researchCount(current.turns);else if(current.csv)activity.console_records=researchCount(current.turns);else if(current.chatExport)activity.text_messages=researchCount(current.turns);else activity.ai_replies=researchCount(current.turns);
-  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.chatExport?"not_available":(current.copilot?(current.costComplete?"recorded_in_export":"recorded_where_present_never_estimated"):(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison")),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
-  if(routeB&&valueModel.truth_status==="not_available")valueModel.reason="scenario_control_not_shown_for_this_route";
+  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.chatExport?"not_available":(current.copilot?(current.costComplete?"recorded_in_export":"recorded_where_present_never_estimated"):(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison")),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,selfReportedValue,routeB?"scenario_control_not_shown_for_this_route":""),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
   appliedRates.forEach(function(rate){Object.keys(rate.field_provenance).forEach(function(field){var origin=rate.field_provenance[field];if(origin==="user_edited_in_tab"||origin==="derived_from_user_edited_input")editedFields++;else referenceFields++})});
   if(current.chatExport)pricingStatus="not_applied";else if(current.csv&&current.costComplete)pricingStatus="not_needed_recorded_cost";else if(!appliedRates.length)pricingStatus="not_applied_no_recognized_rate";else if(editedFields&&referenceFields)pricingStatus=allComplete?"mixed_checked_and_user_edited_rates":"partially_applied_mixed_rate_provenance";else if(editedFields)pricingStatus=allComplete?"user_edited_in_tab":"partially_applied_user_edited_rates";else pricingStatus=allComplete?"checked_reference_rates":"partially_applied_checked_rates";
   var output={schema_version:RESEARCH_SCHEMA_VERSION,collector:{collector_version:current.pilotCollectorVersion||RESEARCH_COLLECTOR_VERSION,parser_version:current.pilotParserVersion||RESEARCH_PARSER_VERSION},generated_date:researchDateOnly(createdDate),source:researchSource(current,routeB),measurement:researchMeasurement(current),scope:{selection:"supported_records_in_user_selected_local_data",full_account_or_subscription_claim:false,original_source_content_included:false},coverage:researchCoverage(current,routeB),totals:totals,activity:activity,cost:{status:costStatus,usd:anyCost?researchMoney(totalCost):null,basis:costBasis,currency:"USD",subscription_bill:false},pricing:{status:pricingStatus,reference_checked_date:PRICING_CHECKED_DATE,unit:"usd_per_million_tokens",applied_rates:appliedRates,unpriced_model_groups:modelRows.filter(function(row){return row.cost.status==="unavailable"}).length},permission_mode_counts:routeB&&routeB.res?safePermissionModeCounts(routeB.res.perm):null,by_model:modelRows,questionnaire:safeResearchQuestionnaire(questionnaire),value_model:valueModel,privacy:{network_delivery:"none",inspect_before_attaching:true,excluded:["prompts","replies","code","tool_output","paths","filenames","project_and_account_identifiers","email_addresses","exact_timestamps","original_ids"]}},v2=researchCopyV2Sections(current,totals,activity);
   if(v2){output.schema_version=RESEARCH_SCHEMA_VERSION_V2;output.timeline=v2.timeline;output.session_distributions=v2.session_distributions;output.workflow_shape=v2.workflow_shape}
   return output;
 }
-function buildResearchSafeJSON(result,routeB,questionnaire,scenarioValue,createdDate){var data=buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,createdDate);return data?JSON.stringify(data,null,2):""}
+function buildResearchSafeJSON(result,routeB,questionnaire,selfReportedValue,createdDate){var data=buildResearchSafeObject(result,routeB,questionnaire,selfReportedValue,createdDate);return data?JSON.stringify(data,null,2):""}
 function prepareResearchSafePackage(resetConsent){
-  var slider=document.getElementById("vmg"),scenario=slider?parseFloat(slider.value):.4;
-  researchSafePackage=buildResearchSafeJSON(LAST_RESULT,ROUTEB,collectResearchQuestionnaire(),scenario,new Date().toISOString().slice(0,10));
+  var valueInput=selfReportedValueInput();
+  if(valueInput.status==="invalid"){
+    researchSafePackage="";
+    var invalidPreview=document.getElementById("pilotResearchPreview");if(invalidPreview)invalidPreview.value="";
+    resetDirectSubmissionForReport();
+    var invalidConsent=document.getElementById("researchConsent");if(invalidConsent)invalidConsent.checked=false;
+    var invalidStatus=document.getElementById("shareStatus");if(invalidStatus)invalidStatus.textContent=valueInput.reason==="unsupported_currency"?"No safe report was prepared. Choose USD, EUR or GBP.":"No safe report was prepared. Enter both value numbers within the limits, or clear both.";
+    if(typeof updateDirectSubmitState==="function")updateDirectSubmitState(false);
+    return "";
+  }
+  researchSafePackage=buildResearchSafeJSON(LAST_RESULT,ROUTEB,collectResearchQuestionnaire(),valueInput,new Date().toISOString().slice(0,10));
   var preview=document.getElementById("pilotResearchPreview");if(preview)preview.value=researchSafePackage;
   resetDirectSubmissionForReport();
   if(resetConsent){var status=document.getElementById("shareStatus");if(status)status.textContent=""}
@@ -3264,22 +3216,24 @@ async function shareResearchSafeJSON(){
   catch(error){status.textContent=error&&error.name==="AbortError"?"The share chooser was closed. Nothing was submitted by TOP.":"The device share did not complete. Download the JSON and attach it deliberately instead.";return false}
 }
 var shareResearchButton=document.getElementById("shareResearchJSON");if(shareResearchButton)shareResearchButton.addEventListener("click",shareResearchSafeJSON);
-// ---------- explicit research-safe delivery (disabled until the reviewed Worker endpoint is live) ----------
-var TOP_DELIVERY_ENDPOINT="";
+// ---------- explicit research-safe delivery ----------
+var TOP_DELIVERY_ENDPOINT="https://submit.tokenoptimisationprotocol.org/";
+var TOP_DELIVERY_ORIGIN="https://submit.tokenoptimisationprotocol.org";
 var DIRECT_SUBMISSION_SCHEMA_VERSION="top.explicit-submission.v1";
 var DIRECT_CONSENT_NOTICE_VERSION="top.research-consent.2026-07-17.1";
 var DIRECT_RETENTION_DAYS=30;
 var DIRECT_PURPOSES=["analyzer_validation","forecast_calibration"];
-var directSubmissionEnvelope=null,directSubmissionReportJSON="",directSubmissionGeneration=0,directSubmissionActiveAttempt=null,directSubmissionAcceptedGeneration=-1,directSubmissionAcceptedReportJSON="";
+var directSubmissionEnvelope=null,directSubmissionReportJSON="",directSubmissionGeneration=0,directSubmissionActiveAttempt=null,directSubmissionAcceptedGeneration=-1,directSubmissionAcceptedReportJSON="",directSubmissionUnknownGeneration=-1,directSubmissionUnknownReportJSON="";
 function resetDirectSubmissionForReport(){
-  directSubmissionGeneration+=1;directSubmissionEnvelope=null;directSubmissionReportJSON="";directSubmissionActiveAttempt=null;directSubmissionAcceptedGeneration=-1;directSubmissionAcceptedReportJSON="";
+  directSubmissionGeneration+=1;directSubmissionEnvelope=null;directSubmissionReportJSON="";directSubmissionActiveAttempt=null;directSubmissionAcceptedGeneration=-1;directSubmissionAcceptedReportJSON="";directSubmissionUnknownGeneration=-1;directSubmissionUnknownReportJSON="";
 }
 function currentDirectSubmissionAccepted(){return !!researchSafePackage&&directSubmissionAcceptedGeneration===directSubmissionGeneration&&directSubmissionAcceptedReportJSON===researchSafePackage}
+function currentDirectSubmissionUnknown(){return !!researchSafePackage&&directSubmissionUnknownGeneration===directSubmissionGeneration&&directSubmissionUnknownReportJSON===researchSafePackage}
 function directAttemptIsCurrent(attempt){return !!attempt&&directSubmissionActiveAttempt===attempt&&attempt.generation===directSubmissionGeneration&&attempt.reportJSON===researchSafePackage}
 function currentDirectSubmissionInFlight(){return directAttemptIsCurrent(directSubmissionActiveAttempt)}
 function configuredDeliveryEndpoint(){
   var raw=String(TOP_DELIVERY_ENDPOINT||"").trim();if(!raw)return "";
-  try{var parsed=new URL(raw);if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.search||parsed.hash)return "";return parsed.href}catch(error){return ""}
+  try{var parsed=new URL(raw);if(parsed.protocol!=="https:"||parsed.origin!==TOP_DELIVERY_ORIGIN||parsed.pathname!=="/"||parsed.username||parsed.password||parsed.search||parsed.hash)return "";return parsed.href}catch(error){return ""}
 }
 function directReportObject(){
   if(!researchSafePackage)return null;
@@ -3294,9 +3248,10 @@ function buildExplicitSubmissionEnvelope(report){
 function updateDirectSubmitState(resetConsent){
   var consent=document.getElementById("researchConsent"),button=document.getElementById("submitResearchReport"),readiness=document.getElementById("deliveryReadiness");if(!consent||!button||!readiness)return;
   if(resetConsent)consent.checked=false;
-  var endpoint=configuredDeliveryEndpoint(),hasReport=!!directReportObject(),hasId=canCreateSubmissionId(),inFlight=currentDirectSubmissionInFlight(),accepted=currentDirectSubmissionAccepted();
-  button.disabled=inFlight||accepted||!endpoint||!hasReport||!hasId||!consent.checked;
+  var endpoint=configuredDeliveryEndpoint(),hasReport=!!directReportObject(),hasId=canCreateSubmissionId(),inFlight=currentDirectSubmissionInFlight(),accepted=currentDirectSubmissionAccepted(),unknown=currentDirectSubmissionUnknown();
+  button.disabled=inFlight||accepted||unknown||!endpoint||!hasReport||!hasId||!consent.checked;
   if(accepted)readiness.textContent="This report was accepted for delivery. Download remains available.";
+  else if(unknown)readiness.textContent="Delivery outcome is unknown. TOP will not retry this report. Keep or download your exact copy.";
   else if(!endpoint)readiness.textContent="Direct submission is not configured yet. Download remains available.";
   else if(!hasReport)readiness.textContent="Finish a report before submitting. Nothing has been sent.";
   else if(!hasId)readiness.textContent="This browser cannot create the secure receipt ID. Download remains available.";
@@ -3306,7 +3261,7 @@ function updateDirectSubmitState(resetConsent){
 }
 async function submitResearchSafeReport(){
   var status=document.getElementById("shareStatus"),consent=document.getElementById("researchConsent"),endpoint=configuredDeliveryEndpoint(),report=directReportObject();
-  if(currentDirectSubmissionInFlight()||currentDirectSubmissionAccepted())return false;
+  if(currentDirectSubmissionInFlight()||currentDirectSubmissionAccepted()||currentDirectSubmissionUnknown())return false;
   if(!endpoint||!report||!consent||!consent.checked||!canCreateSubmissionId()){status.textContent="Not submitted. Review the exact report, accept the consent notice and use Download if direct delivery is unavailable.";updateDirectSubmitState(false);return false}
   if(!directSubmissionEnvelope||directSubmissionReportJSON!==researchSafePackage){directSubmissionEnvelope=buildExplicitSubmissionEnvelope(report);directSubmissionReportJSON=researchSafePackage}
   var envelope=directSubmissionEnvelope,attempt=Object.freeze({generation:directSubmissionGeneration,reportJSON:researchSafePackage,submissionId:envelope.submission_id,requestBody:JSON.stringify(envelope)});
@@ -3315,11 +3270,12 @@ async function submitResearchSafeReport(){
     var response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:attempt.requestBody,mode:"cors",cache:"no-store",credentials:"omit",redirect:"error",referrerPolicy:"no-referrer"}),body=null;
     try{body=await response.json()}catch(error){body=null}
     if(!directAttemptIsCurrent(attempt))return false;
-    if(response.status===202&&body&&body.ok===true&&body.status==="accepted_for_delivery"&&body.receipt_id===attempt.submissionId){
-      directSubmissionAcceptedGeneration=attempt.generation;directSubmissionAcceptedReportJSON=attempt.reportJSON;status.textContent="Accepted for delivery to Adam and Sam. Receipt "+body.receipt_id+". This confirms service acceptance, not mailbox delivery.";setJourney(1,"Moonrise: your reviewed safe report was accepted for delivery.");return true;
+    if(response.status===202&&body&&body.ok===true&&body.status==="accepted_for_delivery"&&body.delivered===false&&body.receipt_id===attempt.submissionId&&typeof body.provider_message_id==="string"&&/^[A-Za-z0-9_-]{1,200}$/.test(body.provider_message_id)&&typeof body.report_sha256==="string"&&/^[0-9a-f]{64}$/.test(body.report_sha256)){
+      directSubmissionAcceptedGeneration=attempt.generation;directSubmissionAcceptedReportJSON=attempt.reportJSON;status.textContent="Accepted for delivery to Adam and Sam. Receipt "+body.receipt_id+". Provider reference "+body.provider_message_id+". Report SHA-256 "+body.report_sha256+". This confirms service acceptance, not mailbox delivery.";setJourney(1,"Moonrise: your reviewed safe report was accepted for delivery.");return true;
     }
+    if(response.status===202){directSubmissionUnknownGeneration=attempt.generation;directSubmissionUnknownReportJSON=attempt.reportJSON;status.textContent="TOP received a malformed acceptance response and cannot confirm delivery. It will not retry this report. Keep or download your exact copy.";return false}
     status.textContent="The delivery service did not confirm acceptance (HTTP "+response.status+"). TOP did not retry automatically. Keep or download your exact copy.";return false;
-  }catch(error){if(directAttemptIsCurrent(attempt))status.textContent="TOP could not confirm whether the delivery service accepted the request. It did not retry automatically. Keep or download your exact copy.";return false}
+  }catch(error){if(directAttemptIsCurrent(attempt)){directSubmissionUnknownGeneration=attempt.generation;directSubmissionUnknownReportJSON=attempt.reportJSON;status.textContent="TOP could not confirm whether the delivery service accepted the request. It will not retry this report. Keep or download your exact copy."}return false}
   finally{if(directAttemptIsCurrent(attempt)){directSubmissionActiveAttempt=null;updateDirectSubmitState(false)}}
 }
 var researchConsent=document.getElementById("researchConsent");if(researchConsent)researchConsent.addEventListener("change",function(){updateDirectSubmitState(false)});

@@ -14,11 +14,11 @@ assert.match(html, /This page cannot choose, change or add recipients/);
 assert.doesNotMatch(html, /oconns89@|adam2hartley@/i,
   "server recipient addresses must not be published in client source");
 
-// Local download and copy remain available even while the endpoint is blank.
+// Local download and copy remain available alongside explicit delivery.
 assert.match(html, /id="safeDownload">Download My Own Copy/);
 assert.match(html, /id="copySafePackage">Copy Exact Summary/);
 assert.match(html, /id="downloadResearchJSON">Download Complete Research-Safe JSON/);
-assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/);
+assert.match(html, /var TOP_DELIVERY_ENDPOINT="https:\/\/submit\.tokenoptimisationprotocol\.org\/";/);
 
 const copyStart = html.indexOf("function copyPlainText");
 const copyEnd = html.indexOf('document.getElementById("copyHistoryPath")', copyStart);

@@ -3,9 +3,10 @@ const fs = require("node:fs");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 assert.match(html, /class="mini-emblem"/);
-assert.match(html, /\.vcard input\[type=range\][^}]*min-width:0/);
-assert.match(html, /@media\(max-width:640px\)\{\.vcard \.vcontrols\{display:grid/);
-assert.match(html, /aria-valuetext/);
+assert.match(html, /id="vmhours" type="number"/);
+assert.match(html, /id="vmrate" type="number"/);
+assert.match(html, /id="vmcurrency" aria-label=/);
+assert.match(html, /@media\(max-width:640px\)\{\.vm-inputs\{grid-template-columns:1fr/);
 
 const forbiddenPatterns = [
   [/XMLHttpRequest/, "XMLHttpRequest"],
@@ -30,8 +31,8 @@ for (const [pattern, label] of forbiddenPatterns) {
 
 const fetchCalls = html.match(/\bfetch\s*\(/g) || [];
 assert.equal(fetchCalls.length, 1, "only the deliberate, configuration-gated submission may use fetch");
-assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/,
-  "the repository must keep direct delivery disabled until the Worker endpoint is verified");
+assert.match(html, /var TOP_DELIVERY_ENDPOINT="https:\/\/submit\.tokenoptimisationprotocol\.org\/";/,
+  "direct delivery must use only the reviewed Worker endpoint");
 assert.match(html, /fetch\(endpoint,\{method:"POST"/,
   "the one fetch call must use only the validated configuration constant");
 
@@ -39,7 +40,8 @@ assert.match(html, /Nothing is sent automatically\./);
 assert.match(html, /Your chosen files stay on this device/);
 assert.match(html, /The files stay in this browser and are not sent to TOP\./);
 assert.match(html, /<main class="wrap" id="main-content">/);
-assert.match(html, /connect-src 'none'/);
+assert.match(html, /connect-src https:\/\/submit\.tokenoptimisationprotocol\.org;/);
+assert.match(html, /form-action 'none'/);
 assert.match(html, /Copy summary/);
 assert.match(html, /Download \.txt/);
 assert.match(html, /You can make your report now\. TOP is not accepting files yet\./);
@@ -68,8 +70,9 @@ assert.match(html, /--world-brightness/);
 assert.match(html, /--world-saturation/);
 assert.match(html, /--world-warmth/);
 assert.match(html, /--world-light/);
-assert.match(html, /viewBox="0 0 520 390"/);
-assert.match(html, /AI cost · invented useful work · invented value after cost/);
+assert.match(html, /self-reported, not measured by TOP/);
+assert.match(html, /There is no promised saving/);
+assert.doesNotMatch(html, /AI cost · invented useful work · invented value after cost/);
 assert.match(html, /Which Of These Applies To You\?/);
 assert.match(html, /Running Out Of AI Usage/);
 assert.match(html, /I Cannot Predict How Much AI Allowance A Task Will Use/);

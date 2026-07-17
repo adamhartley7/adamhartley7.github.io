@@ -10,7 +10,7 @@ assert.match(html, /<script src="\.\.\/assets\/analyzer-water\.js" defer><\/scri
 assert.match(html, /\.journey-water\{[^}]*pointer-events:none/);
 assert.match(html, /root\.dataset\.journeyProgress=p\.toFixed\(3\)/);
 assert.match(html, /top:journey-progress/);
-assert.match(html, /connect-src 'none'/);
+assert.match(html, /connect-src https:\/\/submit\.tokenoptimisationprotocol\.org;/);
 
 for (const [pattern, label] of [
   [/\bfetch\s*\(/, "fetch"],

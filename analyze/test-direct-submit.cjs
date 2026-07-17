@@ -5,10 +5,23 @@ const vm = require("node:vm");
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 const UUID = "123e4567-e89b-42d3-a456-426614174000";
 const REPORT = { schema_version: "top.research-safe-usage.v1", totals: { total_tokens: 42 } };
+const DELIVERY_ENDPOINT = "https://submit.tokenoptimisationprotocol.org/";
+const DELIVERY_ORIGIN = "https://submit.tokenoptimisationprotocol.org";
+const PROVIDER_MESSAGE_ID = "synthetic-email-id";
+const REPORT_SHA256 = "a".repeat(64);
 
-assert.match(html, /connect-src 'none'/,
-  "CSP must stay closed while the Worker endpoint is not live");
-assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/);
+assert.match(html, /connect-src https:\/\/submit\.tokenoptimisationprotocol\.org;/,
+  "CSP must allow only the reviewed Worker origin");
+const csp = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/);
+assert.ok(csp, "CSP meta tag must exist");
+const connectDirective = csp[1].split(";").map(value => value.trim())
+  .find(value => value.startsWith("connect-src"));
+assert.equal(connectDirective, `connect-src ${DELIVERY_ORIGIN}`,
+  "CSP must allow exactly one fixed connection destination");
+assert.match(html, /var TOP_DELIVERY_ENDPOINT="https:\/\/submit\.tokenoptimisationprotocol\.org\/";/);
+assert.match(html, /var TOP_DELIVERY_ORIGIN="https:\/\/submit\.tokenoptimisationprotocol\.org";/);
+assert.match(html, /form-action 'none'/,
+  "forms must remain unable to submit through browser form navigation");
 assert.equal((html.match(/\bfetch\s*\(/g) || []).length, 1,
   "only the deliberate direct-submit handler may use fetch");
 assert.match(html, /id="submitResearchReport" disabled/);
@@ -16,7 +29,9 @@ assert.match(html, /id="researchConsent"/);
 assert.match(html, /analyzer_validation/);
 assert.match(html, /forecast_calibration/);
 assert.match(html, /retained for up to 30 days/);
-assert.match(html, /Cloudflare processes the submission request and Resend processes the email delivery/);
+assert.match(html, /Cloudflare processes the submission request, then Resend processes the email delivery/);
+assert.match(html, /dispatch through its Ireland region/);
+assert.match(html, /routing choice affects dispatch only, not data storage/);
 assert.match(html, /usage patterns may still identify you/);
 assert.match(html, /stores account data, email metadata, logs and API records in the United States/);
 assert.match(html, /ask Adam to delete their mailbox copies earlier/);
@@ -27,7 +42,7 @@ assert.match(html, /prepareResearchSafePackage\(true\)/,
 assert.match(html, /var json=researchSafePackage\|\|prepareResearchSafePackage\(false\)/,
   "download and device sharing must use the same reviewed package");
 
-const start = html.indexOf('var TOP_DELIVERY_ENDPOINT="";');
+const start = html.indexOf(`var TOP_DELIVERY_ENDPOINT="${DELIVERY_ENDPOINT}";`);
 const end = html.indexOf("// ---------- Route B:", start);
 assert.ok(start >= 0 && end > start, "could not locate the bounded direct-submit implementation");
 const source = html.slice(start, end);
@@ -67,12 +82,14 @@ function createContext(fetchImpl) {
 (async () => {
   const success = createContext(async () => ({
     status: 202,
-    json: async () => ({ ok: true, status: "accepted_for_delivery", delivered: false, receipt_id: UUID }),
+    json: async () => ({ ok: true, status: "accepted_for_delivery", delivered: false, receipt_id: UUID, provider_message_id: PROVIDER_MESSAGE_ID, report_sha256: REPORT_SHA256 }),
   }));
   const { context, nodes, handlers, calls } = success;
   assert.equal(handlers.consent.type, "change");
   assert.equal(handlers.submit.type, "click");
-  assert.equal(nodes.submitResearchReport.disabled, true, "blank endpoint must keep Submit disabled");
+  assert.equal(context.configuredDeliveryEndpoint(), DELIVERY_ENDPOINT,
+    "the configured destination must be the fixed production Worker endpoint");
+  assert.equal(nodes.submitResearchReport.disabled, true, "a report is required before Submit can be enabled");
   assert.equal(calls.length, 0, "loading and report preparation must never submit");
 
   context.TOP_DELIVERY_ENDPOINT = "http://worker.example.test/submit";
@@ -81,13 +98,17 @@ function createContext(fetchImpl) {
   assert.equal(context.configuredDeliveryEndpoint(), "", "credential-bearing endpoints must fail closed");
   context.TOP_DELIVERY_ENDPOINT = "https://worker.example.test/submit?redirect=elsewhere";
   assert.equal(context.configuredDeliveryEndpoint(), "", "query-bearing endpoints must fail closed");
+  context.TOP_DELIVERY_ENDPOINT = "https://other.example.test/";
+  assert.equal(context.configuredDeliveryEndpoint(), "", "any other HTTPS origin must fail closed");
+  context.TOP_DELIVERY_ENDPOINT = `${DELIVERY_ORIGIN}/submit`;
+  assert.equal(context.configuredDeliveryEndpoint(), "", "any path other than the reviewed root endpoint must fail closed");
 
-  context.TOP_DELIVERY_ENDPOINT = "https://worker.example.test/submit";
+  context.TOP_DELIVERY_ENDPOINT = DELIVERY_ENDPOINT;
   context.researchSafePackage = JSON.stringify(REPORT);
   context.updateDirectSubmitState(false);
   assert.equal(nodes.submitResearchReport.disabled, true, "reviewed consent is still required");
   nodes.researchConsent.checked = true;
-  context.updateDirectSubmitState(false);
+  handlers.consent.handler();
   assert.equal(nodes.submitResearchReport.disabled, false);
   assert.equal(calls.length, 0, "checking consent must not submit");
 
@@ -103,10 +124,11 @@ function createContext(fetchImpl) {
   });
   assert.deepEqual(envelope.report, REPORT);
 
-  assert.equal(await context.submitResearchSafeReport(), true);
-  assert.equal(calls.length, 1, "one click must make exactly one request");
+  assert.equal(await handlers.submit.handler(), true,
+    "only the registered Submit click handler may start delivery");
+  assert.equal(calls.length, 1, "one deliberate click must make exactly one request");
   const [endpoint, options] = calls[0];
-  assert.equal(endpoint, "https://worker.example.test/submit");
+  assert.equal(endpoint, DELIVERY_ENDPOINT);
   assert.equal(options.method, "POST");
   assert.equal(options.credentials, "omit");
   assert.equal(options.cache, "no-store");
@@ -115,26 +137,52 @@ function createContext(fetchImpl) {
   assert.equal(sent.submission_id, UUID);
   assert.deepEqual(sent.report, REPORT);
   assert.match(nodes.shareStatus.textContent, /Accepted for delivery to Adam and Sam/);
+  assert.match(nodes.shareStatus.textContent, new RegExp(PROVIDER_MESSAGE_ID));
+  assert.match(nodes.shareStatus.textContent, new RegExp(REPORT_SHA256));
   assert.match(nodes.shareStatus.textContent, /not mailbox delivery/);
   assert.equal(nodes.submitResearchReport.disabled, true, "an accepted report cannot be sent twice");
   assert.equal(await context.submitResearchSafeReport(), false);
   assert.equal(calls.length, 1, "there must be no automatic or post-success retry");
 
   const failure = createContext(async () => { throw new Error("offline"); });
-  failure.context.TOP_DELIVERY_ENDPOINT = "https://worker.example.test/submit";
   failure.context.researchSafePackage = JSON.stringify(REPORT);
   failure.nodes.researchConsent.checked = true;
   failure.context.updateDirectSubmitState(false);
   assert.equal(await failure.context.submitResearchSafeReport(), false);
   assert.equal(failure.calls.length, 1);
   assert.match(failure.nodes.shareStatus.textContent, /could not confirm whether/);
-  assert.match(failure.nodes.shareStatus.textContent, /did not retry automatically/);
+  assert.match(failure.nodes.shareStatus.textContent, /will not retry this report/);
+  assert.equal(failure.context.currentDirectSubmissionUnknown(), true);
+  assert.equal(failure.nodes.submitResearchReport.disabled, true);
+  assert.equal(await failure.context.submitResearchSafeReport(), false);
+  assert.equal(failure.calls.length, 1, "an unknown outcome must consume this report without retry");
+
+  const valid202 = { ok: true, status: "accepted_for_delivery", delivered: false, receipt_id: UUID, provider_message_id: PROVIDER_MESSAGE_ID, report_sha256: REPORT_SHA256 };
+  const malformed202Bodies = [
+    { ...valid202, delivered: true },
+    { ...valid202, receipt_id: "123e4567-e89b-42d3-a456-426614174999" },
+    { ...valid202, provider_message_id: "" },
+    { ...valid202, provider_message_id: "unsafe provider id" },
+    { ...valid202, report_sha256: "ABC" },
+  ];
+  for (const malformedBody of malformed202Bodies) {
+    const malformed = createContext(async () => ({ status: 202, json: async () => malformedBody }));
+    malformed.context.researchSafePackage = JSON.stringify(REPORT);
+    malformed.nodes.researchConsent.checked = true;
+    malformed.context.updateDirectSubmitState(false);
+    assert.equal(await malformed.context.submitResearchSafeReport(), false);
+    assert.equal(malformed.calls.length, 1);
+    assert.equal(malformed.context.currentDirectSubmissionUnknown(), true);
+    assert.equal(malformed.nodes.submitResearchReport.disabled, true);
+    assert.match(malformed.nodes.shareStatus.textContent, /malformed acceptance response/);
+    assert.equal(await malformed.context.submitResearchSafeReport(), false);
+    assert.equal(malformed.calls.length, 1, "malformed 202 must not be retried");
+  }
 
   // Regression: A is in flight, the user resets and prepares B, then A resolves.
   // A must not mark B accepted, disable B as accepted, or overwrite B's status.
   let resolveA;
   const stale = createContext(() => new Promise((resolve) => { resolveA = resolve; }));
-  stale.context.TOP_DELIVERY_ENDPOINT = "https://worker.example.test/submit";
   stale.context.researchSafePackage = JSON.stringify(REPORT);
   stale.nodes.researchConsent.checked = true;
   stale.context.updateDirectSubmitState(false);
@@ -158,7 +206,7 @@ function createContext(fetchImpl) {
 
   resolveA({
     status: 202,
-    json: async () => ({ ok: true, status: "accepted_for_delivery", delivered: false, receipt_id: UUID }),
+    json: async () => ({ ok: true, status: "accepted_for_delivery", delivered: false, receipt_id: UUID, provider_message_id: PROVIDER_MESSAGE_ID, report_sha256: REPORT_SHA256 }),
   });
   assert.equal(await pendingA, false, "stale A success is ignored for current UI state");
   assert.equal(stale.context.currentDirectSubmissionAccepted(), false, "B is not labelled accepted by A");
