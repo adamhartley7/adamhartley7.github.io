@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; worker-src 'none'">
+  <title>TOP Prospective Forecast Pilot</title>
+  <meta name="description" content="Record an API-rate-equivalent forecast before each task and pair it with the measured result afterward. Everything stays in this browser unless you deliberately download a content-free pilot file.">
+  <link rel="stylesheet" href="pilot.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to pilot</a>
+  <header class="site-header">
+    <a href="../" class="brand" aria-label="TOP home"><span>TOP</span><b>123</b></a>
+    <span class="local-pill">Local only</span>
+  </header>
+
+  <main id="main" class="shell">
+    <section class="hero" aria-labelledby="pageTitle">
+      <p class="eyebrow">24-task instrumentation pilot</p>
+      <h1 id="pageTitle">Forecast first. Record the real result after.</h1>
+      <p>Four anonymous participant slots complete six usable tasks each. Each person uses at least three task classes. This is an instrumentation check, not evidence that TOP is accurate.</p>
+      <div class="privacy-card">
+        <strong>This page never asks what the task was.</strong>
+        <span>No task text, names, prompts, replies, file contents, paths, credentials, account identifiers, or notes. It makes no network requests.</span>
+      </div>
+    </section>
+
+    <section id="roleScreen" class="panel" aria-labelledby="roleTitle">
+      <p class="step-label">Choose one</p>
+      <h2 id="roleTitle">What are you doing?</h2>
+      <div class="choice-grid">
+        <button type="button" class="choice-card" id="participantRole">
+          <strong>Record my tasks</strong>
+          <span>Freeze P10, P50 and P90 before each task, then add the measured API-rate equivalent.</span>
+        </button>
+        <button type="button" class="choice-card" id="coordinatorRole">
+          <strong>Combine pilot files</strong>
+          <span>Import one content-free file per participant and calculate the honest denominators.</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="participantScreen" class="panel" hidden aria-labelledby="participantTitle">
+      <div class="panel-topline">
+        <button type="button" class="quiet-button" data-action="home">Back</button>
+        <span id="participantStatus">Participant setup</span>
+      </div>
+      <h2 id="participantTitle">Anonymous participant</h2>
+
+      <div id="slotChooser">
+        <p class="question-lead">Choose the slot assigned by the coordinator. A slot is a study label, not your name.</p>
+        <div class="slot-grid" id="slotButtons" aria-label="Participant slot"></div>
+      </div>
+
+      <div id="participantWorkspace" hidden>
+        <div class="progress-wrap" aria-label="Participant progress">
+          <div class="progress-copy"><strong id="taskProgress">0 of 6 usable tasks</strong><span id="classProgress">0 of 3 task classes</span></div>
+          <div class="progress-track"><span id="progressBar"></span></div>
+        </div>
+
+        <section id="questionCard" class="question-card" aria-live="polite" aria-labelledby="questionTitle">
+          <p class="step-label" id="questionStep">Ready</p>
+          <h3 id="questionTitle">Start the next task</h3>
+          <p id="questionHelp" class="question-lead"></p>
+          <div id="questionControls"></div>
+          <p id="questionError" class="error" role="alert"></p>
+          <div class="question-actions">
+            <button type="button" class="quiet-button" id="questionBack" hidden>Previous</button>
+            <button type="button" class="primary-button" id="questionNext">Start next task</button>
+          </div>
+        </section>
+
+        <section class="records-card" aria-labelledby="recordsTitle">
+          <div>
+            <p class="step-label">Immutable record</p>
+            <h3 id="recordsTitle">Attempts retained</h3>
+            <p>Frozen values cannot be edited. A mistake is retained, invalidated with a fixed reason, and replaced.</p>
+          </div>
+          <div id="attemptList" class="attempt-list"></div>
+        </section>
+
+        <section class="backup-card" aria-labelledby="backupTitle">
+          <div>
+            <p class="step-label">Local backup</p>
+            <h3 id="backupTitle">Keep a content-free copy</h3>
+            <p>The browser saves this slot locally. Download a backup after every usable task.</p>
+          </div>
+          <div class="button-row">
+            <button type="button" class="secondary-button" id="downloadBackup">Download pilot file</button>
+            <button type="button" class="secondary-button" id="chooseBackup">Choose backup to restore</button>
+            <input type="file" id="backupFile" accept=".json,application/json" hidden>
+          </div>
+          <div id="restorePreview" class="restore-preview" hidden>
+            <p id="restoreSummary"></p>
+            <button type="button" class="warning-button" id="confirmRestore">Restore this slot</button>
+          </div>
+          <p id="backupStatus" class="status-line" aria-live="polite"></p>
+        </section>
+      </div>
+    </section>
+
+    <section id="coordinatorScreen" class="panel" hidden aria-labelledby="coordinatorTitle">
+      <div class="panel-topline">
+        <button type="button" class="quiet-button" data-action="home">Back</button>
+        <span>Coordinator view</span>
+      </div>
+      <h2 id="coordinatorTitle">Combine up to four pilot files</h2>
+      <p class="question-lead">Use one latest <code>top.prospective-pilot.v1</code> file per participant slot. Duplicate slots or malformed files fail closed.</p>
+      <label class="file-picker" for="coordinatorFiles">
+        <strong>Choose participant files</strong>
+        <span>JSON only. The files are read in this tab and never uploaded.</span>
+      </label>
+      <input type="file" id="coordinatorFiles" accept=".json,application/json" multiple hidden>
+      <p id="coordinatorError" class="error" role="alert"></p>
+
+      <section id="coordinatorResults" hidden aria-labelledby="resultsTitle">
+        <div class="result-heading">
+          <div><p class="step-label">Exploratory only</p><h3 id="resultsTitle">Prospective pilot summary</h3></div>
+          <span id="protocolBadge" class="protocol-badge"></span>
+        </div>
+        <p id="denominatorNote" class="denominator-note"></p>
+        <div id="overallMetrics" class="metric-grid"></div>
+        <div class="split-grid">
+          <section><h4>By participant slot</h4><div id="participantSplits"></div></section>
+          <section><h4>By forecast version</h4><div id="versionSplits"></div></section>
+          <section><h4>By task class</h4><div id="classSplits"></div></section>
+        </div>
+        <div class="method-note">
+          <h4>How to read this</h4>
+          <ul>
+            <li>The target interval contains 80% of actual outcomes. Observed coverage is reported, not assumed.</li>
+            <li>The USD values are API-rate equivalents, not subscription bills.</li>
+            <li>Multiplicative error is 1.0 at a perfect P50 forecast. Lower is better.</li>
+            <li>Mean log bias is positive when P50 tends to be too high, and negative when it tends to be too low.</li>
+            <li>The log-space interval score rewards narrow intervals but penalizes misses. Lower is better.</li>
+            <li>Missing actuals and every forecast excluded from accuracy remain visible. The coverage floor treats every excluded forecast as a miss.</li>
+          </ul>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer>TOP prospective pilot. Local instrumentation only. No accuracy or savings claim.</footer>
+  <script src="pilot-core.js"></script>
+  <script src="pilot-app.js"></script>
+</body>
+</html>
