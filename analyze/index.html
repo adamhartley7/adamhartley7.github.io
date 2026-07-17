@@ -953,7 +953,7 @@ if __name__ == "__main__":
 
 <script>
 "use strict";
-// No network delivery is configured. Analysis and exports remain local.
+// Source files stay local. Only an explicit reviewed-report Submit can use the fixed delivery endpoint.
 var lastSummary="",LAST_RESULT=null,AUTO_DETECTED_NOTE="";
 function setJourney(progress,label){
   var p=Math.max(0,Math.min(1,progress));
@@ -3176,7 +3176,10 @@ function buildResearchSafeObject(result,routeB,questionnaire,selfReportedValue,c
 function buildResearchSafeJSON(result,routeB,questionnaire,selfReportedValue,createdDate){var data=buildResearchSafeObject(result,routeB,questionnaire,selfReportedValue,createdDate);return data?JSON.stringify(data,null,2):""}
 function prepareResearchSafePackage(resetConsent){
   var valueInput=selfReportedValueInput();
-  if(valueInput.status==="invalid"){
+  try{
+    researchSafePackage=buildResearchSafeJSON(LAST_RESULT,ROUTEB,collectResearchQuestionnaire(),valueInput,new Date().toISOString().slice(0,10));
+  }catch(error){
+    if(!error||error.message!=="invalid_self_reported_value_inputs")throw error;
     researchSafePackage="";
     var invalidPreview=document.getElementById("pilotResearchPreview");if(invalidPreview)invalidPreview.value="";
     resetDirectSubmissionForReport();
@@ -3185,7 +3188,6 @@ function prepareResearchSafePackage(resetConsent){
     if(typeof updateDirectSubmitState==="function")updateDirectSubmitState(false);
     return "";
   }
-  researchSafePackage=buildResearchSafeJSON(LAST_RESULT,ROUTEB,collectResearchQuestionnaire(),valueInput,new Date().toISOString().slice(0,10));
   var preview=document.getElementById("pilotResearchPreview");if(preview)preview.value=researchSafePackage;
   resetDirectSubmissionForReport();
   if(resetConsent){var status=document.getElementById("shareStatus");if(status)status.textContent=""}

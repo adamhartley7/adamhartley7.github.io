@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
+const readme = fs.readFileSync(new URL("README.md", `file://${__dirname}/`), "utf8");
 const UUID = "123e4567-e89b-42d3-a456-426614174000";
 const REPORT = { schema_version: "top.research-safe-usage.v1", totals: { total_tokens: 42 } };
 const DELIVERY_ENDPOINT = "https://submit.tokenoptimisationprotocol.org/";
@@ -22,6 +23,11 @@ assert.match(html, /var TOP_DELIVERY_ENDPOINT="https:\/\/submit\.tokenoptimisati
 assert.match(html, /var TOP_DELIVERY_ORIGIN="https:\/\/submit\.tokenoptimisationprotocol\.org";/);
 assert.match(html, /form-action 'none'/,
   "forms must remain unable to submit through browser form navigation");
+assert.match(html, /Source files stay local\. Only an explicit reviewed-report Submit can use the fixed delivery endpoint\./);
+assert.doesNotMatch(html, /No network delivery is configured/);
+assert.match(readme, /Until the reviewed activation change is merged after those gates, production remains dormant/);
+assert.match(readme, /disables resubmission for that unchanged report generation/);
+assert.doesNotMatch(readme, /This unmerged integration branch|permanently disables resubmission/);
 assert.equal((html.match(/\bfetch\s*\(/g) || []).length, 1,
   "only the deliberate direct-submit handler may use fetch");
 assert.match(html, /id="submitResearchReport" disabled/);

@@ -344,6 +344,46 @@ assert.equal(previewNode.value, "");
 assert.equal(consentNode.checked, false);
 assert.equal(invalidResetCount, 1);
 assert.match(statusNode.textContent, /No safe report was prepared/);
+
+context.researchSafePackage = "STALE_RANGE_PACKAGE";
+previewNode.value = "STALE_RANGE_PREVIEW";
+consentNode.checked = true;
+context.selfReportedValueInput = () => ({ status: "invalid", reason: "value_outside_supported_range" });
+assert.equal(context.prepareResearchSafePackage(false), "", "out-of-range value input must block an eligible report");
+assert.equal(context.researchSafePackage, "");
+assert.equal(previewNode.value, "");
+assert.equal(consentNode.checked, false);
+assert.equal(invalidResetCount, 2);
+
+// Hidden stale value fields must not block a new report that has no value UI.
+const staleHiddenValue = { status: "invalid", reason: "enter_both_or_clear_both" };
+context.selfReportedValueInput = () => staleHiddenValue;
+context.LAST_RESULT = {
+  by: { "claude.ai (est.)": { inp: 100, out: 200, cw: 0, cr: 0, turns: 6 } },
+  turns: 6, sessions: 2, days: 0, filesOpened: 1, chatExport: true, chatProvider: "Claude Chat", valueModelEligible: false,
+  ignoredRecords: 0, ignoredMessages: 0, duplicateRecords: 0,
+};
+context.ROUTEB = null;
+const ineligiblePackage = context.prepareResearchSafePackage(false);
+assert.ok(ineligiblePackage, "stale hidden partial fields must not block an ineligible report");
+assert.deepEqual(JSON.parse(ineligiblePackage).value_model, {
+  truth_status: "not_available",
+  algorithm_version: "top.value-model.v0.1-illustrative",
+  reason: "current_report_not_eligible",
+});
+
+context.LAST_RESULT = null;
+context.ROUTEB = routeB;
+const routeBPackage = context.prepareResearchSafePackage(false);
+assert.ok(routeBPackage, "stale hidden partial fields must not block Route B");
+assert.deepEqual(JSON.parse(routeBPackage).value_model, {
+  truth_status: "not_available",
+  algorithm_version: "top.value-model.v0.1-illustrative",
+  reason: "scenario_control_not_shown_for_this_route",
+});
+
+context.LAST_RESULT = claudeResult();
+context.ROUTEB = null;
 context.selfReportedValueInput = () => selfReportedValue;
 vm.runInContext(html.slice(researchEnd, routeBStart), context);
 assert.equal(registered.type, "click");

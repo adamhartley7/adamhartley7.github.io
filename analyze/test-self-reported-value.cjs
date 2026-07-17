@@ -57,7 +57,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(context.selfReportedValueInput())), {
   status: "invalid", reason: "unsupported_currency", hours_saved: null, value_per_hour: null, currency: null,
 });
 
-assert.match(html, /valueInput\.status==="invalid"/);
+assert.match(html, /error\.message!=="invalid_self_reported_value_inputs"/);
 assert.match(html, /researchSafePackage=""/);
 assert.match(html, /invalidPreview\.value=""/);
 assert.match(html, /invalidConsent\.checked=false/);
