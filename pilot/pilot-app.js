@@ -92,6 +92,10 @@
     return "$" + value.toFixed(2);
   }
   function percent(value) { return value === null ? "Not available" : (value * 100).toFixed(1) + "%"; }
+  function percentRange(interval) {
+    if (!interval || interval.lower_bound === null || interval.upper_bound === null) return "Not available";
+    return percent(interval.lower_bound) + " to " + percent(interval.upper_bound);
+  }
   function fixed(value, digits) { return value === null ? "Not available" : Number(value).toFixed(digits); }
   function activeAttempt() {
     if (!currentParticipant || !currentParticipant.attempts.length) return null;
@@ -378,6 +382,7 @@
     [
       ["Paired usable", summary.paired_usable + " / " + summary.forecasts_frozen, "actuals / frozen forecasts"],
       ["80% interval coverage", percent(summary.within_p10_p90_rate), summary.within_p10_p90_count + " / " + summary.paired_usable],
+      ["95% uncertainty range", percentRange(summary.within_p10_p90_wilson_95), summary.within_p10_p90_wilson_95.numerator + " covered / " + summary.within_p10_p90_wilson_95.denominator + " paired tasks"],
       ["Below P10", percent(summary.below_p10_rate), summary.below_p10_count + " / " + summary.paired_usable],
       ["At or below P50", percent(summary.at_or_below_p50_rate), summary.at_or_below_p50_count + " / " + summary.paired_usable],
       ["At or below P90", percent(summary.at_or_below_p90_rate), summary.at_or_below_p90_count + " / " + summary.paired_usable],

@@ -50,6 +50,10 @@ assert.match(html, /This is an instrumentation check, not evidence that TOP is a
 assert.match(html, /observed coverage is reported, not assumed/i);
 assert.match(html, /every forecast excluded from accuracy remain visible/i);
 assert.match(html, /coverage floor treats every excluded forecast as a miss/i);
+assert.match(html, /95% uncertainty range is a Wilson interval/i);
+assert.match(html, /Even 24 tasks cannot establish precise calibration/i);
+assert.match(app, /\["95% uncertainty range", percentRange\(summary\.within_p10_p90_wilson_95\)/);
+assert.match(app, /\.numerator \+ " covered \/ " \+ summary\.within_p10_p90_wilson_95\.denominator/);
 assert.match(html, /No accuracy or savings claim/);
 
 console.log("TOP prospective pilot UI flow tests passed");
