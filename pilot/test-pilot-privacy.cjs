@@ -12,6 +12,8 @@ assert.doesNotMatch(app, /\.name\b|webkitRelativePath|\.path\b/,
 assert.doesNotMatch(app, /innerHTML|outerHTML|insertAdjacentHTML|document\.write/,
   "imported values must be rendered with textContent, not HTML parsing");
 assert.match(html, /No task text, names, prompts, replies, file contents, paths, credentials, account identifiers, or notes/);
+assert.match(html, /never asks for the task's title, description, prompt, reply, or files/);
+assert.doesNotMatch(html, /never asks what the task was/i);
 assert.match(html, /pseudonymous, not anonymous/);
 assert.doesNotMatch(html, /Four anonymous participant slots|Anonymous participant/);
 assert.match(html, /task-text-free file still retains the coded slot, export date, task class, forecast version, P10, P50, P90, actual, attempt state and sequence, invalidation reason, and completeness counts/);
