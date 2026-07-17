@@ -28,9 +28,11 @@ async function fixture(directory) {
   const reportJson = serializeReport(submission.report);
   const reportSha256 = createHash("sha256").update(reportJson).digest("hex");
   const log = createRetentionLog({ submissionId: FIXED_UUID, reportSha256, requestedAt: FIXED_NOW });
+  log.attempt_consumed = true;
   log.request_attempted = true;
   log.http_status = 202;
   log.accepted_status = "accepted_for_delivery";
+  log.provider_message_id = "synthetic-resend-message-id";
   const logPath = path.join(directory, "retention.json");
   const first = path.join(directory, "received-1.json");
   const second = path.join(directory, "received-2.json");
@@ -56,10 +58,22 @@ test("two explicitly selected received attachments update the private log only w
   assert.deepEqual(result.hashes, [files.reportSha256, files.reportSha256]);
   const updated = JSON.parse(await readFile(files.logPath, "utf8"));
   assert.equal(updated.attachment_hash_verification_status, "verified_match");
+  assert.deepEqual(updated.attachment_hashes.map((entry) => entry.slot), ["adam_received_attachment", "sam_received_attachment"]);
   assert.ok(updated.attachment_hashes.every((entry) => entry.status === "verified_match" && entry.matches_report_sha256 === true));
   assert.match(output.stdout.join("\n"), /Mailbox access: none/);
   assert.match(output.stdout.join("\n"), /Network calls: 0/);
   assert.equal(output.stderr.length, 0);
+
+  const beforeRetry = await readFile(files.logPath, "utf8");
+  const retry = await runAttachmentVerification({
+    argv: ["--retention-log", files.logPath, "--attachment", files.first, "--attachment", files.second],
+    repositoryRoot: REPOSITORY_ROOT,
+    stdout: () => {},
+    stderr: () => {},
+  });
+  assert.equal(retry.exitCode, 2);
+  assert.equal(retry.networkCalls, 0);
+  assert.equal(await readFile(files.logPath, "utf8"), beforeRetry);
 });
 
 test("one mismatched attachment fails visibly and is retained in the private log", async (t) => {
@@ -81,6 +95,18 @@ test("one mismatched attachment fails visibly and is retained in the private log
   assert.equal(updated.attachment_hashes[0].matches_report_sha256, true);
   assert.equal(updated.attachment_hashes[1].matches_report_sha256, false);
   assert.match(output.stderr.join("\n"), /before any real self-report/);
+
+  await writeFile(files.second, await readFile(files.first), "utf8");
+  const beforeRetry = await readFile(files.logPath, "utf8");
+  const retry = await runAttachmentVerification({
+    argv: ["--retention-log", files.logPath, "--attachment", files.first, "--attachment", files.second],
+    repositoryRoot: REPOSITORY_ROOT,
+    stdout: () => {},
+    stderr: () => {},
+  });
+  assert.equal(retry.exitCode, 2);
+  assert.equal(retry.networkCalls, 0);
+  assert.equal(await readFile(files.logPath, "utf8"), beforeRetry);
 });
 
 test("the same local file cannot stand in for two received copies", async (t) => {

@@ -39,8 +39,8 @@ function acceptedFetch(assertRequest) {
       ok: true,
       status: "accepted_for_delivery",
       delivered: false,
-      provider_message_id: null,
       receipt_id: submission.submission_id,
+      provider_message_id: "synthetic-resend-message-id",
       report_sha256: hash,
       message: "TOP accepted the reviewed report for email delivery. This does not confirm mailbox delivery.",
     }), { status: 202, headers: { "Content-Type": "application/json" } });
@@ -55,6 +55,11 @@ test("synthetic report is strict, content-free, and contains no recipient or per
   assert.doesNotMatch(serialized, /\b(?:Adam|Sam)\b/i);
   assert.equal(report.scope.original_source_content_included, false);
   assert.equal(report.privacy.network_delivery, "none");
+  assert.deepEqual(report.value_model, {
+    truth_status: "not_provided",
+    algorithm_version: "top.value-model.v0.2-self-reported",
+    reason: "user_did_not_enter_both_value_inputs",
+  });
   assert.deepEqual(report.totals, {
     input_tokens: 101,
     output_tokens: 202,
@@ -193,6 +198,7 @@ test("valid live mode makes one pinned synthetic request and writes the private 
   const temporary = await mkdtemp(path.join(os.tmpdir(), "top-smoke-test-"));
   t.after(() => rm(temporary, { recursive: true, force: true }));
   const retentionPath = path.join(temporary, "retention.json");
+  const guardPath = path.join(temporary, "attempt-guard.json");
   let calls = 0;
   const output = capture();
   const result = await runSmoke({
@@ -218,6 +224,7 @@ test("valid live mode makes one pinned synthetic request and writes the private 
     now: () => FIXED_NOW,
     randomUUID: () => FIXED_UUID,
     repositoryRoot: REPOSITORY_ROOT,
+    operatorAccountAttemptGuardPath: guardPath,
     stdout: output.out,
     stderr: output.err,
   });
@@ -235,13 +242,24 @@ test("valid live mode makes one pinned synthetic request and writes the private 
   assert.equal(log.deletion_due_date, "2026-08-16");
   assert.equal(log.endpoint, PRODUCTION_ENDPOINT);
   assert.equal(log.origin, PRODUCTION_ORIGIN);
+  assert.equal(log.attempt_consumed, true);
   assert.equal(log.request_attempted, true);
   assert.equal(log.http_status, 202);
   assert.equal(log.accepted_status, "accepted_for_delivery");
+  assert.equal(log.provider_message_id, "synthetic-resend-message-id");
   assert.equal(log.provider_delivery_confirmed, false);
   assert.equal(log.attachment_hash_verification_status, "pending");
   assert.equal(log.attachment_hashes.length, 2);
   assert.ok(log.attachment_hashes.every((entry) => entry.status === "pending" && entry.sha256 === null));
+  assert.deepEqual(log.attachment_hashes.map((entry) => entry.slot), ["adam_received_attachment", "sam_received_attachment"]);
+  assert.equal(log.report_email_retention.days, 30);
+  assert.equal(log.report_email_retention.provider_metadata_account_logs, "not_covered_by_this_30_day_mailbox_procedure");
+  assert.equal(log.mailbox_deletion.adam.status, "pending");
+  assert.equal(log.mailbox_deletion.sam.status, "pending");
+  const guard = JSON.parse(await readFile(guardPath, "utf8"));
+  assert.equal(guard.consumed, true);
+  assert.equal(guard.outcome, "accepted_for_delivery");
+  assert.equal(guard.provider_message_id, "synthetic-resend-message-id");
   assert.match(output.stdout.join("\n"), /client submission UUID, not delivery proof/);
   assert.match(output.stdout.join("\n"), /Provider delivery confirmed: false/);
   assert.equal(output.stderr.length, 0);
@@ -251,6 +269,7 @@ test("a malformed HTTP 202 response is not treated as accepted", async (t) => {
   const temporary = await mkdtemp(path.join(os.tmpdir(), "top-smoke-bad-response-"));
   t.after(() => rm(temporary, { recursive: true, force: true }));
   const retentionPath = path.join(temporary, "retention.json");
+  const guardPath = path.join(temporary, "attempt-guard.json");
   let calls = 0;
   const output = capture();
   const result = await runSmoke({
@@ -270,6 +289,7 @@ test("a malformed HTTP 202 response is not treated as accepted", async (t) => {
     now: () => FIXED_NOW,
     randomUUID: () => FIXED_UUID,
     repositoryRoot: REPOSITORY_ROOT,
+    operatorAccountAttemptGuardPath: guardPath,
     stdout: output.out,
     stderr: output.err,
   });
@@ -286,6 +306,7 @@ test("a transport failure records an unknown outcome and never claims non-accept
   const temporary = await mkdtemp(path.join(os.tmpdir(), "top-smoke-transport-unknown-"));
   t.after(() => rm(temporary, { recursive: true, force: true }));
   const retentionPath = path.join(temporary, "retention.json");
+  const guardPath = path.join(temporary, "attempt-guard.json");
   let calls = 0;
   const output = capture();
   const result = await runSmoke({
@@ -302,6 +323,7 @@ test("a transport failure records an unknown outcome and never claims non-accept
     now: () => FIXED_NOW,
     randomUUID: () => FIXED_UUID,
     repositoryRoot: REPOSITORY_ROOT,
+    operatorAccountAttemptGuardPath: guardPath,
     stdout: output.out,
     stderr: output.err,
   });
@@ -314,15 +336,41 @@ test("a transport failure records an unknown outcome and never claims non-accept
   assert.equal(log.http_status, null);
   assert.equal(log.accepted_status, "delivery_outcome_unknown");
   assert.equal(log.provider_delivery_confirmed, false);
+  const unknownGuard = JSON.parse(await readFile(guardPath, "utf8"));
+  assert.equal(unknownGuard.consumed, true);
+  assert.equal(unknownGuard.outcome, "delivery_outcome_unknown");
+  assert.equal(unknownGuard.provider_message_id, null);
   assert.match(output.stderr.join("\n"), /Delivery outcome unknown/);
   assert.match(output.stderr.join("\n"), /Do not retry automatically/);
   assert.doesNotMatch(output.stderr.join("\n"), /Not accepted/);
+
+  const retryOutput = capture();
+  const retryResult = await runSmoke({
+    argv: [
+      "--live",
+      "--confirm-synthetic", CONFIRM_SYNTHETIC,
+      "--confirm-send", CONFIRM_SEND,
+      "--retention-log", path.join(temporary, "different-retention.json"),
+    ],
+    fetchImpl: async () => { calls += 1; throw new Error("must not retry"); },
+    now: () => FIXED_NOW,
+    randomUUID: () => "118f62cc-d0cd-7bc0-bed9-1e0c86b41ef3",
+    repositoryRoot: REPOSITORY_ROOT,
+    operatorAccountAttemptGuardPath: guardPath,
+    stdout: retryOutput.out,
+    stderr: retryOutput.err,
+  });
+  assert.equal(retryResult.exitCode, 2);
+  assert.equal(retryResult.networkCalls, 0);
+  assert.equal(calls, 1);
+  assert.match(retryOutput.stderr.join("\n"), /already exists|already consumed/i);
 });
 
 test("a non-202 response is recorded as known non-acceptance", async (t) => {
   const temporary = await mkdtemp(path.join(os.tmpdir(), "top-smoke-non-202-"));
   t.after(() => rm(temporary, { recursive: true, force: true }));
   const retentionPath = path.join(temporary, "retention.json");
+  const guardPath = path.join(temporary, "attempt-guard.json");
   let calls = 0;
   const output = capture();
   const result = await runSmoke({
@@ -342,6 +390,7 @@ test("a non-202 response is recorded as known non-acceptance", async (t) => {
     now: () => FIXED_NOW,
     randomUUID: () => FIXED_UUID,
     repositoryRoot: REPOSITORY_ROOT,
+    operatorAccountAttemptGuardPath: guardPath,
     stdout: output.out,
     stderr: output.err,
   });
@@ -362,6 +411,7 @@ test("an exact HTTP 202 with a failed final log write is not mislabeled as a tra
   const temporary = await mkdtemp(path.join(os.tmpdir(), "top-smoke-post-response-write-"));
   t.after(() => rm(temporary, { recursive: true, force: true }));
   const retentionPath = path.join(temporary, "retention.json");
+  const guardPath = path.join(temporary, "attempt-guard.json");
   let calls = 0;
   let writes = 0;
   const output = capture();
@@ -381,6 +431,7 @@ test("an exact HTTP 202 with a failed final log write is not mislabeled as a tra
     now: () => FIXED_NOW,
     randomUUID: () => FIXED_UUID,
     repositoryRoot: REPOSITORY_ROOT,
+    operatorAccountAttemptGuardPath: guardPath,
     stdout: output.out,
     stderr: output.err,
   });
@@ -407,7 +458,25 @@ test("the committed retention template has no addresses and preserves pending se
   assert.doesNotMatch(text, /@/);
   assert.equal(template.receipt_id_semantics, RECEIPT_ID_SEMANTICS);
   assert.equal(template.provider_delivery_confirmed, false);
+  assert.equal(template.provider_message_id, null);
+  assert.equal(template.attempt_consumed, false);
   assert.equal(template.attachment_hash_verification_status, "pending");
   assert.equal(template.attachment_hashes.length, 2);
   assert.ok(template.attachment_hashes.every((entry) => entry.status === "pending" && entry.sha256 === null));
+  assert.deepEqual(template.attachment_hashes.map((entry) => entry.slot), ["adam_received_attachment", "sam_received_attachment"]);
+  assert.equal(template.report_email_retention.scope, "recipient_mailbox_report_email_and_attachment_only");
+  assert.equal(template.report_email_retention.provider_metadata_account_logs, "not_covered_by_this_30_day_mailbox_procedure");
+  assert.equal(template.mailbox_deletion.adam.status, "pending");
+  assert.equal(template.mailbox_deletion.sam.status, "pending");
+  assert.equal(template.early_deletion.status, "not_requested");
+});
+
+test("the runbook truthfully scopes the consumed guard to the approved operator account", async () => {
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+  assert.match(readme, /operator-account-wide consumed-attempt guard/);
+  assert.match(readme, /covers only the current Windows operator account, not the whole machine/);
+  assert.match(readme, /`whoami` must match/);
+  assert.match(readme, /Do not run the smoke from another Windows account/);
+  assert.doesNotMatch(readme, new RegExp(["machine", "wide"].join("-"), "i"));
+  assert.doesNotMatch(readme, new RegExp(["glo", "bal"].join(""), "i"));
 });

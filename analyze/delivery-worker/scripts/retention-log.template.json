@@ -1,13 +1,15 @@
 {
-  "schema_version": "top.synthetic-retention-log.v1",
+  "schema_version": "top.synthetic-retention-log.v2",
   "synthetic_only": true,
   "receipt_id": "<client-submission-uuid>",
   "receipt_id_semantics": "client_submission_uuid_not_delivery_proof",
+  "provider_message_id": null,
   "report_sha256": "<64-character-lowercase-sha256>",
   "request_date": "YYYY-MM-DD",
   "deletion_due_date": "YYYY-MM-DD",
   "endpoint": "https://submit.tokenoptimisationprotocol.org/",
   "origin": "https://tokenoptimisationprotocol.org",
+  "attempt_consumed": false,
   "request_attempted": false,
   "http_status": null,
   "accepted_status": "prepared_not_sent",
@@ -15,16 +17,40 @@
   "attachment_hash_verification_status": "pending",
   "attachment_hashes": [
     {
-      "slot": "received_copy_1",
+      "slot": "adam_received_attachment",
       "status": "pending",
       "sha256": null,
       "matches_report_sha256": null
     },
     {
-      "slot": "received_copy_2",
+      "slot": "sam_received_attachment",
       "status": "pending",
       "sha256": null,
       "matches_report_sha256": null
     }
-  ]
+  ],
+  "report_email_retention": {
+    "days": 30,
+    "scope": "recipient_mailbox_report_email_and_attachment_only",
+    "provider_metadata_account_logs": "not_covered_by_this_30_day_mailbox_procedure"
+  },
+  "mailbox_deletion": {
+    "adam": {
+      "status": "pending",
+      "completed_at_utc": null,
+      "evidence_reference": null
+    },
+    "sam": {
+      "status": "pending",
+      "completed_at_utc": null,
+      "evidence_reference": null
+    }
+  },
+  "early_deletion": {
+    "status": "not_requested",
+    "requested_at_utc": null,
+    "request_evidence_reference": null,
+    "completed_at_utc": null,
+    "completion_evidence_reference": null
+  }
 }
