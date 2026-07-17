@@ -118,6 +118,7 @@ assert.match(html, /id="topExplainerPrompt" readonly/);
 assert.match(html, /Copies the exact prompt available under Preview/);
 assert.match(html, /Your AI provider handles anything you paste under its own terms and settings/);
 assert.match(html, /Do not attach your account-history export to that chat/);
+assert.match(html, /credential, password, secret, API key or confidential material/);
 assert.match(html, /do not provide operational instructions for uploading, submitting, emailing or sharing data with TOP/);
 assert.match(html, /TOP's own claims, not as independent proof/);
 assert.match(html, /That forecast is not yet proven/);
