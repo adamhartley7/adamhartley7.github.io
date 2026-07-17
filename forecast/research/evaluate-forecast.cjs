@@ -3,6 +3,7 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const Forecaster = require("../forecaster.js");
+const CandidateForecaster = require("./forecaster-project-history-candidate.cjs");
 
 const TARGET_COVERAGE = 0.80;
 const PROTOCOL = Object.freeze({
@@ -16,6 +17,7 @@ const PROTOCOL = Object.freeze({
     median_interval_ratio_multiplier_max: 1.25
   }
 });
+const CANDIDATE_OPTS = Object.freeze({ projectHistory: true, projectK: 20, projectMinN: 3 });
 
 function sha(value) {
   return crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -63,9 +65,10 @@ function splitBrowser(rows) {
   };
 }
 
-function evaluate(fit, calibration, test, opts) {
-  const priors = Forecaster.fitPriors(fit, opts || {});
-  Forecaster.calibrate(priors, calibration);
+function evaluate(fit, calibration, test, opts, engine) {
+  engine = engine || Forecaster;
+  const priors = engine.fitPriors(fit, opts || {});
+  engine.calibrate(priors, calibration);
   const output = {};
   for (const mode of ["description", "oracle"]) {
     let hits = 0;
@@ -73,7 +76,7 @@ function evaluate(fit, calibration, test, opts) {
     const absLog = [];
     const ratios = [];
     for (const row of test) {
-      const band = Forecaster.forecast(row, priors, mode);
+      const band = engine.forecast(row, priors, mode);
       if (row.cost_usd >= band.p10 && row.cost_usd <= band.p90) hits += 1;
       rel.push(Math.abs(band.p50 - row.cost_usd) / row.cost_usd);
       absLog.push(Math.abs(Math.log(row.cost_usd / band.p50)));
@@ -145,6 +148,7 @@ function baselineReport(rows, label) {
   return {
     corpus: label,
     sample_size: rows.length,
+    archetype_source: "precomputed content-free label; raw-text classifier not rerun",
     corpus_hash: sha(rows),
     protocol: PROTOCOL,
     frozen_split: {
@@ -164,20 +168,49 @@ function baselineReport(rows, label) {
   };
 }
 
+function metricGate(baseline, candidate, minimumGapImprovement) {
+  const gapImprovement = baseline.calibration_gap_pct - candidate.calibration_gap_pct;
+  const errorRatio = candidate.median_absolute_log_error / baseline.median_absolute_log_error;
+  const widthRatio = candidate.median_interval_ratio_p90_p10 / baseline.median_interval_ratio_p90_p10;
+  return {
+    pass: gapImprovement >= minimumGapImprovement &&
+      errorRatio <= 1 + PROTOCOL.guardrails.median_absolute_log_error_relative_regression_max &&
+      widthRatio <= PROTOCOL.guardrails.median_interval_ratio_multiplier_max,
+    coverage_gap_improvement_pct_points: round(gapImprovement, 3),
+    median_absolute_log_error_ratio: round(errorRatio, 6),
+    median_interval_ratio_multiplier: round(widthRatio, 6)
+  };
+}
+
+function candidateDevelopment(rows) {
+  const split = splitFrozen(rows);
+  const baseline = evaluate(split.fit, split.calibration, split.development, {});
+  const candidate = evaluate(split.fit, split.calibration, split.development, CANDIDATE_OPTS, CandidateForecaster);
+  return { baseline, candidate, gate: metricGate(baseline.description, candidate.description, 2) };
+}
+
 function main() {
   const safePath = process.argv[2];
   const destination = process.argv[3];
-  if (!safePath) throw new Error("usage: node evaluate-forecast.cjs <local safe.json> [aggregate-results.json]");
+  const phase = process.argv[4] || "baseline";
+  if (!safePath) throw new Error("usage: node evaluate-forecast.cjs <local safe.json> [aggregate-results.json] [candidate-development]");
   const report = {
     report_version: 1,
     generated_from_content_free_rows_only: true,
     parity: baselineReport(loadSafe(safePath), "private-parity-snapshot"),
     synthetic: baselineReport(syntheticRows(), "seeded-synthetic-v1")
   };
+  if (phase === "candidate-development") {
+    report.candidate = CANDIDATE_OPTS;
+    report.parity.candidate_development = candidateDevelopment(loadSafe(safePath));
+    report.synthetic.candidate_development = candidateDevelopment(syntheticRows());
+    report.development_gate_pass = report.parity.candidate_development.gate.pass &&
+      report.synthetic.candidate_development.gate.pass;
+  }
   const json = `${JSON.stringify(report, null, 2)}\n`;
   if (destination) fs.writeFileSync(destination, json, { flag: "w" });
   process.stdout.write(json);
 }
 
 if (require.main === module) main();
-module.exports = { PROTOCOL, baselineReport, evaluate, splitFrozen, syntheticRows };
+module.exports = { CANDIDATE_OPTS, PROTOCOL, baselineReport, candidateDevelopment, evaluate, splitFrozen, syntheticRows };

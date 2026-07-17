@@ -6,6 +6,7 @@ This directory evaluates forecast changes without publishing an accuracy claim.
 
 - Inputs: seeded synthetic records and a local content-free derivative of the private parity CSV.
 - No descriptions, session identifiers, timestamps, file names, or original project values enter the evaluation file.
+- The private parity evaluation uses the already-derived archetype label. It tests the forecast engine, not raw-description classification.
 - Chronological split: first 55% fit, next 20% calibration, next 10% development, final 15% sealed test.
 - Primary metric: task-only (`description`) absolute coverage gap from the 80% target.
 - Guardrails: median absolute log error may not regress by more than 5%, and median P90/P10 interval ratio may not exceed 1.25 times baseline.
@@ -25,4 +26,4 @@ The candidate advances from development to the sealed test only if:
 
 It is eligible for an optional, dormant implementation only if the sealed parity result also has a strictly smaller coverage gap and passes the error and width guardrails. Otherwise the model change is removed and only the reproducible negative research result remains.
 
-The historic 44.6% coverage was reported from the 16 July browser run on a later 976-session corpus. The local parity snapshot contains 849 usable sessions, so this protocol reports its independently reproducible baseline separately rather than treating the two snapshots as interchangeable.
+The historic 44.6% coverage was reported from the 16 July browser run on a later 976-session corpus. The local parity snapshot contains 849 usable sessions and uses its precomputed archetype labels, so this protocol reports its independently reproducible engine baseline separately rather than treating the evaluations as interchangeable.
