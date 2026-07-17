@@ -117,6 +117,57 @@ const QUESTIONNAIRE_ENUMS = {
   ]),
 };
 
+// Cursor and Copilot exports can contain user or organization controlled text in
+// their model columns. Keep these delivery allowlists deliberately finite. A new
+// public model must be reviewed before the Worker is allowed to email its label.
+const CURSOR_MODEL_LABELS = new Set([
+  "unrecognized ai version",
+  "auto",
+  "claude-4.5-sonnet",
+  "claude-4.6-opus",
+  "composer-1",
+  "composer-2.5",
+  "composer-2.5-fast",
+  "cursor-small",
+  "deepseek-v3",
+  "gemini-2.5-pro",
+  "gpt-4.1",
+  "gpt-5",
+  "grok-code-fast-1",
+  "o3-mini",
+]);
+const COPILOT_MODEL_LABELS = new Set([
+  "unrecognized ai version",
+  "auto",
+  "claude-sonnet-4",
+  "claude haiku 4.5",
+  "claude opus 4.6",
+  "claude sonnet 4.5",
+  "claude sonnet 4.6",
+  "gemini 2.0 flash",
+  "gemini 2.5 pro",
+  "gpt-4.5",
+  "gpt-5",
+  "gpt-5.2",
+  "gpt-4.1",
+  "grok code fast 1",
+  "o3",
+]);
+const CURSOR_RATE_CONTRACTS = new Map([
+  ["claude-4.5-sonnet", {
+    rate_family: "Claude Sonnet 3.5 to 4.6",
+    reference_source_url: "https://platform.claude.com/docs/en/about-claude/pricing",
+    checked_input: 3,
+    checked_output: 15,
+  }],
+  ["claude-4.6-opus", {
+    rate_family: "Claude Opus 4.5 to 4.8",
+    reference_source_url: "https://platform.claude.com/docs/en/about-claude/pricing",
+    checked_input: 5,
+    checked_output: 25,
+  }],
+]);
+
 class ValidationError extends Error {
   constructor(code, message) {
     super(message);
@@ -176,6 +227,13 @@ function nullableMoney(value, label) {
   return money(value, label);
 }
 
+function quantity(value, label) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > Number.MAX_SAFE_INTEGER) {
+    fail("invalid_quantity", `${label} must be a nonnegative finite quantity within the supported range.`);
+  }
+  return value;
+}
+
 function oneOf(value, allowed, label) {
   if (!allowed.has(value)) fail("invalid_enum", `${label} is not supported.`);
   return value;
@@ -225,6 +283,18 @@ function safeModelLabel(value) {
   return /^codex-(?:mini|large|latest)(?:-latest)?$/i.test(value);
 }
 
+function safeModelLabelForSource(value, source) {
+  if (typeof value !== "string") return false;
+  const normalized = value.toLowerCase();
+  if (source.surface === "cursor_ide") return CURSOR_MODEL_LABELS.has(normalized);
+  if (source.surface === "copilot") {
+    if (COPILOT_MODEL_LABELS.has(normalized)) return true;
+    if (normalized.startsWith("auto: ")) return COPILOT_MODEL_LABELS.has(normalized.slice(6));
+    return false;
+  }
+  return safeModelLabel(value);
+}
+
 function validateCollector(value, schemaVersion) {
   exactObject(value, ["collector_version", "parser_version"], "collector");
   if (schemaVersion === REPORT_SCHEMA_VERSION_V2) {
@@ -248,6 +318,8 @@ function validateSource(value) {
     "openai|chatgpt|conversation_export",
     "anthropic|claude_chat|conversation_export",
     "anthropic|console|console_csv_export",
+    "cursor|cursor_ide|usage_csv_export",
+    "github|copilot|billing_usage_export",
   ]);
   oneOf(`${value.provider}|${value.surface}|${value.input_form}`, valid, "source combination");
 }
@@ -266,6 +338,16 @@ function validateMeasurement(value, source) {
     if (actual[0] !== "exported_columns_where_present" || actual[1] !== "exported_columns_where_present" || actual[2] !== "not_available" || !validCost.has(actual[3])) {
       fail("invalid_schema", "measurement does not match the selected source.");
     }
+  } else if (source.surface === "cursor_ide") {
+    const validCost = new Set(["recorded_in_export_as_billed_by_cursor", "recorded_where_present_then_checked_rates_for_recognized_missing_rows"]);
+    if (actual[0] !== "exported_columns_where_present" || actual[1] !== "exported_columns_where_present" || actual[2] !== "not_available" || !validCost.has(actual[3])) {
+      fail("invalid_schema", "measurement does not match the selected source.");
+    }
+  } else if (source.surface === "copilot") {
+    const validCost = new Set(["recorded_in_export_as_billed_by_github", "recorded_where_present_never_estimated"]);
+    if (actual[0] !== "not_available_copilot_meters_prompts_and_credits" || actual[1] !== "not_available" || actual[2] !== "not_available" || !validCost.has(actual[3])) {
+      fail("invalid_schema", "measurement does not match the selected source.");
+    }
   } else if (!expected || actual.some((item, index) => item !== expected[index])) {
     fail("invalid_schema", "measurement does not match the selected source.");
   }
@@ -278,26 +360,42 @@ function validateScope(value) {
   }
 }
 
-function validateCoverage(value) {
+function validateCoverage(value, source) {
   const base = ["status", "files_opened"];
   const local = [...base, "files_discovered", "files_parsed", "files_with_usage", "files_skipped", "malformed_lines", "oversized_lines", "counter_resets", "duplicate_usage_records", "complete"];
   const codex = [...base, "files_selected", "files_parsed", "files_with_usage", "files_skipped", "malformed_lines", "oversized_lines", "counter_resets", "complete"];
   const chat = [...base, "records_ignored", "messages_ignored", "duplicate_records_skipped"];
   const csv = [...base, "rows_with_recorded_cost", "rows_without_recorded_cost"];
   const generic = [...base, "usage_records"];
-  exactOneOfShapes(value, [local, codex, chat, csv, generic], "coverage");
+  const cursor = [...csv, "rows_excluded_unrecognized_model", "files_skipped_unrecognized_header"];
+  const copilot = [...csv, "rows_excluded_unrecognized_model_or_sku", "files_skipped_unrecognized_format", "premium_request_quantity", "ai_credit_quantity"];
+  let allowedShapes;
+  if (source.surface === "cursor_ide") allowedShapes = [cursor];
+  else if (source.surface === "copilot") allowedShapes = [copilot];
+  else if (source.surface === "console") allowedShapes = [csv];
+  else if (source.surface === "claude_chat" || source.surface === "chatgpt") allowedShapes = [chat];
+  else if (source.surface === "codex") allowedShapes = source.input_form === "validated_top_safe_usage_export" ? [local] : [codex];
+  else if (source.surface === "claude_code" && source.input_form === "validated_top_safe_usage_export") allowedShapes = [local];
+  else if (source.surface === "claude_code" && source.input_form === "locally_cleaned_usage_export") allowedShapes = [local, generic];
+  else allowedShapes = [generic];
+  exactOneOfShapes(value, allowedShapes, "coverage");
   nullableCount(value.files_opened, "coverage.files_opened");
-  const keys = Object.keys(value).filter((key) => !["status", "files_opened", "complete"].includes(key));
+  const quantityKeys = new Set(["premium_request_quantity", "ai_credit_quantity"]);
+  const keys = Object.keys(value).filter((key) => !["status", "files_opened", "complete"].includes(key) && !quantityKeys.has(key));
   for (const key of keys) count(value[key], `coverage.${key}`);
+  for (const key of quantityKeys) if (Object.hasOwn(value, key)) quantity(value[key], `coverage.${key}`);
   if (Object.hasOwn(value, "complete") && typeof value.complete !== "boolean") fail("invalid_schema", "coverage.complete must be a boolean.");
-  if (value.status === "available_from_local_collector") {
-    if (Object.keys(value).length !== local.length) fail("invalid_schema", "coverage status and fields do not match.");
+  const shape = Object.keys(value).sort().join("\u0000");
+  const localShape = [...local].sort().join("\u0000");
+  const codexShape = [...codex].sort().join("\u0000");
+  if (shape === localShape) {
+    if (value.status !== "available_from_local_collector") fail("invalid_schema", "coverage status and fields do not match.");
     if (value.files_parsed + value.files_skipped !== value.files_discovered || value.files_with_usage > value.files_parsed) fail("invalid_reconciliation", "coverage file counts do not reconcile.");
-  } else if (value.status === "available") {
-    if (Object.keys(value).length !== codex.length) fail("invalid_schema", "coverage status and fields do not match.");
+  } else if (shape === codexShape) {
+    if (value.status !== "available") fail("invalid_schema", "coverage status and fields do not match.");
     if (value.files_parsed + value.files_skipped !== value.files_selected || value.files_with_usage > value.files_parsed) fail("invalid_reconciliation", "coverage file counts do not reconcile.");
   } else if (value.status !== "limited_to_current_parser_checks") {
-    fail("invalid_enum", "coverage status is not supported.");
+    fail("invalid_schema", "coverage status and fields do not match.");
   }
 }
 
@@ -329,26 +427,52 @@ function validateCost(value, label) {
   if (value.status !== "unavailable" && value.usd === null) fail("invalid_schema", `${label} is missing its priced amount.`);
 }
 
-function validateRate(value, index) {
+function validateRate(value, index, source, modelLabels) {
   const label = `pricing.applied_rates[${index}]`;
   exactObject(value, ["model", "rate_family", "input_usd_per_million", "cache_write_usd_per_million", "cache_read_usd_per_million", "output_usd_per_million", "field_provenance", "reference_source_url"], label);
-  if (!safeModelLabel(value.model)) fail("unsafe_model_label", `${label}.model is not permitted.`);
+  if (!safeModelLabelForSource(value.model, source) || !modelLabels.has(value.model)) fail("unsafe_model_label", `${label}.model is not permitted.`);
   oneOf(value.rate_family, RATE_FAMILIES, `${label}.rate_family`);
   for (const key of ["input_usd_per_million", "cache_write_usd_per_million", "cache_read_usd_per_million", "output_usd_per_million"]) money(value[key], `${label}.${key}`);
   exactObject(value.field_provenance, ["input", "cache_write", "cache_read", "output"], `${label}.field_provenance`);
   for (const key of Object.keys(value.field_provenance)) oneOf(value.field_provenance[key], RATE_PROVENANCE, `${label}.field_provenance.${key}`);
   oneOf(value.reference_source_url, RATE_SOURCE_URLS, `${label}.reference_source_url`);
+  if (source.surface === "cursor_ide") {
+    const contract = CURSOR_RATE_CONTRACTS.get(value.model.toLowerCase());
+    if (!contract || value.rate_family !== contract.rate_family || value.reference_source_url !== contract.reference_source_url) {
+      fail("invalid_reconciliation", `${label} does not match the reviewed Cursor model rate contract.`);
+    }
+    const provenance = value.field_provenance;
+    const inputChecked = provenance.input === "checked_reference_rate";
+    const inputEdited = provenance.input === "user_edited_in_tab";
+    const outputChecked = provenance.output === "checked_reference_rate";
+    const outputEdited = provenance.output === "user_edited_in_tab";
+    const expectedCacheProvenance = inputChecked ? "derived_from_checked_reference_input" : "derived_from_user_edited_input";
+    if ((!inputChecked && !inputEdited) || (!outputChecked && !outputEdited)
+      || provenance.cache_write !== expectedCacheProvenance || provenance.cache_read !== expectedCacheProvenance) {
+      fail("invalid_reconciliation", `${label} contains contradictory Cursor rate provenance.`);
+    }
+    const close = (actual, expected) => Math.abs(actual - expected) <= 0.000000001;
+    if ((inputChecked && !close(value.input_usd_per_million, contract.checked_input))
+      || (outputChecked && !close(value.output_usd_per_million, contract.checked_output))
+      || !close(value.cache_write_usd_per_million, value.input_usd_per_million * 1.25)
+      || !close(value.cache_read_usd_per_million, value.input_usd_per_million * 0.1)) {
+      fail("invalid_reconciliation", `${label} does not reconcile with its Cursor rate provenance.`);
+    }
+  }
 }
 
-function validatePricing(value, modelCount) {
+function validatePricing(value, modelCount, source, modelLabels) {
   exactObject(value, ["status", "reference_checked_date", "unit", "applied_rates", "unpriced_model_groups"], "pricing");
   oneOf(value.status, PRICING_STATUSES, "pricing.status");
   dateOnly(value.reference_checked_date, "pricing.reference_checked_date");
   if (value.unit !== "usd_per_million_tokens") fail("invalid_enum", "pricing unit is not supported.");
   if (!Array.isArray(value.applied_rates) || value.applied_rates.length > 64) fail("invalid_schema", "pricing.applied_rates must be a bounded list.");
-  value.applied_rates.forEach(validateRate);
+  value.applied_rates.forEach((rate, index) => validateRate(rate, index, source, modelLabels));
+  const rateModels = value.applied_rates.map((rate) => rate.model);
+  if (new Set(rateModels).size !== rateModels.length) fail("invalid_reconciliation", "pricing.applied_rates contains duplicate model rows.");
   count(value.unpriced_model_groups, "pricing.unpriced_model_groups");
   if (value.unpriced_model_groups > modelCount) fail("invalid_reconciliation", "unpriced model count exceeds model rows.");
+  return { rateModels: new Set(rateModels) };
 }
 
 function validatePermissionModes(value) {
@@ -366,7 +490,7 @@ function validateQuestionnaire(value) {
   if (value === null) return;
   exactObject(value, ["what_to_improve", "source_selected", "route_selected", "kinds_of_work", "frequency", "main_uses", "effort_level", "goals", "account_category"], "questionnaire");
   for (const [key, allowed] of Object.entries(QUESTIONNAIRE_ENUMS)) enumArray(value[key], allowed, `questionnaire.${key}`);
-  oneOf(value.source_selected, new Set(["claude_code", "codex", "claude_console", "claude_chat", "chatgpt", "unrecognized"]), "questionnaire.source_selected");
+  oneOf(value.source_selected, new Set(["claude_code", "codex", "claude_console", "claude_chat", "chatgpt", "cursor", "github_copilot", "unrecognized"]), "questionnaire.source_selected");
   oneOf(value.route_selected, new Set(["show_report_first", "make_shareable_summary", "not_selected"]), "questionnaire.route_selected");
 }
 
@@ -436,11 +560,12 @@ function validatePrivacy(value) {
   exactArray(value.excluded, PRIVACY_EXCLUSIONS, "privacy.excluded");
 }
 
-function validateByModel(value, totals, cost) {
+function validateByModel(value, totals, cost, source) {
   if (!Array.isArray(value) || value.length < 1 || value.length > 64) fail("invalid_schema", "by_model must contain between one and 64 rows.");
   const sums = Object.fromEntries(TOTAL_KEYS.map((key) => [key, 0]));
   let costSum = 0;
   let pricedRows = 0;
+  let eventSum = 0;
   const models = value.map((row) => isObject(row) ? row.model : null);
   if (models.some((model) => typeof model !== "string") || new Set(models).size !== models.length || models.some((model, index) => model !== [...models].sort()[index])) {
     fail("invalid_reconciliation", "model rows must be uniquely sorted.");
@@ -449,9 +574,11 @@ function validateByModel(value, totals, cost) {
     const row = value[index];
     const label = `by_model[${index}]`;
     exactObject(row, ["model", ...TOTAL_KEYS, "events_or_replies", "cost"], label);
-    if (!safeModelLabel(row.model)) fail("unsafe_model_label", `${label}.model is not permitted.`);
+    if (!safeModelLabelForSource(row.model, source)) fail("unsafe_model_label", `${label}.model label is not permitted.`);
     validateTotals(Object.fromEntries(TOTAL_KEYS.map((key) => [key, row[key]])), label);
     count(row.events_or_replies, `${label}.events_or_replies`);
+    eventSum += row.events_or_replies;
+    if (!Number.isSafeInteger(eventSum)) fail("invalid_count", "model event totals exceed the supported range.");
     validateCost(row.cost, `${label}.cost`);
     for (const key of TOTAL_KEYS) {
       if (row[key] === null) {
@@ -470,6 +597,201 @@ function validateByModel(value, totals, cost) {
   for (const key of TOTAL_KEYS) if (totals[key] !== null && sums[key] !== totals[key]) fail("invalid_reconciliation", `model rows do not reconcile with totals.${key}.`);
   if (cost.usd === null && pricedRows) fail("invalid_reconciliation", "priced model rows exist without a report cost.");
   if (cost.usd !== null && (!pricedRows || Math.abs(costSum - cost.usd) > 0.00001)) fail("invalid_reconciliation", "model costs do not reconcile with report cost.");
+  return { eventSum };
+}
+
+function validateMultiToolContract(report, eventSum, pricing) {
+  if (report.schema_version !== REPORT_SCHEMA_VERSION || (report.source.surface !== "cursor_ide" && report.source.surface !== "copilot")) return;
+
+  count(report.activity.usage_events, "activity.usage_events");
+  if (report.activity.usage_events < 1) fail("invalid_reconciliation", "Multi-tool reports must contain at least one usage event.");
+  if (report.by_model.some((row) => row.events_or_replies < 1)) fail("invalid_reconciliation", "Every multi-tool model row must contain at least one usage event.");
+  if (eventSum !== report.activity.usage_events) fail("invalid_reconciliation", "Multi-tool model events do not reconcile with usage events.");
+  if (report.activity.ai_replies !== null || report.activity.console_records !== null || report.activity.text_messages !== null || report.activity.sessions !== null) {
+    fail("invalid_reconciliation", "Multi-tool activity contains an unsupported counter.");
+  }
+  if (report.activity.active_days !== null && report.activity.active_days > report.activity.usage_events) {
+    fail("invalid_reconciliation", "Multi-tool active days exceed usage events.");
+  }
+
+  const recordedRows = report.coverage.rows_with_recorded_cost;
+  const missingRows = report.coverage.rows_without_recorded_cost;
+  const skippedFiles = report.source.surface === "cursor_ide"
+    ? report.coverage.files_skipped_unrecognized_header
+    : report.coverage.files_skipped_unrecognized_format;
+  if (report.coverage.files_opened !== null && (report.coverage.files_opened < 1 || skippedFiles >= report.coverage.files_opened)) {
+    fail("invalid_reconciliation", "Multi-tool file coverage does not reconcile with files opened.");
+  }
+  if (recordedRows + missingRows !== report.activity.usage_events) {
+    fail("invalid_reconciliation", "Multi-tool cost-row coverage does not reconcile with usage events.");
+  }
+  if (report.questionnaire !== null) {
+    const expectedSource = report.source.surface === "cursor_ide" ? "cursor" : "github_copilot";
+    if (report.questionnaire.source_selected !== expectedSource) fail("invalid_reconciliation", "Questionnaire source does not match the report source.");
+  }
+
+  const modelStatuses = report.by_model.map((row) => row.cost.status);
+  const hasPricedModel = report.by_model.some((row) => row.cost.usd !== null);
+  const hasUnavailableModel = modelStatuses.includes("unavailable");
+  const rates = report.pricing.applied_rates;
+  const rateModels = pricing.rateModels;
+
+  if (report.source.surface === "copilot") {
+    if (report.totals.input_tokens !== 0 || report.totals.output_tokens !== 0 || report.totals.cache_write_tokens !== 0
+      || report.totals.cache_read_tokens !== 0 || report.totals.reasoning_tokens !== null || report.totals.total_tokens !== 0) {
+      fail("invalid_reconciliation", "Copilot reports cannot claim token counts.");
+    }
+    if (rates.length !== 0) fail("invalid_reconciliation", "Copilot reports cannot apply token prices.");
+    const allowedModelStatuses = new Set(["recorded", "partial", "unavailable"]);
+    if (modelStatuses.some((status) => !allowedModelStatuses.has(status))) fail("invalid_reconciliation", "Copilot model cost status is not supported.");
+    let minimumRecordedRows = 0;
+    let maximumRecordedRows = 0;
+    let minimumMissingRows = 0;
+    let maximumMissingRows = 0;
+    for (const row of report.by_model) {
+      if (row.cost.status === "recorded") {
+        minimumRecordedRows += row.events_or_replies;
+        maximumRecordedRows += row.events_or_replies;
+      } else if (row.cost.status === "unavailable") {
+        minimumMissingRows += row.events_or_replies;
+        maximumMissingRows += row.events_or_replies;
+      } else if (row.cost.status === "partial") {
+        if (row.events_or_replies < 2) {
+          fail("invalid_reconciliation", "A partial Copilot model cost requires both a recorded and a missing-cost event.");
+        }
+        minimumRecordedRows += 1;
+        maximumRecordedRows += row.events_or_replies - 1;
+        minimumMissingRows += 1;
+        maximumMissingRows += row.events_or_replies - 1;
+      }
+    }
+    if (recordedRows < minimumRecordedRows || recordedRows > maximumRecordedRows
+        || missingRows < minimumMissingRows || missingRows > maximumMissingRows) {
+      fail("invalid_reconciliation", "Copilot cost-row coverage cannot be allocated to model cost provenance.");
+    }
+
+    const complete = report.measurement.cost_basis === "recorded_in_export_as_billed_by_github";
+    if (complete) {
+      if (missingRows !== 0 || recordedRows !== report.activity.usage_events || report.cost.basis !== "recorded_in_export"
+        || report.cost.status !== "recorded" || !hasPricedModel || hasUnavailableModel
+        || modelStatuses.some((status) => status !== "recorded") || report.pricing.status !== "not_needed_recorded_cost") {
+        fail("invalid_reconciliation", "Complete Copilot cost provenance does not reconcile.");
+      }
+    } else {
+      if (missingRows === 0 || report.cost.basis !== "recorded_where_present_never_estimated"
+        || report.pricing.status !== "not_applied_no_recognized_rate") {
+        fail("invalid_reconciliation", "Incomplete Copilot cost provenance does not reconcile.");
+      }
+      if (recordedRows === 0) {
+        if (report.cost.status !== "unavailable" || report.cost.usd !== null || hasPricedModel || modelStatuses.some((status) => status !== "unavailable")) {
+          fail("invalid_reconciliation", "Unpriced Copilot rows cannot claim a recorded cost.");
+        }
+      } else {
+        if (!modelStatuses.some((status) => status === "partial" || status === "unavailable")) {
+          fail("invalid_reconciliation", "Copilot missing-cost rows are not represented in model cost states.");
+        }
+        if (report.cost.status !== "partial" || report.cost.usd === null || !hasPricedModel) {
+          fail("invalid_reconciliation", "Partly recorded Copilot cost does not reconcile.");
+        }
+      }
+    }
+    return;
+  }
+
+  const complete = report.measurement.cost_basis === "recorded_in_export_as_billed_by_cursor";
+  if (complete) {
+    if (missingRows !== 0 || recordedRows !== report.activity.usage_events || report.cost.basis !== "recorded_in_export"
+      || report.cost.status !== "recorded" || !hasPricedModel || hasUnavailableModel
+      || modelStatuses.some((status) => status !== "recorded") || report.pricing.status !== "not_needed_recorded_cost" || rates.length !== 0) {
+      fail("invalid_reconciliation", "Complete Cursor cost provenance does not reconcile.");
+    }
+    return;
+  }
+
+  if (missingRows === 0 || report.cost.basis !== "recorded_and_or_estimated_where_possible") {
+    fail("invalid_reconciliation", "Incomplete Cursor cost provenance does not reconcile with coverage.");
+  }
+  const estimatedStatuses = new Set(["estimated"]);
+  const incompleteStatuses = new Set(["partial", "unavailable"]);
+  const hasEstimatedModel = modelStatuses.some((status) => estimatedStatuses.has(status));
+  const hasIncompleteModel = modelStatuses.some((status) => incompleteStatuses.has(status));
+  if (modelStatuses.some((status) => !new Set(["recorded", ...estimatedStatuses, ...incompleteStatuses]).has(status))) {
+    fail("invalid_reconciliation", "Cursor model cost status is not supported.");
+  }
+  if (hasEstimatedModel !== (rates.length > 0)) {
+    fail("invalid_reconciliation", "Cursor estimated costs do not reconcile with applied rates.");
+  }
+  if (!hasEstimatedModel && !hasIncompleteModel) {
+    fail("invalid_reconciliation", "Cursor missing-cost rows are not represented in model cost states.");
+  }
+  let minimumRecordedRows = 0;
+  let maximumRecordedRows = 0;
+  let minimumMissingRows = 0;
+  let maximumMissingRows = 0;
+  for (const row of report.by_model) {
+    if (row.cost.status === "recorded") {
+      minimumRecordedRows += row.events_or_replies;
+      maximumRecordedRows += row.events_or_replies;
+    } else if (row.cost.status === "estimated" || row.cost.status === "unavailable") {
+      minimumMissingRows += row.events_or_replies;
+      maximumMissingRows += row.events_or_replies;
+    } else if (row.cost.status === "partial") {
+      if (row.events_or_replies < 2) {
+        fail("invalid_reconciliation", "A partial Cursor model cost requires both a recorded and a missing-cost event.");
+      }
+      minimumRecordedRows += 1;
+      maximumRecordedRows += row.events_or_replies - 1;
+      minimumMissingRows += 1;
+      maximumMissingRows += row.events_or_replies - 1;
+    }
+  }
+  if (recordedRows < minimumRecordedRows || recordedRows > maximumRecordedRows
+      || missingRows < minimumMissingRows || missingRows > maximumMissingRows) {
+    fail("invalid_reconciliation", "Cursor cost-row coverage cannot be allocated to model cost provenance.");
+  }
+  for (const row of report.by_model) {
+    if (estimatedStatuses.has(row.cost.status) !== rateModels.has(row.model)) {
+      fail("invalid_reconciliation", "Cursor model cost status does not reconcile with its applied rate.");
+    }
+    if (row.cost.status === "estimated") {
+      const rate = rates.find((candidate) => candidate.model === row.model);
+      const expected = Number((
+        (row.input_tokens * rate.input_usd_per_million
+          + row.output_tokens * rate.output_usd_per_million
+          + row.cache_write_tokens * rate.cache_write_usd_per_million
+          + row.cache_read_tokens * rate.cache_read_usd_per_million) / 1_000_000
+      ).toFixed(6));
+      if (Math.abs(row.cost.usd - expected) > 0.000000001) {
+        fail("invalid_reconciliation", "Cursor estimated model cost does not reconcile with tokens and applied rates.");
+      }
+    }
+  }
+  if (!rates.length && report.pricing.status !== "not_applied_no_recognized_rate") {
+    fail("invalid_reconciliation", "Unpriced Cursor rows cannot claim applied pricing.");
+  }
+  if (rates.length) {
+    const provenanceValues = rates.flatMap((rate) => Object.values(rate.field_provenance));
+    const hasEditedProvenance = provenanceValues.some((value) => value === "user_edited_in_tab" || value === "derived_from_user_edited_input");
+    const hasCheckedProvenance = provenanceValues.some((value) => value === "checked_reference_rate" || value === "derived_from_checked_reference_input");
+    let expectedPricingStatus;
+    if (hasEditedProvenance && hasCheckedProvenance) expectedPricingStatus = hasIncompleteModel ? "partially_applied_mixed_rate_provenance" : "mixed_checked_and_user_edited_rates";
+    else if (hasEditedProvenance) expectedPricingStatus = hasIncompleteModel ? "partially_applied_user_edited_rates" : "user_edited_in_tab";
+    else expectedPricingStatus = hasIncompleteModel ? "partially_applied_checked_rates" : "checked_reference_rates";
+    if (report.pricing.status !== expectedPricingStatus) fail("invalid_reconciliation", "Cursor pricing status does not match rate provenance and cost completeness.");
+  }
+  if (recordedRows === 0 && rates.length === 0) {
+    if (report.cost.status !== "unavailable" || report.cost.usd !== null || hasPricedModel || modelStatuses.some((status) => status !== "unavailable")) {
+      fail("invalid_reconciliation", "Unpriced Cursor rows cannot claim a cost.");
+    }
+  } else if (!hasPricedModel) {
+    fail("invalid_reconciliation", "Cursor declared priced rows are not represented in model costs.");
+  } else if (hasIncompleteModel) {
+    if (report.cost.status !== "partial" || report.cost.usd === null) fail("invalid_reconciliation", "Partly priced Cursor cost does not reconcile.");
+  } else {
+    const uniqueStatuses = [...new Set(modelStatuses)];
+    const expectedReportStatus = uniqueStatuses.length === 1 ? uniqueStatuses[0] : "mixed";
+    if (report.cost.status !== expectedReportStatus || report.cost.usd === null) fail("invalid_reconciliation", "Fully priced Cursor cost does not reconcile.");
+  }
 }
 
 const V2_TIMELINE_COUNT_KEYS = [
@@ -671,26 +993,31 @@ export function validateResearchSafeUsage(report) {
   validateCollector(report.collector, report.schema_version);
   dateOnly(report.generated_date, "generated_date");
   validateSource(report.source);
+  if (report.schema_version === REPORT_SCHEMA_VERSION_V2 && report.source.input_form !== "validated_top_safe_usage_export") {
+    fail("invalid_schema", "V2 requires a validated TOP safe-usage export.");
+  }
   validateMeasurement(report.measurement, report.source);
   validateScope(report.scope);
-  validateCoverage(report.coverage);
+  validateCoverage(report.coverage, report.source);
   validateTotals(report.totals, "totals");
   validateActivity(report.activity);
   exactObject(report.cost, ["status", "usd", "basis", "currency", "subscription_bill"], "cost");
   oneOf(report.cost.status, COST_STATUSES, "cost.status");
   nullableMoney(report.cost.usd, "cost.usd");
   if (report.cost.currency !== "USD" || report.cost.subscription_bill !== false) fail("invalid_schema", "cost contains an unsupported currency or subscription claim.");
-  oneOf(report.cost.basis, new Set(["not_available", "recorded_in_export", "recorded_and_or_estimated_where_possible", "estimated_pay_as_you_go_comparison"]), "cost.basis");
+  oneOf(report.cost.basis, new Set(["not_available", "recorded_in_export", "recorded_and_or_estimated_where_possible", "recorded_where_present_never_estimated", "estimated_pay_as_you_go_comparison"]), "cost.basis");
   if (report.cost.status === "unavailable" && report.cost.usd !== null) fail("invalid_schema", "unavailable report cost must be null.");
   if (report.cost.status !== "unavailable" && report.cost.usd === null) fail("invalid_schema", "priced report cost is missing its amount.");
-  validatePricing(report.pricing, report.by_model.length);
   validatePermissionModes(report.permission_mode_counts);
-  validateByModel(report.by_model, report.totals, report.cost);
+  const modelLabels = new Set(report.by_model.map((row) => isObject(row) ? row.model : null).filter((model) => typeof model === "string"));
+  const byModel = validateByModel(report.by_model, report.totals, report.cost, report.source);
+  const pricing = validatePricing(report.pricing, report.by_model.length, report.source, modelLabels);
   const unpriced = report.by_model.filter((row) => row.cost.status === "unavailable").length;
   if (unpriced !== report.pricing.unpriced_model_groups) fail("invalid_reconciliation", "unpriced model count does not reconcile.");
   validateQuestionnaire(report.questionnaire);
   validateValueModel(report.value_model, report.cost);
   validatePrivacy(report.privacy);
+  validateMultiToolContract(report, byModel.eventSum, pricing);
   if (report.schema_version === REPORT_SCHEMA_VERSION_V2) validateV2Sections(report);
   return true;
 }
