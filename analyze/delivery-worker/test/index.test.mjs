@@ -480,6 +480,23 @@ test("strict validator accepts current analyzer-generated Claude, Codex, chat an
   const injectedValueField = plain(reports[0]);
   injectedValueField.value_model.inputs.private_note = "must not pass";
   assert.throws(() => validateResearchSafeUsage(injectedValueField), /unsupported or missing fields/i);
+  const zeroNetValue = plain(reports[3]);
+  const exactCost = zeroNetValue.cost.usd;
+  assert.ok(exactCost > 0);
+  zeroNetValue.value_model = plain(reports[0].value_model);
+  zeroNetValue.value_model.inputs.hours_saved = 1;
+  zeroNetValue.value_model.inputs.value_per_hour = exactCost;
+  zeroNetValue.value_model.outputs.self_reported_time_value = Number(exactCost.toFixed(2));
+  zeroNetValue.value_model.outputs.value_currency = "USD";
+  zeroNetValue.value_model.outputs.analyzed_ai_cost_usd = exactCost;
+  zeroNetValue.value_model.outputs.net_after_ai_cost_usd = null;
+  zeroNetValue.value_model.outputs.self_reported_value_per_ai_cost_usd = Number((zeroNetValue.value_model.outputs.self_reported_time_value / exactCost).toFixed(6));
+  assert.equal(Number((zeroNetValue.value_model.outputs.self_reported_time_value - exactCost).toFixed(2)), 0, "fixture must exercise an exact zero net value");
+  assert.throws(() => validateResearchSafeUsage(zeroNetValue), /USD value outputs do not reconcile/i);
+  const zeroRatioValue = plain(zeroNetValue);
+  zeroRatioValue.value_model.outputs.net_after_ai_cost_usd = 0;
+  zeroRatioValue.value_model.outputs.self_reported_value_per_ai_cost_usd = null;
+  assert.throws(() => validateResearchSafeUsage(zeroRatioValue), /USD value outputs do not reconcile/i);
 });
 
 test("successful email body contains aggregates but not private source fields", async () => {

@@ -403,8 +403,13 @@ function validateValueModel(value, reportCost) {
   if (value.inputs.currency === "USD") {
     const expectedNet = Number((expectedGross - reportCost.usd).toFixed(2));
     const expectedRatio = reportCost.usd > 0 ? Number((expectedGross / reportCost.usd).toFixed(6)) : null;
-    const ratioMatches = expectedRatio === null ? value.outputs.self_reported_value_per_ai_cost_usd === null : Math.abs(value.outputs.self_reported_value_per_ai_cost_usd - expectedRatio) <= 0.00001;
-    if (Math.abs(value.outputs.net_after_ai_cost_usd - expectedNet) > 0.00001 || !ratioMatches) fail("invalid_reconciliation", "USD value outputs do not reconcile.");
+    const netIsFinite = typeof value.outputs.net_after_ai_cost_usd === "number" && Number.isFinite(value.outputs.net_after_ai_cost_usd);
+    const ratioMatches = expectedRatio === null
+      ? value.outputs.self_reported_value_per_ai_cost_usd === null
+      : typeof value.outputs.self_reported_value_per_ai_cost_usd === "number"
+        && Number.isFinite(value.outputs.self_reported_value_per_ai_cost_usd)
+        && Math.abs(value.outputs.self_reported_value_per_ai_cost_usd - expectedRatio) <= 0.00001;
+    if (!netIsFinite || Math.abs(value.outputs.net_after_ai_cost_usd - expectedNet) > 0.00001 || !ratioMatches) fail("invalid_reconciliation", "USD value outputs do not reconcile.");
   } else if (value.outputs.net_after_ai_cost_usd !== null || value.outputs.self_reported_value_per_ai_cost_usd !== null) {
     fail("invalid_reconciliation", "non-USD self-reported value cannot be compared with USD AI cost.");
   }
