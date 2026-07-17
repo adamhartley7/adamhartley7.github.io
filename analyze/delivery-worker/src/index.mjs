@@ -619,7 +619,7 @@ function validateMultiToolContract(report, eventSum, pricing) {
   const skippedFiles = report.source.surface === "cursor_ide"
     ? report.coverage.files_skipped_unrecognized_header
     : report.coverage.files_skipped_unrecognized_format;
-  if (report.coverage.files_opened !== null && (report.coverage.files_opened < 1 || skippedFiles > report.coverage.files_opened)) {
+  if (report.coverage.files_opened !== null && (report.coverage.files_opened < 1 || skippedFiles >= report.coverage.files_opened)) {
     fail("invalid_reconciliation", "Multi-tool file coverage does not reconcile with files opened.");
   }
   if (recordedRows + missingRows !== report.activity.usage_events) {

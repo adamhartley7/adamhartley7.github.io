@@ -903,6 +903,16 @@ test("coverage and activity cannot be swapped across sources", () => {
   impossibleFiles.coverage.files_opened = 1;
   impossibleFiles.coverage.files_skipped_unrecognized_header = 999;
   assert.throws(() => validateResearchSafeUsage(impossibleFiles), /file coverage/i);
+
+  const noParsedCursorFiles = cursorReportFixture();
+  noParsedCursorFiles.coverage.files_opened = 1;
+  noParsedCursorFiles.coverage.files_skipped_unrecognized_header = 1;
+  assert.throws(() => validateResearchSafeUsage(noParsedCursorFiles), /file coverage/i);
+
+  const noParsedCopilotFiles = copilotReportFixture();
+  noParsedCopilotFiles.coverage.files_opened = 1;
+  noParsedCopilotFiles.coverage.files_skipped_unrecognized_format = 1;
+  assert.throws(() => validateResearchSafeUsage(noParsedCopilotFiles), /file coverage/i);
 });
 
 test("multi-tool questionnaire context stays optional but must match its source when present", () => {
