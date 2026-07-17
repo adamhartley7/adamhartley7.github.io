@@ -20,6 +20,7 @@ The browser stores each participant slot in `localStorage`. A participant can de
 The coordinator imports one latest file per participant slot. The page reports exact numerators and denominators for:
 
 - observed P10 to P90 coverage against the nominal 80% target;
+- the 95% Wilson uncertainty range for observed coverage, with its covered-task numerator and paired-task denominator;
 - actual below P10, at or below P50, and at or below P90;
 - median multiplicative P50 error;
 - mean log bias;
@@ -31,7 +32,7 @@ The coordinator imports one latest file per participant slot. The page reports e
 - the coverage floor obtained by treating every excluded forecast as a miss;
 - participant, forecast-version, and task-class splits.
 
-These results are exploratory. A later confirmatory study requires a frozen sample size, exclusions, analysis plan, and stopping rule.
+The Wilson range uses the standard normal 95% critical value and returns no bounds when there are no paired tasks. Even the full 24-task pilot cannot establish precise calibration. These results are exploratory. A later confirmatory study requires a frozen sample size, exclusions, analysis plan, and stopping rule.
 
 ## Run the tests
 

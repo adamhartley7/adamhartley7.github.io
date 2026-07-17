@@ -324,6 +324,27 @@
     return score;
   }
 
+  function wilsonInterval95(numerator, denominator) {
+    if (!Number.isInteger(numerator) || !Number.isInteger(denominator) || denominator < 0 || numerator < 0 || numerator > denominator) {
+      fail("invalid_wilson_counts");
+    }
+    if (denominator === 0) {
+      return { numerator: numerator, denominator: denominator, lower_bound: null, upper_bound: null };
+    }
+    var z = 1.959963984540054;
+    var zSquared = z * z;
+    var observed = numerator / denominator;
+    var scale = 1 + zSquared / denominator;
+    var center = (observed + zSquared / (2 * denominator)) / scale;
+    var margin = (z / scale) * Math.sqrt((observed * (1 - observed) / denominator) + (zSquared / (4 * denominator * denominator)));
+    return {
+      numerator: numerator,
+      denominator: denominator,
+      lower_bound: round(Math.max(0, center - margin)),
+      upper_bound: round(Math.min(1, center + margin))
+    };
+  }
+
   function summarizeAttempts(attempts) {
     var all = attempts.slice();
     var frozen = all.filter(function (attempt) { return attempt.state !== "draft"; });
@@ -355,6 +376,7 @@
       nominal_interval_coverage: NOMINAL_INTERVAL_COVERAGE,
       within_p10_p90_count: within.length,
       within_p10_p90_rate: rate(within.length, paired.length),
+      within_p10_p90_wilson_95: wilsonInterval95(within.length, paired.length),
       below_p10_count: below.length,
       below_p10_rate: rate(below.length, paired.length),
       at_or_below_p50_count: atOrBelowP50.length,
@@ -435,6 +457,7 @@
     validateExport: validateExport,
     parseExport: parseExport,
     exportToParticipant: exportToParticipant,
+    wilsonInterval95: wilsonInterval95,
     summarizeAttempts: summarizeAttempts,
     coordinatorSummary: coordinatorSummary
   });

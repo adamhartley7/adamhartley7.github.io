@@ -1,4 +1,4 @@
-const PRODUCTION_ORIGIN = "https://adamhartley7.github.io";
+const PRODUCTION_ORIGIN = "https://tokenoptimisationprotocol.org";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const RESEND_SENDER_DOMAIN = "send.tokenoptimisationprotocol.org";
 

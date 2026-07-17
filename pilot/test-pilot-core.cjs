@@ -54,6 +54,22 @@ assert.equal(Pilot.METRIC, "api_rate_equivalent_usd");
 assert.equal(new Set(Pilot.TASK_CLASSES).size, Pilot.TASK_CLASSES.length);
 assert.equal(new Set(Pilot.INVALIDATION_REASONS).size, Pilot.INVALIDATION_REASONS.length);
 
+assert.deepEqual(Pilot.wilsonInterval95(0, 0), {
+  numerator: 0, denominator: 0, lower_bound: null, upper_bound: null,
+});
+assert.deepEqual(Pilot.wilsonInterval95(5, 10), {
+  numerator: 5, denominator: 10, lower_bound: 0.23659309, upper_bound: 0.76340691,
+});
+assert.deepEqual(Pilot.wilsonInterval95(0, 24), {
+  numerator: 0, denominator: 24, lower_bound: 0, upper_bound: 0.1379762,
+});
+assert.deepEqual(Pilot.wilsonInterval95(24, 24), {
+  numerator: 24, denominator: 24, lower_bound: 0.8620238, upper_bound: 1,
+});
+assert.throws(() => Pilot.wilsonInterval95(-1, 24), /invalid_wilson_counts/);
+assert.throws(() => Pilot.wilsonInterval95(25, 24), /invalid_wilson_counts/);
+assert.throws(() => Pilot.wilsonInterval95(1.5, 24), /invalid_wilson_counts/);
+
 assert.throws(() => Pilot.createParticipant(0), /invalid_participant_slot/);
 assert.throws(() => Pilot.createParticipant(5), /invalid_participant_slot/);
 
@@ -153,6 +169,9 @@ assert.equal(summary.overall.invalidated, 4);
 assert.equal(summary.overall.actual_missing, 4);
 assert.equal(summary.overall.within_p10_p90_count, 12);
 assert.equal(summary.overall.within_p10_p90_rate, 0.5);
+assert.deepEqual(summary.overall.within_p10_p90_wilson_95, {
+  numerator: 12, denominator: 24, lower_bound: 0.31427426, upper_bound: 0.68572574,
+});
 assert.equal(summary.overall.below_p10_count, 4);
 assert.equal(summary.overall.below_p10_rate, 0.16666667);
 assert.equal(summary.overall.at_or_below_p50_count, 12);
@@ -177,6 +196,9 @@ summary.by_participant.forEach(group => assert.equal(group.summary.paired_usable
 const noPairs = Pilot.summarizeAttempts(pilotExports[0].attempts.filter(value => value.state !== "paired"));
 assert.equal(noPairs.paired_usable, 0);
 assert.equal(noPairs.within_p10_p90_rate, null);
+assert.deepEqual(noPairs.within_p10_p90_wilson_95, {
+  numerator: 0, denominator: 0, lower_bound: null, upper_bound: null,
+});
 assert.equal(noPairs.median_multiplicative_error, null);
 assert.equal(noPairs.mean_log_space_interval_score, null);
 
