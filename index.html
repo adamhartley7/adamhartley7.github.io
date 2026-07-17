@@ -127,6 +127,33 @@ nav>.wrap>.btn-primary{min-width:190px;justify-content:center;background:linear-
 .trust{padding:34px 0;text-align:center;color:var(--faint);font-size:13.5px;font-family:"JetBrains Mono",monospace;letter-spacing:.03em}
 .trust b{color:var(--muted);font-weight:500}
 
+/* plain-language bridge: copies static text only and makes no network request */
+.ai-guide-section{padding:18px 0 clamp(68px,9vw,108px);scroll-margin-top:92px}
+.ai-guide{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.9fr);gap:clamp(24px,4vw,52px);align-items:center;padding:clamp(28px,4.5vw,50px);background:linear-gradient(145deg,rgba(139,92,246,.20),rgba(62,207,142,.08) 54%,rgba(20,20,24,.96));border:1px solid rgba(171,142,255,.38);border-radius:22px;box-shadow:0 36px 90px -54px #000}
+.ai-guide .eyebrow{color:var(--mint)}
+.ai-guide h2{font-size:clamp(29px,4vw,44px);margin:13px 0 16px;max-width:16ch}
+.ai-guide-intro>p{color:var(--muted);font-size:clamp(16px,1.8vw,18px);max-width:52ch}
+.ai-guide-steps{display:grid;gap:9px;margin-top:22px;color:#ddd6ef;font-size:14.5px}
+.ai-guide-step{display:flex;align-items:flex-start;gap:10px}
+.ai-guide-step b{flex:none;display:grid;place-items:center;width:24px;height:24px;border:1px solid rgba(62,207,142,.34);border-radius:8px;background:rgba(62,207,142,.10);color:var(--mint);font-family:"JetBrains Mono",monospace;font-size:11px}
+.ai-guide-action{min-width:0;padding:22px;background:rgba(8,8,12,.72);border:1px solid rgba(255,255,255,.12);border-radius:16px}
+.ai-guide-action .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--iris-2);margin-bottom:8px}
+.ai-guide-action h3{font-size:21px;margin-bottom:9px}
+.ai-guide-action>p{color:var(--muted);font-size:14.5px}
+.ai-guide-copy{width:100%;justify-content:center;margin-top:18px;padding:13px 18px;font-size:15px}
+.ai-guide-copy.copied{background:var(--mint);color:#06150e;box-shadow:0 8px 24px -8px rgba(62,207,142,.42)}
+.ai-guide-status{min-height:42px;margin-top:11px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.ai-guide-details{margin-top:13px;border-top:1px solid var(--border);padding-top:13px}
+.ai-guide-details summary{cursor:pointer;color:var(--iris-2);font-size:13.5px;font-weight:600}
+.ai-guide-details summary:hover{color:#e7ddff}
+.ai-guide-preview{display:grid;gap:9px;margin-top:13px}
+.ai-guide-preview label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.ai-guide-prompt{display:block;width:100%;min-height:230px;resize:vertical;padding:13px;border:1px solid var(--border-2);border-radius:10px;background:#09090d;color:#dddde4;font:12.5px/1.55 "JetBrains Mono",monospace}
+.ai-guide-prompt:focus{outline:3px solid var(--iris-2);outline-offset:2px}
+.ai-guide-provider{margin-top:14px;padding-top:13px;border-top:1px solid var(--border);color:var(--faint);font-size:12px;line-height:1.5}
+@media(max-width:800px){.ai-guide{grid-template-columns:1fr}.ai-guide h2{max-width:none}}
+@media(max-width:480px){.ai-guide-section .wrap{padding:0 14px}.ai-guide{padding:24px 18px;border-radius:17px}.ai-guide-action{padding:18px}.ai-guide-prompt{min-height:280px}}
+
 /* sections */
 section.blk{padding:clamp(64px,9vw,110px) 0}
 .shead{max-width:60ch;margin:0 auto clamp(40px,6vw,64px);text-align:center}
@@ -406,7 +433,7 @@ footer a:hover{color:var(--muted)}
     <p class="sub">TOP uses your past Claude and ChatGPT work to test a low, likely and high cost estimate for the next task. Today, you can privately turn a downloaded copy of your account history into a report on this device. The next-task estimate is still being tested.</p>
     <div class="cta">
       <a class="btn btn-primary" href="/analyze/?pilot=1">Analyze my past usage</a>
-      <a class="btn btn-ghost" href="#suite">Meet TOP 1, 2 and 3</a>
+      <a class="btn btn-ghost" href="#explain">Explain TOP to me</a>
     </div>
 
     <div class="stage reveal">
@@ -429,6 +456,81 @@ footer a:hover{color:var(--muted)}
 </header>
 
 <div class="trust wrap"><b>WORKS NOW:</b> see past usage &nbsp;·&nbsp; <b>BEING TESTED:</b> estimate the next task &nbsp;·&nbsp; <b>LATER:</b> help choose the right AI</div>
+
+<!-- PLAIN-LANGUAGE AI GUIDE -->
+<section class="ai-guide-section" id="explain" aria-labelledby="ai-guide-title">
+  <div class="wrap">
+    <div class="ai-guide">
+      <div class="ai-guide-intro">
+        <div class="eyebrow">too much jargon?</div>
+        <h2 id="ai-guide-title">Ask your AI to explain TOP in plain English.</h2>
+        <p>Copy a ready-made prompt that explains what TOP does, what is still being tested and whether it may matter for your work.</p>
+        <div class="ai-guide-steps" aria-label="How the prompt works">
+          <div class="ai-guide-step"><b>1</b><span>Copy public TOP information. This button does not read your files or account.</span></div>
+          <div class="ai-guide-step"><b>2</b><span>Paste it into an AI assistant you already use.</span></div>
+          <div class="ai-guide-step"><b>3</b><span>Get the product, limitations and a safe next step in ordinary language.</span></div>
+        </div>
+      </div>
+      <div class="ai-guide-action">
+        <div class="k">copy-only guide</div>
+        <h3>Translate the site, not your private data.</h3>
+        <p>The prompt tells the assistant not to request raw account exports and not to present TOP's experimental forecast as proven.</p>
+        <button class="btn btn-primary ai-guide-copy" type="button" id="copyTopExplainer" aria-describedby="topExplainerStatus">Copy explainer prompt</button>
+        <p class="ai-guide-status" id="topExplainerStatus" role="status" aria-live="polite">Copies the exact prompt available under Preview. It does not submit anything to TOP.</p>
+        <details class="ai-guide-details" id="topExplainerDetails">
+          <summary>Preview the prompt before copying</summary>
+          <div class="ai-guide-preview">
+            <label for="topExplainerPrompt">Prompt text</label>
+            <textarea class="ai-guide-prompt" id="topExplainerPrompt" readonly>I am deciding whether TOP, the Token Optimisation Protocol, is relevant to me.
+
+Public product page:
+https://tokenoptimisationprotocol.org/
+
+Guided analyzer page:
+https://tokenoptimisationprotocol.org/analyze/?pilot=1
+
+Treat statements on these pages as TOP's own claims, not as independent proof.
+
+Public facts to translate:
+- TOP currently states that its browser analyzer can create a historical usage report after I select a supported Claude or ChatGPT export locally. It states that the original export is not sent to TOP. This statement concerns the export itself; visiting the sites can still disclose routine request metadata to their hosts and any permitted asset providers.
+- TOP is testing whether past usage can support a personal low, likely, and high cost estimate for a future AI task. That forecast is not yet proven.
+- TOP describes model choice and budget controls as later ideas, not current features.
+- Direct submission to TOP is not available today. Local download, copy and device-sharing controls remain user-controlled.
+
+Privacy rules for this conversation:
+1. Personalize only from broad, non-sensitive context already visible in this conversation, or from optional answers I give below.
+2. Do not quote or expose private details from memory, prior chats or connected services.
+3. Do not search connected apps or files.
+4. Do not ask me to upload, paste, submit, email or share any AI export, prompt, code, log, report, contact detail, account identifier or confidential material.
+5. I may skip every question.
+
+If more context is needed, ask no more than three short, optional questions:
+1. Which broad role best fits me: individual AI user, developer or technical team, finance or procurement, researcher, or other?
+2. What is my main need: understand current usage, estimate a future task, control a budget, choose an AI model, or simply understand TOP?
+3. How often do I use AI: occasionally, weekly, daily, or through automated workflows?
+
+Then provide:
+1. A 90-second explanation of TOP in ordinary language.
+2. One concrete example relevant to my broad situation.
+3. A clear separation between what appears to work now, what is still being tested and what is proposed for later.
+4. What evidence supports each important claim, and what remains uncertain or unverified.
+5. A plain-language description of the intended data journey, clearly separating activity on my device from anything that might be sent elsewhere.
+6. A safe next step that does not involve uploading or sharing data.
+7. A checklist I should receive before any future sharing: the exact fields, purpose, controller, lawful basis, recipients and processors, retention period, international transfers, security measures, withdrawal or deletion process, and whether sharing is optional.
+
+Do not describe information as anonymous, private, secure or GDPR-compliant merely because a webpage uses those words. Say "the site states" and explain what would still need verification.
+
+While TOP's delivery flow is under review, do not provide operational instructions for uploading, submitting, emailing or sharing data with TOP.
+
+End with this sentence:
+"You can decide whether TOP is relevant without sharing your account-history export with TOP."</textarea>
+          </div>
+        </details>
+        <p class="ai-guide-provider">Your AI provider handles anything you paste under its own terms and settings. Do not attach your account-history export to that chat.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- USP -->
 <section class="blk" id="usp">
@@ -1036,6 +1138,52 @@ var REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
 var els=document.querySelectorAll('.reveal');
 if(REDUCE||!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});}
 else{var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}})},{threshold:.12,rootMargin:'0px 0px -8% 0px'});els.forEach(function(e){io.observe(e)});}
+(function initTopExplainer(){
+  var button=document.getElementById('copyTopExplainer');
+  var prompt=document.getElementById('topExplainerPrompt');
+  var status=document.getElementById('topExplainerStatus');
+  var details=document.getElementById('topExplainerDetails');
+  if(!button||!prompt||!status||!details) return;
+  var originalLabel=button.textContent;
+  var resetTimer;
+  function showCopied(){
+    clearTimeout(resetTimer);
+    button.textContent='Prompt copied';
+    button.classList.add('copied');
+    status.textContent='Copied. Paste the prompt into your AI assistant, but do not attach your account-history export.';
+    resetTimer=setTimeout(function(){button.textContent=originalLabel;button.classList.remove('copied');},2600);
+  }
+  function copyFallback(text){
+    var field=document.createElement('textarea');
+    field.value=text;
+    field.setAttribute('readonly','');
+    field.style.position='fixed';
+    field.style.left='-9999px';
+    field.style.opacity='0';
+    document.body.appendChild(field);
+    field.select();
+    var copied=false;
+    try{copied=document.execCommand('copy');}catch(ignore){}
+    field.remove();
+    button.focus();
+    return copied;
+  }
+  function showManualCopy(){
+    details.open=true;
+    prompt.focus();
+    prompt.select();
+    status.textContent='Automatic copy was blocked. The prompt is selected; press Ctrl+C or Command+C.';
+  }
+  button.addEventListener('click',function(){
+    var text=prompt.value.trim();
+    if(navigator.clipboard&&typeof navigator.clipboard.writeText==='function'&&window.isSecureContext){
+      navigator.clipboard.writeText(text).then(showCopied,function(){
+        if(copyFallback(text)) showCopied(); else showManualCopy();
+      });
+    }else if(copyFallback(text)) showCopied();
+    else showManualCopy();
+  });
+})();
 </script>
 </body>
 </html>
