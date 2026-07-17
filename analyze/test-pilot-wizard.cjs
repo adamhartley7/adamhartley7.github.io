@@ -31,12 +31,21 @@ assert.match(html, /href="\/analyze\/">Open the full analyzer<\/a>/);
 assert.match(html, /https:\/\/adamhartley7\.github\.io\/analyze\/collector\/top-collector\.mjs/);
 assert.match(html, /EB3F69B6FD6C0B9FB78E85548EB0767037CBB2F30657FA4619A85782B38403BE/);
 assert.match(html, /PILOT_COLLECTOR_VERSION="top\.local-collector\.2026-07-16\.2"/);
-assert.match(html, /using the explicit option --schema v2/);
-assert.match(html, /single top\.safe-usage\.v2 JSON output/);
+assert.match(html, /--schema v2/);
 assert.doesNotMatch(html, /COLLECTOR_(?:SHA256|VERSION)_PLACEHOLDER/);
-assert.match(html, /Do not print, quote, summarize, copy or transmit any prompt/);
-assert.match(html, /generated TOP filename without its full path/);
-assert.doesNotMatch(html, /return only the verified output path/);
+
+// The prompt must be one an aligned agent can safely accept. A prompt that gags the
+// agent, or tells it to withhold detail from its own user, reads as an injection
+// attack and gets refused. It got refused in the field on 2026-07-17. So the prompt
+// invites scrutiny instead of demanding compliance, and these assertions lock that in.
+assert.match(html, /READ IT FIRST and tell me plainly what it does/);
+assert.match(html, /Show me the full contents of the file it produced/);
+assert.match(html, /Please tell me everything you observe, including anything that looks wrong/);
+assert.match(html, /If you think this is a bad idea, say so and I will not run it/);
+assert.match(html, /be skeptical/);
+assert.doesNotMatch(html, /Do not print, quote, summarize/);
+assert.doesNotMatch(html, /return only the generated TOP filename/);
+assert.doesNotMatch(html, /without its full path/);
 assert.match(html, /id="pilotSafeFile" accept="\.json,application\/json"/);
 assert.doesNotMatch(html, /id="pilotSafeFile"[^>]*multiple/);
 assert.match(html, /small, content-free aggregate file/);
