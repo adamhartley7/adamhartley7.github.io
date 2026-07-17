@@ -154,9 +154,10 @@ The helper reads only the three explicit local paths. It makes zero network call
    Expect `204` for the preflight and `405` for GET. Stop if either differs. Neither response proves email delivery.
 2. **Synthetic smoke.** Run the zero-network default first. Review the pinned route and hash. Then run one live synthetic request with both exact confirmations and a new private retention-log path. Stop unless the tool records HTTP `202` and `accepted_status: "accepted_for_delivery"`. This is provider acceptance only, not delivery proof.
 3. **Attachment hash check.** Save the two received JSON attachments, run `verify:attachments`, and stop unless both hashes match `report_sha256`. Leave `provider_delivery_confirmed: false`; the hash proves attachment identity, not provider delivery telemetry.
-4. **Adam's one real self-report.** Only after steps 1 to 3 pass should Adam deliberately submit one reviewed research-safe report through the analyzer. Do not substitute the smoke tool for the analyzer consent flow.
+4. **One frontend integration release.** Only after steps 1 to 3 pass, publish one newly reviewed integration release containing both the PR9 endpoint and CSP activation and the PR11 v0.2 self-reported frontend. Verify the exact Pages deployment before continuing. Never publish PR9 alone against this Worker.
+5. **Adam's one real self-report.** Only after steps 1 to 4 pass should Adam deliberately submit one reviewed research-safe report through the analyzer. Do not substitute the smoke tool for the analyzer consent flow.
 
-No step here deploys the Worker, changes a dashboard, reads a credential, discovers a recipient, opens a mailbox or activates the frontend endpoint.
+The smoke and attachment-hash tools do not deploy the Worker, change a dashboard, read a credential, discover a recipient, open a mailbox or activate the frontend endpoint. Step 4 is the separate, deliberate frontend activation gate.
 
 ## Human setup gates before any deployment
 
@@ -171,8 +172,10 @@ Do not deploy until all of these are decided and documented:
 7. Add an abuse-control decision for public rollout. The current rate limit is suitable only for a small pilot.
 8. Review the dormant frontend integration. It displays the exact payload, fixed recipient names, processor notice, explicit purposes, 30-day retention wording, a deliberate Submit button and truthful receipt states. It does not contain recipient addresses or an active endpoint.
 9. Set all four required secrets through the approved interactive setup. In the Cloudflare dashboard, verify that the remote secret-name list contains exactly `RESEND_API_KEY`, `RESEND_FROM`, `SUBMISSION_TO` and `SUBMISSION_CC`, without exposing their values. Treat a missing or extra name as a hard stop. `secrets.required` and `wrangler deploy --dry-run` do not replace this remote verification.
-10. Deploy using the committed `wrangler.jsonc`, then verify that Cloudflare lists `submit.tokenoptimisationprotocol.org` under the Worker's Domains & Routes and verify its HTTPS and CORS preflight. Do not create a second dashboard-managed route. Keep PR9 and PR11 dormant while these checks run. After the Worker passes, create one reviewed integration release containing the exact PR9 endpoint and CSP activation plus the PR11 v0.2 frontend. Keep `form-action 'none'` and do not add a second Worker URL.
-11. Run a synthetic production smoke test before any real participant data.
+10. Deploy using the committed `wrangler.jsonc`, then verify that Cloudflare lists `submit.tokenoptimisationprotocol.org` under the Worker's Domains & Routes and run the strict no-email route, CORS and unsafe-method probes. Do not create a second dashboard-managed route. Keep PR9 and PR11 dormant throughout these checks.
+11. Run the zero-network smoke dry run, then exactly one approved synthetic production smoke. Stop unless both recipients' saved attachments match the expected report hash.
+12. Only after steps 10 and 11 pass, publish one newly reviewed integration release containing the exact PR9 endpoint and CSP activation plus the PR11 v0.2 frontend. Keep `form-action 'none'`, do not add a second Worker URL, and verify the exact Pages deployment before continuing.
+13. Only after step 12 passes, submit Adam's one reviewed real report through the analyzer consent flow.
 
 Once approved, set secrets interactively. Never put their values in this repository or command history:
 
