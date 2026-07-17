@@ -257,9 +257,79 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .pilot-mode #pilotMethodStep.method-selected>.pilot-progress,.pilot-mode #pilotMethodStep.method-selected>h2,.pilot-mode #pilotMethodStep.method-selected>p,.pilot-mode #pilotMethodStep.method-selected>#pilotMethodChoices{display:none}
 .pilot-report{display:none;margin:4px 0 24px}.pilot-mode .pilot-report{display:block}.pilot-report[hidden]{display:none!important}.pilot-result-head{padding:22px;border:1px solid rgba(8,127,98,.24);border-radius:22px;background:linear-gradient(145deg,#f4fff9,#f7fbff);box-shadow:0 18px 42px rgba(25,66,92,.10)}.pilot-result-head h2{margin:0 0 7px;font-size:clamp(26px,4vw,38px)}.pilot-result-head p{margin:0;color:var(--muted);line-height:1.55}.pilot-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:14px 0}.pilot-metric{padding:17px;border:1px solid #cbdbe2;border-radius:17px;background:rgba(255,255,255,.92)}.pilot-metric strong{display:block;font-size:clamp(22px,3vw,30px);overflow-wrap:anywhere}.pilot-metric span{display:block;margin-top:5px;color:var(--muted);font-size:13px;line-height:1.35}.pilot-cost-note{margin:0 0 16px;padding:12px 14px;border-left:4px solid #d99a2b;background:#fff8e6;color:#65470e;line-height:1.5}.pilot-section{margin:15px 0;padding:18px;border:1px solid #cadbe2;border-radius:19px;background:rgba(255,255,255,.91)}.pilot-section h3{margin:0 0 10px;font-size:20px}.pilot-model-row{display:grid;grid-template-columns:minmax(120px,1.25fr) minmax(110px,2fr) auto;gap:10px;align-items:center;margin:9px 0;font-size:13.5px}.pilot-model-row strong{overflow-wrap:anywhere}.pilot-model-track{height:9px;border-radius:99px;background:#e4ebef;overflow:hidden}.pilot-model-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7565dc,#23b6ae)}.pilot-value-list{display:grid;gap:9px}.pilot-value-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #e0e8ec}.pilot-value-row:last-child{border-bottom:0}.pilot-value-row span{color:var(--muted)}.pilot-value-row strong{text-align:right}.pilot-report details{margin:14px 0;border:1px solid #cadbe2;border-radius:16px;background:#fff}.pilot-report summary{padding:14px 16px;font-weight:800;cursor:pointer}.pilot-detail-body{padding:0 16px 16px}.pilot-detail-body table{width:100%}.pilot-result-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.pilot-result-actions .btn{min-width:210px;justify-content:center}.pilot-mode #out>#reportScope,.pilot-mode #out>#cards,.pilot-mode #out>#tokenhelp,.pilot-mode #out>#resultsHeading,.pilot-mode #out>div[style*="overflow-x:auto"],.pilot-mode #out>#vm,.pilot-mode #out>#shareSummaryBox,.pilot-mode #out>.note,.pilot-mode #out>.technical-details,.pilot-mode #survey{display:none!important}
 .pilot-full-link{margin:14px 0 0;text-align:center;color:var(--muted);line-height:1.5}.pilot-full-link a{color:#5f4fc7;font-weight:800}
-.research-share-preview{display:block;margin:12px 0;border:1px solid #cadbe2;border-radius:14px;background:#fff}.research-share-preview summary{padding:13px 15px;font-weight:800;cursor:pointer}.research-share-preview textarea{width:calc(100% - 30px);height:220px;margin:0 15px 15px;padding:12px;border:1px solid #cadbe2;border-radius:10px;background:#f7fafb;color:#263c4d;font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}.pilot-mode #shareWithTop>.summbox:not(.research-safe-box),.pilot-mode #shareWithTop>.share-buttons{display:none!important}.pilot-mode #shareWithTop{max-width:760px;margin-left:auto;margin-right:auto}.pilot-mode #shareWithTop .research-safe-box{margin:14px auto 0;text-align:left}.pilot-mode #shareWithTop .research-safe-box>p:nth-of-type(2){display:none}.pilot-mode #shareWithTop .research-safe-box .share-buttons{justify-content:flex-start}
+.research-plain-box{margin:12px 0;padding:15px 17px;border:1px solid #a9d9cd;border-radius:14px;background:#f2fdfa}.research-plain-box h4{margin:0 0 9px;font-size:15px}.research-share-preview{display:block;margin:12px 0;border:1px solid #cadbe2;border-radius:14px;background:#fff}.research-share-preview summary{padding:13px 15px;font-weight:650;color:var(--muted);font-size:13.5px;cursor:pointer}.research-share-preview textarea{width:calc(100% - 30px);height:220px;margin:0 15px 15px;padding:12px;border:1px solid #cadbe2;border-radius:10px;background:#f7fafb;color:#263c4d;font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}.pilot-mode #shareWithTop>.summbox:not(.research-safe-box),.pilot-mode #shareWithTop>.share-buttons{display:none!important}.pilot-mode #shareWithTop{max-width:760px;margin-left:auto;margin-right:auto}.pilot-mode #shareWithTop .research-safe-box{margin:14px auto 0;text-align:left}.pilot-mode #shareWithTop .research-safe-box>p:nth-of-type(2){display:none}.pilot-mode #shareWithTop .research-safe-box .share-buttons{justify-content:flex-start}
 .pilot-patterns[hidden]{display:none}.pilot-patterns .pilot-detail-body>p{margin-top:0;color:var(--muted);line-height:1.55}.pilot-timeline{display:grid;gap:8px;margin:12px 0 18px}.pilot-timeline-row{display:grid;grid-template-columns:minmax(74px,.75fr) repeat(4,minmax(76px,1fr));gap:9px;align-items:center;padding:10px 12px;border:1px solid #dbe5e9;border-radius:13px;background:#f8fbfc}.pilot-timeline-row span{color:var(--muted);font-size:12px}.pilot-timeline-row strong{font-size:14px}.pilot-shape-summary{margin:13px 0;padding:13px 14px;border-left:4px solid #7565dc;background:#f5f2ff;line-height:1.5}.pilot-shape-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pilot-shape-item{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #dbe5e9;border-radius:12px;background:#fff}.pilot-shape-item span{color:var(--muted);font-size:13px}.pilot-shape-item strong{white-space:nowrap}
 .pilot-coverage-note{margin:0 0 14px;padding:12px 14px;border:1px solid #e5bd6d;border-radius:14px;background:#fff8e6;color:#684911;line-height:1.5}.pilot-coverage-note[hidden]{display:none}
+/* Pinned share rail: visible on every step, never a gate on the report. */
+.pilot-share-rail{position:sticky;top:0;z-index:20;margin:0 0 18px;border:2px solid rgba(101,86,221,.34);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(243,239,255,.97));box-shadow:0 16px 40px rgba(37,48,110,.16)}
+.pilot-share-rail[hidden],.pilot-share-rail-open[hidden],.pilot-share-rail-slim[hidden]{display:none!important}
+.pilot-share-rail-open{display:grid;grid-template-columns:minmax(0,1fr) minmax(206px,auto);gap:18px;align-items:center;padding:17px 19px}
+.pilot-share-rail-title{margin:0 0 6px;font-size:clamp(19px,2.4vw,24px)}
+.pilot-share-rail-lead{margin:0 0 9px;color:var(--muted);font-size:14px;line-height:1.5}
+/* The rail is pinned, so its open state is capped and scrolls internally. It must never push the report off screen. */
+.pilot-share-details{max-height:40vh;overflow-y:auto}
+.pilot-share-details>summary{padding:2px 0;color:#5f4fc7;font-size:13.5px;font-weight:700;cursor:pointer}
+.pilot-share-details[open]>summary{margin-bottom:7px}
+.pilot-share-facts{margin:0;padding-left:19px;font-size:13.5px;line-height:1.5}
+.pilot-share-facts li{margin:3px 0}
+.pilot-share-never{margin:9px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.pilot-share-rail-actions{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.pilot-share-rail-actions .btn{justify-content:center}
+.pilot-share-skip,.pilot-share-reopen{padding:6px 8px;border:0;background:none;color:var(--muted);font:inherit;font-size:13.5px;text-decoration:underline;cursor:pointer}
+.pilot-share-skip:hover,.pilot-share-reopen:hover{color:var(--text)}
+.pilot-share-rail-slim{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:11px 18px;color:var(--muted);font-size:13.5px}
+/* Report stepper: one idea per screen, no endless scroll. */
+.pilot-stepdots{display:flex;gap:8px;justify-content:center;margin:0 0 14px}
+.pilot-stepdot{width:34px;height:8px;padding:0;border:0;border-radius:99px;background:#d5dfe4;cursor:pointer;transition:background .25s ease}
+.pilot-stepdot.on{background:linear-gradient(90deg,#7565dc,#23b6ae)}
+.pilot-stepdot:focus-visible{outline:2px solid #7565dc;outline-offset:3px}
+.pilot-step{padding:19px;border:1px solid #cadbe2;border-radius:20px;background:rgba(255,255,255,.93)}
+.pilot-step[hidden]{display:none!important}
+.pilot-step>.pilot-result-head{padding:0;border:0;background:none;box-shadow:none}
+.pilot-step-title{margin:0 0 8px;font-size:clamp(22px,3vw,30px)}
+.pilot-step-lead{margin:0 0 13px;color:var(--muted);line-height:1.55}
+.pilot-step-lead:empty{display:none}
+.pilot-chart{margin:13px 0}
+.pilot-chart:empty{display:none}
+/* Charts are hand-rolled inline SVG: no library, no CDN, no image request. */
+.pilot-fig{margin:0;padding:14px 12px 12px;border:1px solid #cadbe2;border-radius:17px;background:linear-gradient(160deg,#fbfdff,#f5faff)}
+.pilot-svg{display:block;width:100%;height:auto;overflow:visible;font-family:"Inter",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.pilot-svg .ax{fill:var(--faint);font-size:11px;font-variant-numeric:tabular-nums}
+.pilot-svg .axt{fill:var(--muted);font-size:11.5px;font-weight:750;letter-spacing:.02em}
+.pilot-svg .grid{stroke:#dae4ea;stroke-width:1;shape-rendering:crispEdges}
+.pilot-svg .base{stroke:#b9cad5;stroke-width:1;shape-rendering:crispEdges}
+.pilot-svg .val{fill:var(--text);font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.pilot-svg .valin{fill:#fff;font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
+.pilot-svg .lbl{fill:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+.pilot-fig figcaption{margin-top:10px;color:var(--muted);font-size:12.5px;line-height:1.5}
+.pilot-chart-none{margin:0;padding:14px 15px;border:1px solid #cadbe2;border-left:4px solid #7565dc;border-radius:14px;background:#fbfdff;color:var(--muted);line-height:1.55}
+.pilot-chart-lever{margin:11px 0 0;padding:12px 14px;border-left:4px solid #087f62;background:#f0faf6;border-radius:0 12px 12px 0;line-height:1.5}
+.pilot-chart-lever strong{color:#065f4a}
+.pilot-chart-foot{margin:9px 0 0;color:var(--faint);font-size:12px;line-height:1.45}
+.pilot-forecast{margin:15px 0 0;padding:16px;border:1px solid #cadbe2;border-radius:16px;background:linear-gradient(160deg,#fbfdff,#f5faff)}.pilot-forecast-head{margin:0 0 11px;font-weight:800;font-size:15px}.pilot-forecast .pilot-value-row{padding:9px 0}.pilot-forecast .note{margin:13px 0 0}
+.pilot-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--muted)}
+.pilot-legend span{display:inline-flex;align-items:center;gap:6px}
+.pilot-legend i{width:11px;height:11px;border-radius:3px;flex:none}
+/* Draw-on: the line sweeps, the bars grow. Runs on step entry because a hidden step is display:none. */
+.pilot-step.on .pilot-sweep{stroke-dasharray:1;stroke-dashoffset:1;animation:pilotSweep .8s cubic-bezier(.3,.7,.3,1) .08s forwards}
+.pilot-step.on .pilot-fade{animation:pilotFade .55s ease-out both;animation-delay:.42s}
+.pilot-step.on .pilot-grow{transform-box:fill-box;transform-origin:left center;animation:pilotGrow .6s cubic-bezier(.25,.8,.3,1) both}
+.pilot-step.on .pilot-rise{transform-box:fill-box;transform-origin:center bottom;animation:pilotRise .5s cubic-bezier(.25,.8,.3,1) both}
+@keyframes pilotSweep{to{stroke-dashoffset:0}}
+@keyframes pilotFade{from{opacity:0}to{opacity:1}}
+@keyframes pilotGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pilotRise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){.pilot-step.on .pilot-sweep,.pilot-step.on .pilot-fade,.pilot-step.on .pilot-grow,.pilot-step.on .pilot-rise{animation:none;stroke-dasharray:none;stroke-dashoffset:0;transform:none}}
+.pilot-stepnav{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:14px}
+.pilot-stepnav .btn{min-width:118px;justify-content:center}
+.pilot-stepnav .btn[disabled]{opacity:.4;cursor:not-allowed}
+.pilot-stepcount{margin:0;color:var(--muted);font-size:13.5px;font-weight:700;text-align:center;line-height:1.4}
+.pilot-stepper.show-all .pilot-stepnav,.pilot-stepper.show-all .pilot-stepdots{display:none}
+.pilot-stepper.show-all .pilot-step{margin-bottom:14px}
+.pilot-step.on{animation:pilotStepIn .34s cubic-bezier(.22,.7,.3,1) both}
+@keyframes pilotStepIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.pilot-step.on{animation:none}.pilot-stepdot{transition:none}}
+@media(max-width:760px){.pilot-share-rail{position:static}.pilot-share-rail-open{grid-template-columns:1fr}.pilot-stepnav .btn{min-width:96px}}
 @media(max-width:760px){.pilot-choices{grid-template-columns:1fr}.pilot-choice{min-height:96px}.pilot-method-panel{padding:16px}.pilot-bubble{font-size:15px}.pilot-mode header{padding:13px 0 9px}.pilot-mode header h1{font-size:28px}.pilot-mode header .sub{font-size:14px}.pilot-mode .flow-shell{padding:14px}.pilot-mobile-warning{display:block;margin:0 0 16px;padding:13px 15px;border:1px solid #e8bd6f;border-radius:14px;background:#fff8e6;color:#704e16}}
 @media(max-width:640px){.pilot-metrics{grid-template-columns:1fr 1fr}.pilot-metric:first-child{grid-column:1/-1}.pilot-model-row{grid-template-columns:1fr auto}.pilot-model-track{grid-column:1/-1;grid-row:2}.pilot-value-row{display:block}.pilot-value-row strong{display:block;margin-top:4px;text-align:left}}
 @media(max-width:640px){.pilot-timeline-row{grid-template-columns:1fr 1fr}.pilot-timeline-row strong:first-child{grid-column:1/-1}.pilot-shape-grid{grid-template-columns:1fr}}
@@ -424,53 +494,108 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 
       <div id="out">
     <section class="pilot-report" id="pilotQuickReport" hidden aria-labelledby="pilotQuickHeading">
-      <div class="pilot-result-head">
-        <h2 id="pilotQuickHeading" tabindex="-1">Your report is ready</h2>
-        <p id="pilotQuickPrivacy">Your prompts, replies, code and files stayed on this computer.</p>
-      </div>
-      <div class="pilot-metrics">
-        <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span id="pilotQuickCostLabel">What this usage would cost at API prices</span></div>
-        <div class="pilot-metric"><strong id="pilotQuickSessions">0</strong><span id="pilotQuickSessionsLabel">Work sessions found</span></div>
-        <div class="pilot-metric"><strong id="pilotQuickDays">0</strong><span>Active days found</span></div>
-      </div>
-      <p class="pilot-coverage-note" id="pilotCoverageNote" hidden></p>
-      <p class="pilot-cost-note" id="pilotQuickCostNote"></p>
-      <section class="pilot-section" aria-labelledby="pilotUsageMixHeading">
-        <h3 id="pilotUsageMixHeading">Which models drove that estimate?</h3>
-        <div id="pilotUsageMix"></div>
-      </section>
-      <section class="pilot-section" aria-labelledby="pilotValueHeading">
-        <h3 id="pilotValueHeading">What TOP Can Measure Today</h3>
-        <div class="pilot-value-list">
-          <div class="pilot-value-row"><span>Estimated cost so far</span><strong id="pilotValueCost">Not available</strong></div>
-          <div class="pilot-value-row"><span>Value of completed work</span><strong>Not measured yet</strong></div>
-          <div class="pilot-value-row"><span>Verified savings forecast</span><strong>Coming soon</strong></div>
+      <div class="pilot-share-rail" id="pilotShareRail" hidden>
+        <div class="pilot-share-rail-open" id="pilotShareRailOpen">
+          <div class="pilot-share-rail-body">
+            <h2 class="pilot-share-rail-title" id="pilotShareRailHeading">Share this report with the TOP team</h2>
+            <p class="pilot-share-rail-lead" id="pilotShareRailOneLine"></p>
+            <details class="pilot-share-details">
+              <summary>See exactly what would be shared, in plain English</summary>
+              <ul class="pilot-share-facts" id="pilotShareFacts"></ul>
+              <p class="pilot-share-never" id="pilotShareNever"></p>
+            </details>
+          </div>
+          <div class="pilot-share-rail-actions">
+            <button type="button" class="btn p" id="pilotShareRailGo">Share with the TOP team</button>
+            <button type="button" class="pilot-share-skip" id="pilotShareRailSkip">Not now, just show my report</button>
+          </div>
         </div>
-        <p class="note">TOP-2 and TOP-3 remain in research and development. TOP will not invent the value of your work or promise a saving before it has been tested. A future opt-in can let you enter the value of completed work yourself.</p>
-      </section>
-      <details class="pilot-patterns" id="pilotPatternDetails" hidden>
-        <summary>See monthly usage and session shapes</summary>
-        <div class="pilot-detail-body">
-          <p id="pilotPatternNote">These buckets describe interaction counts only. They do not reveal or guess what your prompts meant, and elapsed spans do not equal active work time. TOP did not read prompt text, code, tool output or file content to create them.</p>
-          <h3>Monthly usage</h3>
-          <p id="pilotTimelineWindowNote" hidden></p>
-          <div class="pilot-timeline" id="pilotTimeline"></div>
-          <h3>Session shapes</h3>
-          <p class="pilot-shape-summary" id="pilotShapeSummary"></p>
-          <div class="pilot-shape-grid" id="pilotShapeGrid"></div>
+        <div class="pilot-share-rail-slim" id="pilotShareRailSlim" hidden>
+          <span>Sharing skipped. Nothing was sent, and your full report is still here.</span>
+          <button type="button" class="pilot-share-reopen" id="pilotShareRailReopen">Share with the TOP team</button>
         </div>
-      </details>
-      <details>
-        <summary>See the full usage and pricing details</summary>
-        <div class="pilot-detail-body">
-          <p id="pilotFullScope"></p>
-          <p id="pilotFullCoverage"></p>
-          <div style="overflow-x:auto"><table id="pilotFullModelTable"></table></div>
-        </div>
-      </details>
-      <div class="pilot-result-actions">
-        <button type="button" class="btn p" id="pilotContinueToShare">Review Sharing Options</button>
       </div>
+      <div class="pilot-stepper" id="pilotStepper">
+        <div class="pilot-stepdots" id="pilotStepDots" role="group" aria-label="Report steps"></div>
+        <div class="pilot-stepdeck" id="pilotStepDeck">
+          <section class="pilot-step" id="pilotStepScale" data-step-label="Scale" aria-labelledby="pilotQuickHeading" hidden>
+            <div class="pilot-result-head">
+              <h2 id="pilotQuickHeading" tabindex="-1">Your report is ready</h2>
+              <p id="pilotQuickPrivacy">Your prompts, replies, code and files stayed on this computer.</p>
+            </div>
+            <div class="pilot-metrics">
+              <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span id="pilotQuickCostLabel">What this usage would cost at API prices</span></div>
+              <div class="pilot-metric"><strong id="pilotQuickSessions">0</strong><span id="pilotQuickSessionsLabel">Work sessions found</span></div>
+              <div class="pilot-metric"><strong id="pilotQuickDays">0</strong><span>Active days found</span></div>
+            </div>
+            <div class="pilot-chart" id="pilotChartScale"></div>
+            <p class="pilot-coverage-note" id="pilotCoverageNote" hidden></p>
+            <p class="pilot-cost-note" id="pilotQuickCostNote"></p>
+          </section>
+          <section class="pilot-step" id="pilotStepMix" data-step-label="Mix" aria-labelledby="pilotUsageMixHeading" hidden>
+            <h2 class="pilot-step-title" id="pilotUsageMixHeading" tabindex="-1">Which models drove that estimate?</h2>
+            <p class="pilot-step-lead" id="pilotMixLead"></p>
+            <div class="pilot-chart" id="pilotChartMix"></div>
+            <div id="pilotUsageMix"></div>
+            <details>
+              <summary>See the full usage and pricing details</summary>
+              <div class="pilot-detail-body">
+                <p id="pilotFullScope"></p>
+                <p id="pilotFullCoverage"></p>
+                <div style="overflow-x:auto"><table id="pilotFullModelTable"></table></div>
+              </div>
+            </details>
+          </section>
+          <section class="pilot-step" id="pilotStepCache" data-step-label="Caching" aria-labelledby="pilotCacheHeading" hidden>
+            <h2 class="pilot-step-title" id="pilotCacheHeading" tabindex="-1">Where your tokens actually went</h2>
+            <p class="pilot-step-lead" id="pilotCacheLead"></p>
+            <div class="pilot-chart" id="pilotChartCache"></div>
+            <p class="note">Saved and reused text is counted by your AI tool at different rates from fresh text. These are the counts your own files recorded.</p>
+          </section>
+          <section class="pilot-step" id="pilotStepRouting" data-step-label="Routing" aria-labelledby="pilotValueHeading" hidden>
+            <h2 class="pilot-step-title" id="pilotValueHeading" tabindex="-1">What TOP Can Measure Today</h2>
+            <p class="pilot-step-lead" id="pilotRoutingLead"></p>
+            <div class="pilot-chart" id="pilotChartRouting"></div>
+            <div class="pilot-value-list">
+              <div class="pilot-value-row"><span>Estimated cost so far</span><strong id="pilotValueCost">Not available</strong></div>
+              <div class="pilot-value-row"><span>Value of completed work</span><strong>Not measured yet</strong></div>
+              <div class="pilot-value-row"><span>Verified savings forecast</span><strong>Coming soon</strong></div>
+            </div>
+            <p class="note">TOP-2 and TOP-3 remain in research and development. TOP will not invent the value of your work or promise a saving before it has been tested. A future opt-in can let you enter the value of completed work yourself.</p>
+          </section>
+          <section class="pilot-step" id="pilotStepShape" data-step-label="Shape" aria-labelledby="pilotShapeHeading" hidden>
+            <h2 class="pilot-step-title" id="pilotShapeHeading" tabindex="-1">Could a forecast learn from your history?</h2>
+            <p class="pilot-step-lead" id="pilotShapeLead"></p>
+            <div class="pilot-chart" id="pilotChartShape"></div>
+            <div class="pilot-forecast">
+              <p class="pilot-forecast-head" id="pilotForecastHead">The history a personalised forecast would learn from</p>
+              <div class="pilot-value-list" id="pilotForecastList"></div>
+              <p class="note" id="pilotForecastNote">TOP-3 is research and development, not a shipped feature. It asks whether a cost forecast built from your own history would beat one built from the average user. When it does make a forecast, it will print its own measured accuracy next to the number, openly, and that accuracy is still early. Nothing here has been benchmarked and no saving is promised.</p>
+            </div>
+            <details class="pilot-patterns" id="pilotPatternDetails" hidden>
+              <summary>See monthly usage and session shapes</summary>
+              <div class="pilot-detail-body">
+                <p id="pilotPatternNote">These buckets describe interaction counts only. They do not reveal or guess what your prompts meant, and elapsed spans do not equal active work time. TOP did not read prompt text, code, tool output or file content to create them.</p>
+                <h3>Monthly usage</h3>
+                <p id="pilotTimelineWindowNote" hidden></p>
+                <div class="pilot-timeline" id="pilotTimeline"></div>
+                <h3>Session shapes</h3>
+                <p class="pilot-shape-summary" id="pilotShapeSummary"></p>
+                <div class="pilot-shape-grid" id="pilotShapeGrid"></div>
+              </div>
+            </details>
+            <div class="pilot-result-actions">
+              <button type="button" class="btn p" id="pilotContinueToShare">Review Sharing Options</button>
+            </div>
+          </section>
+        </div>
+        <nav class="pilot-stepnav" aria-label="Report steps">
+          <button type="button" class="btn" id="pilotStepBack">Back</button>
+          <p class="pilot-stepcount" id="pilotStepCount" role="status" aria-live="polite"></p>
+          <button type="button" class="btn p" id="pilotStepNext">Next</button>
+        </nav>
+      </div>
+      <p class="pilot-full-link"><a href="#pilotQuickReport" id="pilotShowAll">See it all on one page</a></p>
     </section>
     <p class="scope-callout" id="reportScope"></p>
     <div class="cards" id="cards"></div>
@@ -936,7 +1061,12 @@ if __name__ == "__main__":
       <p>This separate file keeps every privacy-safe usage aggregate TOP calculated and the exact pricing rates applied. It includes the current value-model scenario only when the report qualifies for that illustration. Any included scenario is clearly marked as unvalidated, not a forecast result.</p>
       <p><strong>Before sharing it:</strong> inspect the exact JSON below. It contains aggregate usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. It contains no prompts, replies, code, tool output, paths, filenames, project or account identifiers, email addresses, exact times or original IDs. Nothing is sent until you deliberately use a sharing action.</p>
       <p><code>privacy.network_delivery: "none"</code> records that TOP had not transmitted the report when it was generated. A later direct submission can happen only through the separate consent step below.</p>
-      <details class="research-share-preview" open><summary>See the exact research-safe JSON that will be downloaded or submitted</summary><textarea id="pilotResearchPreview" readonly aria-label="Exact research-safe JSON preview"></textarea></details>
+      <div class="research-plain-box">
+        <h4>In plain English, here is everything in that file</h4>
+        <ul class="pilot-share-facts" id="pilotResearchPlain"></ul>
+        <p class="pilot-share-never" id="pilotResearchNever"></p>
+      </div>
+      <details class="research-share-preview"><summary>For the technical: See the exact research-safe JSON that will be downloaded or submitted</summary><textarea id="pilotResearchPreview" readonly aria-label="Exact research-safe JSON preview"></textarea></details>
       <div class="share-buttons"><button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button><button type="button" class="btn" id="shareResearchJSON">Share Reviewed JSON</button></div>
     </div>
     <div class="share-form">
@@ -1034,6 +1164,18 @@ function resetDownstream(){
   document.getElementById('shareWithTop').hidden=true;
   document.getElementById('finalPackagePreview').value='';
   document.getElementById('pilotResearchPreview').value='';
+  document.getElementById('pilotResearchPlain').innerHTML='';
+  document.getElementById('pilotResearchNever').textContent='';
+  document.getElementById('pilotShareRail').hidden=true;
+  document.getElementById('pilotShareRailOpen').hidden=false;
+  document.getElementById('pilotShareRailSlim').hidden=true;
+  document.getElementById('pilotShareFacts').innerHTML='';
+  document.getElementById('pilotShareNever').textContent='';
+  // Charts are drawn from the previous file's numbers, so they go with it.
+  PILOT_CHART_STATE=null;PILOT_CHART_W=0;
+  ['pilotChartScale','pilotChartMix','pilotChartCache','pilotChartRouting','pilotChartShape'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.innerHTML='';
+  });
   includeSurveyContext=false;
   document.getElementById('shareStatus').textContent='';
   document.getElementById('researchConsent').checked=false;
@@ -1585,12 +1727,18 @@ function createClaudeCodeAccumulator(){
         ?JSON.stringify(["call",mid,rid])
         :JSON.stringify(["line",fileIndex,lineIndex]);
       var model=r.message.model||"unknown";
-      var row={model:model,inp:tokenCount(u.input_tokens),out:tokenCount(u.output_tokens),
+      var row={model:model,day:r.timestamp?String(r.timestamp).slice(0,10):null,
+        session:r.sessionId?String(r.sessionId):null,
+        inp:tokenCount(u.input_tokens),out:tokenCount(u.output_tokens),
         cw:tokenCount(u.cache_creation_input_tokens),cr:tokenCount(u.cache_read_input_tokens)};
       if(!(row.inp||row.out||row.cw||row.cr)) return;
       var prev=calls.get(key);
       if(prev){
         if(prev.model==="unknown"&&model!=="unknown") prev.model=model;
+        // Backfill only: first seen wins, so a resumed copy in a later file cannot move
+        // already-counted tokens onto a second day or into a second session.
+        if(!prev.day&&row.day) prev.day=row.day;
+        if(!prev.session&&row.session) prev.session=row.session;
         prev.inp=Math.max(prev.inp,row.inp); prev.out=Math.max(prev.out,row.out);
         prev.cw=Math.max(prev.cw,row.cw); prev.cr=Math.max(prev.cr,row.cr);
       }else calls.set(key,row);
@@ -1599,12 +1747,21 @@ function createClaudeCodeAccumulator(){
     });
   }
   function result(){
-    var by={};
+    var by={},daily=Object.create(null),sessionMap=Object.create(null),sessionList=[];
     calls.forEach(function(row){
       var e=by[row.model]||(by[row.model]={inp:0,out:0,cw:0,cr:0,turns:0});
       e.inp+=row.inp; e.out+=row.out; e.cw+=row.cw; e.cr+=row.cr; e.turns++;
+      addDailyTokens(daily,row.day,row.model,row.inp,row.out,row.cw,row.cr);
+      if(row.session){
+        var s=sessionMap[row.session];
+        if(!s){s=sessionMap[row.session]={day:row.day||null,by:Object.create(null)};sessionList.push(s)}
+        else if(!s.day&&row.day) s.day=row.day;
+        addTokenBucket(s.by,row.model,row.inp,row.out,row.cw,row.cr);
+      }
     });
-    return {by:by,turns:calls.size,sessions:Object.keys(sessions).length||filesAdded,days:Object.keys(days).length,kind:"Claude Code",estimate:true,
+    sessionList.sort(function(a,b){return String(a.day||"9999-99-99").localeCompare(String(b.day||"9999-99-99"))});
+    return {by:by,turns:calls.size,sessions:Object.keys(sessions).length||filesAdded,days:Object.keys(days).length,
+      daily:daily,dailyStatus:dailyStatusFor(daily),sessionBuckets:sessionList,kind:"Claude Code",estimate:true,
       estimateReason:"real token counts priced at editable public API rates; subscription charges may differ"};
   }
   return {addText:addText,result:result};
@@ -1626,6 +1783,23 @@ function safeCodexDay(value){
 function safeCodexModel(value){
   var text=String(value||"unknown").replace(/[\u0000-\u001f\u007f]/g," ").trim();
   return text&&text.length<=160?text:"unknown";
+}
+// Token buckets keyed by model. Null-prototype maps: model names are file-derived and may be
+// "__proto__" or "constructor". Tokens only, never dollars, so the series recomputes when prices change.
+function addTokenBucket(buckets,model,inp,out,cw,cr){
+  var e=buckets[model]||(buckets[model]={inp:0,out:0,cw:0,cr:0});
+  e.inp+=inp;e.out+=out;e.cw+=cw;e.cr+=cr;
+  return e;
+}
+// daily[day][model]={inp,out,cw,cr}. A falsy day is a no-op: routes without dates stay empty
+// rather than being bucketed under a guessed day.
+function addDailyTokens(daily,day,model,inp,out,cw,cr){
+  if(!day) return;
+  var dayRow=daily[day]||(daily[day]=Object.create(null));
+  addTokenBucket(dayRow,model,inp,out,cw,cr);
+}
+function dailyStatusFor(daily){
+  return Object.keys(daily).length?"ok":"unavailable_no_dates";
 }
 function checkedCodexUsage(value){
   if(!value||typeof value!=="object") return null;
@@ -1656,16 +1830,21 @@ function createBoundedLineCollector(onLine,onOversized,maxChars){
   return {push:push,finish:finish};
 }
 function createCodexAccumulator(){
-  var by=Object.create(null),days=Object.create(null),normalizedSignatures=new Set(),normalizedSessions=0,normalizedDays=0;
+  var by=Object.create(null),days=Object.create(null),daily=Object.create(null),sessionBuckets=[],normalizedSignatures=new Set(),normalizedSessions=0,normalizedDays=0;
   var coverage={files_selected:0,files_parsed:0,files_with_usage:0,files_skipped:0,malformed_lines:0,oversized_lines:0,counter_resets:0,complete:true};
   function modelRow(model){return by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,reasoning:0,turns:0})}
-  function addCounts(model,input,cached,output,reasoning,updates){
-    var row=modelRow(safeCodexModel(model)),noncached=Math.max(input-cached,0);
+  // day and state are optional: the normalized ai-events route has neither, and passing nothing
+  // there keeps its tokens out of the daily series instead of inventing a date for them.
+  function addCounts(model,input,cached,output,reasoning,updates,day,state){
+    var safeModel=safeCodexModel(model),row=modelRow(safeModel),noncached=Math.max(input-cached,0);
     row.inp+=noncached;row.cr+=cached;row.out+=output;row.reasoning+=reasoning;row.turns+=updates||1;
+    addDailyTokens(daily,day,safeModel,noncached,output,0,cached);
+    if(state) addTokenBucket(state.buckets,safeModel,noncached,output,0,cached);
   }
   function beginFile(fileIndex){
     coverage.files_selected++;
-    return {fileIndex:fileIndex,currentModel:"Unknown Codex model",previousTotal:null,lastTotalSignature:null,foundUsage:false,recognized:false};
+    return {fileIndex:fileIndex,currentModel:"Unknown Codex model",previousTotal:null,lastTotalSignature:null,foundUsage:false,recognized:false,
+      buckets:Object.create(null),firstDay:null};
   }
   function addNormalized(state,record){
     if(record.schema_version!=="top.codex-usage.v1"||record.provider!=="openai"||record.surface!=="codex"||!Array.isArray(record.by_model)) return false;
@@ -1690,8 +1869,8 @@ function createCodexAccumulator(){
   function addUsage(state,usage,day){
     if(!usage||!(usage.input||usage.output||usage.cached||usage.reasoning)) return;
     state.foundUsage=true;
-    addCounts(state.currentModel,usage.input,usage.cached,usage.output,usage.reasoning,1);
-    if(day) days[day]=1;
+    addCounts(state.currentModel,usage.input,usage.cached,usage.output,usage.reasoning,1,day,state);
+    if(day){days[day]=1;if(!state.firstDay) state.firstDay=day}
   }
   function addLine(state,line){
     var trimmed=String(line||"").trim();if(!trimmed)return;
@@ -1722,10 +1901,17 @@ function createCodexAccumulator(){
   function noteOversized(){coverage.oversized_lines++;coverage.complete=false}
   function endFile(state,failed){
     if(failed){coverage.files_skipped++;coverage.complete=false;return}
-    coverage.files_parsed++;if(state.foundUsage)coverage.files_with_usage++;
+    coverage.files_parsed++;
+    if(state.foundUsage){
+      coverage.files_with_usage++;
+      // One rollout file is one Codex session. The normalized route reports session counts only,
+      // so it contributes no buckets and the distribution chart must feature-detect.
+      if(Object.keys(state.buckets).length) sessionBuckets.push({day:state.firstDay||null,by:state.buckets});
+    }
   }
   function result(){
-    return {by:by,turns:Object.keys(by).reduce(function(total,model){return total+by[model].turns},0),sessions:Math.max(coverage.files_with_usage,normalizedSessions),days:Math.max(Object.keys(days).length,normalizedDays),kind:"Codex local session logs",estimate:true,costLabel:"API-rate comparison",estimateReason:"recorded token counts priced only where an exact public API rate is available; ChatGPT subscription limits and charges may differ",codex:true,coverage:coverage};
+    var orderedSessions=sessionBuckets.slice().sort(function(a,b){return String(a.day||"9999-99-99").localeCompare(String(b.day||"9999-99-99"))});
+    return {by:by,turns:Object.keys(by).reduce(function(total,model){return total+by[model].turns},0),sessions:Math.max(coverage.files_with_usage,normalizedSessions),days:Math.max(Object.keys(days).length,normalizedDays),daily:daily,dailyStatus:dailyStatusFor(daily),sessionBuckets:orderedSessions,kind:"Codex local session logs",estimate:true,costLabel:"API-rate comparison",estimateReason:"recorded token counts priced only where an exact public API rate is available; ChatGPT subscription limits and charges may differ",codex:true,coverage:coverage};
   }
   return {beginFile:beginFile,addLine:addLine,noteOversized:noteOversized,endFile:endFile,result:result};
 }
@@ -2200,6 +2386,675 @@ function renderPilotPatterns(res){
   document.getElementById("pilotShapeSummary").textContent=total?("The largest structural bucket was \""+largest[1]+"\": "+fmtN(shapes[largest[0]])+" of "+fmtN(total)+" sessions."):"No logical sessions were available for structural buckets.";
   document.getElementById("pilotShapeGrid").innerHTML=items.map(function(item){return '<div class="pilot-shape-item"><span>'+esc(item[1])+'</span><strong>'+fmtN(shapes[item[0]])+' session'+(shapes[item[0]]===1?'':'s')+'</strong></div>'}).join("");
 }
+// ---------- pilot report charts ----------
+// Every chart below is hand-rolled inline SVG built from the token counts already parsed on this
+// machine. No chart library, no CDN, no remote font, no image request: the analyzer must draw the
+// same picture with the network switched off. Dollars are never stored on the series; they are
+// derived here at draw time from PRICES, so editing a rate and re-rendering the same result object
+// redraws every chart at the new rate. Unpriced AI versions are drawn as unpriced, never guessed.
+var PILOT_MODEL_COLORS=["#6556dd","#23b6ae","#c07a10","#bd3f50","#2f7fbe","#7b5ea7"];
+var PILOT_UNPRICED_COLOR="#9db3c3";
+var PILOT_TYPE_ORDER=[["inp","Sent fresh","#6556dd"],["cw","Saved for reuse","#c07a10"],["cr","Reused from the saved copy","#23b6ae"],["out","Returned by the AI","#087f62"]];
+var PILOT_TIER_ORDER=[["frontier","Frontier tier","#6556dd"],["mid","Mid tier","#2f7fbe"],["cheap","Already cheap","#087f62"]];
+var PILOT_CHART_MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+// The viewBox is sized to the real drawn width so SVG text renders at its true pixel size on a phone
+// and on a desktop alike, instead of being scaled to 6px by a fixed-width viewBox.
+function pilotChartW(){
+  var wrap=document.querySelector("main.wrap"),
+      outer=wrap&&wrap.clientWidth?wrap.clientWidth:(window.innerWidth||720);
+  return Math.max(280,Math.min(720,Math.round(outer-110)));
+}
+function pilotSvg(w,h,label,body){
+  return '<svg class="pilot-svg" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(label)+'">'+body+'</svg>';
+}
+function pilotFigure(svg,caption){
+  return '<figure class="pilot-fig">'+svg+(caption?'<figcaption>'+esc(caption)+'</figcaption>':"")+'</figure>';
+}
+// The graceful-degradation path: a plain sentence, never a broken axis or a line through two points.
+function pilotPlain(text){return '<p class="pilot-chart-none">'+esc(text)+'</p>'}
+function pilotFoot(text){return '<p class="pilot-chart-foot">'+esc(text)+'</p>'}
+function pilotLegend(items){
+  // Colours here are our own constants, never file-derived. Labels are escaped.
+  return '<div class="pilot-legend">'+items.map(function(item){
+    return '<span><i style="background:'+item[1]+'"></i>'+esc(item[0])+'</span>';
+  }).join("")+'</div>';
+}
+function pilotNiceMax(v){
+  if(!(v>0))return 1;
+  var exp=Math.pow(10,Math.floor(Math.log(v)/Math.LN10)),f=v/exp,step=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10;
+  return step*exp;
+}
+function pilotAxisMoney(v){
+  if(v>=1000)return "$"+(v/1000).toFixed(v>=10000?0:1)+"k";
+  if(v>=10)return "$"+Math.round(v);
+  if(v>=1)return "$"+v.toFixed(1);
+  if(v>0)return "$"+v.toFixed(2);
+  return "$0";
+}
+function pilotAxisTokens(v){
+  if(v>=1e9)return (v/1e9).toFixed(1)+"B";
+  if(v>=1e6)return (v/1e6).toFixed(v>=1e7?0:1)+"M";
+  if(v>=1e3)return (v/1e3).toFixed(v>=1e4?0:1)+"k";
+  return String(Math.round(v));
+}
+// Day keys are file-derived. Anything that is not an exact YYYY-MM-DD is dropped, never coerced.
+function pilotDayNumber(day){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return null;
+  var y=+day.slice(0,4),m=+day.slice(5,7),d=+day.slice(8,10);
+  if(m<1||m>12||d<1||d>31)return null;
+  var stamp=Date.UTC(y,m-1,d);
+  return isNaN(stamp)?null:Math.round(stamp/86400000);
+}
+function pilotDayLabel(day){return String(+day.slice(8,10))+" "+PILOT_CHART_MONTHS[+day.slice(5,7)-1]}
+function pilotShortLabel(text,max){var s=String(text);return s.length>max?s.slice(0,Math.max(1,max-1))+"…":s}
+function pilotPct(part,whole){return whole>0?Math.round(part/whole*100):0}
+// Mirrors the rate-priced branch of resolveCostRow, so a decomposition drawn here can never
+// disagree with the total the rest of the report shows.
+function pilotRatePriced(res){return !!(res&&!res.chatExport&&!res.copilot&&!res.csv)}
+function pilotDailyCostSeries(res){
+  if(!res||!res.daily||res.dailyStatus!=="ok"||!pilotRatePriced(res))return null;
+  var points=[],unpricedDays=0;
+  Object.keys(res.daily).forEach(function(day){
+    var n=pilotDayNumber(day);if(n===null)return;
+    var models=res.daily[day],cost=0,priced=false,missing=false;
+    Object.keys(models).forEach(function(model){
+      var e=models[model],c=costOf(model,e.inp,e.out,e.cw,e.cr);
+      if(c===null){missing=true;return}
+      cost+=c;priced=true;
+    });
+    if(missing)unpricedDays++;
+    if(priced)points.push({day:day,n:n,cost:cost});
+  });
+  points.sort(function(a,b){return a.n-b.n});
+  return {points:points,unpricedDays:unpricedDays};
+}
+function pilotGridY(L,R,T,B,max,fmt){
+  var out="",i;
+  for(i=0;i<=4;i++){
+    var v=max*i/4,y=B-(v/max)*(B-T);
+    out+='<line class="grid" x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+R+'" y2="'+y.toFixed(1)+'"/>'
+      +'<text class="ax" x="'+(L-7)+'" y="'+(y+3.6).toFixed(1)+'" text-anchor="end">'+esc(fmt(v))+'</text>';
+  }
+  return out;
+}
+// Five or more active days: the cumulative curve, plus the per-day strip that carries the
+// volatility a monotone curve hides.
+function pilotCumulativeChartHTML(pts,total,res,unpricedDays){
+  var W=pilotChartW(),L=W<420?44:54,R=W-14,T=24,B=188,ST=232,SB=292,H=306;
+  var minN=pts[0].n,maxN=pts[pts.length-1].n,span=Math.max(1,maxN-minN),tilde=res.estimate?"~":"";
+  function xOf(n){return L+(n-minN)/span*(R-L)}
+  var maxY=pilotNiceMax(total*1.12);
+  function yOf(v){return B-(v/maxY)*(B-T)}
+  var peak=pts.reduce(function(a,p){return p.cost>a.cost?p:a},pts[0]),maxStrip=pilotNiceMax(peak.cost);
+  function ysOf(v){return SB-(v/maxStrip)*(SB-ST)}
+  var cum=0,d="M "+xOf(pts[0].n).toFixed(1)+" "+yOf(0).toFixed(1);
+  pts.forEach(function(p,idx){
+    if(idx)d+=" H "+xOf(p.n).toFixed(1);
+    cum+=p.cost;
+    d+=" V "+yOf(cum).toFixed(1);
+  });
+  var area=d+" V "+yOf(0).toFixed(1)+" Z";
+  var mid=minN+span/2,midPt=pts.reduce(function(a,p){return Math.abs(p.n-mid)<Math.abs(a.n-mid)?p:a},pts[0]);
+  var ticks=[pts[0]];
+  if(midPt!==pts[0]&&midPt!==pts[pts.length-1])ticks.push(midPt);
+  ticks.push(pts[pts.length-1]);
+  var xax=ticks.map(function(p,idx){
+    var anchor=idx===0?"start":(idx===ticks.length-1?"end":"middle");
+    return '<text class="ax" x="'+xOf(p.n).toFixed(1)+'" y="'+(B+16)+'" text-anchor="'+anchor+'">'+esc(pilotDayLabel(p.day))+'</text>';
+  }).join("");
+  var bw=Math.max(2,Math.min(13,(R-L)/(span+1)*0.72));
+  var bars=pts.map(function(p){
+    var y=ysOf(p.cost),h=Math.max(1,SB-y),hot=p===peak;
+    return '<rect x="'+(xOf(p.n)-bw/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="1.5" fill="'+(hot?"#c07a10":"#7565dc")+'" opacity="'+(hot?"1":".5")+'"/>';
+  }).join("");
+  var ex=xOf(pts[pts.length-1].n),ey=yOf(total);
+  var body='<defs><linearGradient id="pilotAreaGrad" x1="0" y1="0" x2="0" y2="1">'
+    +'<stop offset="0" stop-color="#6556dd" stop-opacity=".34"/><stop offset="1" stop-color="#23b6ae" stop-opacity=".05"/></linearGradient></defs>'
+    +'<text class="axt" x="'+(L-(W<420?36:46))+'" y="12">Cumulative API-equivalent cost</text>'
+    +pilotGridY(L,R,T,B,maxY,pilotAxisMoney)
+    +'<path class="pilot-fade" d="'+area+'" fill="url(#pilotAreaGrad)" stroke="none"/>'
+    +'<path class="pilot-sweep" d="'+d+'" pathLength="1" fill="none" stroke="#4f43c7" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'<line class="base" x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'"/>'
+    +xax
+    +'<g class="pilot-fade"><circle cx="'+ex.toFixed(1)+'" cy="'+ey.toFixed(1)+'" r="4.5" fill="#4f43c7" stroke="#fff" stroke-width="2"/>'
+    +'<text class="val" x="'+(ex-9).toFixed(1)+'" y="'+(ey-9).toFixed(1)+'" text-anchor="end">'+esc(tilde+fmt$(total)+" total")+'</text></g>'
+    +'<text class="axt" x="'+(L-(W<420?36:46))+'" y="'+(ST-12)+'">Cost per day</text>'
+    +'<g class="pilot-rise">'+bars+'</g>'
+    +'<line class="base" x1="'+L+'" y1="'+SB+'" x2="'+R+'" y2="'+SB+'"/>'
+    +'<text class="lbl" x="'+R+'" y="'+(ST-12)+'" text-anchor="end">'+esc("Busiest day: "+pilotDayLabel(peak.day)+", "+tilde+fmt$(peak.cost))+'</text>';
+  var label="Cumulative API-equivalent cost across "+fmtN(pts.length)+" active days, from "+pilotDayLabel(pts[0].day)
+    +" to "+pilotDayLabel(pts[pts.length-1].day)+", rising to "+tilde+fmt$(total)
+    +". The busiest single day was "+pilotDayLabel(peak.day)+" at "+tilde+fmt$(peak.cost)+".";
+  var caption="Every dot of spend you have built up, day by day, ending at "+tilde+fmt$(total)+". The lower strip is what each day cost on its own."
+    +(unpricedDays?" On "+fmtN(unpricedDays)+" of these days at least one AI version had no checked price, so those days show only the part TOP could price.":"");
+  return pilotFigure(pilotSvg(W,H,label,body),caption)
+    +pilotFoot("Dates are the ones your own tool recorded, read as written and not adjusted for time zones. This is a comparison against published API rates, not your subscription bill.");
+}
+// Three or four active days: bars on the real dates. No connecting line, because three points do
+// not make a trajectory and a line would imply one.
+function pilotDayBarsChartHTML(pts,total,res,unpricedDays){
+  var W=pilotChartW(),L=W<420?44:54,R=W-14,T=26,B=190,H=214,tilde=res.estimate?"~":"";
+  var maxY=pilotNiceMax(pts.reduce(function(m,p){return Math.max(m,p.cost)},0));
+  function yOf(v){return B-(v/maxY)*(B-T)}
+  var slot=(R-L)/pts.length,bw=Math.min(58,slot*0.6);
+  var bars=pts.map(function(p,idx){
+    var cx=L+slot*(idx+0.5),y=yOf(p.cost);
+    return '<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,B-y).toFixed(1)+'" rx="3" fill="#6556dd" opacity=".78"/>';
+  }).join("");
+  var labels=pts.map(function(p,idx){
+    var cx=L+slot*(idx+0.5);
+    return '<text class="ax" x="'+cx.toFixed(1)+'" y="'+(B+16)+'" text-anchor="middle">'+esc(pilotDayLabel(p.day))+'</text>'
+      +'<text class="val" x="'+cx.toFixed(1)+'" y="'+(yOf(p.cost)-7).toFixed(1)+'" text-anchor="middle">'+esc(tilde+fmt$(p.cost))+'</text>';
+  }).join("");
+  var body='<text class="axt" x="'+(L-(W<420?36:46))+'" y="13">Cost per active day</text>'
+    +pilotGridY(L,R,T,B,maxY,pilotAxisMoney)
+    +'<g class="pilot-rise">'+bars+'</g>'
+    +'<line class="base" x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'"/>'
+    +'<g class="pilot-fade">'+labels+'</g>';
+  var label="API-equivalent cost on each of "+fmtN(pts.length)+" active days, totalling "+tilde+fmt$(total)+". "
+    +pts.map(function(p){return pilotDayLabel(p.day)+", "+tilde+fmt$(p.cost)}).join(". ")+".";
+  return pilotFigure(pilotSvg(W,H,label,body),
+    "TOP found "+fmtN(pts.length)+" active days, worth "+tilde+fmt$(total)+" in all. That is too few to draw a trend, so these are just the days themselves. Come back after a couple of weeks and this becomes a curve."
+    +(unpricedDays?" On "+fmtN(unpricedDays)+" of them at least one AI version had no checked price.":""))
+    +pilotFoot("Dates are the ones your own tool recorded, read as written and not adjusted for time zones.");
+}
+// The v2 safe usage file carries calendar months and no per-model split inside a month, so a dollar
+// curve cannot be built from it honestly. It gets the same shape in tokens instead.
+function pilotMonthlyTokenChartHTML(res){
+  var aggregate=res&&res.pilotV2Aggregate;
+  if(!aggregate||!aggregate.timeline||!Array.isArray(aggregate.timeline.periods))return "";
+  var periods=aggregate.timeline.periods.filter(function(row){return row.period!=="undated"&&row.total_tokens>0}).slice(-12);
+  if(periods.length<2)return "";
+  var W=pilotChartW(),L=W<420?44:52,R=W-14,T=26,B=188,H=212;
+  var maxY=pilotNiceMax(periods.reduce(function(m,p){return Math.max(m,p.total_tokens)},0));
+  function yOf(v){return B-(v/maxY)*(B-T)}
+  var slot=(R-L)/periods.length,bw=Math.min(46,slot*0.62),every=periods.length>7?2:1;
+  var bars=periods.map(function(p,idx){
+    var cx=L+slot*(idx+0.5),y=yOf(p.total_tokens);
+    return '<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,B-y).toFixed(1)+'" rx="3" fill="#6556dd" opacity=".78"/>';
+  }).join("");
+  var labels=periods.map(function(p,idx){
+    if(idx%every)return "";
+    return '<text class="ax" x="'+(L+slot*(idx+0.5)).toFixed(1)+'" y="'+(B+16)+'" text-anchor="middle">'+esc(pilotMonthLabel(p.period))+'</text>';
+  }).join("");
+  var total=periods.reduce(function(s,p){return s+p.total_tokens},0);
+  var body='<text class="axt" x="'+(L-(W<420?36:44))+'" y="13">Tokens per month</text>'
+    +pilotGridY(L,R,T,B,maxY,pilotAxisTokens)
+    +'<g class="pilot-rise">'+bars+'</g>'
+    +'<line class="base" x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'"/>'
+    +labels;
+  return pilotFigure(pilotSvg(W,H,"Tokens recorded in each of "+fmtN(periods.length)+" months, totalling "+fmtN(total)+" tokens.",body),
+    "Your shareable file records calendar months, not single days, and it does not say which AI version ran in which month. TOP will not split a month's cost across models by guessing, so this shows the shape in tokens.")
+    +pilotFoot("Months come from source date prefixes and are not adjusted for time zones.");
+}
+function pilotScaleChartHTML(res){
+  var series=pilotDailyCostSeries(res);
+  if(!series||!series.points.length)return pilotMonthlyTokenChartHTML(res);
+  var pts=series.points,total=pts.reduce(function(s,p){return s+p.cost},0),tilde=res.estimate?"~":"";
+  if(!(total>0))return pilotMonthlyTokenChartHTML(res);
+  if(pts.length<3){
+    var said=pts.map(function(p){return pilotDayLabel(p.day)+" at "+tilde+fmt$(p.cost)});
+    return pilotPlain(pts.length===1
+      ?"All of the priced work in these files lands on a single day, "+said[0]+". One point is not a trend, so TOP is not drawing a curve through it. Come back after a week of work and this becomes one."
+      :"TOP found two priced days here, "+said[0]+" and "+said[1]+". A line through two points can be made to say almost anything, so TOP is not drawing one.");
+  }
+  return pts.length<5
+    ?pilotDayBarsChartHTML(pts,total,res,series.unpricedDays)
+    :pilotCumulativeChartHTML(pts,total,res,series.unpricedDays);
+}
+// Step 2: tokens are not dollars. Two 100% columns joined by one ribbon per AI version, so a thin
+// band of tokens swelling into a fat band of cost is the whole argument in one picture.
+function pilotMixChartHTML(rows,pricedTotal,res,unpriced){
+  var entries=rows.map(function(r){
+    return {label:safePublicModelLabel(r.model),tokens:r.e.inp+r.e.out+r.e.cw+r.e.cr,
+            cost:(r.cost===null||!r.complete||!(r.cost>0))?0:r.cost,priced:r.cost!==null&&r.complete&&r.cost>0};
+  }).filter(function(e){return e.tokens>0});
+  if(!entries.length)return "";
+  if(!(pricedTotal>0))return pilotPlain("TOP could not match any of these AI versions to a checked price, so there is no cost mix to hold up against the token mix. Nothing has been guessed to fill the gap.");
+  if(entries.length===1)return pilotPlain("Everything in these files ran on one AI version, "+entries[0].label+", so there is no mix to compare yet.");
+  entries.sort(function(a,b){
+    if(a.priced!==b.priced)return a.priced?-1:1;
+    if(b.cost!==a.cost)return b.cost-a.cost;
+    return b.tokens-a.tokens;
+  });
+  if(entries.length>6){
+    var rest=entries.slice(6);
+    entries=entries.slice(0,6);
+    entries.push({label:"Other AI versions ("+rest.length+")",
+      tokens:rest.reduce(function(s,e){return s+e.tokens},0),
+      cost:rest.reduce(function(s,e){return s+e.cost},0),
+      priced:rest.some(function(e){return e.priced}),grouped:true});
+  }
+  var tokTotal=entries.reduce(function(s,e){return s+e.tokens},0),
+      costTotal=entries.reduce(function(s,e){return s+e.cost},0);
+  if(!(tokTotal>0)||!(costTotal>0))return "";
+  var W=pilotChartW(),narrow=W<430,H=302,T=46,B=H-30;
+  var colW=narrow?20:32,leftX=Math.round(W*(narrow?0.40:0.34)),rightX=Math.round(W*(narrow?0.66:0.62));
+  var nameMax=Math.max(6,Math.floor((leftX-10)/6.3));
+  var gap=2,usableL=(B-T)-(entries.length-1)*gap,
+      pricedCount=entries.filter(function(e){return e.cost>0}).length,
+      usableR=(B-T)-Math.max(0,pricedCount-1)*gap;
+  var yL=T,yR=T,ribbons="",left="",right="",names="";
+  var x1=leftX+colW,x2=rightX,mx=(x1+x2)/2;
+  entries.forEach(function(e,idx){
+    var color=e.priced?PILOT_MODEL_COLORS[idx%PILOT_MODEL_COLORS.length]:PILOT_UNPRICED_COLOR;
+    var hL=Math.max(1,e.tokens/tokTotal*usableL),aT=yL,aB=yL+hL;
+    var hR=e.cost>0?Math.max(1,e.cost/costTotal*usableR):0,bT=yR,bB=yR+hR;
+    ribbons+='<path d="M '+x1+' '+aT.toFixed(1)+' C '+mx+' '+aT.toFixed(1)+', '+mx+' '+bT.toFixed(1)+', '+x2+' '+bT.toFixed(1)
+      +' L '+x2+' '+bB.toFixed(1)+' C '+mx+' '+bB.toFixed(1)+', '+mx+' '+aB.toFixed(1)+', '+x1+' '+aB.toFixed(1)+' Z" fill="'+color+'" opacity=".2"/>';
+    left+='<rect x="'+leftX+'" y="'+aT.toFixed(1)+'" width="'+colW+'" height="'+hL.toFixed(1)+'" rx="2" fill="'+color+'"/>';
+    if(hR>0)right+='<rect x="'+rightX+'" y="'+bT.toFixed(1)+'" width="'+colW+'" height="'+hR.toFixed(1)+'" rx="2" fill="'+color+'"/>';
+    names+='<text class="lbl" x="'+(leftX-8)+'" y="'+(aT+hL/2+3.8).toFixed(1)+'" text-anchor="end">'+esc(pilotShortLabel(e.label,nameMax))+'</text>';
+    if(hL>=13)names+='<text class="ax" x="'+(leftX+colW+6)+'" y="'+(aT+hL/2+3.6).toFixed(1)+'">'+esc(pilotPct(e.tokens,tokTotal)+"%")+'</text>';
+    if(hR>=13)names+='<text class="val" x="'+(rightX+colW+7)+'" y="'+(bT+hR/2+4).toFixed(1)+'">'+esc(pilotPct(e.cost,costTotal)+"%")+'</text>';
+    else if(!e.priced)names+='<text class="ax" x="'+(rightX+colW+7)+'" y="'+(bT+4).toFixed(1)+'">'+esc("Not priced")+'</text>';
+    yL=aB+gap;
+    if(hR>0)yR=bB+gap;
+  });
+  var body='<text class="axt" x="'+(leftX+colW/2)+'" y="26" text-anchor="middle">'+esc(narrow?"Tokens":"Share of tokens")+'</text>'
+    +'<text class="axt" x="'+(rightX+colW/2)+'" y="26" text-anchor="middle">'+esc(narrow?"Cost":"Share of cost")+'</text>'
+    +'<g class="pilot-fade">'+ribbons+'</g><g>'+left+right+'</g><g class="pilot-fade">'+names+'</g>';
+  var top=entries[0],tilde=res.estimate?"~":"";
+  var label="Two columns. On the left, share of all "+fmtN(tokTotal)+" recorded tokens by AI version. On the right, share of the "
+    +tilde+fmt$(costTotal)+" API-equivalent cost. "
+    +entries.map(function(e){return e.label+": "+pilotPct(e.tokens,tokTotal)+"% of tokens, "+(e.cost>0?pilotPct(e.cost,costTotal)+"% of cost":"not priced")}).join(". ")+".";
+  var caption=top.cost>0
+    ?top.label+" is "+pilotPct(top.tokens,tokTotal)+"% of your tokens and "+pilotPct(top.cost,costTotal)+"% of your cost. Token counts and dollars are not the same shape, which is exactly why the cheapest thing to change is often which model runs the work."
+    :"Each ribbon is one AI version, crossing from its share of tokens to its share of cost.";
+  return pilotFigure(pilotSvg(W,H,label,body),caption)
+    +(unpriced&&unpriced.length
+      ?pilotFoot("Not priced, and therefore absent from the cost column rather than guessed: "+unpriced.join(", ")+".")
+      :"");
+}
+// Step 3: the cache lever. The same four token types, once by count and once by cost.
+function pilotCacheChartHTML(rows,res,totals){
+  var tokTotal=totals.inp+totals.out+totals.cw+totals.cr;
+  if(!(tokTotal>0))return "";
+  var rate=pilotRatePriced(res),costs={inp:0,out:0,cw:0,cr:0},full=0,costTotal=0;
+  if(rate)rows.forEach(function(r){
+    var p=priceFor(r.model);if(!p)return;
+    costs.inp+=r.e.inp*p.in/1e6;
+    costs.cw+=r.e.cw*cacheWriteRate(p)/1e6;
+    costs.cr+=r.e.cr*cacheReadRate(p)/1e6;
+    costs.out+=r.e.out*p.out/1e6;
+    full+=r.e.cr*p.in/1e6;
+  });
+  costTotal=costs.inp+costs.cw+costs.cr+costs.out;
+  var twin=costTotal>0,W=pilotChartW(),narrow=W<430;
+  var L=narrow?46:64,R=W-14,H=twin?150:88,bh=34,yA=38,yB=100;
+  function segs(get,total,y,clip){
+    var x=L,out="";
+    PILOT_TYPE_ORDER.forEach(function(t){
+      var v=get(t[0]);if(!(v>0))return;
+      var w=v/total*(R-L);
+      out+='<rect x="'+x.toFixed(1)+'" y="'+y+'" width="'+Math.max(0.6,w).toFixed(1)+'" height="'+bh+'" fill="'+t[2]+'"/>';
+      x+=w;
+    });
+    return '<g clip-path="url(#'+clip+')" class="pilot-grow">'+out+'</g>';
+  }
+  function pcts(get,total,y){
+    var x=L,out="";
+    PILOT_TYPE_ORDER.forEach(function(t){
+      var v=get(t[0]);if(!(v>0))return;
+      var w=v/total*(R-L);
+      if(w>=34)out+='<text class="valin" x="'+(x+w/2).toFixed(1)+'" y="'+(y+bh/2+4)+'" text-anchor="middle">'+esc(pilotPct(v,total)+"%")+'</text>';
+      x+=w;
+    });
+    return out;
+  }
+  var tokGet=function(k){return totals[k]},costGet=function(k){return costs[k]};
+  var body='<defs><clipPath id="pilotCacheClipA"><rect x="'+L+'" y="'+yA+'" width="'+(R-L)+'" height="'+bh+'" rx="8"/></clipPath>'
+    +'<clipPath id="pilotCacheClipB"><rect x="'+L+'" y="'+yB+'" width="'+(R-L)+'" height="'+bh+'" rx="8"/></clipPath></defs>'
+    +'<text class="axt" x="'+L+'" y="16">'+esc(twin?"The same tokens, counted and then priced":"How your tokens split by type")+'</text>'
+    +'<text class="axt" x="'+(L-8)+'" y="'+(yA+bh/2+4)+'" text-anchor="end">'+esc(narrow?"Count":"Tokens")+'</text>'
+    +segs(tokGet,tokTotal,yA,"pilotCacheClipA")
+    +'<g class="pilot-fade">'+pcts(tokGet,tokTotal,yA)+'</g>';
+  if(twin)body+='<text class="axt" x="'+(L-8)+'" y="'+(yB+bh/2+4)+'" text-anchor="end">'+esc("Cost")+'</text>'
+    +segs(costGet,costTotal,yB,"pilotCacheClipB")
+    +'<g class="pilot-fade">'+pcts(costGet,costTotal,yB)+'</g>';
+  var label="Two bars over the same four token types. By count: "
+    +PILOT_TYPE_ORDER.map(function(t){return t[1]+" "+pilotPct(totals[t[0]],tokTotal)+"%"}).join(", ")+"."
+    +(twin?" By cost: "+PILOT_TYPE_ORDER.map(function(t){return t[1]+" "+pilotPct(costs[t[0]],costTotal)+"%"}).join(", ")+".":"");
+  var crPct=pilotPct(totals.cr,tokTotal),tilde=res.estimate?"~":"";
+  var caption=twin
+    ?"The top bar is how many tokens of each kind you used. The bottom bar is what each kind actually cost. They are not the same bar, and that gap is what infrastructure is worth."
+    :"How your tokens split by type. This source does not carry the rates TOP would need to price each type separately.";
+  var out=pilotFigure(pilotSvg(W,H,label,body),caption)+pilotLegend(PILOT_TYPE_ORDER.map(function(t){return [t[1],t[2]]}));
+  if(twin&&totals.cr>0&&full>0){
+    out+='<p class="pilot-chart-lever"><strong>'+esc(fmtN(totals.cr)+" tokens, "+crPct+"% of everything counted here, were reused from a saved copy.")+'</strong> '
+      +esc("Reused text is priced at "+CACHE_READ_MULTIPLIER+" times the input rate, so it carries "+pilotPct(costs.cr,costTotal)+"% of your cost rather than "+crPct+"%. At the full input rate that same count of tokens would come to "+tilde+fmt$(full)+".")+'</p>'
+      +pilotFoot("That last figure is arithmetic on the published rate card, not a measured saving. TOP has not tested what this work would have cost without caching, and it is not claiming you saved the difference.");
+  }
+  return out;
+}
+// Step 4: how much of the priced spend sits in frontier-tier models. TOP-2 is the open question
+// this raises, not an answer this chart gives.
+function pilotRoutingChartHTML(rows,res){
+  if(!pilotRatePriced(res))return "";
+  var tiers={frontier:0,mid:0,cheap:0},total=0;
+  rows.forEach(function(r){
+    if(r.cost===null||!r.complete||!(r.cost>0))return;
+    var tier=tierOf(r.model);
+    if(tiers[tier]===undefined)return;
+    tiers[tier]+=r.cost;total+=r.cost;
+  });
+  if(!(total>0))return "";
+  var W=pilotChartW(),L=14,R=W-14,H=84,bh=36,y=32;
+  var x=L,segs="",labels="";
+  PILOT_TIER_ORDER.forEach(function(t){
+    var v=tiers[t[0]];if(!(v>0))return;
+    var w=v/total*(R-L);
+    segs+='<rect x="'+x.toFixed(1)+'" y="'+y+'" width="'+Math.max(0.6,w).toFixed(1)+'" height="'+bh+'" fill="'+t[2]+'"/>';
+    if(w>=42)labels+='<text class="valin" x="'+(x+w/2).toFixed(1)+'" y="'+(y+bh/2+4)+'" text-anchor="middle">'+esc(pilotPct(v,total)+"%")+'</text>';
+    x+=w;
+  });
+  var tilde=res.estimate?"~":"";
+  var body='<defs><clipPath id="pilotTierClip"><rect x="'+L+'" y="'+y+'" width="'+(R-L)+'" height="'+bh+'" rx="9"/></clipPath></defs>'
+    +'<text class="axt" x="'+L+'" y="16">'+esc("Where your "+tilde+fmt$(total)+" of priced spend sits")+'</text>'
+    +'<g clip-path="url(#pilotTierClip)" class="pilot-grow">'+segs+'</g>'
+    +'<g class="pilot-fade">'+labels+'</g>';
+  var label="One bar splitting "+tilde+fmt$(total)+" of priced spend by model tier: "
+    +PILOT_TIER_ORDER.filter(function(t){return tiers[t[0]]>0}).map(function(t){return t[1]+" "+tilde+fmt$(tiers[t[0]])+", "+pilotPct(tiers[t[0]],total)+"%"}).join(", ")+".";
+  var caption=tiers.frontier>0
+    ?tilde+fmt$(tiers.frontier)+" of your "+tilde+fmt$(total)+", "+pilotPct(tiers.frontier,total)+"%, ran on frontier-tier models. Could some of that work have run on a cheaper model without changing the answer? TOP does not know yet, and will not guess. That question is what TOP-2 exists to test."
+    :"None of your priced spend sits in the frontier tier, so there is little for a router to move.";
+  return pilotFigure(pilotSvg(W,H,label,body),caption)
+    +pilotLegend(PILOT_TIER_ORDER.filter(function(t){return tiers[t[0]]>0}).map(function(t){return [t[1],t[2]]}))
+    +pilotFoot("Tiers are grouped from the published rate card TOP already applied. No routing has been run, benchmarked or forecast.");
+}
+// Step 5: cost concentration. Scale-free, so it works for a light user and a heavy one, and it is
+// the honest way to say that a usage pattern is not the average the defaults were tuned for.
+function pilotShapeChartHTML(res){
+  var buckets=res&&res.sessionBuckets;
+  if(!buckets||!buckets.length||!pilotRatePriced(res))return pilotShapeBucketChartHTML(res);
+  var costs=[];
+  buckets.forEach(function(session){
+    var cost=0,priced=false;
+    Object.keys(session.by).forEach(function(model){
+      var e=session.by[model],c=costOf(model,e.inp,e.out,e.cw,e.cr);
+      if(c===null)return;
+      cost+=c;priced=true;
+    });
+    if(priced&&cost>0)costs.push(cost);
+  });
+  if(costs.length<5)return pilotShapeBucketChartHTML(res);
+  costs.sort(function(a,b){return b-a});
+  var n=costs.length,total=costs.reduce(function(s,c){return s+c},0);
+  if(!(total>0))return pilotShapeBucketChartHTML(res);
+  var cum=[0],i;
+  for(i=0;i<n;i++)cum.push(cum[i]+costs[i]);
+  var W=pilotChartW(),narrow=W<430,L=narrow?40:50,R=W-16,T=20,B=W<520?214:244,H=B+40;
+  function xOf(k){return L+(k/n)*(R-L)}
+  function yOf(v){return B-(v/total)*(B-T)}
+  var step=Math.max(1,Math.ceil(n/180)),d="M "+xOf(0).toFixed(1)+" "+yOf(0).toFixed(1);
+  for(i=step;i<n;i+=step)d+=" L "+xOf(i).toFixed(1)+" "+yOf(cum[i]).toFixed(1);
+  d+=" L "+xOf(n).toFixed(1)+" "+yOf(total).toFixed(1);
+  var k10=Math.max(1,Math.round(n*0.1)),share10=cum[k10]/total;
+  var grid="",g;
+  for(g=0;g<=4;g++){
+    var gv=total*g/4,gy=yOf(gv);
+    grid+='<line class="grid" x1="'+L+'" y1="'+gy.toFixed(1)+'" x2="'+R+'" y2="'+gy.toFixed(1)+'"/>'
+      +'<text class="ax" x="'+(L-7)+'" y="'+(gy+3.6).toFixed(1)+'" text-anchor="end">'+esc(g*25+"%")+'</text>';
+  }
+  var mx=xOf(k10),my=yOf(cum[k10]);
+  var body='<defs><linearGradient id="pilotShapeGrad" x1="0" y1="0" x2="0" y2="1">'
+    +'<stop offset="0" stop-color="#6556dd" stop-opacity=".26"/><stop offset="1" stop-color="#6556dd" stop-opacity=".03"/></linearGradient></defs>'
+    +'<text class="axt" x="'+(L-(narrow?32:42))+'" y="12">Share of your cost</text>'
+    +grid
+    +'<path class="pilot-fade" d="'+d+' L '+xOf(n).toFixed(1)+' '+yOf(0).toFixed(1)+' Z" fill="url(#pilotShapeGrad)" stroke="none"/>'
+    +'<line x1="'+xOf(0).toFixed(1)+'" y1="'+yOf(0).toFixed(1)+'" x2="'+xOf(n).toFixed(1)+'" y2="'+yOf(total).toFixed(1)+'" stroke="#9db3c3" stroke-width="1.5" stroke-dasharray="5 4"/>'
+    +'<path class="pilot-sweep" d="'+d+'" pathLength="1" fill="none" stroke="#4f43c7" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'<line class="base" x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'"/>'
+    +'<text class="ax" x="'+L+'" y="'+(B+16)+'">0%</text>'
+    +'<text class="ax" x="'+((L+R)/2).toFixed(1)+'" y="'+(B+16)+'" text-anchor="middle">'+esc(narrow?"Sessions, busiest first":"Your work sessions, busiest first")+'</text>'
+    +'<text class="ax" x="'+R+'" y="'+(B+16)+'" text-anchor="end">100%</text>'
+    +'<g class="pilot-fade"><circle cx="'+mx.toFixed(1)+'" cy="'+my.toFixed(1)+'" r="4.5" fill="#c07a10" stroke="#fff" stroke-width="2"/>'
+    +'<text class="val" x="'+(mx+9).toFixed(1)+'" y="'+(my+(my<T+26?18:-9)).toFixed(1)+'">'+esc("Busiest 10% carry "+Math.round(share10*100)+"%")+'</text></g>'
+    +'<text class="lbl" x="'+R+'" y="'+(B-8)+'" text-anchor="end">'+esc("Dashed line: every session costing the same")+'</text>';
+  var label="Cost concentration across "+fmtN(n)+" priced work sessions, sorted busiest first. The busiest "
+    +fmtN(k10)+" sessions carry "+Math.round(share10*100)+"% of the cost. A dashed diagonal shows what it would look like if every session cost the same.";
+  return pilotFigure(pilotSvg(W,H,label,body),
+    "Your busiest "+fmtN(k10)+" sessions, "+pilotPct(k10,n)+"% of the "+fmtN(n)+" TOP could price, carry "+Math.round(share10*100)
+    +"% of your cost. Defaults are tuned for the middle of a curve like this. You are not in the middle of yours.")
+    +pilotFoot("Sessions with no priced AI version are left out rather than counted at a guessed rate. TOP read usage counters only, never the content of a session.");
+}
+// The v2 safe usage file has no per-session cost, but it does carry the collector's own session
+// size buckets. Real counts, drawn as they are.
+function pilotShapeBucketChartHTML(res){
+  var aggregate=res&&res.pilotV2Aggregate;
+  if(!aggregate||!aggregate.session_distributions)return "";
+  var dist=aggregate.session_distributions.total_tokens_per_session;
+  if(!dist)return "";
+  var items=[["under_10k","Under 10k"],["ten_to_49k","10k to 49k"],["fifty_to_199k","50k to 199k"],["two_hundred_to_999k","200k to 999k"],["one_million_plus","1M or more"]];
+  var total=items.reduce(function(s,it){return s+(dist[it[0]]||0)},0);
+  if(!(total>0))return "";
+  var W=pilotChartW(),L=W<420?40:48,R=W-14,T=30,B=178,H=222;
+  var maxY=pilotNiceMax(items.reduce(function(m,it){return Math.max(m,dist[it[0]]||0)},0));
+  function yOf(v){return B-(v/maxY)*(B-T)}
+  var slot=(R-L)/items.length,bw=Math.min(56,slot*0.6),bars="",labels="";
+  items.forEach(function(it,idx){
+    var v=dist[it[0]]||0,cx=L+slot*(idx+0.5),y=yOf(v);
+    bars+='<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,B-y).toFixed(1)+'" rx="3" fill="#6556dd" opacity=".78"/>';
+    labels+='<text class="ax" x="'+cx.toFixed(1)+'" y="'+(B+16)+'" text-anchor="middle">'+esc(it[1])+'</text>'
+      +(v>0?'<text class="val" x="'+cx.toFixed(1)+'" y="'+(y-7).toFixed(1)+'" text-anchor="middle">'+esc(fmtN(v))+'</text>':"");
+  });
+  var body='<text class="axt" x="'+(L-(W<420?32:40))+'" y="14">Sessions by total tokens</text>'
+    +pilotGridY(L,R,T,B,maxY,pilotAxisTokens)
+    +'<g class="pilot-rise">'+bars+'</g>'
+    +'<line class="base" x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'"/>'
+    +'<g class="pilot-fade">'+labels+'</g>';
+  return pilotFigure(pilotSvg(W,H,"How "+fmtN(total)+" logical sessions split by total tokens: "
+      +items.map(function(it){return it[1]+", "+fmtN(dist[it[0]]||0)+" sessions"}).join(". ")+".",body),
+    "Your "+fmtN(total)+" sessions are not one size. Your shareable file records session sizes but not per-session cost, so this counts sessions rather than dollars.");
+}
+// Chart state is kept so a viewport width change can redraw without re-parsing anything.
+var PILOT_CHART_STATE=null,PILOT_CHART_W=0,PILOT_CHART_TIMER=null;
+function pilotSetChart(id,html){var el=document.getElementById(id);if(el)el.innerHTML=html||""}
+function pilotDrawCharts(force){
+  var s=PILOT_CHART_STATE;if(!s)return;
+  var w=pilotChartW();
+  if(!force&&w===PILOT_CHART_W)return;
+  PILOT_CHART_W=w;
+  pilotSetChart("pilotChartScale",pilotScaleChartHTML(s.res));
+  pilotSetChart("pilotChartMix",pilotMixChartHTML(s.rows,s.pricedTotal,s.res,s.unpriced));
+  pilotSetChart("pilotChartCache",pilotCacheChartHTML(s.rows,s.res,s.totals));
+  pilotSetChart("pilotChartRouting",pilotRoutingChartHTML(s.rows,s.res));
+  pilotSetChart("pilotChartShape",pilotShapeChartHTML(s.res));
+}
+window.addEventListener("resize",function(){
+  if(!PILOT_MODE||!PILOT_CHART_STATE)return;
+  if(PILOT_CHART_TIMER)clearTimeout(PILOT_CHART_TIMER);
+  PILOT_CHART_TIMER=setTimeout(function(){pilotDrawCharts(false)},180);
+});
+// ---------- pilot report stepper ----------
+// One idea per screen. The share rail above the deck stays visible on every step and never gates the report.
+var PILOT_STEP_IDS=["pilotStepScale","pilotStepMix","pilotStepCache","pilotStepRouting","pilotStepShape"];
+var PILOT_ACTIVE_STEPS=[],PILOT_STEP_INDEX=0,PILOT_SHOW_ALL=false;
+function pilotStepLabel(id){var el=document.getElementById(id);return el&&el.dataset?(el.dataset.stepLabel||""):""}
+function pilotStepFromHash(){var match=/(?:^|[#&])step=(\d+)/.exec(String(window.location.hash||""));return match?parseInt(match[1],10)-1:-1}
+function pilotWriteStepHash(){
+  if(!PILOT_MODE)return;
+  var target="#step="+(PILOT_STEP_INDEX+1);
+  if(window.location.hash===target)return;
+  // replaceState keeps the step in the URL across a reload. It is a same-document history entry, never a request.
+  try{history.replaceState(null,"",target)}catch(err){}
+}
+function pilotRenderStepDots(){
+  var dots=document.getElementById("pilotStepDots");if(!dots)return;
+  var total=PILOT_ACTIVE_STEPS.length;
+  dots.innerHTML=PILOT_ACTIVE_STEPS.map(function(id,index){
+    return '<button type="button" class="pilot-stepdot" data-step-index="'+index+'" aria-label="Step '+fmtN(index+1)+' of '+fmtN(total)+': '+esc(pilotStepLabel(id))+'"></button>';
+  }).join("");
+}
+function pilotSyncSteps(){
+  var stepper=document.getElementById("pilotStepper"),total=PILOT_ACTIVE_STEPS.length;
+  if(!stepper||!total)return;
+  PILOT_STEP_IDS.forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    var position=PILOT_ACTIVE_STEPS.indexOf(id),shown=position>=0&&(PILOT_SHOW_ALL||position===PILOT_STEP_INDEX);
+    el.hidden=!shown;
+    el.classList.toggle("on",shown);
+  });
+  Array.prototype.forEach.call(stepper.querySelectorAll(".pilot-stepdot"),function(dot,index){
+    var current=!PILOT_SHOW_ALL&&index===PILOT_STEP_INDEX;
+    dot.classList.toggle("on",current);
+    if(current)dot.setAttribute("aria-current","step");else dot.removeAttribute("aria-current");
+  });
+  stepper.classList.toggle("show-all",PILOT_SHOW_ALL);
+  document.getElementById("pilotStepBack").disabled=PILOT_SHOW_ALL||PILOT_STEP_INDEX<=0;
+  document.getElementById("pilotStepNext").disabled=PILOT_SHOW_ALL||PILOT_STEP_INDEX>=total-1;
+  document.getElementById("pilotStepCount").textContent=PILOT_SHOW_ALL
+    ?("All "+fmtN(total)+" steps, on one page.")
+    :("Step "+fmtN(PILOT_STEP_INDEX+1)+" of "+fmtN(total)+": "+pilotStepLabel(PILOT_ACTIVE_STEPS[PILOT_STEP_INDEX]));
+  document.getElementById("pilotShowAll").textContent=PILOT_SHOW_ALL?"Go back to one step at a time":"See it all on one page";
+}
+function pilotGoToStep(index,moveFocus){
+  var total=PILOT_ACTIVE_STEPS.length;if(!total)return;
+  PILOT_SHOW_ALL=false;
+  PILOT_STEP_INDEX=Math.max(0,Math.min(total-1,index));
+  pilotSyncSteps();
+  pilotWriteStepHash();
+  if(moveFocus){
+    var step=document.getElementById(PILOT_ACTIVE_STEPS[PILOT_STEP_INDEX]),heading=step&&step.querySelector('[tabindex="-1"]');
+    if(heading)heading.focus({preventScroll:true});
+  }
+}
+function pilotConfigureSteps(facts){
+  // A step only exists when the chosen files actually carry the numbers behind it. Nothing is invented to fill a slot.
+  var enabled=["pilotStepScale"];
+  if(facts.models>0)enabled.push("pilotStepMix");
+  if(facts.cacheTokens>0)enabled.push("pilotStepCache");
+  enabled.push("pilotStepRouting");
+  enabled.push("pilotStepShape");
+  var unchanged=enabled.length===PILOT_ACTIVE_STEPS.length&&enabled.every(function(id,index){return PILOT_ACTIVE_STEPS[index]===id});
+  PILOT_ACTIVE_STEPS=enabled;
+  if(unchanged){
+    // A price edit re-renders the same report. Keep the reader where they were.
+    PILOT_STEP_INDEX=Math.max(0,Math.min(enabled.length-1,PILOT_STEP_INDEX));
+  }else{
+    pilotRenderStepDots();
+    var fromHash=pilotStepFromHash();
+    PILOT_STEP_INDEX=fromHash>=0&&fromHash<enabled.length?fromHash:0;
+  }
+  pilotSyncSteps();
+  pilotWriteStepHash();
+}
+document.getElementById("pilotStepNext").addEventListener("click",function(){pilotGoToStep(PILOT_STEP_INDEX+1,true)});
+document.getElementById("pilotStepBack").addEventListener("click",function(){pilotGoToStep(PILOT_STEP_INDEX-1,true)});
+document.getElementById("pilotStepDots").addEventListener("click",function(event){
+  var dot=event.target.closest("[data-step-index]");
+  if(dot)pilotGoToStep(parseInt(dot.dataset.stepIndex,10),true);
+});
+document.getElementById("pilotShowAll").addEventListener("click",function(event){
+  event.preventDefault();
+  PILOT_SHOW_ALL=!PILOT_SHOW_ALL;
+  pilotSyncSteps();
+  if(!PILOT_SHOW_ALL)pilotWriteStepHash();
+});
+window.addEventListener("hashchange",function(){
+  if(!PILOT_MODE||PILOT_SHOW_ALL)return;
+  var fromHash=pilotStepFromHash();
+  if(fromHash>=0&&fromHash<PILOT_ACTIVE_STEPS.length&&fromHash!==PILOT_STEP_INDEX)pilotGoToStep(fromHash,false);
+});
+document.addEventListener("keydown",function(event){
+  if(!PILOT_MODE||PILOT_SHOW_ALL)return;
+  if(event.key!=="ArrowLeft"&&event.key!=="ArrowRight")return;
+  if(event.metaKey||event.ctrlKey||event.altKey||event.shiftKey)return;
+  var report=document.getElementById("pilotQuickReport");
+  if(!report||report.hidden)return;
+  var target=event.target;
+  if(target&&target.closest&&target.closest('input,textarea,select,[contenteditable="true"]'))return;
+  event.preventDefault();
+  pilotGoToStep(PILOT_STEP_INDEX+(event.key==="ArrowRight"?1:-1),true);
+});
+// ---------- plain-English description of the shareable file ----------
+// Every line below is read back out of the exact object that gets serialized, so the words cannot drift from the file.
+var RESEARCH_EXCLUSION_WORDS={prompts:"your prompts",replies:"the AI's replies",code:"your code",tool_output:"tool output",paths:"file paths",filenames:"file names",project_and_account_identifiers:"project and account names",email_addresses:"email addresses",exact_timestamps:"exact times",original_ids:"original id numbers"};
+function plainWordList(items){
+  var list=(items||[]).filter(function(item){return item});
+  if(!list.length)return "";
+  if(list.length===1)return list[0];
+  return list.slice(0,-1).join(", ")+" and "+list[list.length-1];
+}
+function plainCount(value){return value===null||value===undefined?null:fmtN(value)}
+function describeResearchSafePlain(data){
+  if(!data)return null;
+  var totals=data.totals||{},activity=data.activity||{},cost=data.cost||{},pricing=data.pricing||{},lines=[];
+  var breakdown=[
+    plainCount(totals.input_tokens)&&plainCount(totals.input_tokens)+" sent to the AI",
+    plainCount(totals.output_tokens)&&plainCount(totals.output_tokens)+" returned by the AI",
+    plainCount(totals.cache_write_tokens)&&plainCount(totals.cache_write_tokens)+" saved for reuse",
+    plainCount(totals.cache_read_tokens)&&plainCount(totals.cache_read_tokens)+" reused from the saved copy",
+    plainCount(totals.reasoning_tokens)&&plainCount(totals.reasoning_tokens)+" spent on reasoning"
+  ].filter(Boolean);
+  lines.push("Usage totals: "+fmtN(totals.total_tokens||0)+" tokens in all"+(breakdown.length?", made up of "+plainWordList(breakdown):"")+".");
+  var models=Array.isArray(data.by_model)?data.by_model.length:0;
+  lines.push("AI versions: "+fmtN(models)+" model name"+(models===1?"":"s")+", each with its own token counts and cost figure.");
+  var counts=[
+    plainCount(activity.ai_replies)&&plainCount(activity.ai_replies)+" AI replies",
+    plainCount(activity.usage_events)&&plainCount(activity.usage_events)+" usage events",
+    plainCount(activity.console_records)&&plainCount(activity.console_records)+" console records",
+    plainCount(activity.text_messages)&&plainCount(activity.text_messages)+" text messages",
+    plainCount(activity.sessions)&&plainCount(activity.sessions)+" work sessions",
+    plainCount(activity.active_days)&&plainCount(activity.active_days)+" active days"
+  ].filter(Boolean);
+  if(counts.length)lines.push("Activity counts: "+plainWordList(counts)+".");
+  lines.push(cost.usd===null||cost.usd===undefined
+    ?"Cost: no dollar figure, because TOP could not price this file."
+    :"Cost: one figure, "+fmt$(cost.usd)+", as a comparison against published API rates. It is not your subscription bill.");
+  var rates=Array.isArray(pricing.applied_rates)?pricing.applied_rates.length:0;
+  lines.push("Pricing: the "+fmtN(rates)+" published rate card"+(rates===1?"":"s")+" TOP applied, and the date those rates were checked.");
+  var questionnaire=data.questionnaire,answers=questionnaire?Object.keys(questionnaire).reduce(function(sum,key){
+    var value=questionnaire[key];
+    if(Array.isArray(value))return sum+value.length;
+    return sum+(value&&value!=="unrecognized"&&value!=="not_selected"?1:0);
+  },0):0;
+  lines.push(answers
+    ?"Optional answers: "+fmtN(answers)+" category label"+(answers===1?"":"s")+" you picked yourself. No free text is included."
+    :"Optional answers: none included.");
+  if(data.timeline&&Array.isArray(data.timeline.periods)){
+    var periods=data.timeline.periods.length;
+    lines.push("Monthly shape: "+fmtN(periods)+" month row"+(periods===1?"":"s")+" of token counts, session counts and active-day counts. No exact times.");
+  }
+  if(data.value_model&&data.value_model.truth_status&&data.value_model.truth_status!=="not_available")lines.push("Illustration: one example routing scenario, marked in the file as unvalidated and not a forecast result.");
+  var excluded=(Array.isArray(data.privacy&&data.privacy.excluded)?data.privacy.excluded:[]).map(function(key){return RESEARCH_EXCLUSION_WORDS[key]||String(key).replace(/_/g," ")});
+  // The pinned rail shows this single line. The full list stays one click away so the rail never buries the report.
+  var oneLine="Counts and totals only: "+fmtN(totals.total_tokens||0)+" tokens across "+fmtN(models)+" AI version"+(models===1?"":"s")
+    +(cost.usd===null||cost.usd===undefined?"":", with a "+fmt$(cost.usd)+" API-price comparison")
+    +". No prompts, replies, code or file contents.";
+  return {contains:lines,never:excluded.length?("Never included: "+plainWordList(excluded)+"."):"Never included: any of your original file content.",oneLine:oneLine};
+}
+function pilotShareScenario(){var slider=document.getElementById("vmg"),value=slider?parseFloat(slider.value):.4;return isNaN(value)?.4:value}
+function pilotSafeObjectFor(result){
+  try{return buildResearchSafeObject(result,ROUTEB,collectResearchQuestionnaire(),pilotShareScenario(),new Date().toISOString().slice(0,10))}
+  catch(err){return null}
+}
+function pilotRenderSharePlain(listId,neverId,plain){
+  var list=document.getElementById(listId),never=document.getElementById(neverId);
+  if(list)list.innerHTML=plain?plain.contains.map(function(line){return "<li>"+esc(line)+"</li>"}).join(""):"";
+  if(never)never.textContent=plain?plain.never:"";
+}
+function pilotUpdateShareRail(res){
+  var rail=document.getElementById("pilotShareRail");if(!rail)return;
+  var plain=describeResearchSafePlain(pilotSafeObjectFor(res));
+  // With no shareable file there is nothing honest to describe, so the rail stays away rather than promising one.
+  rail.hidden=!plain;
+  if(!plain)return;
+  document.getElementById("pilotShareRailOneLine").textContent=plain.oneLine;
+  pilotRenderSharePlain("pilotShareFacts","pilotShareNever",plain);
+}
+function pilotOpenShareStage(){
+  document.getElementById("pilotShareRailSlim").hidden=true;
+  document.getElementById("pilotShareRailOpen").hidden=false;
+  finishSurvey(true);
+}
+document.getElementById("pilotShareRailGo").addEventListener("click",pilotOpenShareStage);
+document.getElementById("pilotShareRailReopen").addEventListener("click",pilotOpenShareStage);
+document.getElementById("pilotShareRailSkip").addEventListener("click",function(){
+  // Skipping only collapses the rail. The report is never gated behind sharing.
+  document.getElementById("pilotShareRailOpen").hidden=true;
+  document.getElementById("pilotShareRailSlim").hidden=false;
+});
 function revealStandardPostReport(){
   if(PILOT_MODE){
     document.getElementById("shareSummaryBox").hidden=true;
@@ -2303,6 +3158,27 @@ function render(res){
       ?(unpriced.length?"Partial: "+costText+" for models TOP could price":"Ready: "+costText+" across all models")
       :"Not available from this file";
     renderPilotPatterns(res);
+    // Charts are redrawn from the same token counts on every render, including the re-render a price
+    // edit triggers, so a changed rate moves every dollar on every chart.
+    PILOT_CHART_STATE={res:res,rows:rows,pricedTotal:pricedTotal,unpriced:unpriced,
+      totals:{inp:totInp,out:totOut,cw:totCw,cr:totCr}};
+    pilotDrawCharts(true);
+    document.getElementById("pilotMixLead").textContent=fmtN(rows.length)+" AI version"+(rows.length===1?"":"s")+" recorded in the files you chose.";
+    document.getElementById("pilotCacheLead").textContent="Of "+fmtN(totTok)+" recorded tokens, "+fmtN(totInp)+" were sent fresh, "+fmtN(totOut)+" came back, "+fmtN(totCw)+" were saved for reuse and "+fmtN(totCr)+" were reused from the saved copy.";
+    document.getElementById("pilotRoutingLead").textContent="TOP-2 asks whether some of this work could run on a cheaper model without changing the answer. That is an open research and development question. TOP has not benchmarked it and does not claim a saving.";
+    document.getElementById("pilotShapeLead").textContent="A personalised forecast would learn from your own history, not from an average user. Here is the history it would have to learn from.";
+    // The forecast ingredients are the real counts already parsed on this machine. Nothing is invented to fill a row.
+    var forecastItems=[];
+    if(res.days)forecastItems.push(["Active days recorded",fmtN(res.days)]);
+    var forecastSessionsWord=res.pilotSafeSchemaVersion==="top.safe-usage.v2"?"Logical sessions recorded":(res.chatExport?"Conversations recorded":(res.cursor?"Usage events recorded":(res.copilot?"Usage records recorded":"Work sessions recorded")));
+    if(res.sessions)forecastItems.push([forecastSessionsWord,fmtN(res.sessions)]);
+    forecastItems.push(["AI versions seen",fmtN(rows.length)]);
+    // Span is shown only when the file carries real per-day dates. It is never invented from a monthly file.
+    var forecastDayKeys=res.daily?Object.keys(res.daily).filter(function(day){return /^\d{4}-\d{2}-\d{2}$/.test(day)}).sort():[];
+    if(forecastDayKeys.length>=2)forecastItems.push(["Span it covers",pilotDayLabel(forecastDayKeys[0])+" to "+pilotDayLabel(forecastDayKeys[forecastDayKeys.length-1])]);
+    document.getElementById("pilotForecastList").innerHTML=forecastItems.map(function(item){return '<div class="pilot-value-row"><span>'+esc(item[0])+'</span><strong>'+esc(item[1])+'</strong></div>'}).join("");
+    pilotUpdateShareRail(res);
+    pilotConfigureSteps({models:rows.length,cacheTokens:totCw+totCr});
     document.getElementById("pilotFullScope").textContent=document.getElementById("reportScope").textContent;
     document.getElementById("pilotFullCoverage").textContent=res.pilotCoverage?("Coverage details: "+fmtN(coverage.files_parsed||0)+" of "+fmtN(coverage.files_discovered||0)+" files parsed, "+fmtN(coverage.files_with_usage||0)+" with usage, "+fmtN(coverage.files_skipped||0)+" files skipped, "+fmtN(coverage.malformed_lines||0)+" unreadable lines, "+fmtN(coverage.oversized_lines||0)+" oversized lines, "+fmtN(coverage.counter_resets||0)+" counter resets, and "+fmtN(coverage.duplicate_usage_records||0)+" duplicate usage records removed."):"Detailed collector coverage is not available for this report.";
     document.getElementById("pilotFullModelTable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
@@ -3251,6 +4127,8 @@ function prepareResearchSafePackage(resetConsent){
   var slider=document.getElementById("vmg"),scenario=slider?parseFloat(slider.value):.4;
   researchSafePackage=buildResearchSafeJSON(LAST_RESULT,ROUTEB,collectResearchQuestionnaire(),scenario,new Date().toISOString().slice(0,10));
   var preview=document.getElementById("pilotResearchPreview");if(preview)preview.value=researchSafePackage;
+  // The words and the raw JSON describe the same object, so the plain-English list cannot understate the file.
+  if(typeof pilotRenderSharePlain==="function")pilotRenderSharePlain("pilotResearchPlain","pilotResearchNever",describeResearchSafePlain(pilotSafeObjectFor(LAST_RESULT)));
   resetDirectSubmissionForReport();
   if(resetConsent){var status=document.getElementById("shareStatus");if(status)status.textContent=""}
   if(typeof updateDirectSubmitState==="function")updateDirectSubmitState(resetConsent===true);
