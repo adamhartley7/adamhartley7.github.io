@@ -74,13 +74,12 @@ const PRIVACY_EXCLUSIONS = [
   "exact_timestamps",
   "original_ids",
 ];
-const VALUE_ASSUMPTIONS = [
-  "frontier_spend_is_only_a_proxy_for_work_that_might_be_routable",
-  "between_25_and_50_percent_of_frontier_spend_might_move",
-  "the_lower_cost_ai_is_one_fifth_of_the_flagship_price",
-  "work_quality_is_unchanged_after_routing",
-  "saved_budget_may_be_reinvested_in_more_ai_work",
-  "the_output_value_index_is_not_measured",
+const VALUE_LIMITATIONS = [
+  "hours_saved_was_not_measured_or_verified_by_top",
+  "value_per_hour_was_not_measured_or_verified_by_top",
+  "top_does_not_claim_the_reported_value_was_caused_by_top",
+  "non_usd_value_is_not_compared_with_usd_ai_cost",
+  "top_2_and_top_3_are_not_included",
 ];
 
 const QUESTIONNAIRE_ENUMS = {
@@ -369,26 +368,46 @@ function validateQuestionnaire(value) {
   oneOf(value.route_selected, new Set(["show_report_first", "make_shareable_summary", "not_selected"]), "questionnaire.route_selected");
 }
 
-function validateValueModel(value) {
+function validateValueModel(value, reportCost) {
   if (!isObject(value)) fail("invalid_schema", "value_model must be an object.");
-  if (value.truth_status === "not_available") {
+  const version = "top.value-model.v0.2-self-reported";
+  if (value.truth_status === "not_available" || value.truth_status === "not_provided") {
     exactObject(value, ["truth_status", "algorithm_version", "reason"], "value_model");
-    if (value.algorithm_version !== "top.value-model.v0.1-illustrative") fail("invalid_enum", "value model version is not supported.");
-    oneOf(value.reason, new Set(["current_report_not_eligible", "scenario_control_not_shown_for_this_route"]), "value_model.reason");
+    if (value.algorithm_version !== version) fail("invalid_enum", "value model version is not supported.");
+    if (value.truth_status === "not_provided") {
+      if (value.reason !== "user_did_not_enter_both_value_inputs") fail("invalid_enum", "value_model.reason is not supported.");
+    } else {
+      oneOf(value.reason, new Set(["current_report_not_eligible", "self_reported_value_not_shown_for_this_route", "invalid_user_entered_value_inputs"]), "value_model.reason");
+    }
     return;
   }
-  exactObject(value, ["truth_status", "algorithm_version", "inputs", "assumptions", "outputs"], "value_model");
-  if (value.truth_status !== "illustrative_unvalidated" || value.algorithm_version !== "top.value-model.v0.1-illustrative") fail("invalid_enum", "value model status or version is not supported.");
-  exactObject(value.inputs, ["baseline_cost_usd", "frontier_model_cost_usd", "frontier_model_cost_share", "scenario_slider", "work_moved_share_low", "work_moved_share_high", "work_moved_share_current", "flagship_to_lower_cost_ratio_low", "flagship_to_lower_cost_ratio_high", "flagship_to_lower_cost_ratio_current"], "value_model.inputs");
-  money(value.inputs.baseline_cost_usd, "value_model.inputs.baseline_cost_usd");
-  money(value.inputs.frontier_model_cost_usd, "value_model.inputs.frontier_model_cost_usd");
-  for (const key of ["frontier_model_cost_share", "scenario_slider", "work_moved_share_low", "work_moved_share_high", "work_moved_share_current"]) ratio(value.inputs[key], `value_model.inputs.${key}`);
-  for (const key of ["flagship_to_lower_cost_ratio_low", "flagship_to_lower_cost_ratio_high", "flagship_to_lower_cost_ratio_current"]) money(value.inputs[key], `value_model.inputs.${key}`);
-  exactArray(value.assumptions, VALUE_ASSUMPTIONS, "value_model.assumptions");
-  exactObject(value.outputs, ["illustrative_cost_after_routing_usd", "illustrative_saving_usd", "illustrative_saving_range_low_usd", "illustrative_saving_range_high_usd", "chart_cost_index_after_routing", "chart_output_value_index"], "value_model.outputs");
-  for (const key of ["illustrative_cost_after_routing_usd", "illustrative_saving_usd", "illustrative_saving_range_low_usd", "illustrative_saving_range_high_usd"]) money(value.outputs[key], `value_model.outputs.${key}`);
-  nullableMoney(value.outputs.chart_cost_index_after_routing, "value_model.outputs.chart_cost_index_after_routing");
-  money(value.outputs.chart_output_value_index, "value_model.outputs.chart_output_value_index");
+  exactObject(value, ["truth_status", "algorithm_version", "inputs", "calculation", "outputs", "limitations"], "value_model");
+  if (value.truth_status !== "self_reported_unverified" || value.algorithm_version !== version) fail("invalid_enum", "value model status or version is not supported.");
+  exactObject(value.inputs, ["hours_saved", "value_per_hour", "currency", "provenance"], "value_model.inputs");
+  money(value.inputs.hours_saved, "value_model.inputs.hours_saved");
+  money(value.inputs.value_per_hour, "value_model.inputs.value_per_hour");
+  if (value.inputs.hours_saved > 100000 || value.inputs.value_per_hour > 1000000) fail("invalid_money", "value model inputs exceed the supported limits.");
+  oneOf(value.inputs.currency, new Set(["USD", "EUR", "GBP"]), "value_model.inputs.currency");
+  if (value.inputs.provenance !== "entered_by_user_in_browser") fail("invalid_enum", "value model input provenance is not supported.");
+  if (value.calculation !== "hours_saved_multiplied_by_value_per_hour") fail("invalid_enum", "value model calculation is not supported.");
+  exactObject(value.outputs, ["self_reported_time_value", "value_currency", "analyzed_ai_cost_usd", "net_after_ai_cost_usd", "self_reported_value_per_ai_cost_usd"], "value_model.outputs");
+  money(value.outputs.self_reported_time_value, "value_model.outputs.self_reported_time_value");
+  oneOf(value.outputs.value_currency, new Set(["USD", "EUR", "GBP"]), "value_model.outputs.value_currency");
+  money(value.outputs.analyzed_ai_cost_usd, "value_model.outputs.analyzed_ai_cost_usd");
+  if (value.outputs.net_after_ai_cost_usd !== null && (typeof value.outputs.net_after_ai_cost_usd !== "number" || !Number.isFinite(value.outputs.net_after_ai_cost_usd))) fail("invalid_money", "value_model.outputs.net_after_ai_cost_usd must be a finite number or null.");
+  nullableMoney(value.outputs.self_reported_value_per_ai_cost_usd, "value_model.outputs.self_reported_value_per_ai_cost_usd");
+  exactArray(value.limitations, VALUE_LIMITATIONS, "value_model.limitations");
+  const expectedGross = Number((value.inputs.hours_saved * value.inputs.value_per_hour).toFixed(2));
+  if (Math.abs(value.outputs.self_reported_time_value - expectedGross) > 0.00001 || value.outputs.value_currency !== value.inputs.currency) fail("invalid_reconciliation", "self-reported value does not reconcile with its inputs.");
+  if (!reportCost || reportCost.usd === null || Math.abs(value.outputs.analyzed_ai_cost_usd - reportCost.usd) > 0.00001) fail("invalid_reconciliation", "value model cost does not reconcile with report cost.");
+  if (value.inputs.currency === "USD") {
+    const expectedNet = Number((expectedGross - reportCost.usd).toFixed(2));
+    const expectedRatio = reportCost.usd > 0 ? Number((expectedGross / reportCost.usd).toFixed(6)) : null;
+    const ratioMatches = expectedRatio === null ? value.outputs.self_reported_value_per_ai_cost_usd === null : Math.abs(value.outputs.self_reported_value_per_ai_cost_usd - expectedRatio) <= 0.00001;
+    if (Math.abs(value.outputs.net_after_ai_cost_usd - expectedNet) > 0.00001 || !ratioMatches) fail("invalid_reconciliation", "USD value outputs do not reconcile.");
+  } else if (value.outputs.net_after_ai_cost_usd !== null || value.outputs.self_reported_value_per_ai_cost_usd !== null) {
+    fail("invalid_reconciliation", "non-USD self-reported value cannot be compared with USD AI cost.");
+  }
 }
 
 function validatePrivacy(value) {
@@ -650,7 +669,7 @@ export function validateResearchSafeUsage(report) {
   const unpriced = report.by_model.filter((row) => row.cost.status === "unavailable").length;
   if (unpriced !== report.pricing.unpriced_model_groups) fail("invalid_reconciliation", "unpriced model count does not reconcile.");
   validateQuestionnaire(report.questionnaire);
-  validateValueModel(report.value_model);
+  validateValueModel(report.value_model, report.cost);
   validatePrivacy(report.privacy);
   if (report.schema_version === REPORT_SCHEMA_VERSION_V2) validateV2Sections(report);
   return true;

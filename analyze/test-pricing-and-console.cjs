@@ -93,7 +93,7 @@ assert.equal(context.tierOf("gpt-5.6-luna"), "cheap");
 
 assert.equal(context.valueModelAllowed([
   { model: "future-model-with-no-checked-rate", cost: 0.02, complete: true },
-], true), false, "recorded cost alone must not enable a model-switching scenario for an unrecognized model");
+], true), true, "a complete recorded cost may support the user's own time-value calculation without a model-switching claim");
 
 {
   const result = context.parseCSV([

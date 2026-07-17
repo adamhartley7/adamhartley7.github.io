@@ -3,9 +3,10 @@ const fs = require("node:fs");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 assert.match(html, /class="mini-emblem"/);
-assert.match(html, /\.vcard input\[type=range\][^}]*min-width:0/);
-assert.match(html, /@media\(max-width:640px\)\{\.vcard \.vcontrols\{display:grid/);
-assert.match(html, /aria-valuetext/);
+assert.match(html, /id="vmhours" type="number"/);
+assert.match(html, /id="vmrate" type="number"/);
+assert.match(html, /id="vmcurrency" aria-label=/);
+assert.match(html, /@media\(max-width:640px\)\{\.vm-inputs\{grid-template-columns:1fr/);
 
 const forbiddenPatterns = [
   [/XMLHttpRequest/, "XMLHttpRequest"],
@@ -69,8 +70,9 @@ assert.match(html, /--world-brightness/);
 assert.match(html, /--world-saturation/);
 assert.match(html, /--world-warmth/);
 assert.match(html, /--world-light/);
-assert.match(html, /viewBox="0 0 520 390"/);
-assert.match(html, /AI cost · invented useful work · invented value after cost/);
+assert.match(html, /self-reported, not measured by TOP/);
+assert.match(html, /There is no promised saving/);
+assert.doesNotMatch(html, /AI cost · invented useful work · invented value after cost/);
 assert.match(html, /Which Of These Applies To You\?/);
 assert.match(html, /Running Out Of AI Usage/);
 assert.match(html, /I Cannot Predict How Much AI Allowance A Task Will Use/);

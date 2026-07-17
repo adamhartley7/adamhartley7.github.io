@@ -96,7 +96,7 @@ function reportFixture() {
     questionnaire: null,
     value_model: {
       truth_status: "not_available",
-      algorithm_version: "top.value-model.v0.1-illustrative",
+      algorithm_version: "top.value-model.v0.2-self-reported",
       reason: "current_report_not_eligible",
     },
     privacy: {
@@ -455,7 +455,7 @@ test("strict validator accepts current analyzer-generated Claude, Codex, chat an
     context.buildResearchSafeObject({
       by: { "claude-opus-4-8": { inp: 100, out: 20, cw: 30, cr: 40, turns: 2 } },
       turns: 2, sessions: 1, days: 1, filesOpened: 4, estimate: true, valueModelEligible: true,
-    }, null, null, 0.4, "2026-07-16"),
+    }, null, null, { status: "complete", hours_saved: 10, value_per_hour: 50, currency: "USD" }, "2026-07-16"),
     context.buildResearchSafeObject({
       by: { "gpt-5.6-codex-mini": { inp: 80, out: 30, cw: 0, cr: 20, reasoning: 10, turns: 3 } },
       turns: 3, sessions: 2, days: 2, filesOpened: 3, estimate: true, valueModelEligible: true, codex: true,
@@ -472,6 +472,14 @@ test("strict validator accepts current analyzer-generated Claude, Codex, chat an
     }, null, null, 0.4, "2026-07-16"),
   ].map(plain);
   for (const report of reports) assert.equal(validateResearchSafeUsage(report), true);
+  assert.equal(reports[0].value_model.truth_status, "self_reported_unverified");
+  assert.equal(reports[0].value_model.outputs.self_reported_time_value, 500);
+  const unreconciledValue = plain(reports[0]);
+  unreconciledValue.value_model.outputs.self_reported_time_value = 501;
+  assert.throws(() => validateResearchSafeUsage(unreconciledValue), /does not reconcile/i);
+  const injectedValueField = plain(reports[0]);
+  injectedValueField.value_model.inputs.private_note = "must not pass";
+  assert.throws(() => validateResearchSafeUsage(injectedValueField), /unsupported or missing fields/i);
 });
 
 test("successful email body contains aggregates but not private source fields", async () => {

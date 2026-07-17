@@ -6,10 +6,10 @@ const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf
 
 assert.match(html, /id="downloadResearchJSON">Download Complete Research-Safe JSON/);
 assert.match(html, /inspect the exact JSON below/);
-assert.match(html, /scenario only when the report qualifies/);
+assert.match(html, /self-reported numbers and the multiplication TOP performed/);
 assert.match(html, /Nothing is sent until you deliberately use a sharing action\./);
 assert.match(html, /res\.valueModelEligible=false/,
-  "the cleaned Claude route must not export a scenario that is not visibly shown");
+  "the cleaned Claude route must not export value inputs that are not visibly shown");
 assert.doesNotMatch(html, /var PRICING_EDITED=false/,
   "pricing provenance must be tracked per exact family and field");
 
@@ -76,7 +76,8 @@ function claudeResult(model = "claude-opus-4-8") {
   };
 }
 
-const exported = plain(context.buildResearchSafeObject(claudeResult(), null, questionnaire, 0.4, "2026-07-16"));
+const selfReportedValue = { status: "complete", hours_saved: 10, value_per_hour: 50, currency: "USD" };
+const exported = plain(context.buildResearchSafeObject(claudeResult(), null, questionnaire, selfReportedValue, "2026-07-16"));
 for (const key of ["schema_version", "collector", "generated_date", "source", "measurement", "scope", "coverage", "totals", "activity", "cost", "pricing", "permission_mode_counts", "by_model", "questionnaire", "value_model", "privacy"]) {
   assert.ok(Object.prototype.hasOwnProperty.call(exported, key), `missing top-level field: ${key}`);
 }
@@ -100,10 +101,13 @@ assert.equal(exported.cost.subscription_bill, false);
 assert.equal(exported.pricing.reference_checked_date, "2026-07-16");
 assert.equal(exported.pricing.status, "checked_reference_rates");
 assert.equal(exported.pricing.applied_rates[0].field_provenance.input, "checked_reference_rate");
-assert.equal(exported.value_model.truth_status, "illustrative_unvalidated");
-assert.equal(exported.value_model.algorithm_version, "top.value-model.v0.1-illustrative");
+assert.equal(exported.value_model.truth_status, "self_reported_unverified");
+assert.equal(exported.value_model.algorithm_version, "top.value-model.v0.2-self-reported");
 assert.ok(exported.value_model.inputs && exported.value_model.outputs);
-assert.ok(exported.value_model.assumptions.includes("the_output_value_index_is_not_measured"));
+assert.equal(exported.value_model.inputs.hours_saved, 10);
+assert.equal(exported.value_model.inputs.value_per_hour, 50);
+assert.equal(exported.value_model.outputs.self_reported_time_value, 500);
+assert.ok(exported.value_model.limitations.includes("hours_saved_was_not_measured_or_verified_by_top"));
 assert.deepEqual(exported.questionnaire.what_to_improve, ["running_out_of_ai_usage"]);
 assert.deepEqual(exported.questionnaire.kinds_of_work, ["bounded_agent_loop"]);
 assert.equal(Object.prototype.hasOwnProperty.call(exported.questionnaire, "arbitrary_free_text"), false);
@@ -214,14 +218,18 @@ edited = plain(context.buildResearchSafeObject(claudeResult(), null, null, 0.4, 
 assert.equal(edited.pricing.status, "user_edited_in_tab");
 assert.equal(edited.pricing.applied_rates[0].field_provenance.output, "user_edited_in_tab");
 
-// Invalid scenario values clamp or fall back without changing the truth label.
-const lowScenario = plain(context.buildResearchSafeObject(claudeResult(), null, null, -100, "2026-07-16"));
-const highScenario = plain(context.buildResearchSafeObject(claudeResult(), null, null, Infinity, "2026-07-16"));
-const fallbackScenario = plain(context.buildResearchSafeObject(claudeResult(), null, null, NaN, "2026-07-16"));
-assert.equal(lowScenario.value_model.inputs.scenario_slider, 0);
-assert.equal(highScenario.value_model.inputs.scenario_slider, 1);
-assert.equal(fallbackScenario.value_model.inputs.scenario_slider, 0.4);
-for (const item of [lowScenario, highScenario, fallbackScenario]) assert.equal(item.value_model.truth_status, "illustrative_unvalidated");
+// Missing, non-USD, and invalid user inputs fail honestly without invented value.
+const missingValue = plain(context.buildResearchSafeObject(claudeResult(), null, null, { status: "missing" }, "2026-07-16"));
+const euroValue = plain(context.buildResearchSafeObject(claudeResult(), null, null,
+  { status: "complete", hours_saved: 2.5, value_per_hour: 40, currency: "EUR" }, "2026-07-16"));
+const invalidValue = plain(context.buildResearchSafeObject(claudeResult(), null, null,
+  { status: "complete", hours_saved: Infinity, value_per_hour: 40, currency: "USD" }, "2026-07-16"));
+assert.equal(missingValue.value_model.truth_status, "not_provided");
+assert.equal(euroValue.value_model.truth_status, "self_reported_unverified");
+assert.equal(euroValue.value_model.outputs.self_reported_time_value, 100);
+assert.equal(euroValue.value_model.outputs.net_after_ai_cost_usd, null);
+assert.equal(invalidValue.value_model.truth_status, "not_available");
+assert.equal(invalidValue.value_model.reason, "invalid_user_entered_value_inputs");
 
 // Codex records expose reasoning, usage-event, and detailed parser coverage fields.
 const codex = plain(context.buildResearchSafeObject({
@@ -237,7 +245,7 @@ assert.equal(codex.coverage.files_selected, 3);
 assert.equal(codex.coverage.complete, false);
 assert.equal(codex.by_model[0].model, "gpt-5.6-codex-mini");
 
-// Cleaned Claude data keeps only allowlisted permission modes and never exports a hidden Route A scenario.
+// Cleaned Claude data keeps only allowlisted permission modes and never exports hidden Route A value inputs.
 const routeB = { res: {
   by: { "claude-opus-4-8": { inp: 10, out: 5, cw: 2, cr: 3, turns: 1 } },
   turns: 1, sessions: 1, days: 1, filesOpened: 1, valueModelEligible: false,
@@ -247,7 +255,7 @@ const cleaned = plain(context.buildResearchSafeObject(null, routeB, null, 0.4, "
 assert.equal(cleaned.source.input_form, "locally_cleaned_usage_export");
 assert.deepEqual(cleaned.permission_mode_counts, { plan: 2, accept_edits: 1, unrecognized: 4 });
 assert.equal(cleaned.value_model.truth_status, "not_available");
-assert.equal(cleaned.value_model.reason, "scenario_control_not_shown_for_this_route");
+assert.equal(cleaned.value_model.reason, "self_reported_value_not_shown_for_this_route");
 
 // Chat export fields remain unavailable rather than being silently represented as zero or billed usage.
 const chat = plain(context.buildResearchSafeObject({
@@ -306,6 +314,7 @@ context.document = { getElementById(id) {
 context.LAST_RESULT = claudeResult();
 context.ROUTEB = null;
 context.collectResearchQuestionnaire = () => null;
+context.selfReportedValueInput = () => selfReportedValue;
 context.dlFile = (name, text, type) => { downloaded = { name, text, type }; };
 vm.runInContext(html.slice(researchEnd, routeBStart), context);
 assert.equal(registered.type, "click");
