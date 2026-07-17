@@ -2,18 +2,20 @@
 
 This is a review-ready Cloudflare Worker for explicit submission of `top.research-safe-usage.v1` and `top.research-safe-usage.v2` reports. It is not deployed by this repository change. `wrangler.jsonc` is the source of truth for the custom domain `submit.tokenoptimisationprotocol.org`; `workers_dev` and preview URLs are disabled. The analyzer integration remains dormant: its endpoint is blank and CSP remains `connect-src 'none'`. Delivery stays fail closed until the Worker, its custom domain, secrets and rate-limit binding are verified, followed by a separate frontend activation review.
 
-V1 remains unchanged. V2 is the exact v1 top-level object plus `timeline`, `session_distributions` and `workflow_shape`. It accepts only the vetted v2 local collector and parser versions for Claude Code or Codex safe-usage exports.
+The research-safe v1 and v2 top-level schemas remain unchanged. V2 is the exact v1 top-level object plus `timeline`, `session_distributions` and `workflow_shape`. It accepts only the vetted v2 local collector and parser versions for Claude Code or Codex safe-usage exports. Value-model member acceptance is intentionally narrowed during the transition described below.
 
 ## Value-model transition contract
 
 The Worker accepts the legacy `top.value-model.v0.1-illustrative` version only as the exact three-field `not_available` object that the dormant transition flow can still produce. It rejects all legacy illustrative scenario outputs. It also accepts `top.value-model.v0.2-self-reported` as exact `not_available`, `not_provided`, or reconciled `self_reported_unverified` shapes. V0.2 accepts finite zero values, preserves a zero net result as `0`, requires a null ratio only when analyzed AI cost is zero, and never combines non-USD self-reported value with USD AI cost. Fields and reasons cannot be mixed across versions.
+
+This Worker is not compatible with the PR9 frontend by itself because that frontend can still produce eligible v0.1 `illustrative_unvalidated` reports. Keep PR9 and PR11 dormant until this Worker is deployed and verified. Then ship the PR9 activation and PR11 v0.2 frontend together in one newly reviewed integration release, or first amend PR9 so it can emit only the accepted legacy `not_available` shape. Do not merge or publish PR9 alone against this Worker.
 
 ## Safety boundary
 
 - It accepts requests only from the live custom-domain frontend at `https://tokenoptimisationprotocol.org`. The GitHub Pages origin and every unrelated origin fail closed.
 - It accepts JSON only and stops reading after 256 KiB.
 - The client submits a strict consent envelope containing one exact research-safe report. Unknown fields, client-supplied recipients, private-content fields, unsupported labels and unreconciled totals fail closed.
-- Recipients, sender and the Resend API key come only from Worker secrets. They are not accepted from the browser. The sender secret must use the verified `send.tokenoptimisationprotocol.org` subdomain. `wrangler.jsonc` declares the four secret names under `secrets.required`, without storing their values.
+- Recipients, sender and the Resend API key come only from Worker secrets. They are not accepted from the browser. The sender secret must use the verified `send.tokenoptimisationprotocol.org` subdomain. `wrangler.jsonc` declares the four secret names under `secrets.required`, without storing their values. Wrangler uses that list for type generation and local-development warnings, but a dry run does not verify that the remote secrets exist.
 - The API key must be a Resend `sending_access` key restricted to the verified sender domain.
 - The same submission UUID is passed to Resend as an idempotency key.
 - The Worker does not log, persist or place the report in KV, D1 or R2. The validated report is attached to one email; the message body contains only a readable aggregate summary.
@@ -168,8 +170,8 @@ Do not deploy until all of these are decided and documented:
 6. Confirm the rate-limit namespace is unique within the chosen Cloudflare account.
 7. Add an abuse-control decision for public rollout. The current rate limit is suitable only for a small pilot.
 8. Review the dormant frontend integration. It displays the exact payload, fixed recipient names, processor notice, explicit purposes, 30-day retention wording, a deliberate Submit button and truthful receipt states. It does not contain recipient addresses or an active endpoint.
-9. Set all four required secrets through the approved interactive setup. The committed `secrets.required` list makes a Worker upload fail when any required secret is absent, while keeping every value out of Git.
-10. Deploy using the committed `wrangler.jsonc`, then verify that Cloudflare lists `submit.tokenoptimisationprotocol.org` under the Worker's Domains & Routes and verify its HTTPS and CORS preflight. Do not create a second dashboard-managed route. Then make a separate activation change: set `TOP_DELIVERY_ENDPOINT` to exactly `https://submit.tokenoptimisationprotocol.org/` and change CSP from `connect-src 'none'` to exactly `connect-src https://submit.tokenoptimisationprotocol.org`. Keep `form-action 'none'` and do not add a second Worker URL.
+9. Set all four required secrets through the approved interactive setup. In the Cloudflare dashboard, verify that the remote secret-name list contains exactly `RESEND_API_KEY`, `RESEND_FROM`, `SUBMISSION_TO` and `SUBMISSION_CC`, without exposing their values. Treat a missing or extra name as a hard stop. `secrets.required` and `wrangler deploy --dry-run` do not replace this remote verification.
+10. Deploy using the committed `wrangler.jsonc`, then verify that Cloudflare lists `submit.tokenoptimisationprotocol.org` under the Worker's Domains & Routes and verify its HTTPS and CORS preflight. Do not create a second dashboard-managed route. Keep PR9 and PR11 dormant while these checks run. After the Worker passes, create one reviewed integration release containing the exact PR9 endpoint and CSP activation plus the PR11 v0.2 frontend. Keep `form-action 'none'` and do not add a second Worker URL.
 11. Run a synthetic production smoke test before any real participant data.
 
 Once approved, set secrets interactively. Never put their values in this repository or command history:
