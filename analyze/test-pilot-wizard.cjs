@@ -12,7 +12,12 @@ assert.match(html, /class="resonance-step" id="resonanceStep"/);
 assert.match(html, /\.pilot-mode #resonanceStep[^}]*#providerStep[^}]*#routechooser[^}]*#obsidianPanel/);
 
 // Two decisions only, with the AI-assisted route first and folder escape second.
-assert.equal((html.match(/data-pilot-source=/g) || []).length, 2);
+// Sources: Claude Code, Codex, the Cursor CSV export, and the Copilot usage report.
+assert.equal((html.match(/data-pilot-source=/g) || []).length, 4);
+assert.match(html, /data-pilot-source="cursor"/);
+assert.match(html, /data-pilot-source="copilot"/);
+assert.match(html, /id="pilotCursorFile" accept="\.csv"/);
+assert.match(html, /id="pilotCopilotFile" accept="\.csv,\.json"/);
 assert.equal((html.match(/data-pilot-method=/g) || []).length, 2);
 assert.ok(html.indexOf('data-pilot-method="agent"') < html.indexOf('data-pilot-method="folder"'));
 assert.match(html, /Choice 1 of 2/);

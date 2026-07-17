@@ -1,0 +1,142 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const vm = require("node:vm");
+
+const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
+const parserStart = html.indexOf("function splitCSV");
+const parserEnd = html.indexOf("function estTokens", parserStart);
+assert.ok(parserStart >= 0 && parserEnd > parserStart, "could not locate CSV parser block");
+const cursorMarker = html.indexOf("function parseCursor", parserStart);
+assert.ok(cursorMarker > parserStart && cursorMarker < parserEnd, "parseCursor must sit between splitCSV and estTokens");
+
+const context = {};
+vm.createContext(context);
+vm.runInContext(html.slice(parserStart, parserEnd), context);
+
+const PRIVATE = "PRIVATE_SENTINEL_MUST_NOT_LEAK";
+function modelRow(entry) { return { ...entry, missing: { ...entry.missing } }; }
+const HEADER = "Date,Kind,Model,Max Mode,Input (w/ Cache Write),Input (w/o Cache Write),Cache Read,Output Tokens,Total Tokens,Cost";
+const TEAM_HEADER = "Date,User,Kind,Model,Max Mode,Input (w/ Cache Write),Input (w/o Cache Write),Cache Read,Output Tokens,Total Tokens,Cost";
+
+const standard = context.parseCursor([[
+  HEADER,
+  "2026-07-10T09:00:00.375Z,Included,composer-1,No,1200,1000,500,300,2000,0.05",
+  "2026-07-10T10:00:00.000Z,On-Demand,claude-4.5-sonnet,No,2000,1500,0,400,2400,1.95",
+  '2026-07-11T09:30:00.000Z,"Errored, Not Charged",gpt-5,No,100,100,0,0,100,-',
+  "2026-07-11T09:31:00.000Z,On-Demand,totally-unknown-model-x,No,50,50,0,10,60,0.10",
+].join("\n")]);
+assert.equal(standard.kind, "Cursor usage CSV");
+assert.equal(standard.cursor, true);
+assert.equal(standard.csv, true);
+assert.equal(standard.topSource, "cursor");
+assert.equal(standard.turns, 3, "the unrecognized-model row must be excluded from counted usage events");
+assert.equal(standard.days, 2);
+assert.equal(standard.estimate, false, "a fully recorded Cursor export must not be labeled an estimate");
+assert.equal(standard.costComplete, true);
+assert.equal(standard.costRows, 3);
+assert.equal(standard.missingCostRows, 0);
+assert.deepEqual(Object.keys(standard.by).sort(), ["claude-4.5-sonnet", "composer-1", "gpt-5"]);
+assert.deepEqual(
+  modelRow(standard.by["composer-1"]),
+  { inp: 1000, out: 300, cw: 200, cr: 500, turns: 1, cost: 0.05, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } },
+  "cache write must be the difference between the two input columns",
+);
+assert.deepEqual(
+  modelRow(standard.by["claude-4.5-sonnet"]),
+  { inp: 1500, out: 400, cw: 500, cr: 0, turns: 1, cost: 1.95, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } },
+);
+assert.deepEqual(
+  modelRow(standard.by["gpt-5"]),
+  { inp: 100, out: 0, cw: 0, cr: 0, turns: 1, cost: 0, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } },
+  "an errored, not-charged row must record a zero cost instead of a missing one",
+);
+assert.deepEqual({ ...standard.composer }, { rows: 1, tokens: 2000, cost: 0.05 }, "Composer rows must be separated for the agent-versus-other breakdown");
+assert.deepEqual({ ...standard.otherModels }, { rows: 2, tokens: 2500, cost: 1.95 });
+assert.equal(standard.includedRows, 1);
+assert.equal(standard.includedCost, 0.05);
+assert.equal(standard.notChargedRows, 1);
+assert.equal(standard.excludedRows, 1);
+assert.deepEqual({ ...standard.excludedModels }, { "totally-unknown-model-x": 1 }, "unknown models must be excluded and named, never priced");
+assert.equal(standard.coverage.complete, false, "excluded rows must fail the coverage-complete claim");
+
+// Team header variant: extra User column, lowercase headers, a BOM, quoted model,
+// the alternate not-charged wording, and a literal Free cost.
+const team = context.parseCursor(["\uFEFF" + TEAM_HEADER.toLowerCase() + "\n" + [
+  `2026-07-12T08:00:00.000Z,${PRIVATE}@example.com,"Aborted, No Charge",composer-2.5,No,10,10,0,0,10,-`,
+  `2026-07-12T09:00:00.000Z,${PRIVATE}@example.com,On-Demand,"gemini-2.5-pro",${PRIVATE},500,400,100,50,650,0.42`,
+  `2026-07-12T10:00:00.000Z,${PRIVATE}@example.com,On-Demand,composer-2.5-fast,No,20,20,0,5,25,Free`,
+].join("\n")]);
+assert.equal(team.turns, 3, "the optional User column and lowercase headers must be tolerated");
+assert.equal(team.days, 1);
+assert.equal(team.costComplete, true);
+assert.deepEqual(
+  modelRow(team.by["composer-2.5"]),
+  { inp: 10, out: 0, cw: 0, cr: 0, turns: 1, cost: 0, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } },
+);
+assert.equal(team.by["gemini-2.5-pro"].cost, 0.42, "a quoted model field must be read through RFC 4180 parsing");
+assert.equal(team.composer.rows, 2, "composer-2.5 and composer-2.5-fast are both Composer variants");
+assert.equal(team.otherModels.rows, 1);
+assert.doesNotMatch(JSON.stringify(team), new RegExp(PRIVATE), "the User column must never reach the parsed result");
+
+// A row without a recorded cost keeps its tokens on the fail-closed missing path.
+const missingCost = context.parseCursor([[
+  HEADER,
+  "2026-07-13T09:00:00.000Z,On-Demand,claude-4.5-sonnet,No,100,80,20,30,150,",
+  "2026-07-13T10:00:00.000Z,On-Demand,composer-1,No,10,10,0,5,15,0.01",
+].join("\n")]);
+assert.equal(missingCost.estimate, true, "a Cursor export must not be called fully recorded when a row lacks a cost");
+assert.equal(missingCost.costComplete, false);
+assert.equal(missingCost.costRows, 1);
+assert.equal(missingCost.missingCostRows, 1);
+assert.deepEqual({ ...missingCost.by["claude-4.5-sonnet"].missing }, { inp: 80, out: 30, cw: 20, cr: 20 });
+
+// Hostile labels are sanitized before being named, and dangerous keys stay safe.
+const hostile = context.parseCursor([[
+  HEADER,
+  "2026-07-14T09:00:00.000Z,On-Demand,<img src=x onerror=alert(1)>,No,10,10,0,1,11,0.01",
+  "2026-07-14T09:01:00.000Z,On-Demand,__proto__,No,10,10,0,1,11,0.01",
+  "2026-07-14T09:02:00.000Z,On-Demand,constructor,No,10,10,0,1,11,0.01",
+].join("\n")]);
+assert.equal(hostile.turns, 0);
+assert.equal(hostile.excludedRows, 3);
+assert.deepEqual(Object.keys(hostile.by), []);
+assert.ok(Object.keys(hostile.excludedModels).every(name => !/[<>\\/]/.test(name)), "excluded model names must not carry HTML or path characters");
+assert.equal(hostile.excludedModels["__proto__"], 1);
+assert.equal(hostile.excludedModels["constructor"], 1);
+
+// Composer detection is exact: auto and cursor-small are recognized Cursor models but not Composer.
+assert.equal(context.isComposerModel("composer-1"), true);
+assert.equal(context.isComposerModel("composer-2.5-fast"), true);
+assert.equal(context.isComposerModel("auto"), false);
+assert.equal(context.cursorRecognizedModel("auto"), true);
+assert.equal(context.cursorRecognizedModel("cursor-small"), true);
+assert.equal(context.cursorRecognizedModel("grok-code-fast-1"), true);
+assert.equal(context.cursorRecognizedModel("totally-unknown-model-x"), false);
+assert.equal(context.cursorRecognizedModel(""), false);
+
+// A file whose header is not a Cursor usage export is skipped and counted, not guessed.
+const wrongFile = context.parseCursor(["model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,100,10,0.01"]);
+assert.equal(wrongFile.turns, 0, "a Console CSV must not be ingested by the Cursor reader");
+assert.equal(wrongFile.unrecognizedFiles, 1);
+assert.deepEqual(Object.keys(wrongFile.by), []);
+
+// Multiple Cursor files sum per model regardless of file order.
+const fileA = HEADER + "\n2026-07-10T09:00:00.000Z,On-Demand,composer-1,No,100,80,10,20,110,0.10";
+const fileB = HEADER + "\n2026-07-11T09:00:00.000Z,On-Demand,composer-1,No,200,150,30,40,270,0.20";
+const forward = context.parseCursor([fileA, fileB]);
+const backward = context.parseCursor([fileB, fileA]);
+for (const result of [forward, backward]) {
+  const { cost, ...counts } = modelRow(result.by["composer-1"]);
+  assert.deepEqual(counts, { inp: 230, out: 60, cw: 70, cr: 40, turns: 2, costRows: 2, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } });
+  assert.ok(Math.abs(cost - 0.3) < 1e-9, "recorded costs must sum across files in any order");
+  assert.equal(result.days, 2);
+  assert.equal(result.coverage.files_with_usage, 2);
+  assert.equal(result.coverage.complete, true);
+}
+
+// Header-based detection separates Cursor exports from Console CSVs and fails closed on mixes.
+assert.equal(context.detectUsageCsvKind([fileA]), "cursor");
+assert.equal(context.detectUsageCsvKind(["model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,100,10,0.01"]), "");
+assert.equal(context.detectUsageCsvKind([fileA, "model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,100,10,0.01"]), "mixed");
+
+console.log("TOP Analyzer Cursor parser regression tests passed");
