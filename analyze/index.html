@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://submit.tokenoptimisationprotocol.org; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>TOP: understand AI usage or prepare an Obsidian vault for 7C's</title>
-<meta name="description" content="Open Claude, ChatGPT or Codex history for a private usage report, or check an Obsidian vault locally for a future 7C's memory setup. Nothing is sent to TOP.">
+<meta name="description" content="Open Claude, ChatGPT or Codex history locally for a private usage report. Source files stay on your device, and only a report you review and explicitly submit can be sent to TOP.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -3258,8 +3258,9 @@ async function shareResearchSafeJSON(){
   catch(error){status.textContent=error&&error.name==="AbortError"?"The share chooser was closed. Nothing was submitted by TOP.":"The device share did not complete. Download the JSON and attach it deliberately instead.";return false}
 }
 var shareResearchButton=document.getElementById("shareResearchJSON");if(shareResearchButton)shareResearchButton.addEventListener("click",shareResearchSafeJSON);
-// ---------- explicit research-safe delivery (disabled until the reviewed Worker endpoint is live) ----------
-var TOP_DELIVERY_ENDPOINT="";
+// ---------- explicit research-safe delivery ----------
+var TOP_DELIVERY_ENDPOINT="https://submit.tokenoptimisationprotocol.org/";
+var TOP_DELIVERY_ORIGIN="https://submit.tokenoptimisationprotocol.org";
 var DIRECT_SUBMISSION_SCHEMA_VERSION="top.explicit-submission.v1";
 var DIRECT_CONSENT_NOTICE_VERSION="top.research-consent.2026-07-17.1";
 var DIRECT_RETENTION_DAYS=30;
@@ -3273,7 +3274,7 @@ function directAttemptIsCurrent(attempt){return !!attempt&&directSubmissionActiv
 function currentDirectSubmissionInFlight(){return directAttemptIsCurrent(directSubmissionActiveAttempt)}
 function configuredDeliveryEndpoint(){
   var raw=String(TOP_DELIVERY_ENDPOINT||"").trim();if(!raw)return "";
-  try{var parsed=new URL(raw);if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.search||parsed.hash)return "";return parsed.href}catch(error){return ""}
+  try{var parsed=new URL(raw);if(parsed.protocol!=="https:"||parsed.origin!==TOP_DELIVERY_ORIGIN||parsed.pathname!=="/"||parsed.username||parsed.password||parsed.search||parsed.hash)return "";return parsed.href}catch(error){return ""}
 }
 function directReportObject(){
   if(!researchSafePackage)return null;

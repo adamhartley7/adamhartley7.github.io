@@ -201,10 +201,10 @@ assert.match(html, /TOP cannot confirm where the file went or whether it was del
 assert.match(html, /Nothing was submitted by TOP/);
 
 // The pilot adds no automatic delivery or browser persistence. The one fetch
-// path is disabled by a blank endpoint and can run only from the Submit click.
-assert.match(html, /connect-src 'none'/);
+// path targets the fixed Worker origin and can run only from the Submit click.
+assert.match(html, /connect-src https:\/\/submit\.tokenoptimisationprotocol\.org;/);
 assert.equal((html.match(/\bfetch\s*\(/g) || []).length, 1);
-assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/);
+assert.match(html, /var TOP_DELIVERY_ENDPOINT="https:\/\/submit\.tokenoptimisationprotocol\.org\/";/);
 for (const pattern of [/XMLHttpRequest/, /sendBeacon/, /\bWebSocket\s*\(/, /localStorage/, /indexedDB/]) {
   assert.equal(pattern.test(html), false, `forbidden network or persistence primitive: ${pattern}`);
 }

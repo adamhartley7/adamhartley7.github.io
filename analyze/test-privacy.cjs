@@ -30,8 +30,8 @@ for (const [pattern, label] of forbiddenPatterns) {
 
 const fetchCalls = html.match(/\bfetch\s*\(/g) || [];
 assert.equal(fetchCalls.length, 1, "only the deliberate, configuration-gated submission may use fetch");
-assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/,
-  "the repository must keep direct delivery disabled until the Worker endpoint is verified");
+assert.match(html, /var TOP_DELIVERY_ENDPOINT="https:\/\/submit\.tokenoptimisationprotocol\.org\/";/,
+  "direct delivery must use only the reviewed Worker endpoint");
 assert.match(html, /fetch\(endpoint,\{method:"POST"/,
   "the one fetch call must use only the validated configuration constant");
 
@@ -39,7 +39,8 @@ assert.match(html, /Nothing is sent automatically\./);
 assert.match(html, /Your chosen files stay on this device/);
 assert.match(html, /The files stay in this browser and are not sent to TOP\./);
 assert.match(html, /<main class="wrap" id="main-content">/);
-assert.match(html, /connect-src 'none'/);
+assert.match(html, /connect-src https:\/\/submit\.tokenoptimisationprotocol\.org;/);
+assert.match(html, /form-action 'none'/);
 assert.match(html, /Copy summary/);
 assert.match(html, /Download \.txt/);
 assert.match(html, /You can make your report now\. TOP is not accepting files yet\./);
