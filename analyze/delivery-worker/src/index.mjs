@@ -1,6 +1,16 @@
 const PRODUCTION_ORIGIN = "https://tokenoptimisationprotocol.org";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const RESEND_SENDER_DOMAIN = "send.tokenoptimisationprotocol.org";
+const CLOUDFLARE_SENDER = { email: "reports@tokenoptimisationprotocol.org", name: "TOP Analyzer" };
+const CLOUDFLARE_RATE_LIMIT_CODES = new Set(["E_RATE_LIMIT_EXCEEDED", "E_DAILY_LIMIT_EXCEEDED"]);
+const CLOUDFLARE_REJECTED_CODES = new Set([
+  "E_SENDER_NOT_VERIFIED",
+  "E_RECIPIENT_NOT_ALLOWED",
+  "E_RECIPIENT_SUPPRESSED",
+  "E_TOO_MANY_RECIPIENTS",
+  "E_VALIDATION_ERROR",
+  "E_CONTENT_TOO_LARGE",
+]);
 
 export const MAX_JSON_BYTES = 256 * 1024;
 export const SUBMISSION_SCHEMA_VERSION = "top.explicit-submission.v1";
@@ -689,8 +699,24 @@ function parseFixedRecipient(raw) {
   return [value];
 }
 
+function deliveryProvider(env) {
+  const flag = env && typeof env.DELIVERY_PROVIDER === "string" ? env.DELIVERY_PROVIDER.trim().toLowerCase() : "";
+  if (flag === "cloudflare" || flag === "resend") return flag;
+  if (flag !== "") throw new Error("Delivery provider configuration is invalid.");
+  return env && typeof env.RESEND_API_KEY === "string" && env.RESEND_API_KEY.trim() ? "resend" : "cloudflare";
+}
+
+function configuredCloudflareDelivery(env) {
+  if (!env || !env.EMAIL || typeof env.EMAIL.send !== "function") {
+    throw new Error("Delivery service is not configured.");
+  }
+  const to = parseFixedRecipient(env.SUBMISSION_TO);
+  const cc = parseFixedRecipient(env.SUBMISSION_CC);
+  return { to, cc };
+}
+
 function configuredDelivery(env) {
-  if (!env || typeof env.RESEND_API_KEY !== "string" || !env.RESEND_API_KEY || typeof env.RESEND_FROM !== "string" || !env.RESEND_FROM) {
+  if (!env || typeof env.RESEND_API_KEY !== "string" || !env.RESEND_API_KEY.trim() || typeof env.RESEND_FROM !== "string" || !env.RESEND_FROM) {
     throw new Error("Delivery service is not configured.");
   }
   const senderMatch = env.RESEND_FROM.match(/^[^\r\n<>]+ <([A-Z0-9.!#$%&'*+/=?^_`{|}~-]+)@([A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+)>$/i);
@@ -862,19 +888,51 @@ function buildEmailHtml(submission, reportHash, retention) {
   return `<!doctype html><html><body><h1>TOP research-safe usage submission</h1><p><strong>Receipt:</strong> ${escapeHtml(submission.submission_id)}</p><p><strong>Report SHA-256:</strong> ${escapeHtml(reportHash)}</p><p><strong>Source:</strong> ${escapeHtml(report.source.provider)} ${escapeHtml(report.source.surface)}</p><p><strong>Generated date:</strong> ${escapeHtml(report.generated_date)}</p><h2>Retention instruction</h2><p><strong>Delivery request date:</strong> ${escapeHtml(retention.requestDate)}<br><strong>Deletion due date:</strong> ${escapeHtml(retention.deletionDueDate)} (${RETENTION_DAYS} days after the delivery request date)</p><p>Delete this report email and attachment by the due date, or earlier if Adam receives an early deletion request. The Worker does not delete mailbox copies automatically.</p>${coverageEmailHtml(report)}<h2>Usage totals</h2><ul><li>Total tokens: ${report.totals.total_tokens}</li><li>Input tokens: ${report.totals.input_tokens}</li><li>Output tokens: ${report.totals.output_tokens}</li><li>Cache write tokens: ${report.totals.cache_write_tokens === null ? "Not available" : report.totals.cache_write_tokens}</li><li>Cache read tokens: ${report.totals.cache_read_tokens === null ? "Not available" : report.totals.cache_read_tokens}</li></ul><h2>By model</h2><table><thead><tr><th>Model</th><th>Total tokens</th><th>Cost status</th><th>Cost USD</th></tr></thead><tbody>${modelRows}</tbody></table>${v2EmailHtml(report)}<p>The report's <code>privacy.network_delivery</code> value describes the analyzer state when the local report was generated. This email resulted from a separate deliberate submission after the user reviewed the report and gave explicit consent.</p><p>The attached JSON is the exact validated research-safe report. It contains no original history file.</p></body></html>`;
 }
 
-async function sendWithResend(fetchImpl, env, submission, sentAt) {
-  const { to, cc } = configuredDelivery(env);
+async function buildSubmissionEmail(submission, sentAt) {
   const retention = retentionDates(sentAt);
   const reportJson = JSON.stringify(submission.report, null, 2);
   const reportHash = await sha256Hex(reportJson);
-  const filename = `top-research-safe-usage-${submission.report.generated_date}-${submission.submission_id.slice(0, 8)}.json`;
-  const email = {
-    from: env.RESEND_FROM,
-    to,
+  return {
     subject: `TOP research-safe usage submission ${submission.submission_id.slice(0, 8)}`,
     text: buildEmailText(submission, reportHash, retention),
     html: buildEmailHtml(submission, reportHash, retention),
-    attachments: [{ filename, content: base64Utf8(reportJson) }],
+    filename: `top-research-safe-usage-${submission.report.generated_date}-${submission.submission_id.slice(0, 8)}.json`,
+    attachmentContent: base64Utf8(reportJson),
+    reportHash,
+  };
+}
+
+async function sendWithCloudflareBinding(env, submission, sentAt) {
+  const { to, cc } = configuredCloudflareDelivery(env);
+  const content = await buildSubmissionEmail(submission, sentAt);
+  const result = await env.EMAIL.send({
+    from: CLOUDFLARE_SENDER,
+    to,
+    cc,
+    subject: content.subject,
+    text: content.text,
+    html: content.html,
+    headers: { "X-TOP-Idempotency-Key": `top-usage/${submission.submission_id}` },
+    attachments: [{
+      filename: content.filename,
+      content: content.attachmentContent,
+      type: "application/json",
+      disposition: "attachment",
+    }],
+  });
+  return { result, reportHash: content.reportHash };
+}
+
+async function sendWithResend(fetchImpl, env, submission, sentAt) {
+  const { to, cc } = configuredDelivery(env);
+  const content = await buildSubmissionEmail(submission, sentAt);
+  const email = {
+    from: env.RESEND_FROM,
+    to,
+    subject: content.subject,
+    text: content.text,
+    html: content.html,
+    attachments: [{ filename: content.filename, content: content.attachmentContent }],
   };
   if (cc.length) email.cc = cc;
   const response = await fetchImpl(RESEND_ENDPOINT, {
@@ -888,7 +946,7 @@ async function sendWithResend(fetchImpl, env, submission, sentAt) {
   });
   let result = null;
   try { result = await response.json(); } catch { result = null; }
-  return { response, result, reportHash };
+  return { response, result, reportHash: content.reportHash };
 }
 
 export function createHandler({ fetchImpl = fetch, now = () => new Date() } = {}) {
@@ -924,9 +982,26 @@ export function createHandler({ fetchImpl = fetch, now = () => new Date() } = {}
         return jsonResponse(500, { ok: false, status: "not_sent", error: { code: "validation_failed", message: "TOP could not validate this report. Nothing was sent." } }, origin);
       }
       try {
+        if (deliveryProvider(env) === "cloudflare") {
+          let outcome;
+          try {
+            outcome = await sendWithCloudflareBinding(env, submission, now());
+          } catch (error) {
+            const code = error && typeof error.code === "string" ? error.code : "";
+            if (CLOUDFLARE_RATE_LIMIT_CODES.has(code)) return jsonResponse(429, { ok: false, status: "not_sent", receipt_id: submission.submission_id, error: { code: "delivery_rate_limited", message: "The email service is temporarily rate limited. Keep your downloaded copy and try again later." } }, origin);
+            if (CLOUDFLARE_REJECTED_CODES.has(code)) return jsonResponse(502, { ok: false, status: "not_sent", receipt_id: submission.submission_id, error: { code: "delivery_rejected", message: "The email service did not accept this report. Keep your downloaded copy and try again later." } }, origin);
+            throw error;
+          }
+          // The binding's success contract differs across Email Service generations: the
+          // long-standing send_email binding resolves undefined on success, the Email
+          // Service beta resolves { messageId }. Both throw on failure, so a resolved
+          // call IS acceptance; requiring a messageId would misreport delivered mail
+          // as failed and invite duplicate retries.
+          return jsonResponse(202, { ok: true, status: "accepted_for_delivery", delivered: false, receipt_id: submission.submission_id, report_sha256: outcome.reportHash, provider_message_id: outcome.result && typeof outcome.result.messageId === "string" ? outcome.result.messageId : null, message: "TOP accepted the reviewed report for email delivery. This does not confirm mailbox delivery." }, origin);
+        }
         const { response, result, reportHash } = await sendWithResend(fetchImpl, env, submission, now());
         if (response.ok && result && typeof result.id === "string" && result.id) {
-          return jsonResponse(202, { ok: true, status: "accepted_for_delivery", delivered: false, receipt_id: submission.submission_id, report_sha256: reportHash, message: "TOP accepted the reviewed report for email delivery. This does not confirm mailbox delivery." }, origin);
+          return jsonResponse(202, { ok: true, status: "accepted_for_delivery", delivered: false, receipt_id: submission.submission_id, report_sha256: reportHash, provider_message_id: result.id, message: "TOP accepted the reviewed report for email delivery. This does not confirm mailbox delivery." }, origin);
         }
         if (response.status === 409) return jsonResponse(409, { ok: false, status: "not_sent_by_this_request", receipt_id: submission.submission_id, error: { code: "idempotency_conflict", message: "This submission identifier is already in use. Delivery was not confirmed by this request." } }, origin);
         if (response.status === 429) return jsonResponse(429, { ok: false, status: "not_sent", receipt_id: submission.submission_id, error: { code: "delivery_rate_limited", message: "The email service is temporarily rate limited. Keep your downloaded copy and try again later." } }, origin);
