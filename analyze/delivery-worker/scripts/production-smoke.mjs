@@ -197,7 +197,7 @@ export function createSyntheticReport(generatedDate) {
     questionnaire: null,
     value_model: {
       truth_status: "not_available",
-      algorithm_version: "top.value-model.v0.1-illustrative",
+      algorithm_version: "top.value-model.v0.2-self-reported",
       reason: "current_report_not_eligible",
     },
     privacy: {

@@ -54,6 +54,11 @@ test("synthetic report is strict, content-free, and contains no recipient or per
   assert.doesNotMatch(serialized, /\b(?:Adam|Sam)\b/i);
   assert.equal(report.scope.original_source_content_included, false);
   assert.equal(report.privacy.network_delivery, "none");
+  assert.deepEqual(report.value_model, {
+    truth_status: "not_available",
+    algorithm_version: "top.value-model.v0.2-self-reported",
+    reason: "current_report_not_eligible",
+  });
   assert.deepEqual(report.totals, {
     input_tokens: 101,
     output_tokens: 202,

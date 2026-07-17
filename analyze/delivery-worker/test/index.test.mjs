@@ -13,6 +13,13 @@ import {
 
 const ORIGIN = "https://tokenoptimisationprotocol.org";
 const SUBMISSION_ID = "018f62cc-d0cd-7bc0-bed9-1e0c86b41ef3";
+const SELF_REPORTED_VALUE_LIMITATIONS = [
+  "hours_saved_was_not_measured_or_verified_by_top",
+  "value_per_hour_was_not_measured_or_verified_by_top",
+  "top_does_not_claim_the_reported_value_was_caused_by_top",
+  "non_usd_value_is_not_compared_with_usd_ai_cost",
+  "top_2_and_top_3_are_not_included",
+];
 
 function reportFixture() {
   return {
@@ -122,6 +129,73 @@ function submissionFixture() {
     },
     report: reportFixture(),
   };
+}
+
+function pricedReportFixture(reportCost = 5) {
+  const report = reportFixture();
+  report.by_model[0].model = "claude-opus-4-8";
+  report.by_model[0].cost = { status: "estimated", usd: reportCost };
+  report.cost = {
+    status: "estimated",
+    usd: reportCost,
+    basis: "estimated_pay_as_you_go_comparison",
+    currency: "USD",
+    subscription_bill: false,
+  };
+  report.pricing = {
+    status: "checked_reference_rates",
+    reference_checked_date: "2026-07-16",
+    unit: "usd_per_million_tokens",
+    applied_rates: [{
+      model: "claude-opus-4-8",
+      rate_family: "Claude Opus 4.5 to 4.8",
+      input_usd_per_million: 15,
+      cache_write_usd_per_million: 18.75,
+      cache_read_usd_per_million: 1.5,
+      output_usd_per_million: 75,
+      field_provenance: {
+        input: "checked_reference_rate",
+        cache_write: "derived_from_checked_reference_input",
+        cache_read: "derived_from_checked_reference_input",
+        output: "checked_reference_rate",
+      },
+      reference_source_url: "https://platform.claude.com/docs/en/about-claude/pricing",
+    }],
+    unpriced_model_groups: 0,
+  };
+  return report;
+}
+
+function selfReportedValueFixture({ hoursSaved = 2, valuePerHour = 10, currency = "USD", reportCost = 5 } = {}) {
+  const gross = Number((hoursSaved * valuePerHour).toFixed(2));
+  return {
+    truth_status: "self_reported_unverified",
+    algorithm_version: "top.value-model.v0.2-self-reported",
+    inputs: {
+      hours_saved: hoursSaved,
+      value_per_hour: valuePerHour,
+      currency,
+      provenance: "entered_by_user_in_browser",
+    },
+    calculation: "hours_saved_multiplied_by_value_per_hour",
+    outputs: {
+      self_reported_time_value: gross,
+      value_currency: currency,
+      analyzed_ai_cost_usd: reportCost,
+      net_after_ai_cost_usd: currency === "USD" ? Number((gross - reportCost).toFixed(2)) : null,
+      self_reported_value_per_ai_cost_usd: currency === "USD" && reportCost > 0
+        ? Number((gross / reportCost).toFixed(6))
+        : null,
+    },
+    limitations: [...SELF_REPORTED_VALUE_LIMITATIONS],
+  };
+}
+
+function reportWithSelfReportedValue(options = {}) {
+  const reportCost = options.reportCost ?? 5;
+  const report = pricedReportFixture(reportCost);
+  report.value_model = selfReportedValueFixture({ ...options, reportCost });
+  return report;
 }
 
 function v2ReportFixture() {
@@ -324,6 +398,89 @@ test("strict v1 fixture validates and totals reconcile", () => {
   assert.equal(validateResearchSafeUsage(reportFixture()), true);
 });
 
+test("legacy v0.1 value-model compatibility is limited to the exact not-available shape", () => {
+  const currentNotAvailable = reportFixture();
+  assert.equal(validateResearchSafeUsage(currentNotAvailable), true);
+
+  const routeNotAvailable = reportFixture();
+  routeNotAvailable.value_model.reason = "scenario_control_not_shown_for_this_route";
+  assert.equal(validateResearchSafeUsage(routeNotAvailable), true);
+
+  const legacyIllustrative = reportFixture();
+  legacyIllustrative.value_model = {
+    truth_status: "illustrative_unvalidated",
+    algorithm_version: "top.value-model.v0.1-illustrative",
+    inputs: {},
+    assumptions: [],
+    outputs: {},
+  };
+  assert.throws(() => validateResearchSafeUsage(legacyIllustrative), /legacy value model|unsupported or missing fields/i);
+
+  const legacyExtraField = reportFixture();
+  legacyExtraField.value_model.scenario_slider = 0.4;
+  assert.throws(() => validateResearchSafeUsage(legacyExtraField), /unsupported or missing fields/i);
+});
+
+test("v0.2 status-only shapes are exact and version-specific", () => {
+  const notAvailable = reportFixture();
+  notAvailable.value_model = {
+    truth_status: "not_available",
+    algorithm_version: "top.value-model.v0.2-self-reported",
+    reason: "current_report_not_eligible",
+  };
+  assert.equal(validateResearchSafeUsage(notAvailable), true);
+
+  const notProvided = reportFixture();
+  notProvided.value_model = {
+    truth_status: "not_provided",
+    algorithm_version: "top.value-model.v0.2-self-reported",
+    reason: "user_did_not_enter_both_value_inputs",
+  };
+  assert.equal(validateResearchSafeUsage(notProvided), true);
+
+  const legacyReasonUnderV02 = structuredClone(notAvailable);
+  legacyReasonUnderV02.value_model.reason = "scenario_control_not_shown_for_this_route";
+  assert.throws(() => validateResearchSafeUsage(legacyReasonUnderV02), /reason is not supported/i);
+
+  const v02ReasonUnderLegacy = reportFixture();
+  v02ReasonUnderLegacy.value_model.reason = "invalid_user_entered_value_inputs";
+  assert.throws(() => validateResearchSafeUsage(v02ReasonUnderLegacy), /reason is not supported/i);
+});
+
+test("v0.2 self-reported values reconcile and preserve finite zero values", () => {
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue()), true);
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue({ hoursSaved: 1, valuePerHour: 5 })), true, "zero net value must remain a finite zero");
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue({ hoursSaved: 0, valuePerHour: 999 })), true, "zero gross value and ratio must remain finite zeros");
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue({ reportCost: 0 })), true, "zero AI cost requires a null ratio, not division by zero");
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue({ currency: "EUR" })), true, "non-USD value remains uncombined with USD cost");
+});
+
+test("v0.2 self-reported values reject tampering, non-finite numbers and cross-version shapes", () => {
+  const wrongGross = reportWithSelfReportedValue();
+  wrongGross.value_model.outputs.self_reported_time_value += 1;
+  assert.throws(() => validateResearchSafeUsage(wrongGross), /does not reconcile/i);
+
+  const hiddenField = reportWithSelfReportedValue();
+  hiddenField.value_model.inputs.private_note = "must not pass";
+  assert.throws(() => validateResearchSafeUsage(hiddenField), /unsupported or missing fields/i);
+
+  const nullInsteadOfZeroNet = reportWithSelfReportedValue({ hoursSaved: 1, valuePerHour: 5 });
+  nullInsteadOfZeroNet.value_model.outputs.net_after_ai_cost_usd = null;
+  assert.throws(() => validateResearchSafeUsage(nullInsteadOfZeroNet), /USD value outputs do not reconcile/i);
+
+  const nullInsteadOfZeroRatio = reportWithSelfReportedValue({ hoursSaved: 0, valuePerHour: 999 });
+  nullInsteadOfZeroRatio.value_model.outputs.self_reported_value_per_ai_cost_usd = null;
+  assert.throws(() => validateResearchSafeUsage(nullInsteadOfZeroRatio), /USD value outputs do not reconcile/i);
+
+  const infiniteInput = reportWithSelfReportedValue();
+  infiniteInput.value_model.inputs.hours_saved = Infinity;
+  assert.throws(() => validateResearchSafeUsage(infiniteInput), /nonnegative number/i);
+
+  const crossedVersion = reportWithSelfReportedValue();
+  crossedVersion.value_model.algorithm_version = "top.value-model.v0.1-illustrative";
+  assert.throws(() => validateResearchSafeUsage(crossedVersion), /unsupported or missing fields/i);
+});
+
 test("strict v2 Claude Code and Codex fixtures validate without weakening v1", () => {
   assert.equal(validateResearchSafeUsage(v2ReportFixture()), true);
   assert.equal(validateResearchSafeUsage(v2CodexReportFixture()), true);
@@ -439,7 +596,7 @@ test("v2 workflow shape is structural, exact and reconciled to usage buckets", (
   assert.throws(() => validateResearchSafeUsage(wrongShape), /does not reconcile with usage-record buckets/i);
 });
 
-test("strict validator accepts current analyzer-generated Claude, Codex, chat and Console variants", async () => {
+test("transition validator accepts current analyzer not-available output and rejects legacy illustrative output", async () => {
   const html = await readFile(new URL("../../index.html", import.meta.url), "utf8");
   const pricingStart = html.indexOf("var PRICING_CHECKED=");
   const pricingEnd = html.indexOf("var VM=", pricingStart);
@@ -471,7 +628,14 @@ test("strict validator accepts current analyzer-generated Claude, Codex, chat an
       turns: 1, sessions: 1, days: 0, filesOpened: 1, csv: true, costComplete: true, costRows: 1, missingCostRows: 0, valueModelEligible: true,
     }, null, null, 0.4, "2026-07-16"),
   ].map(plain);
-  for (const report of reports) assert.equal(validateResearchSafeUsage(report), true);
+  const notAvailableReports = reports.filter((report) => report.value_model.truth_status === "not_available");
+  const legacyIllustrativeReports = reports.filter((report) => report.value_model.truth_status === "illustrative_unvalidated");
+  assert.ok(notAvailableReports.length > 0, "fixture must include legacy not-available output");
+  assert.ok(legacyIllustrativeReports.length > 0, "fixture must include legacy illustrative output");
+  for (const report of notAvailableReports) assert.equal(validateResearchSafeUsage(report), true);
+  for (const report of legacyIllustrativeReports) {
+    assert.throws(() => validateResearchSafeUsage(report), /legacy value model|unsupported or missing fields/i);
+  }
 });
 
 test("successful email body contains aggregates but not private source fields", async () => {
@@ -735,4 +899,7 @@ test("wrangler config pins the one production custom domain and disables alterna
   assert.equal(config.workers_dev, false);
   assert.equal(config.preview_urls, false);
   assert.deepEqual(config.routes, [{ pattern: "submit.tokenoptimisationprotocol.org", custom_domain: true }]);
+  assert.deepEqual(config.secrets, {
+    required: ["RESEND_API_KEY", "RESEND_FROM", "SUBMISSION_TO", "SUBMISSION_CC"],
+  });
 });
