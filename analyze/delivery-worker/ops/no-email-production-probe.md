@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This operator check verifies only the public route's CORS and method guard. It cannot submit a report or trigger an email.
+This operator check verifies only the public route's CORS and method guard. It cannot submit a report or trigger an email. Every live probe request is `OPTIONS` or `PATCH`. There is no `POST`, request body, report payload or email-provider call.
 
 The probe is pinned to:
 
@@ -55,17 +55,27 @@ Record public identifiers and configuration names only. Never paste secret value
 - Verification date and time (UTC): `____________________`
 - Cloudflare deployment ID: `____________________`
 - Deployed source commit SHA: `____________________`
+- Approved Windows operator account from `whoami` (account name only, not an email): `____________________`
+- Current `whoami` exactly matches the approved operator account before smoke dry run or live attempt: `yes / no`
+- Architecture confirmed as Cloudflare Worker plus Resend only: `yes / no`
+- No Cloudflare Email Service or `EMAIL` binding present: `yes / no`
+- No dashboard plaintext recipient variables or committed recipient addresses present: `yes / no`
+- Resend sending domain verified exactly as `send.tokenoptimisationprotocol.org`: `yes / no`
+- Resend API key mode confirmed as `Sending access`: `yes / no`
+- Resend API key restricted to `send.tokenoptimisationprotocol.org`: `yes / no`
+- Resend Ireland dispatch limitation reviewed, account data, metadata, logs and API records remain in the United States: `yes / no`
 - Custom domain route confirmed as `submit.tokenoptimisationprotocol.org`: `yes / no`
 - Worker route configuration confirmed as custom domain: `yes / no`
 - Required Worker secret name present, value not copied: `RESEND_API_KEY` (`yes / no`)
 - Required Worker secret name present, value not copied: `RESEND_FROM` (`yes / no`)
 - Required Worker secret name present, value not copied: `SUBMISSION_TO` (`yes / no`)
 - Required Worker secret name present, value not copied: `SUBMISSION_CC` (`yes / no`)
+- Exactly those four secret names are present for delivery, with no extra delivery-provider binding: `yes / no`
 - Rate-limit binding name confirmed as `SUBMIT_RATE_LIMITER`: `yes / no`
 - Rate-limit binding type and namespace confirmed in dashboard, values not copied: `yes / no`
 - Operator initials: `____________________`
 
-Stop if any item is unknown or does not match the reviewed deployment. Do not run the live probe as a substitute for recording the deployed source commit and bindings.
+Stop if any item is unknown or does not match the reviewed deployment. Do not run the live probe as a substitute for recording the deployed source commit, deployment ID, bindings, route, Resend restriction or exact four secret names.
 
 ## Evidence limits
 

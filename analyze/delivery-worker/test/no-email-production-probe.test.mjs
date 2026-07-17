@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -228,4 +229,21 @@ test("response body access is never required", async () => {
   assert.equal(result.network_calls, 4);
   assert.equal(calls, 4);
   assert.equal(result.response_bodies_inspected, false);
+});
+
+test("the operator record pins the Resend-only dashboard evidence without addresses", async () => {
+  const text = await readFile(new URL("../ops/no-email-production-probe.md", import.meta.url), "utf8");
+  assert.doesNotMatch(text, /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+/);
+  for (const name of ["RESEND_API_KEY", "RESEND_FROM", "SUBMISSION_TO", "SUBMISSION_CC", "SUBMIT_RATE_LIMITER"]) {
+    assert.match(text, new RegExp(name));
+  }
+  assert.match(text, /Cloudflare Worker plus Resend only/);
+  assert.match(text, /No Cloudflare Email Service or `EMAIL` binding/);
+  assert.match(text, /Sending access/);
+  assert.match(text, /send\.tokenoptimisationprotocol\.org/);
+  assert.match(text, /deployment ID/i);
+  assert.match(text, /source commit/i);
+  assert.match(text, /Approved Windows operator account from `whoami`/);
+  assert.match(text, /Current `whoami` exactly matches/);
+  assert.match(text, /never uses `POST`/);
 });

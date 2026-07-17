@@ -6,6 +6,8 @@
     "test": "node --test test/*.test.mjs",
     "smoke:production": "node scripts/production-smoke.mjs",
     "verify:attachments": "node scripts/verify-attachment-hashes.mjs",
+    "record:retention": "node scripts/record-retention-event.mjs",
+    "record:real-retention": "node scripts/manage-real-submission-retention.mjs",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },

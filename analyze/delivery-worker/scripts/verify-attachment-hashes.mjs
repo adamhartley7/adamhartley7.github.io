@@ -83,14 +83,23 @@ export async function runAttachmentVerification({
 
     const log = JSON.parse(await readFile(logPath, "utf8"));
     validateRetentionLog(log);
-    if (log.http_status !== 202 || log.accepted_status !== "accepted_for_delivery" || log.request_attempted !== true) {
+    if (log.http_status !== 202
+      || log.accepted_status !== "accepted_for_delivery"
+      || log.request_attempted !== true
+      || typeof log.provider_message_id !== "string"
+      || !log.provider_message_id) {
       throw new Error("The retention log does not record an accepted synthetic request.");
+    }
+    if (log.attachment_hash_verification_status !== "pending"
+      || log.attachment_hashes.some((entry) => entry.status !== "pending" || entry.sha256 !== null || entry.matches_report_sha256 !== null)) {
+      throw new Error("Attachment verification is already terminal and cannot be repeated or replaced.");
     }
 
     const hashes = await Promise.all(attachmentPaths.map(async (value) => hashBytes(await readFile(value))));
     const matches = hashes.map((value) => value === log.report_sha256);
+    const slots = ["adam_received_attachment", "sam_received_attachment"];
     log.attachment_hashes = hashes.map((sha256, index) => ({
-      slot: `received_copy_${index + 1}`,
+      slot: slots[index],
       status: matches[index] ? "verified_match" : "mismatch",
       sha256,
       matches_report_sha256: matches[index],
@@ -100,7 +109,7 @@ export async function runAttachmentVerification({
     await writeFile(logPath, `${JSON.stringify(log, null, 2)}\n`, { encoding: "utf8", flag: "w", mode: 0o600 });
 
     stdout(`Expected report SHA-256: ${log.report_sha256}`);
-    hashes.forEach((value, index) => stdout(`Received copy ${index + 1} SHA-256: ${value} (${matches[index] ? "match" : "MISMATCH"})`));
+    hashes.forEach((value, index) => stdout(`${index === 0 ? "Adam" : "Sam"} received attachment SHA-256: ${value} (${matches[index] ? "match" : "MISMATCH"})`));
     stdout(`Private retention log updated: ${logPath}`);
     stdout("Mailbox access: none");
     stdout("Network calls: 0");

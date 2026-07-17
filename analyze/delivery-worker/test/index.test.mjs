@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
@@ -13,6 +14,13 @@ import {
 
 const ORIGIN = "https://tokenoptimisationprotocol.org";
 const SUBMISSION_ID = "018f62cc-d0cd-7bc0-bed9-1e0c86b41ef3";
+const SELF_REPORTED_VALUE_LIMITATIONS = [
+  "hours_saved_was_not_measured_or_verified_by_top",
+  "value_per_hour_was_not_measured_or_verified_by_top",
+  "top_does_not_claim_the_reported_value_was_caused_by_top",
+  "non_usd_value_is_not_compared_with_usd_ai_cost",
+  "top_2_and_top_3_are_not_included",
+];
 
 function reportFixture() {
   return {
@@ -122,6 +130,73 @@ function submissionFixture() {
     },
     report: reportFixture(),
   };
+}
+
+function pricedReportFixture(reportCost = 5) {
+  const report = reportFixture();
+  report.by_model[0].model = "claude-opus-4-8";
+  report.by_model[0].cost = { status: "estimated", usd: reportCost };
+  report.cost = {
+    status: "estimated",
+    usd: reportCost,
+    basis: "estimated_pay_as_you_go_comparison",
+    currency: "USD",
+    subscription_bill: false,
+  };
+  report.pricing = {
+    status: "checked_reference_rates",
+    reference_checked_date: "2026-07-16",
+    unit: "usd_per_million_tokens",
+    applied_rates: [{
+      model: "claude-opus-4-8",
+      rate_family: "Claude Opus 4.5 to 4.8",
+      input_usd_per_million: 15,
+      cache_write_usd_per_million: 18.75,
+      cache_read_usd_per_million: 1.5,
+      output_usd_per_million: 75,
+      field_provenance: {
+        input: "checked_reference_rate",
+        cache_write: "derived_from_checked_reference_input",
+        cache_read: "derived_from_checked_reference_input",
+        output: "checked_reference_rate",
+      },
+      reference_source_url: "https://platform.claude.com/docs/en/about-claude/pricing",
+    }],
+    unpriced_model_groups: 0,
+  };
+  return report;
+}
+
+function selfReportedValueFixture({ hoursSaved = 2, valuePerHour = 10, currency = "USD", reportCost = 5 } = {}) {
+  const gross = Number((hoursSaved * valuePerHour).toFixed(2));
+  return {
+    truth_status: "self_reported_unverified",
+    algorithm_version: "top.value-model.v0.2-self-reported",
+    inputs: {
+      hours_saved: hoursSaved,
+      value_per_hour: valuePerHour,
+      currency,
+      provenance: "entered_by_user_in_browser",
+    },
+    calculation: "hours_saved_multiplied_by_value_per_hour",
+    outputs: {
+      self_reported_time_value: gross,
+      value_currency: currency,
+      analyzed_ai_cost_usd: reportCost,
+      net_after_ai_cost_usd: currency === "USD" ? Number((gross - reportCost).toFixed(2)) : null,
+      self_reported_value_per_ai_cost_usd: currency === "USD" && reportCost > 0
+        ? Number((gross / reportCost).toFixed(6))
+        : null,
+    },
+    limitations: [...SELF_REPORTED_VALUE_LIMITATIONS],
+  };
+}
+
+function reportWithSelfReportedValue(options = {}) {
+  const reportCost = options.reportCost ?? 5;
+  const report = pricedReportFixture(reportCost);
+  report.value_model = selfReportedValueFixture({ ...options, reportCost });
+  return report;
 }
 
 function v2ReportFixture() {
@@ -304,19 +379,6 @@ function environment(rateSuccess = true) {
   };
 }
 
-function cloudflareEnvironment({ send, rateSuccess = true } = {}) {
-  return {
-    SUBMISSION_TO: "adam-review@example.com",
-    SUBMISSION_CC: "sam-review@example.com",
-    EMAIL: { send: send || (async () => ({ messageId: "synthetic-binding-message-id" })) },
-    SUBMIT_RATE_LIMITER: { limit: async () => ({ success: rateSuccess }) },
-  };
-}
-
-function mustNotFetch() {
-  return async () => { throw new Error("the Cloudflare path must not call external fetch"); };
-}
-
 function requestFor(body, options = {}) {
   return new Request("https://submit.example.workers.dev/v1/reports", {
     method: options.method || "POST",
@@ -335,6 +397,89 @@ async function responseJson(response) {
 
 test("strict v1 fixture validates and totals reconcile", () => {
   assert.equal(validateResearchSafeUsage(reportFixture()), true);
+});
+
+test("legacy v0.1 value-model compatibility is limited to the exact not-available shape", () => {
+  const currentNotAvailable = reportFixture();
+  assert.equal(validateResearchSafeUsage(currentNotAvailable), true);
+
+  const routeNotAvailable = reportFixture();
+  routeNotAvailable.value_model.reason = "scenario_control_not_shown_for_this_route";
+  assert.equal(validateResearchSafeUsage(routeNotAvailable), true);
+
+  const legacyIllustrative = reportFixture();
+  legacyIllustrative.value_model = {
+    truth_status: "illustrative_unvalidated",
+    algorithm_version: "top.value-model.v0.1-illustrative",
+    inputs: {},
+    assumptions: [],
+    outputs: {},
+  };
+  assert.throws(() => validateResearchSafeUsage(legacyIllustrative), /legacy value model|unsupported or missing fields/i);
+
+  const legacyExtraField = reportFixture();
+  legacyExtraField.value_model.scenario_slider = 0.4;
+  assert.throws(() => validateResearchSafeUsage(legacyExtraField), /unsupported or missing fields/i);
+});
+
+test("v0.2 status-only shapes are exact and version-specific", () => {
+  const notAvailable = reportFixture();
+  notAvailable.value_model = {
+    truth_status: "not_available",
+    algorithm_version: "top.value-model.v0.2-self-reported",
+    reason: "current_report_not_eligible",
+  };
+  assert.throws(() => validateResearchSafeUsage(notAvailable), /status is not supported|unsupported or missing fields/i);
+
+  const notProvided = reportFixture();
+  notProvided.value_model = {
+    truth_status: "not_provided",
+    algorithm_version: "top.value-model.v0.2-self-reported",
+    reason: "user_did_not_enter_both_value_inputs",
+  };
+  assert.equal(validateResearchSafeUsage(notProvided), true);
+
+  const legacyReasonUnderV02 = structuredClone(notProvided);
+  legacyReasonUnderV02.value_model.reason = "scenario_control_not_shown_for_this_route";
+  assert.throws(() => validateResearchSafeUsage(legacyReasonUnderV02), /reason is not supported/i);
+
+  const v02ReasonUnderLegacy = reportFixture();
+  v02ReasonUnderLegacy.value_model.reason = "invalid_user_entered_value_inputs";
+  assert.throws(() => validateResearchSafeUsage(v02ReasonUnderLegacy), /reason is not supported/i);
+});
+
+test("v0.2 self-reported values reconcile and preserve finite zero values", () => {
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue()), true);
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue({ hoursSaved: 1, valuePerHour: 5 })), true, "zero net value must remain a finite zero");
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue({ hoursSaved: 0, valuePerHour: 999 })), true, "zero gross value and ratio must remain finite zeros");
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue({ reportCost: 0 })), true, "zero AI cost requires a null ratio, not division by zero");
+  assert.equal(validateResearchSafeUsage(reportWithSelfReportedValue({ currency: "EUR" })), true, "non-USD value remains uncombined with USD cost");
+});
+
+test("v0.2 self-reported values reject tampering, non-finite numbers and cross-version shapes", () => {
+  const wrongGross = reportWithSelfReportedValue();
+  wrongGross.value_model.outputs.self_reported_time_value += 1;
+  assert.throws(() => validateResearchSafeUsage(wrongGross), /does not reconcile/i);
+
+  const hiddenField = reportWithSelfReportedValue();
+  hiddenField.value_model.inputs.private_note = "must not pass";
+  assert.throws(() => validateResearchSafeUsage(hiddenField), /unsupported or missing fields/i);
+
+  const nullInsteadOfZeroNet = reportWithSelfReportedValue({ hoursSaved: 1, valuePerHour: 5 });
+  nullInsteadOfZeroNet.value_model.outputs.net_after_ai_cost_usd = null;
+  assert.throws(() => validateResearchSafeUsage(nullInsteadOfZeroNet), /USD value outputs do not reconcile/i);
+
+  const nullInsteadOfZeroRatio = reportWithSelfReportedValue({ hoursSaved: 0, valuePerHour: 999 });
+  nullInsteadOfZeroRatio.value_model.outputs.self_reported_value_per_ai_cost_usd = null;
+  assert.throws(() => validateResearchSafeUsage(nullInsteadOfZeroRatio), /USD value outputs do not reconcile/i);
+
+  const infiniteInput = reportWithSelfReportedValue();
+  infiniteInput.value_model.inputs.hours_saved = Infinity;
+  assert.throws(() => validateResearchSafeUsage(infiniteInput), /nonnegative number/i);
+
+  const crossedVersion = reportWithSelfReportedValue();
+  crossedVersion.value_model.algorithm_version = "top.value-model.v0.1-illustrative";
+  assert.throws(() => validateResearchSafeUsage(crossedVersion), /unsupported or missing fields/i);
 });
 
 test("strict v2 Claude Code and Codex fixtures validate without weakening v1", () => {
@@ -452,7 +597,7 @@ test("v2 workflow shape is structural, exact and reconciled to usage buckets", (
   assert.throws(() => validateResearchSafeUsage(wrongShape), /does not reconcile with usage-record buckets/i);
 });
 
-test("strict validator accepts current analyzer-generated Claude, Codex, chat and Console variants", async () => {
+test("transition validator accepts current analyzer not-available output and rejects legacy illustrative output", async () => {
   const html = await readFile(new URL("../../index.html", import.meta.url), "utf8");
   const pricingStart = html.indexOf("var PRICING_CHECKED=");
   const pricingEnd = html.indexOf("var VM=", pricingStart);
@@ -484,7 +629,14 @@ test("strict validator accepts current analyzer-generated Claude, Codex, chat an
       turns: 1, sessions: 1, days: 0, filesOpened: 1, csv: true, costComplete: true, costRows: 1, missingCostRows: 0, valueModelEligible: true,
     }, null, null, 0.4, "2026-07-16"),
   ].map(plain);
-  for (const report of reports) assert.equal(validateResearchSafeUsage(report), true);
+  const notAvailableReports = reports.filter((report) => report.value_model.truth_status === "not_available");
+  const legacyIllustrativeReports = reports.filter((report) => report.value_model.truth_status === "illustrative_unvalidated");
+  assert.ok(notAvailableReports.length > 0, "fixture must include legacy not-available output");
+  assert.ok(legacyIllustrativeReports.length > 0, "fixture must include legacy illustrative output");
+  for (const report of notAvailableReports) assert.equal(validateResearchSafeUsage(report), true);
+  for (const report of legacyIllustrativeReports) {
+    assert.throws(() => validateResearchSafeUsage(report), /legacy value model|unsupported or missing fields/i);
+  }
 });
 
 test("successful email body contains aggregates but not private source fields", async () => {
@@ -502,10 +654,12 @@ test("successful email body contains aggregates but not private source fields", 
   assert.equal(body.status, "accepted_for_delivery");
   assert.equal(body.delivered, false);
   assert.equal(body.receipt_id, SUBMISSION_ID);
+  assert.equal(body.provider_message_id, "synthetic-email-id");
   assert.match(body.report_sha256, /^[0-9a-f]{64}$/);
   assert.deepEqual(captured.email.to, ["adam-review@example.com"]);
   assert.deepEqual(captured.email.cc, ["sam-review@example.com"]);
   assert.equal(captured.init.headers["Idempotency-Key"], `top-usage/${SUBMISSION_ID}`);
+  assert.equal(captured.init.headers["User-Agent"], "TOP-Analyzer-Delivery/1.0");
   assert.match(captured.email.text, /Total tokens: 65/);
   assert.match(captured.email.text, /privacy\.network_delivery value describes the analyzer state/i);
   assert.match(captured.email.text, /Delivery request date: 2026-07-17/);
@@ -515,7 +669,9 @@ test("successful email body contains aggregates but not private source fields", 
   assert.match(captured.email.html, /<strong>Deletion due date:<\/strong> 2026-08-16/);
   assert.match(captured.email.html, /earlier if Adam receives an early deletion request/);
   assert.equal(/prompt text|reply text|source path|project identifier/i.test(captured.email.text), false);
-  const attachment = JSON.parse(Buffer.from(captured.email.attachments[0].content, "base64").toString("utf8"));
+  const attachmentBytes = Buffer.from(captured.email.attachments[0].content, "base64");
+  assert.equal(createHash("sha256").update(attachmentBytes).digest("hex"), body.report_sha256);
+  const attachment = JSON.parse(attachmentBytes.toString("utf8"));
   assert.deepEqual(attachment, reportFixture());
 });
 
@@ -579,172 +735,6 @@ test("incomplete coverage is prominent in both email bodies with nonzero exclusi
   assert.match(captured.html, /<h2>Coverage warning<\/h2>/);
   assert.match(captured.html, /This report is incomplete/);
   assert.match(captured.html, /Oversized lines 1/);
-});
-
-test("Cloudflare binding is the default delivery path when no Resend key is configured", async () => {
-  let captured;
-  const handler = createHandler({
-    now: () => new Date("2026-07-17T12:34:56.000Z"),
-    fetchImpl: mustNotFetch(),
-  });
-  const env = cloudflareEnvironment({
-    send: async (message) => {
-      captured = message;
-      return { messageId: "synthetic-binding-message-id" };
-    },
-  });
-  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
-  assert.equal(response.status, 202);
-  assert.equal(body.status, "accepted_for_delivery");
-  assert.equal(body.delivered, false);
-  assert.equal(body.receipt_id, SUBMISSION_ID);
-  assert.match(body.report_sha256, /^[0-9a-f]{64}$/);
-  assert.deepEqual(captured.from, { email: "reports@tokenoptimisationprotocol.org", name: "TOP Analyzer" });
-  assert.deepEqual(captured.to, ["adam-review@example.com"]);
-  assert.deepEqual(captured.cc, ["sam-review@example.com"]);
-  assert.equal(captured.subject, `TOP research-safe usage submission ${SUBMISSION_ID.slice(0, 8)}`);
-  assert.equal(captured.headers["X-TOP-Idempotency-Key"], `top-usage/${SUBMISSION_ID}`);
-  assert.match(captured.text, /Total tokens: 65/);
-  assert.match(captured.text, /Delivery request date: 2026-07-17/);
-  assert.match(captured.text, /Deletion due date: 2026-08-16 \(30 days after the delivery request date\)/);
-  assert.match(captured.html, /deepseek-v4-pro/);
-  assert.equal(captured.attachments.length, 1);
-  assert.equal(captured.attachments[0].type, "application/json");
-  assert.equal(captured.attachments[0].disposition, "attachment");
-  assert.match(captured.attachments[0].filename, /^top-research-safe-usage-2026-07-16-[0-9a-f]{8}\.json$/);
-  const attachment = JSON.parse(Buffer.from(captured.attachments[0].content, "base64").toString("utf8"));
-  assert.deepEqual(attachment, reportFixture());
-});
-
-test("Cloudflare binding errors map to truthful not-sent responses", async () => {
-  const cases = [
-    ["E_RATE_LIMIT_EXCEEDED", 429, "delivery_rate_limited"],
-    ["E_DAILY_LIMIT_EXCEEDED", 429, "delivery_rate_limited"],
-    ["E_SENDER_NOT_VERIFIED", 502, "delivery_rejected"],
-    ["E_RECIPIENT_NOT_ALLOWED", 502, "delivery_rejected"],
-    ["E_UNKNOWN_SYNTHETIC_FAILURE", 503, "delivery_unavailable"],
-    [null, 503, "delivery_unavailable"],
-  ];
-  for (const [code, expectedStatus, expectedCode] of cases) {
-    const handler = createHandler({ fetchImpl: mustNotFetch() });
-    const env = cloudflareEnvironment({
-      send: async () => {
-        const error = new Error("synthetic binding failure");
-        if (code) error.code = code;
-        throw error;
-      },
-    });
-    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
-    assert.equal(response.status, expectedStatus);
-    assert.equal(body.status, "not_sent");
-    assert.equal(body.error.code, expectedCode);
-    assert.equal(body.receipt_id, SUBMISSION_ID);
-  }
-});
-
-test("oversized content rejected by the Cloudflare binding is a truthful not-sent 502", async () => {
-  const handler = createHandler({ fetchImpl: mustNotFetch() });
-  const env = cloudflareEnvironment({
-    send: async () => {
-      const error = new Error("message too large");
-      error.code = "E_CONTENT_TOO_LARGE";
-      throw error;
-    },
-  });
-  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
-  assert.equal(response.status, 502);
-  assert.equal(body.status, "not_sent");
-  assert.equal(body.error.code, "delivery_rejected");
-});
-
-test("413 body limit stops a Cloudflare-path request before the binding is called", async () => {
-  let called = false;
-  const handler = createHandler({ fetchImpl: mustNotFetch() });
-  const env = cloudflareEnvironment({ send: async () => { called = true; throw new Error("must not send"); } });
-  const oversized = JSON.stringify({ padding: "x".repeat(MAX_JSON_BYTES) });
-  const { response, body } = await responseJson(await handler.fetch(requestFor(oversized), env));
-  assert.equal(response.status, 413);
-  assert.equal(body.error.code, "payload_too_large");
-  assert.equal(called, false);
-});
-
-test("a resolved binding call is accepted whatever its result shape, since both binding generations only throw on failure", async () => {
-  for (const result of [undefined, {}, null]) {
-    const handler = createHandler({ fetchImpl: mustNotFetch() });
-    const env = cloudflareEnvironment({ send: async () => result });
-    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
-    assert.equal(response.status, 202);
-    assert.equal(body.status, "accepted_for_delivery");
-    assert.equal(body.provider_message_id, null);
-  }
-});
-
-test("a resolved binding call with a message id records it", async () => {
-  const handler = createHandler({ fetchImpl: mustNotFetch() });
-  const env = cloudflareEnvironment({ send: async () => ({ messageId: "cf-msg-123" }) });
-  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
-  assert.equal(response.status, 202);
-  assert.equal(body.provider_message_id, "cf-msg-123");
-});
-
-test("a whitespace-only Resend key does not silently reroute delivery to Resend", async () => {
-  const handler = createHandler({ fetchImpl: mustNotFetch() });
-  const env = cloudflareEnvironment({ send: async () => ({ messageId: "cf-msg-9" }) });
-  delete env.DELIVERY_PROVIDER;
-  env.RESEND_API_KEY = "   ";
-  const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
-  assert.equal(response.status, 202);
-  assert.equal(body.status, "accepted_for_delivery");
-});
-
-test("missing binding or invalid fixed recipients fail closed on the Cloudflare path", async () => {
-  for (const mutate of [
-    (env) => { delete env.EMAIL; },
-    (env) => { env.EMAIL = {}; },
-    (env) => { delete env.SUBMISSION_CC; },
-    (env) => { env.SUBMISSION_TO = "first@example.com,second@example.com"; },
-  ]) {
-    const handler = createHandler({ fetchImpl: mustNotFetch() });
-    const env = cloudflareEnvironment();
-    mutate(env);
-    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), env));
-    assert.equal(response.status, 503);
-    assert.equal(body.status, "not_sent");
-    assert.equal(body.error.code, "delivery_unavailable");
-  }
-});
-
-test("DELIVERY_PROVIDER flag selects the provider explicitly and rejects unknown values", async () => {
-  let bindingCalls = 0;
-  let fetchCalls = 0;
-  const flaggedCloudflare = cloudflareEnvironment({ send: async () => { bindingCalls++; return { messageId: "synthetic-flagged-id" }; } });
-  flaggedCloudflare.RESEND_API_KEY = "synthetic-sending-only-key";
-  flaggedCloudflare.RESEND_FROM = "TOP Analyzer <reports@send.tokenoptimisationprotocol.org>";
-  flaggedCloudflare.DELIVERY_PROVIDER = "cloudflare";
-  const cloudflareHandler = createHandler({ fetchImpl: async () => { fetchCalls++; throw new Error("must not fetch"); } });
-  const flagged = await responseJson(await cloudflareHandler.fetch(requestFor(JSON.stringify(submissionFixture())), flaggedCloudflare));
-  assert.equal(flagged.response.status, 202);
-  assert.equal(bindingCalls, 1);
-  assert.equal(fetchCalls, 0);
-
-  const flaggedResend = environment();
-  flaggedResend.DELIVERY_PROVIDER = "resend";
-  const resendHandler = createHandler({
-    fetchImpl: async () => {
-      fetchCalls++;
-      return new Response(JSON.stringify({ id: "synthetic-email-id" }), { status: 200, headers: { "Content-Type": "application/json" } });
-    },
-  });
-  const resendResult = await responseJson(await resendHandler.fetch(requestFor(JSON.stringify(submissionFixture())), flaggedResend));
-  assert.equal(resendResult.response.status, 202);
-  assert.equal(fetchCalls, 1);
-
-  const invalidFlag = cloudflareEnvironment();
-  invalidFlag.DELIVERY_PROVIDER = "sendgrid";
-  const invalidHandler = createHandler({ fetchImpl: mustNotFetch() });
-  const invalid = await responseJson(await invalidHandler.fetch(requestFor(JSON.stringify(submissionFixture())), invalidFlag));
-  assert.equal(invalid.response.status, 503);
-  assert.equal(invalid.body.error.code, "delivery_unavailable");
 });
 
 test("400 rejects unknown and forbidden report fields before delivery", async () => {
@@ -853,6 +843,18 @@ test("upstream 500 is converted to a truthful not-sent 502", async () => {
   assert.equal(body.error.code, "delivery_rejected");
 });
 
+test("an upstream success without a safe nonempty Resend message ID fails closed", async () => {
+  for (const id of ["", "   ", "unsafe/id", null]) {
+    const handler = createHandler({
+      fetchImpl: async () => new Response(JSON.stringify({ id }), { status: 200, headers: { "Content-Type": "application/json" } }),
+    });
+    const { response, body } = await responseJson(await handler.fetch(requestFor(JSON.stringify(submissionFixture())), environment()));
+    assert.equal(response.status, 502);
+    assert.equal(body.status, "not_sent");
+    assert.equal(body.error.code, "delivery_rejected");
+  }
+});
+
 test("only the production origin receives CORS permission", async () => {
   let called = false;
   const handler = createHandler({ fetchImpl: async () => { called = true; throw new Error("must not send"); } });
@@ -914,19 +916,13 @@ test("wrangler config pins the one production custom domain and disables alterna
   assert.equal(config.workers_dev, false);
   assert.equal(config.preview_urls, false);
   assert.deepEqual(config.routes, [{ pattern: "submit.tokenoptimisationprotocol.org", custom_domain: true }]);
-});
-
-test("wrangler config pins the send_email binding to the two approved recipients", async () => {
-  const config = JSON.parse(await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
-  assert.deepEqual(config.send_email, [{
-    name: "EMAIL",
-    allowed_destination_addresses: ["adam2hartley@gmail.com", "oconns89@tcd.ie"],
+  assert.equal(Object.hasOwn(config, "secrets"), false);
+  assert.equal(Object.hasOwn(config, "vars"), false);
+  assert.equal(Object.hasOwn(config, "send_email"), false);
+  assert.doesNotMatch(JSON.stringify(config), /\bEMAIL\b|send_email/i);
+  assert.deepEqual(config.ratelimits, [{
+    name: "SUBMIT_RATE_LIMITER",
+    namespace_id: "2171601",
+    simple: { limit: 10, period: 60 },
   }]);
-  assert.deepEqual(config.vars, {
-    DELIVERY_PROVIDER: "cloudflare",
-    SUBMISSION_TO: "adam2hartley@gmail.com",
-    SUBMISSION_CC: "oconns89@tcd.ie",
-  });
-  assert.equal(config.send_email[0].allowed_destination_addresses.includes(config.vars.SUBMISSION_TO), true);
-  assert.equal(config.send_email[0].allowed_destination_addresses.includes(config.vars.SUBMISSION_CC), true);
 });
