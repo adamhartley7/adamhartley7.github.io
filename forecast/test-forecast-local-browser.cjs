@@ -3,12 +3,13 @@
 /*
  * Reproducibility gate for the shipped browser path, not an accuracy test.
  * It loads /forecast from file:// in a fresh Chromium profile, blocks page
- * network APIs and non-file requests, feeds only generated JSONL strings into
- * the same run() path used after FileReader completes in a 320px viewport,
- * and repeats three times.
+ * network APIs and non-file requests, feeds generated .jsonl files through
+ * the individual-file input and FileReader path in a 320px viewport, and
+ * repeats three times. A valid synthetic .txt decoy must be filtered out.
  *
- * Deliberate limits: Chromium only; no OS file-picker/drop traversal; one
- * generic "misc" archetype; tiny synthetic chronology; no real user data.
+ * Deliberate limits: Chromium only; no OS dialog, folder picker or drop
+ * traversal; one generic "misc" archetype; tiny synthetic chronology; no
+ * real user data.
  */
 
 const assert = require("node:assert/strict");
@@ -246,6 +247,16 @@ async function waitForReady(client) {
   throw new Error("forecast page did not become ready");
 }
 
+async function waitForFixture(client) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const ready = await evaluate(client,
+      "typeof SESSIONS !== 'undefined' && Array.isArray(SESSIONS) && SESSIONS.length === 13 && BT && BT.ok === true");
+    if (ready) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error("forecast fixture did not finish through the file-input path");
+}
+
 async function stopBrowser(browser) {
   if (browser.exitCode !== null) return;
   const exited = new Promise((resolve) => browser.once("exit", resolve));
@@ -281,6 +292,34 @@ async function removeProfile(profile) {
 async function runOnce(runNumber, texts) {
   const port = await getFreePort();
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), `top-forecast-browser-${runNumber}-`));
+  const fixturePaths = [
+    path.join(profile, "synthetic-part-a.jsonl"),
+    path.join(profile, "synthetic-part-b.jsonl")
+  ];
+  fs.writeFileSync(fixturePaths[0], texts.slice(0, 7).join("\n"), "utf8");
+  fs.writeFileSync(fixturePaths[1], texts.slice(7).join("\n"), "utf8");
+  const decoyPath = path.join(profile, "synthetic-ignore.txt");
+  fs.writeFileSync(decoyPath, [
+    JSON.stringify({
+      type: "user",
+      sessionId: "synthetic-session-decoy",
+      cwd: "/synthetic/project-decoy",
+      timestamp: "2026-01-14T12:00:00.000Z",
+      message: { content: "This valid record must be ignored because its file is not .jsonl" }
+    }),
+    JSON.stringify({
+      type: "assistant",
+      sessionId: "synthetic-session-decoy",
+      cwd: "/synthetic/project-decoy",
+      timestamp: "2026-01-14T12:00:00.000Z",
+      requestId: "synthetic-request-decoy",
+      message: {
+        id: "synthetic-message-decoy",
+        model: "claude-sonnet-4-5-20260101",
+        usage: { input_tokens: 999999, output_tokens: 999999 }
+      }
+    })
+  ].join("\n"), "utf8");
   const browser = spawn(browserPath(), [
     "--headless=new",
     `--remote-debugging-port=${port}`,
@@ -344,9 +383,27 @@ async function runOnce(runNumber, texts) {
     assert.equal(navigation.errorText, undefined, "the local forecast page must load");
     await waitForReady(client);
 
+    await client.send("DOM.enable");
+    const { root } = await client.send("DOM.getDocument", { depth: -1 });
+    const { nodeId: fileInputNodeId } = await client.send("DOM.querySelector", {
+      nodeId: root.nodeId,
+      selector: "#file"
+    });
+    assert.ok(fileInputNodeId, "the individual .jsonl file input must exist");
+    await client.send("DOM.setFileInputFiles", {
+      nodeId: fileInputNodeId,
+      files: [...fixturePaths, decoyPath]
+    });
+    const selectedFileCount = await evaluate(client, `(() => {
+      const input = document.getElementById("file");
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      return input.files.length;
+    })()`);
+    assert.equal(selectedFileCount, 3,
+      "the browser fixture must present two .jsonl files and one non-.jsonl decoy");
+    await waitForFixture(client);
+
     const browserResult = await evaluate(client, `(() => {
-      const texts = ${JSON.stringify(texts)};
-      run(texts);
       document.getElementById("qdesc").value = "Synthetic fixture next task";
       document.getElementById("qproj").value = "/synthetic/project-a";
       document.getElementById("qturns").value = "3";

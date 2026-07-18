@@ -235,9 +235,12 @@ var PRICES = {
 // Fail closed: a model name that matches no tier gets NO price. Its cost is excluded
 // rather than guessed at a default rate, and the page shows a warning listing it.
 function priceKeyFor(model){
-  var m=(model||"").toLowerCase().trim().replace(/[_.]/g,"-").replace(/-+/g,"-");
-  var claudeAt=m.lastIndexOf("claude-");
-  if(claudeAt>=0) m=m.slice(claudeAt);
+  var m=(model||"").toLowerCase().trim();
+  // Accept only the native Claude ID or Anthropic's explicit provider namespace.
+  // Never strip an arbitrary prefix: "synthetic-claude-sonnet-5" is not a known model ID.
+  if(m.indexOf("anthropic/claude-")===0) m=m.slice("anthropic/".length);
+  else if(m.indexOf("claude-")!==0) return null;
+  m=m.replace(/[_.]/g,"-").replace(/-+/g,"-");
   m=m.replace(/-\d{8}$/," ").trim();
   if(/^claude-(?:fable-5|5-fable)$/.test(m)) return "fable5";
   if(/^claude-(?:opus-4-[5-8]|4-[5-8]-opus)$/.test(m)) return "opusNew";

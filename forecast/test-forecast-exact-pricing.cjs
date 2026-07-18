@@ -20,7 +20,7 @@ const recognized = new Map([
   ["claude-opus-4-1", "opusOld"],
   ["claude-3-opus", "opusOld"],
   ["claude-sonnet-5", "sonnet5"],
-  ["vendor/claude-5-sonnet-20260717", "sonnet5"],
+  ["anthropic/claude-5-sonnet-20260717", "sonnet5"],
   ["claude-sonnet-4-6", "sonnet4"],
   ["claude-3.5-sonnet", "sonnet4"],
   ["claude-haiku-4-5", "haiku45"],
@@ -34,6 +34,9 @@ for (const model of [
   "claude-sonnet-latest",
   "claude-haiku-4",
   "claude-opus-4-1-synthetic",
+  "vendor/claude-5-sonnet-20260717",
+  "synthetic-claude-sonnet-5",
+  "not-a-model/claude-opus-4-8",
   "contains-sonnet-but-is-not-a-model",
   "",
 ]) {
