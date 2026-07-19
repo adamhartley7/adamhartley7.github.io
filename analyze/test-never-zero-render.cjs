@@ -157,11 +157,24 @@ function assertNeverZeroContract(rendered) {
   if (!/\bunpriced\b/i.test(rendered.summary)) {
     failures.push('the user-visible summary must identify the unknown cost as "unpriced"');
   }
+  const zeroMoneyPatterns = [
+    /(?:US\$|\$|USD\s*|&#36;\s*)0(?!\.\d*[1-9]\d*)(?:\.0+)?(?!\d)/i,
+    /0(?!\.\d*[1-9]\d*)(?:\.0+)?\s*USD\b/i,
+  ];
   const zeroSurfaces = Object.entries(rendered.surfaces)
-    .filter(([, value]) => /\$0\.00(?!\d)/.test(String(value)))
+    .filter(([, value]) => zeroMoneyPatterns.some((pattern) => pattern.test(String(value))))
     .map(([name]) => name);
-  if (zeroSurfaces.length) failures.push(`$0.00 appeared in user-visible surfaces: ${zeroSurfaces.join(", ")}`);
+  if (zeroSurfaces.length) failures.push(`zero money appeared in user-visible surfaces: ${zeroSurfaces.join(", ")}`);
   assert.equal(failures.length, 0, failures.join("\n"));
+}
+
+function assertModelsHaveNoKnownRate(result) {
+  const models = Object.keys(result.by || {});
+  assert.ok(models.length > 0, "the synthetic source must expose at least one model row");
+  for (const model of models) {
+    assert.equal(context.priceKeyFor(model), null,
+      `${model} must remain unmatched instead of inheriting a known model rate`);
+  }
 }
 
 function claudeCodeResult() {
@@ -267,49 +280,63 @@ function copilotResult() {
 }
 
 test("Claude Code never-zero render contract", () => {
-  const rendered = renderResult(claudeCodeResult());
+  const result = claudeCodeResult();
+  assertModelsHaveNoKnownRate(result);
+  const rendered = renderResult(result);
   assert.match(rendered.summary, /Total AI usage: 26 tokens\./);
   assert.match(rendered.summary, /8 sent, 12 returned, 2 cache added, 4 cache reused/);
   assertNeverZeroContract(rendered);
 });
 
 test("Claude Chat never-zero render contract", () => {
-  const rendered = renderResult(claudeChatResult());
+  const result = claudeChatResult();
+  assertModelsHaveNoKnownRate(result);
+  const rendered = renderResult(result);
   assert.match(rendered.summary, /Rough text-only estimate from selected file: about 5 tokens\./);
   assert.match(rendered.summary, /about 2 sent, about 3 returned/);
   assertNeverZeroContract(rendered);
 });
 
 test("ChatGPT never-zero render contract", () => {
-  const rendered = renderResult(chatGptResult());
+  const result = chatGptResult();
+  assertModelsHaveNoKnownRate(result);
+  const rendered = renderResult(result);
   assert.match(rendered.summary, /Rough text-only estimate from selected file: about 5 tokens\./);
   assert.match(rendered.summary, /about 2 sent, about 3 returned/);
   assertNeverZeroContract(rendered);
 });
 
 test("Codex never-zero render contract", () => {
-  const rendered = renderResult(codexResult());
+  const result = codexResult();
+  assertModelsHaveNoKnownRate(result);
+  const rendered = renderResult(result);
   assert.match(rendered.summary, /Total AI usage: 20 tokens\./);
   assert.match(rendered.summary, /6 sent, 12 returned, 0 cache added, 2 cache reused/);
   assertNeverZeroContract(rendered);
 });
 
 test("Cursor never-zero render contract", () => {
-  const rendered = renderResult(cursorResult("gemini-9.9-pro"));
+  const result = cursorResult("gemini-9.9-pro");
+  assertModelsHaveNoKnownRate(result);
+  const rendered = renderResult(result);
   assert.match(rendered.summary, /Total AI usage: 26 tokens\./);
   assert.match(rendered.summary, /8 sent, 12 returned, 2 cache added, 4 cache reused/);
   assertNeverZeroContract(rendered);
 });
 
 test("Cursor Composer never-zero render contract", () => {
-  const rendered = renderResult(cursorResult("composer-9.9"));
+  const result = cursorResult("composer-9.9");
+  assertModelsHaveNoKnownRate(result);
+  const rendered = renderResult(result);
   assert.match(rendered.summary, /Total AI usage: 26 tokens\./);
   assert.match(rendered.summary, /8 sent, 12 returned, 2 cache added, 4 cache reused/);
   assertNeverZeroContract(rendered);
 });
 
 test("GitHub Copilot never-zero render contract", () => {
-  const rendered = renderResult(copilotResult());
+  const result = copilotResult();
+  assertModelsHaveNoKnownRate(result);
+  const rendered = renderResult(result);
   assert.match(rendered.table, /<th>Premium requests<\/th><th>AI credits<\/th>/);
   assert.match(rendered.summary, /Premium requests recorded: 2\./);
   assert.match(rendered.summary, /AI credits recorded: 3\./);
