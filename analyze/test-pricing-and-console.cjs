@@ -91,6 +91,18 @@ assert.equal(context.tierOf("gpt-5.6-luna"), "cheap");
   assert.equal(resolved.complete, false);
 }
 
+{
+  const resolved = context.resolveCostRow("gpt-5.6-sol", {
+    inp: 1_432_000_000,
+    cr: 38_056_000_000,
+    cw: 0,
+    out: 129_550_000,
+  }, { codex: true, chatExport: false });
+  assert.equal(resolved.cost, null, "Codex token counters must never be presented as an actual dollar charge");
+  assert.equal(resolved.key, null, "Codex reports must not attach an API rate card to actual-cost output");
+  assert.equal(resolved.complete, false);
+}
+
 assert.equal(context.valueModelAllowed([
   { model: "future-model-with-no-checked-rate", cost: 0.02, complete: true },
 ], true), false, "recorded cost alone must not enable a model-switching scenario for an unrecognized model");

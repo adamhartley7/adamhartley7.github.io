@@ -195,6 +195,12 @@ assert.equal(exportedCodexV2.activity.usage_events, 2);
 assert.equal(exportedCodexV2.activity.ai_replies, null);
 assert.equal(exportedCodexV2.totals.reasoning_tokens, 10);
 assert.equal(exportedCodexV2.timeline.periods[0].reasoning_output_tokens, 10);
+assert.equal(exportedCodexV2.cost.usd, null);
+assert.equal(exportedCodexV2.measurement.cost_basis, "not_available_in_local_codex_history");
+assert.equal(exportedCodexV2.cost.basis, "not_available_in_local_codex_history");
+assert.equal(exportedCodexV2.pricing.status, "not_applied_source_has_no_billed_cost");
+assert.equal(exportedCodexV2.pricing.applied_rates.length, 0);
+assert.equal(exportedCodexV2.value_model.truth_status, "not_available");
 
 // Exact edit provenance persists by price family and affects only the edited fields.
 context.PRICING_EDITED_FIELDS["opusNew:in"] = true;
@@ -236,6 +242,13 @@ assert.equal(codex.activity.ai_replies, null);
 assert.equal(codex.coverage.files_selected, 3);
 assert.equal(codex.coverage.complete, false);
 assert.equal(codex.by_model[0].model, "gpt-5.6-codex-mini");
+assert.equal(codex.cost.usd, null, "Codex research exports must not turn token counters into billed dollars");
+assert.equal(codex.measurement.cost_basis, "not_available_in_local_codex_history");
+assert.equal(codex.cost.basis, "not_available_in_local_codex_history");
+assert.equal(codex.pricing.status, "not_applied_source_has_no_billed_cost");
+assert.equal(codex.pricing.applied_rates.length, 0);
+assert.equal(codex.by_model[0].cost.usd, null);
+assert.equal(codex.value_model.truth_status, "not_available");
 
 // Cleaned Claude data keeps only allowlisted permission modes and never exports a hidden Route A scenario.
 const routeB = { res: {

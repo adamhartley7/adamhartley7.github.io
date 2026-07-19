@@ -79,7 +79,8 @@ assert.match(html, /class="mobile-nav"/);
 assert.match(html, /class="face-labels"/);
 assert.match(html, /\.face-labels\{[^}]*translateZ\(19px\)[^}]*backface-visibility:hidden/);
 assert.match(html, /Why a cheaper task may not mean a smaller total bill/);
-assert.match(html, /illustrative index, example only/);
+assert.match(html, /time →/);
+assert.match(html, /AI cost · output value · value left after cost/);
 assert.match(html, /class="vm-layout"/);
 assert.match(html, /\.vm-layout\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
 assert.match(html, /\.vm-plot svg\{[^}]*width:100%[^}]*height:auto/);
@@ -87,11 +88,14 @@ assert.match(html, /data-vm-graph/);
 assert.match(html, /W:960,H:420/);
 assert.match(html, /W:760,H:460/);
 assert.match(html, /W:520,H:480/);
-assert.match(html, /lower-cost AI begins/);
-assert.match(html, /the green line rises twice as much as the red line/);
-assert.match(html, /useful work, rising 2× as much/);
-assert.doesNotMatch(html, /C\.vs1/,
-  "the surplus calculation must not depend on the retired value-slope constant");
+assert.match(html, /TOP-2 scenario begins/);
+assert.match(html, /lower AI cost while output value stays on its original path/);
+assert.match(html, /original cost gradient with output value rising much faster/);
+assert.match(html, /lower cost with the same output value/);
+assert.match(html, /the same cost gradient with much more output value/);
+assert.doesNotMatch(html, /green line rises twice as much|rising 2× as much/);
+assert.match(html, /C\.vs1/,
+  "the output-value path must be independent from the cost path");
 assert.doesNotMatch(html, /max-height:400px/);
 assert.match(html, /aria-valuetext/);
 assert.match(html, /Works now/);
@@ -136,36 +140,57 @@ assert.ok(usp >= 0 && suite > usp && problem > suite,
 assert.ok(how > problem && analyze > how && status > analyze && valueModel > status,
   "the live TOP-1 path and honest status must appear before the TOP-2 thought experiment");
 
-const graphModelStart = html.indexOf("var VM_VALUE_RISE_RATIO");
+const graphModelStart = html.indexOf("function vmScenarioAmount");
 const graphModelEnd = html.indexOf("(function(){", graphModelStart);
 assert.ok(graphModelStart >= 0 && graphModelEnd > graphModelStart,
   "the value graph model must remain independently testable");
 const graphContext = {};
 vm.createContext(graphContext);
 vm.runInContext(html.slice(graphModelStart, graphModelEnd), graphContext);
-const graphConfig = { BEND: 3.3, c0: 0.5, cs1: 1.15, v0: 0.5 };
-for (const growth of [0.05, 0.2, 0.5, 1]) {
-  for (const [from, to] of [[0, 1.4], [1.4, 3.3], [3.3, 4.8], [4.8, 6], [0, 6]]) {
-    const redRise = graphContext.vmCostAt(graphConfig, to, growth)
-      - graphContext.vmCostAt(graphConfig, from, growth);
-    const greenRise = graphContext.vmValueAt(graphConfig, to, growth)
-      - graphContext.vmValueAt(graphConfig, from, growth);
-    assert.ok(redRise >= 0 && greenRise >= 0,
-      "both graph lines must continue rising across every segment");
-    assert.ok(Math.abs(greenRise - 2 * redRise) < 1e-10,
-      `green rise must be exactly twice red rise from ${from} to ${to} at ${growth}`);
-  }
+const graphConfig = {
+  BEND: 3.3, c0: 0.5, cs1: 1.15, saveCostSlope: 0.2,
+  v0: 0.3, vs1: 1, reinvestValueSlope: 3.5,
+};
+const baselineCostAt = (x) => graphConfig.c0 + graphConfig.cs1 * x;
+const baselineValueAt = (x) => graphConfig.v0 + graphConfig.vs1 * x;
+
+for (const x of [0, 1.4, 3.3]) {
+  assert.ok(Math.abs(graphContext.vmCostAt(graphConfig, x, 0) - baselineCostAt(x)) < 1e-10);
+  assert.ok(Math.abs(graphContext.vmCostAt(graphConfig, x, 1) - baselineCostAt(x)) < 1e-10);
+  assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, x, 0) - baselineValueAt(x)) < 1e-10);
+  assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, x, 1) - baselineValueAt(x)) < 1e-10);
+}
+
+for (const x of [4.8, 6]) {
+  assert.ok(graphContext.vmCostAt(graphConfig, x, 0) < baselineCostAt(x),
+    "the lower-cost endpoint must flatten cost after the scenario begins");
+  assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, x, 0) - baselineValueAt(x)) < 1e-10,
+    "the lower-cost endpoint must preserve the original output-value path exactly");
+  assert.ok(Math.abs(graphContext.vmCostAt(graphConfig, x, 1) - baselineCostAt(x)) < 1e-10,
+    "the reinvest endpoint must restore the original cost gradient exactly");
+  assert.ok(graphContext.vmValueAt(graphConfig, x, 1) > baselineValueAt(x),
+    "the reinvest endpoint must raise output value above its original path");
+}
+
+for (const amount of [0, 0.5, 1]) {
   for (const x of [0, 1.4, 3.3, 4.8, 6]) {
     for (const value of [
-      graphContext.vmCostAt(graphConfig, x, growth),
-      graphContext.vmValueAt(graphConfig, x, growth),
+      graphContext.vmCostAt(graphConfig, x, amount),
+      graphContext.vmValueAt(graphConfig, x, amount),
     ]) {
       assert.ok(value >= 0 && value <= 14,
-        "both graph lines must stay inside the graph at every slider extreme");
+        "both illustrative lines must stay inside the graph at every slider position");
     }
   }
 }
-assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, 6, 1) - 13.49) < 1e-10,
-  "the maximum green endpoint must remain visible below the graph ceiling");
+
+const lowCost = graphContext.vmCostAt(graphConfig, 6, 0);
+const baselineCost = baselineCostAt(6);
+assert.ok(lowCost / baselineCost < 0.66,
+  "the lower-cost endpoint must be visibly lower than the original cost path");
+assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, 6, 0) - baselineValueAt(6)) < 1e-10);
+assert.ok(Math.abs(graphContext.vmCostSlope(graphConfig, 1) - graphConfig.cs1) < 1e-10);
+assert.ok(graphContext.vmValueAt(graphConfig, 6, 1) / baselineValueAt(6) > 2,
+  "the reinvest endpoint must show a materially steeper illustrative output-value path");
 
 console.log("TOP homepage experience regression tests passed");
