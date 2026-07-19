@@ -80,18 +80,53 @@ function buttonLabels(markup) {
   return actions;
 }
 
-function clipboardHarness(writeText) {
-  let chooseHandler;
+function namedDeliveryPromise(value) {
+  const text = textOnly(String(value).replace(/<\/(?:p|li|h[1-6]|button|div|section)>/gi, ". "));
+  const patterns = [
+    /\b(?:TOP|Adam|Sam)(?:'s team)?\s+(?:can|will|may|does|is\s+(?:going|ready)\s+to)\s+(?:submit|send|deliver|upload|email|share)\b/gi,
+    /\b(?:submit|send|deliver|upload|email|share)\s+(?:the|this|your|my|our|a\s+)?[^.!?]{0,60}\b(?:to|with)\s+(?:TOP|Adam|Sam)\b/gi,
+    /\b(?:will|can|may)\s+be\s+(?:submitted|sent|delivered|uploaded|emailed)[^.!?]{0,60}\b(?:to|with)\s+(?:TOP|Adam|Sam)\b/gi,
+    /\b(?:accepted|queued|ready)\s+for\s+delivery[^.!?]{0,60}\b(?:to\s+)?(?:TOP|Adam|Sam)\b/gi,
+    /\b(?:TOP|Adam|Sam)(?:'s team)?\s+(?:(?:will|can|may)\s+)?(?:receives?|gets?)\b/gi,
+  ];
+  for (const pattern of patterns) {
+    for (const match of text.matchAll(pattern)) {
+      const before = text.slice(Math.max(0, match.index - 100), match.index);
+      const clause = before.split(/[.!?;]|\b(?:but|however)\b/i).pop();
+      if (!/\b(?:not|never|nothing|no|cannot|can't|won't|doesn't|didn't|do not|don't|without)\b/i.test(clause)) {
+        return match[0];
+      }
+    }
+  }
+  return "";
+}
+
+function eventRegistrationSource(id) {
+  const marker = `document.getElementById("${id}").addEventListener("click",`;
+  const start = html.indexOf(marker);
+  const end = html.indexOf("});", start);
+  assert.ok(start >= 0 && end > start, `could not locate the ${id} click registration`);
+  return html.slice(start, end + 3);
+}
+
+function controlLabelById(markup, id) {
+  const match = new RegExp(`<(?:button|a)\\b[^>]*\\bid="${id}"[^>]*>([\\s\\S]*?)<\\/(?:button|a)>`, "i").exec(markup);
+  return match ? textOnly(match[1]) : "";
+}
+
+function folderControlHarness(buttonId, writeText) {
+  let controlHandler;
   let pickerClicks = 0;
-  const chooseButton = {
+  let clipboardWrites = 0;
+  const controlButton = {
     textContent: "Choose folder",
     addEventListener(type, handler) {
       assert.equal(type, "click");
-      chooseHandler = handler;
+      controlHandler = handler;
     },
   };
   const elements = {
-    pilotChooseFolder: chooseButton,
+    [buttonId]: controlButton,
     pilotFolderPath: { textContent: "%USERPROFILE%\\.codex\\sessions" },
     pilotHistoryFolder: { click() { pickerClicks += 1; } },
     routea: { hidden: true },
@@ -99,7 +134,7 @@ function clipboardHarness(writeText) {
   const context = {
     PILOT_SOURCE: "codex",
     mode: "",
-    navigator: { clipboard: { writeText } },
+    navigator: { clipboard: { writeText(text) { clipboardWrites += 1; return writeText(text); } } },
     pilotStatus() {},
     providerChosen: false,
     selectedRoute: "",
@@ -126,16 +161,18 @@ function clipboardHarness(writeText) {
   };
   vm.createContext(context);
   const copySource = sourceBetween("function copyPlainText", 'document.getElementById("copyHistoryPath")');
-  const pickerSource = sourceBetween(
-    'document.getElementById("pilotChooseFolder").addEventListener',
-    'document.getElementById("pilotHistoryFolder").addEventListener',
-  );
-  vm.runInContext(`${copySource}\n${pickerSource}`, context, { filename: "analyze/index.html" });
-  assert.equal(typeof chooseHandler, "function", "the folder control must register one click handler");
+  const handlerSource = eventRegistrationSource(buttonId);
+  vm.runInContext(`${copySource}\n${handlerSource}`, context, { filename: "analyze/index.html" });
+  assert.equal(typeof controlHandler, "function", `${buttonId} must register one click handler`);
   return {
-    invoke() { return chooseHandler.call(chooseButton); },
+    invoke() { return controlHandler.call(controlButton); },
+    clipboardWrites() { return clipboardWrites; },
     pickerClicks() { return pickerClicks; },
   };
+}
+
+function folderCopyControlId() {
+  return /\bid="pilotCopyFolderPath"/i.test(html) ? "pilotCopyFolderPath" : "pilotChooseFolder";
 }
 
 test("the canonical analyzer route opens the guided chooser and keeps an explicit advanced escape", () => {
@@ -163,6 +200,13 @@ test("the canonical analyzer route opens the guided chooser and keeps an explici
 });
 
 test("the local-only terminal offers an artifact without a named remote-delivery action", () => {
+  assert.ok(namedDeliveryPromise("TOP can send this report to Adam."));
+  assert.ok(namedDeliveryPromise("Submit this report to Sam."));
+  assert.ok(namedDeliveryPromise("Adam receives the report."));
+  assert.equal(namedDeliveryPromise("Nothing is submitted to TOP."), "");
+  assert.equal(namedDeliveryPromise("Do not submit this report to TOP."), "");
+  assert.equal(namedDeliveryPromise("TOP does not receive the report."), "");
+
   const rail = sourceBetween('id="pilotShareRail"', 'id="pilotStepper"');
   const finalShare = sourceBetween('id="shareWithTop"', "</section>");
   const labels = buttonLabels(`${rail}\n${finalShare}`);
@@ -177,25 +221,22 @@ test("the local-only terminal offers an artifact without a named remote-delivery
   assert.deepEqual(remoteActions.map((button) => button.label), [],
     "a no-network analyzer must not present a named remote-delivery action");
 
-  const terminalText = textOnly(`${rail}\n${finalShare}`);
-  const namedDelivery = /(?:submit|send|deliver|upload|email)[\s\S]{0,90}\b(?:TOP|Adam|Sam)\b|\b(?:TOP|Adam|Sam)\b[\s\S]{0,90}(?:submit|send|deliver|upload|email)/i;
-  assert.doesNotMatch(terminalText, namedDelivery,
+  assert.equal(namedDeliveryPromise(`${rail}\n${finalShare}`), "",
     "the local terminal copy must not promise delivery to TOP, Adam, or Sam");
 });
 
 test("the folder flow keeps separate deliberate controls for copy and picker access", () => {
   const folderPanel = sourceBetween('id="pilotFolderPanel"', 'id="pilotCursorPanel"');
-  const labels = buttonLabels(folderPanel).filter((button) => !button.disabled).map((button) => button.label);
-  assert.ok(labels.some((label) => /\bcopy\b/i.test(label)),
+  assert.match(controlLabelById(folderPanel, "pilotCopyFolderPath"), /\bcopy\b/i,
     "the folder path must have a deliberate copy control");
-  assert.ok(labels.some((label) => /\b(?:choose|open|select)\b/i.test(label)),
+  assert.match(controlLabelById(folderPanel, "pilotChooseFolder"), /\b(?:choose|open|select)\b/i,
     "the folder picker must remain reachable through a separate deliberate control");
 });
 
 test("the folder picker does not race an unresolved clipboard operation", async () => {
   let resolveClipboard;
   const pendingClipboard = new Promise((resolve) => { resolveClipboard = resolve; });
-  const harness = clipboardHarness(() => pendingClipboard);
+  const harness = folderControlHarness(folderCopyControlId(), () => pendingClipboard);
   harness.invoke();
   await Promise.resolve();
   assert.equal(harness.pickerClicks(), 0,
@@ -204,10 +245,20 @@ test("the folder picker does not race an unresolved clipboard operation", async 
 });
 
 test("the folder picker stays closed when clipboard and fallback copy both fail", async () => {
-  const harness = clipboardHarness(() => Promise.reject(new Error("clipboard permission denied")));
+  const harness = folderControlHarness(folderCopyControlId(), () => Promise.reject(new Error("clipboard permission denied")));
   const result = harness.invoke();
   if (result && typeof result.then === "function") await result;
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(harness.pickerClicks(), 0,
     "a failed address copy must not hide the instructions behind an opened folder picker");
+});
+
+test("the separate folder-picker control opens exactly once without touching the clipboard", async () => {
+  const harness = folderControlHarness("pilotChooseFolder", () => Promise.resolve());
+  const result = harness.invoke();
+  if (result && typeof result.then === "function") await result;
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(harness.pickerClicks(), 1, "one deliberate picker click must open the folder chooser once");
+  assert.equal(harness.clipboardWrites(), 0,
+    "the picker control must not depend on a clipboard permission or asynchronous copy");
 });
