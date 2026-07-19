@@ -45,6 +45,7 @@ jobs:
         shell: pwsh
         run: |
           $files = @(
+            "analyze/test-clean-machine-collector-prerequisite.cjs",
             "analyze/test-never-zero-render.cjs",
             "analyze/test-no-network-ever.cjs",
             "analyze/test-pilot-collector-pin.cjs",
@@ -63,6 +64,7 @@ jobs:
         shell: pwsh
         run: |
           $excluded = @(
+            "test-clean-machine-collector-prerequisite.cjs",
             "test-never-zero-render.cjs",
             "test-no-network-ever.cjs",
             "test-pilot-collector-pin.cjs",
@@ -102,6 +104,7 @@ jobs:
       - name: Enforce protected perimeter contracts
         run: >-
           node --test
+          analyze/test-clean-machine-collector-prerequisite.cjs
           analyze/test-never-zero-render.cjs
           analyze/test-no-network-ever.cjs
           analyze/test-pilot-collector-pin.cjs

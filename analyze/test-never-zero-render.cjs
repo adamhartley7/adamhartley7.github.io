@@ -278,10 +278,10 @@ function claudeChatResult() {
   }])]);
 }
 
-function chatGptResult() {
+function chatGptResult(model = "gpt-9.9-future") {
   return context.parseOpenAI([JSON.stringify([{
     id: "conversation-1",
-    default_model_slug: "gpt-9.9-future",
+    default_model_slug: model,
     mapping: {
       user: {
         message: {
@@ -293,14 +293,14 @@ function chatGptResult() {
         message: {
           author: { role: "assistant" },
           content: { parts: ["123456789012"] },
-          metadata: { model_slug: "gpt-9.9-future" },
+          metadata: { model_slug: model },
         },
       },
     },
   }])]);
 }
 
-function codexResult() {
+function codexResult(model = "codex-future-9") {
   const usage = {
     input_tokens: 8,
     cached_input_tokens: 2,
@@ -312,7 +312,7 @@ function codexResult() {
     JSON.stringify({
       timestamp: "2026-07-19T00:00:00Z",
       type: "turn_context",
-      payload: { model: "codex-future-9" },
+      payload: { model },
     }),
     JSON.stringify({
       timestamp: "2026-07-19T00:00:01Z",
@@ -457,6 +457,23 @@ test("mixed priced and unpriceable reports keep every unknown row explicitly unp
       failures.push(`${sourceCase.name}: fixture did not reach the mixed priced and unpriceable render path`);
     }
     for (const failure of neverZeroFailures(rendered, sourceCase.unknown)) {
+      failures.push(`${sourceCase.name}: ${failure}`);
+    }
+  }
+  assert.deepEqual(failures, [], failures.join("\n"));
+});
+
+test("known models from sources without billed cost remain explicitly unpriced with usage visible", () => {
+  const model = "gpt-5.6-sol";
+  assert.ok(context.priceKeyFor(model), "fixture must use a model with a checked reference rate");
+  const cases = [
+    { name: "ChatGPT", result: chatGptResult(model) },
+    { name: "Codex", result: codexResult(model) },
+  ];
+  const failures = [];
+  for (const sourceCase of cases) {
+    const rendered = renderResult(sourceCase.result);
+    for (const failure of neverZeroFailures(rendered, [model])) {
       failures.push(`${sourceCase.name}: ${failure}`);
     }
   }
