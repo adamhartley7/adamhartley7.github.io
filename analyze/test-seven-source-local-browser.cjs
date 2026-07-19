@@ -405,6 +405,8 @@ async function captureCanonicalEntry(client) {
       && !element.hidden
       && getComputedStyle(element).display !== "none"
       && getComputedStyle(element).visibility !== "hidden"
+      && (typeof element.checkVisibility !== "function"
+        || element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }))
       && element.getClientRects().length > 0;
     const clean = (value) => String(value || "").replace(/\\s+/g, " ").trim();
     const advanced = document.querySelector(".pilot-full-link a");
@@ -422,6 +424,175 @@ async function captureCanonicalEntry(client) {
       advancedHref: advanced ? advanced.getAttribute("href") || "" : "",
     };
   })()`);
+}
+
+async function dispatchPointerClick(client, selector, replacementHref = "") {
+  const selectorLiteral = JSON.stringify(selector);
+  const hrefLiteral = JSON.stringify(replacementHref);
+  const target = await evaluate(client, `(() => {
+    const control = document.querySelector(${selectorLiteral});
+    if (!control) return { found: false };
+    if (${hrefLiteral}) control.setAttribute("href", ${hrefLiteral});
+    control.scrollIntoView({ block: "center", inline: "center" });
+    const rect = control.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const hit = document.elementFromPoint(x, y);
+    return {
+      found: true,
+      x,
+      y,
+      hasArea: rect.width > 0 && rect.height > 0,
+      receivesPointer: !!hit && (hit === control || control.contains(hit)),
+    };
+  })()`);
+  assert.equal(target.found, true, `guided control not found for ${selector}`);
+  assert.equal(target.hasArea, true, `guided control has no clickable area for ${selector}`);
+  assert.equal(target.receivesPointer, true, `guided control is blocked from pointer input for ${selector}`);
+  await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: target.x, y: target.y });
+  await client.send("Input.dispatchMouseEvent", {
+    type: "mousePressed", x: target.x, y: target.y, button: "left", clickCount: 1,
+  });
+  await client.send("Input.dispatchMouseEvent", {
+    type: "mouseReleased", x: target.x, y: target.y, button: "left", clickCount: 1,
+  });
+}
+
+async function waitForGuidedDestination(client, expectedSearch) {
+  let lastState = null;
+  let lastError = null;
+  for (let attempt = 0; attempt < WAIT_ATTEMPTS; attempt += 1) {
+    try {
+      lastState = await evaluate(client, `(() => ({
+        search: location.search,
+        ready: document.readyState === "complete"
+          && typeof handle === "function"
+          && !!document.getElementById("file"),
+      }))()`);
+      if (lastState.search === expectedSearch && lastState.ready) return;
+    } catch (error) {
+      lastError = error;
+    }
+    await delay(WAIT_STEP_MS);
+  }
+  throw lastError || new Error(`guided destination did not load: ${JSON.stringify(lastState)}`);
+}
+
+function guidedAnalyzerTarget(href) {
+  assert.doesNotMatch(href, /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i,
+    "guided browser-chat links must use a relative analyzer destination");
+  const target = new URL(href, "https://local.test/analyze/");
+  assert.equal(target.origin, "https://local.test",
+    "guided browser-chat links must be same-origin before local test mapping");
+  assert.equal(target.pathname, "/analyze/", "guided browser-chat links must stay on the analyzer route");
+  return target;
+}
+
+assert.throws(
+  () => guidedAnalyzerTarget("https://local.test/analyze/?start=chat"),
+  /relative analyzer destination/,
+  "an absolute web URL must not be masked by the local browser-test mapping",
+);
+
+async function exerciseGuidedSource(client, source) {
+  const sourceLiteral = JSON.stringify(source);
+  const before = await evaluate(client, `(() => {
+    const source = ${sourceLiteral};
+    const visible = (element) => !!element
+      && !element.hidden
+      && getComputedStyle(element).display !== "none"
+      && getComputedStyle(element).visibility !== "hidden"
+      && (typeof element.checkVisibility !== "function"
+        || element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }))
+      && element.getClientRects().length > 0;
+    const selector = source === "chat" || source === "openai"
+      ? '[data-pilot-entry="' + source + '"]'
+      : '[data-pilot-source="' + source + '"]';
+    const control = document.querySelector("#pilotSourceChoices " + selector);
+    if (!control) return { found: false, source, selector };
+    return {
+      found: true,
+      source,
+      selector,
+      visible: visible(control),
+      tagName: control.tagName,
+      text: String(control.textContent || "").replace(/\\s+/g, " ").trim(),
+      href: control.getAttribute("href") || "",
+    };
+  })()`);
+  if (!before.found) return { before, after: null };
+
+  if (before.tagName === "A") {
+    const target = guidedAnalyzerTarget(before.href);
+    const localDestination = pathToFileURL(PAGE_PATH).href + target.search;
+    await dispatchPointerClick(client, before.selector, localDestination);
+    await waitForGuidedDestination(client, target.search);
+    const after = await evaluate(client, `(() => {
+      const visible = (element) => !!element
+        && !element.hidden
+        && getComputedStyle(element).display !== "none"
+        && getComputedStyle(element).visibility !== "hidden"
+        && (typeof element.checkVisibility !== "function"
+          || element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }))
+        && element.getClientRects().length > 0;
+      const file = document.getElementById("file");
+      const chooser = document.getElementById("drop");
+      return {
+        mode: typeof mode === "string" ? mode : "",
+        selectedRoute: typeof selectedRoute === "string" ? selectedRoute : "",
+        routeVisible: visible(document.getElementById("routea")),
+        providerVisible: visible(document.getElementById("providerStep")),
+        fileChooserVisible: visible(chooser) && !!file && !file.disabled && chooser.contains(file),
+      };
+    })()`);
+    return { before, after, destination: target.pathname + target.search };
+  }
+
+  await dispatchPointerClick(client, before.selector);
+  const after = await evaluate(client, `(() => {
+    const source = ${sourceLiteral};
+    const visible = (element) => !!element
+      && !element.hidden
+      && getComputedStyle(element).display !== "none"
+      && getComputedStyle(element).visibility !== "hidden"
+      && (typeof element.checkVisibility !== "function"
+        || element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }))
+      && element.getClientRects().length > 0;
+    const folderMethod = document.querySelector('#pilotMethodChoices [data-pilot-method="folder"]');
+    return {
+      mode: typeof mode === "string" ? mode : "",
+      pilotSource: typeof PILOT_SOURCE === "string" ? PILOT_SOURCE : "",
+      sourceStepVisible: visible(document.getElementById("pilotSourceStep")),
+      methodStepVisible: visible(document.getElementById("pilotMethodStep")),
+      methodChoicesVisible: visible(document.getElementById("pilotMethodChoices")),
+      folderMethodVisible: visible(folderMethod),
+      folderMethodEnabled: !!folderMethod && !folderMethod.matches(":disabled")
+        && folderMethod.getAttribute("aria-disabled") !== "true" && !folderMethod.closest("[inert]"),
+      cursorPanelVisible: visible(document.getElementById("pilotCursorPanel")),
+      copilotPanelVisible: visible(document.getElementById("pilotCopilotPanel")),
+    };
+  })()`);
+  if (source === "cc" || source === "codex") {
+    await dispatchPointerClick(client, '#pilotMethodChoices [data-pilot-method="folder"]');
+    const folderState = await evaluate(client, `(() => {
+      const visible = (element) => !!element
+        && !element.hidden
+        && getComputedStyle(element).display !== "none"
+        && getComputedStyle(element).visibility !== "hidden"
+        && (typeof element.checkVisibility !== "function"
+          || element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }))
+        && element.getClientRects().length > 0;
+      const chooser = document.getElementById("pilotChooseFolder");
+      return {
+        folderPanelVisible: visible(document.getElementById("pilotFolderPanel")),
+        folderChooserVisible: visible(chooser),
+        folderChooserEnabled: !!chooser && !chooser.matches(":disabled")
+          && chooser.getAttribute("aria-disabled") !== "true" && !chooser.closest("[inert]"),
+      };
+    })()`);
+    Object.assign(after, folderState);
+  }
+  return { before, after, destination: "" };
 }
 
 async function selectSource(client, sourceCase) {
@@ -626,6 +797,10 @@ async function runCase(sourceCase) {
     const navigation = await client.send("Page.navigate", { url: pageUrl });
     assert.equal(navigation.errorText, undefined, "the local analyzer page must load");
     await waitForAnalyzer(client);
+    if (sourceCase.guidedSource) {
+      const guided = await exerciseGuidedSource(client, sourceCase.guidedSource);
+      return { guided, pageRequests, runtimeErrors, consoleErrors };
+    }
     if (sourceCase.entryOnly) {
       const entry = await captureCanonicalEntry(client);
       return { entry, pageRequests, runtimeErrors, consoleErrors };

@@ -66,3 +66,72 @@ test("the canonical analyzer opens a visible seven-source stranger chooser in a 
 
     assert.deepEqual(failures, [], failures.join("\n"));
   });
+
+test("every visible guided source control advances to its usable local acquisition path",
+  { concurrency: false, timeout: 90_000 }, async () => {
+    const cases = [
+      { source: "chat", mode: "chat", label: /Claude Chat/i, kind: "link" },
+      { source: "openai", mode: "openai", label: /ChatGPT/i, kind: "link" },
+      { source: "cc", mode: "cc", label: /Claude Code/i, kind: "method" },
+      { source: "codex", mode: "codex", label: /Codex/i, kind: "method" },
+      { source: "cursor", mode: "cursor", label: /Cursor[\s\S]*Composer/i, kind: "cursor" },
+      { source: "copilot", mode: "copilot", label: /GitHub Copilot/i, kind: "copilot" },
+    ];
+    const failures = [];
+
+    for (const sourceCase of cases) {
+      const output = await runCase({ guidedSource: sourceCase.source, query: "?pilot=1" });
+      const { before, after } = output.guided;
+      if (!before.found) {
+        failures.push(`${sourceCase.source}: guided source control is missing`);
+        continue;
+      }
+      if (!before.visible) failures.push(`${sourceCase.source}: guided source control is hidden`);
+      if (!sourceCase.label.test(before.text)) {
+        failures.push(`${sourceCase.source}: guided source control does not name the supported source`);
+      }
+      if (!after) {
+        failures.push(`${sourceCase.source}: guided source control produced no destination state`);
+        continue;
+      }
+      if (after.mode !== sourceCase.mode) {
+        failures.push(`${sourceCase.source}: selected mode was ${after.mode || "empty"}`);
+      }
+
+      if (sourceCase.kind === "link") {
+        if (after.selectedRoute !== "a" || !after.routeVisible || !after.providerVisible
+            || !after.fileChooserVisible) {
+          failures.push(`${sourceCase.source}: browser-chat link did not reach the usable local file route`);
+        }
+      } else {
+        if (after.pilotSource !== sourceCase.mode || after.sourceStepVisible || !after.methodStepVisible) {
+          failures.push(`${sourceCase.source}: guided button did not advance the source step`);
+        }
+        if (sourceCase.kind === "method" && !after.methodChoicesVisible) {
+          failures.push(`${sourceCase.source}: preparation choices are not visible after selection`);
+        }
+        if (sourceCase.kind === "method"
+            && (!after.folderMethodVisible || !after.folderMethodEnabled
+              || !after.folderPanelVisible || !after.folderChooserVisible || !after.folderChooserEnabled)) {
+          failures.push(`${sourceCase.source}: the folder fallback is not visibly usable from the guided flow`);
+        }
+        if (sourceCase.kind === "cursor" && !after.cursorPanelVisible) {
+          failures.push("cursor: the CSV acquisition panel is not visible after selection");
+        }
+        if (sourceCase.kind === "copilot" && !after.copilotPanelVisible) {
+          failures.push("copilot: the usage-report acquisition panel is not visible after selection");
+        }
+      }
+
+      if (output.runtimeErrors.length) failures.push(`${sourceCase.source}: browser runtime error`);
+      if (output.consoleErrors.length) failures.push(`${sourceCase.source}: browser console error`);
+      for (const requestUrl of output.pageRequests) {
+        const protocol = new URL(requestUrl).protocol;
+        if (protocol !== "file:" && protocol !== "data:") {
+          failures.push(`${sourceCase.source}: non-local request ${requestUrl}`);
+        }
+      }
+    }
+
+    assert.deepEqual(failures, [], failures.join("\n"));
+  });
