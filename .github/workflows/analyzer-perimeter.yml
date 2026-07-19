@@ -3,7 +3,9 @@ name: Analyzer perimeter
 on:
   pull_request:
     paths:
+      - "index.html"
       - "analyze/**"
+      - "forecast/index.html"
       - "forecast/test-*.cjs"
       - "test-*.cjs"
       - ".github/workflows/analyzer-perimeter.yml"
@@ -11,7 +13,9 @@ on:
     branches:
       - main
     paths:
+      - "index.html"
       - "analyze/**"
+      - "forecast/index.html"
       - "forecast/test-*.cjs"
       - "test-*.cjs"
       - ".github/workflows/analyzer-perimeter.yml"
@@ -36,6 +40,8 @@ jobs:
             "analyze/test-never-zero-render.cjs",
             "analyze/test-no-network-ever.cjs",
             "analyze/test-pilot-collector-pin.cjs",
+            "analyze/test-public-hard-rules.cjs",
+            "analyze/test-stranger-first-run-contract.cjs",
             "analyze/test-seven-source-local-browser.cjs"
           )
           foreach ($file in $files) {
@@ -51,6 +57,8 @@ jobs:
             "test-never-zero-render.cjs",
             "test-no-network-ever.cjs",
             "test-pilot-collector-pin.cjs",
+            "test-public-hard-rules.cjs",
+            "test-stranger-first-run-contract.cjs",
             "test-seven-source-local-browser.cjs"
           )
           $files = Get-ChildItem -LiteralPath . -Recurse -File -Filter "test-*.cjs" |
@@ -87,3 +95,5 @@ jobs:
           analyze/test-never-zero-render.cjs
           analyze/test-no-network-ever.cjs
           analyze/test-pilot-collector-pin.cjs
+          analyze/test-public-hard-rules.cjs
+          analyze/test-stranger-first-run-contract.cjs
