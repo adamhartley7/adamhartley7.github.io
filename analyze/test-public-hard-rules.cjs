@@ -5,10 +5,21 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 
+function readRelative(...segments) {
+  return fs.readFileSync(path.join(__dirname, ...segments), "utf8");
+}
+
 const pages = {
-  homepage: fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8"),
-  analyzer: fs.readFileSync(path.join(__dirname, "index.html"), "utf8"),
-  forecast: fs.readFileSync(path.join(__dirname, "..", "forecast", "index.html"), "utf8"),
+  homepage: readRelative("..", "index.html"),
+  analyzer: readRelative("index.html"),
+  forecast: readRelative("..", "forecast", "index.html"),
+  pilot: [
+    readRelative("..", "pilot", "index.html"),
+    readRelative("..", "pilot", "pilot-core.js"),
+    readRelative("..", "pilot", "pilot-app.js"),
+  ].join("\n"),
+  pitch: readRelative("..", "pitch", "index.html"),
+  dashboard: readRelative("..", "dashboard", "index.html"),
 };
 
 function matchingPages(pattern) {
@@ -31,6 +42,8 @@ function savingClaimMatch(source) {
     /\bsavings?\s+(?:of|worth|total(?:l)?ing|equal(?:s|ling)?)\s*(?:US\$|\$|USD\s*)?\d+(?:\.\d+)?\s*(?:%|percent|dollars?|USD)?/gi,
     /(?:US\$|\$|USD\s*)?\d+(?:\.\d+)?\s*(?:%|percent|dollars?|USD)?\s+(?:in\s+)?savings?\b/gi,
     /\b(?:guaranteed|verified|proven|actual|achieved)\s+savings?\b/gi,
+    /\b(?:a|the|this|that|our|your)\s+savings?\b/gi,
+    /\b(?:means?|represents?|delivers?|creates?|produces?)\s+(?:a\s+|the\s+)?savings?\b/gi,
     /\b(?:cut|reduce[sd]?|lower(?:ed|s)?)\s+(?:your\s+)?(?:AI\s+)?(?:costs?|spend)\s+by\s+(?:US\$|\$|USD\s*)?\d+(?:\.\d+)?\s*(?:%|percent|dollars?|USD)?/gi,
   ];
   for (const pattern of claimPatterns) {
@@ -40,8 +53,8 @@ function savingClaimMatch(source) {
       const after = text.slice(match.index + match[0].length, match.index + match[0].length + 100);
       const afterClause = after.split(/[.!?;]/)[0];
       const negated = /\b(?:not|never|no|cannot|can't|won't|doesn't|didn't|isn't|aren't|without)\b/i.test(clause);
-      const explicitlyFuture = /\b(?:coming soon|research only|not available)\b/i.test(afterClause);
-      if (!negated && !explicitlyFuture) return match[0];
+      const explicitlyNonClaiming = /\b(?:coming soon|research only|not available|unsafe|unproven|not credible)\b/i.test(afterClause);
+      if (!negated && !explicitlyNonClaiming) return match[0];
     }
   }
   return "";
@@ -72,8 +85,14 @@ test("public TOP pages obey the binding copy and research boundaries", () => {
   assert.ok(savingClaimMatch("TOP can save 35%."), "the claim detector must catch a quantified saving claim");
   assert.ok(savingClaimMatch("TOP saves 35%. TOP-3 is research only."),
     "a later research disclaimer must not excuse a separate saving claim");
+  assert.ok(savingClaimMatch("This is a saving."), "the claim detector must catch an unquantified saving claim");
+  assert.ok(savingClaimMatch("TOP delivers savings."), "the claim detector must catch an asserted saving outcome");
   assert.equal(savingClaimMatch("TOP has not proved that it saves money."), "",
     "a truthful negative boundary is not itself a saving claim");
+  assert.equal(savingClaimMatch("This is not a saving."), "",
+    "an explicit rejection must not be mistaken for a saving claim");
+  assert.equal(savingClaimMatch("A guaranteed savings pitch is unsafe."), "",
+    "a warning about unsafe claim language must remain permitted");
   assert.equal(savingClaimMatch("Previously saved text was reused."), "",
     "cache vocabulary must not be mistaken for a money-saving claim");
   assert.equal(stageIsPresentedAsShipped("TOP-2 is not currently available.", "TOP-2"), false);
@@ -101,8 +120,11 @@ test("public TOP pages obey the binding copy and research boundaries", () => {
     /(?:accuracy|accurate|coverage|median (?:relative )?error)[^\r\n<>]{0,100}\d+(?:\.\d+)?\s*(?:%|percent)/i,
     /\d+(?:\.\d+)?\s*(?:%|percent)[^\r\n<>]{0,100}(?:accuracy|accurate|coverage|median (?:relative )?error)/i,
   );
-  if (accuracyFigurePatterns.some((pattern) => pattern.test(combined))) {
-    failures.push("a public forecast accuracy figure is still rendered or exported");
+  const accuracyFigurePages = Object.entries(pages)
+    .filter(([, source]) => accuracyFigurePatterns.some((pattern) => pattern.test(source)))
+    .map(([name]) => name);
+  if (accuracyFigurePages.length) {
+    failures.push(`a public accuracy figure is still rendered or exported in: ${accuracyFigurePages.join(", ")}`);
   }
 
   if (/91(?:\.0+)?\s*(?:%|percent|&#37;|&percnt;)/i.test(combined)) {

@@ -399,6 +399,31 @@ async function waitForAnalyzer(client) {
   throw new Error("analyzer page did not become ready");
 }
 
+async function captureCanonicalEntry(client) {
+  return evaluate(client, `(() => {
+    const visible = (element) => !!element
+      && !element.hidden
+      && getComputedStyle(element).display !== "none"
+      && getComputedStyle(element).visibility !== "hidden"
+      && element.getClientRects().length > 0;
+    const clean = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const advanced = document.querySelector(".pilot-full-link a");
+    const choices = Array.from(document.querySelectorAll("#pilotSourceChoices .pilot-choice"));
+    return {
+      location: location.href,
+      pilotMode: typeof PILOT_MODE === "boolean" ? PILOT_MODE : null,
+      pilotClass: document.documentElement.classList.contains("pilot-mode"),
+      pilotFlowVisible: visible(document.getElementById("pilotFlow")),
+      sourceStepVisible: visible(document.getElementById("pilotSourceStep")),
+      legacyGateVisible: visible(document.getElementById("resonanceStep")),
+      sourceChoices: choices.map((element) => clean(element.textContent)),
+      visibleSourceChoices: choices.filter(visible).map((element) => clean(element.textContent)),
+      advancedVisible: visible(advanced),
+      advancedHref: advanced ? advanced.getAttribute("href") || "" : "",
+    };
+  })()`);
+}
+
 async function selectSource(client, sourceCase) {
   const modeLiteral = JSON.stringify(sourceCase.mode);
   return evaluate(client, `(() => {
@@ -531,8 +556,8 @@ async function runCase(sourceCase) {
   const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "top-analyzer-seven-source-"));
   const profile = path.join(temporaryRoot, "browser-profile");
   fs.mkdirSync(profile);
-  const fixturePath = path.join(temporaryRoot, sourceCase.fileName);
-  fs.writeFileSync(fixturePath, sourceCase.content, "utf8");
+  const fixturePath = sourceCase.fileName ? path.join(temporaryRoot, sourceCase.fileName) : "";
+  if (fixturePath) fs.writeFileSync(fixturePath, sourceCase.content, "utf8");
 
   const port = await getFreePort();
   const browser = spawn(browserPath(), [
@@ -601,6 +626,10 @@ async function runCase(sourceCase) {
     const navigation = await client.send("Page.navigate", { url: pageUrl });
     assert.equal(navigation.errorText, undefined, "the local analyzer page must load");
     await waitForAnalyzer(client);
+    if (sourceCase.entryOnly) {
+      const entry = await captureCanonicalEntry(client);
+      return { entry, pageRequests, runtimeErrors, consoleErrors };
+    }
     const setup = await selectSource(client, sourceCase);
     const selectedFile = await setFileInput(client, fixturePath);
     await waitForReport(client);
@@ -621,39 +650,47 @@ async function runCase(sourceCase) {
   }
 }
 
-for (const sourceCase of CASES) {
-  test(sourceCase.name, { concurrency: false, timeout: 45_000 }, async () => {
-    const output = await runCase(sourceCase);
+function registerSevenSourceTests() {
+  for (const sourceCase of CASES) {
+    test(sourceCase.name, { concurrency: false, timeout: 45_000 }, async () => {
+      const output = await runCase(sourceCase);
 
-    assert.equal(output.setup.selectedMode, sourceCase.mode, "source selection must set the expected mode");
-    assert.equal(output.setup.selectedRoute, "a", "the integration path must use the rendered-report route");
-    assert.equal(output.setup.routeVisible, true, "the file-input route must be visible before reading");
-    assert.equal(output.selectedFile.count, 1, "the browser must receive exactly one synthetic file");
-    assert.equal(output.selectedFile.name, sourceCase.fileName);
+      assert.equal(output.setup.selectedMode, sourceCase.mode, "source selection must set the expected mode");
+      assert.equal(output.setup.selectedRoute, "a", "the integration path must use the rendered-report route");
+      assert.equal(output.setup.routeVisible, true, "the file-input route must be visible before reading");
+      assert.equal(output.selectedFile.count, 1, "the browser must receive exactly one synthetic file");
+      assert.equal(output.selectedFile.name, sourceCase.fileName);
 
-    assert.equal(output.report.mode, sourceCase.mode);
-    assert.equal(output.report.kind, sourceCase.expectedKind);
-    for (const [key, value] of Object.entries(sourceCase.expectedFlags)) {
-      assert.equal(output.report[key], value, `${sourceCase.name}: unexpected ${key}`);
-    }
-    assert.equal(output.report.routeVisible, true);
-    assert.equal(output.report.reportVisible, true, "the generated report must be visibly rendered");
-    assert.equal(output.report.progressVisible, true, "completed progress must remain visible");
-    assert.equal(output.report.progressPercent, "100%");
-    assert.equal(output.report.progressAriaNow, "100");
-    assert.match(output.report.status, /Report ready from 1 file opened only on this device\./i);
-    assert.equal(output.report.error, "");
+      assert.equal(output.report.mode, sourceCase.mode);
+      assert.equal(output.report.kind, sourceCase.expectedKind);
+      for (const [key, value] of Object.entries(sourceCase.expectedFlags)) {
+        assert.equal(output.report[key], value, `${sourceCase.name}: unexpected ${key}`);
+      }
+      assert.equal(output.report.routeVisible, true);
+      assert.equal(output.report.reportVisible, true, "the generated report must be visibly rendered");
+      assert.equal(output.report.progressVisible, true, "completed progress must remain visible");
+      assert.equal(output.report.progressPercent, "100%");
+      assert.equal(output.report.progressAriaNow, "100");
+      assert.match(output.report.status, /Report ready from 1 file opened only on this device\./i);
+      assert.equal(output.report.error, "");
 
-    for (const [field, pattern] of sourceCase.evidence) {
-      assert.match(output.report[field], pattern, `${sourceCase.name}: missing ${field} evidence`);
-    }
+      for (const [field, pattern] of sourceCase.evidence) {
+        assert.match(output.report[field], pattern, `${sourceCase.name}: missing ${field} evidence`);
+      }
 
-    assert.deepEqual(output.runtimeErrors, [], "the browser page must raise no runtime errors");
-    assert.deepEqual(output.consoleErrors, [], "the browser page must log no console errors");
-    assert.ok(output.pageRequests.length >= 1, "the browser must record the local analyzer navigation");
-    for (const url of output.pageRequests) {
-      const protocol = new URL(url).protocol;
-      assert.ok(protocol === "file:" || protocol === "data:", `analyzer attempted a non-local request: ${url}`);
-    }
-  });
+      assert.deepEqual(output.runtimeErrors, [], "the browser page must raise no runtime errors");
+      assert.deepEqual(output.consoleErrors, [], "the browser page must log no console errors");
+      assert.ok(output.pageRequests.length >= 1, "the browser must record the local analyzer navigation");
+      for (const url of output.pageRequests) {
+        const protocol = new URL(url).protocol;
+        assert.ok(protocol === "file:" || protocol === "data:", `analyzer attempted a non-local request: ${url}`);
+      }
+    });
+  }
 }
+
+if (require.main === module || path.resolve(process.argv[1] || "") === path.resolve(__filename)) {
+  registerSevenSourceTests();
+}
+
+module.exports = { runCase };
