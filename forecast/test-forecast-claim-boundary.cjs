@@ -32,14 +32,35 @@ assert.match(html, /id="pickfiles"/i);
 assert.match(html, /id="copyagent"/i);
 assert.match(html, /Inside<\/span>|Missed<\/span>/i);
 
-const heldOutSource = html.match(/function heldOutStatus\(cov,err\)\{[\s\S]*?\n\}/);
+// The held-out sentence takes hits and split size rather than a finished percentage, because a
+// percentage is exactly what a two-task split cannot honestly produce. Both branches are pinned:
+// a split large enough to state a rate must state it with its interval and the 80% target, and a
+// split too small must state the raw count and no rate at all.
+const coverageSource = html.match(/function coverageRateReportable\(n\)\{[\s\S]*?\nfunction coverageValue/);
+assert.ok(coverageSource, "coverage helpers must remain independently testable");
+const heldOutSource = html.match(/function heldOutStatus\(hits,n,err\)\{[\s\S]*?\n\}/);
 assert.ok(heldOutSource, "held-out status formatter must remain independently testable");
-const heldOutContext = { fmtPct: (value) => `${value}%` };
+const heldOutContext = { Math, Number, fmtPct: (value) => `${value}%`, COVERAGE_MIN_TEST: 20 };
+vm.runInNewContext(coverageSource[0].replace(/\nfunction coverageValue$/, ""), heldOutContext,
+  { filename: "forecast-coverage-helpers.js" });
 vm.runInNewContext(heldOutSource[0], heldOutContext, { filename: "forecast-held-out-status.js" });
-for (const [coverage, error] of [[100, 5], [80, 15], [65, 30], [0, 39.4]]) {
-  const message = heldOutContext.heldOutStatus(coverage, error);
-  assert.match(message, new RegExp(`observed coverage was ${coverage}% against an 80% target`, "i"));
+for (const [hits, split, error] of [[40, 40, 5], [32, 40, 15], [26, 40, 30], [0, 40, 39.4]]) {
+  const message = heldOutContext.heldOutStatus(hits, split, error);
+  assert.match(message, new RegExp(`${hits} of ${split} inside the band`, "i"));
+  assert.match(message, /against an 80% target/i);
+  assert.match(message, /95% interval/i, "a stated coverage rate must carry its own interval");
   assert.match(message, new RegExp(`median relative error was ${String(error).replace(".", "\\.")}%`, "i"));
+  assert.match(message, /does not validate the model for a future task or another user/i);
+  assert.doesNotMatch(message, /near|promising|well-calibrated|roughly calibrated|should catch|should contain/i);
+}
+for (const [hits, split, error] of [[2, 2, 5], [1, 2, 39.4], [8, 9, 15]]) {
+  const message = heldOutContext.heldOutStatus(hits, split, error);
+  assert.match(message, new RegExp(`${hits} of ${split} inside the band`, "i"));
+  assert.match(message, /too few held-out tasks to state a coverage rate/i);
+  assert.doesNotMatch(message, /coverage rate of/i,
+    "a split this small must not state a coverage rate at all");
+  assert.doesNotMatch(message, /against an 80% target/i,
+    "a rate that was never stated cannot be compared to a target");
   assert.match(message, /does not validate the model for a future task or another user/i);
   assert.doesNotMatch(message, /near|promising|well-calibrated|roughly calibrated|should catch|should contain/i);
 }

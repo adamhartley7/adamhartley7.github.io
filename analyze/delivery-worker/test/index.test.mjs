@@ -840,6 +840,115 @@ test("the live analyzer builders and strict Worker agree on Cursor and Copilot r
   assert.equal(JSON.stringify(reports).includes("private-org"), false);
   assert.equal(JSON.stringify(reports).includes("private-user"), false);
   for (const report of reports) assert.equal(validateResearchSafeUsage(report), true);
+
+  // A subscription-covered Cursor export, built by the live page and validated by this Worker.
+  // Every row is marked Included, so the charge is positively known to be nothing. That is a
+  // different fact from "TOP could not price this" and must not share its status.
+  const covered = context.parseCursor([[
+    "Date,Kind,Model,Max Mode,Input (w/ Cache Write),Input (w/o Cache Write),Cache Read,Output,Total Tokens,Cost",
+    "2026-07-18T10:26:09.565Z,Included,auto,No,0,77554,356352,6578,440484,Included",
+    "2026-07-18T10:25:45.159Z,Included,auto,No,0,143210,268288,7602,419100,Included",
+  ].join("\n")]);
+  assert.equal(covered.subscriptionCovered, true);
+  const coveredReport = JSON.parse(JSON.stringify(
+    context.buildResearchSafeObject(covered, null, questionnaire("cursor"), 0.4, "2026-07-19"),
+  ));
+  assert.equal(coveredReport.cost.status, "no_charge_subscription_covered");
+  assert.equal(coveredReport.cost.usd, 0);
+  assert.equal(coveredReport.cost.basis, "subscription_covered_no_charge_in_export");
+  assert.equal(coveredReport.measurement.cost_basis, "marked_included_by_cursor_no_charge");
+  assert.equal(coveredReport.pricing.unpriced_model_groups, 0);
+  assert.equal(coveredReport.by_model.every((row) => row.cost.status === "no_charge_subscription_covered"), true);
+  assert.equal(validateResearchSafeUsage(coveredReport), true);
+  assert.equal(coveredReport.value_model.truth_status, "not_available",
+    "a covered export must not carry a routing-saving illustration");
+});
+
+test("a covered zero charge cannot be forged, borrowed or applied where it is not known", () => {
+  const coveredFixture = () => {
+    const report = cursorReportFixture();
+    report.measurement.cost_basis = "marked_included_by_cursor_no_charge";
+    report.coverage.rows_with_recorded_cost = 0;
+    report.coverage.rows_without_recorded_cost = 1;
+    report.cost = {
+      status: "no_charge_subscription_covered",
+      usd: 0,
+      basis: "subscription_covered_no_charge_in_export",
+      currency: "USD",
+      subscription_bill: false,
+    };
+    report.pricing = {
+      status: "not_applied_no_recognized_rate",
+      reference_checked_date: "2026-07-16",
+      unit: "usd_per_million_tokens",
+      applied_rates: [],
+      unpriced_model_groups: 0,
+    };
+    report.by_model = report.by_model.map((row) => ({ ...row, cost: { status: "no_charge_subscription_covered", usd: 0 } }));
+    return report;
+  };
+  assert.equal(validateResearchSafeUsage(coveredFixture()), true);
+
+  // A covered claim carrying a real amount is not a covered claim.
+  const nonZero = coveredFixture();
+  nonZero.cost.usd = 0.42;
+  assert.throws(() => validateResearchSafeUsage(nonZero), /exactly zero/i);
+  const nonZeroModel = coveredFixture();
+  nonZeroModel.by_model[0].cost.usd = 0.42;
+  assert.throws(() => validateResearchSafeUsage(nonZeroModel), /covered zero charge|does not reconcile/i);
+
+  // A dollar amount read out of the file contradicts "nothing was charged".
+  const recordedRows = coveredFixture();
+  recordedRows.coverage.rows_with_recorded_cost = 1;
+  recordedRows.coverage.rows_without_recorded_cost = 0;
+  assert.throws(() => validateResearchSafeUsage(recordedRows), /does not reconcile/i);
+
+  // Applied rates contradict "no rate card was applied".
+  const withRates = coveredFixture();
+  withRates.pricing.status = "checked_reference_rates";
+  assert.throws(() => validateResearchSafeUsage(withRates), /does not reconcile/i);
+
+  // The covered status cannot leak onto a report that is not a Cursor export.
+  const notCursor = coveredFixture();
+  notCursor.source = { provider: "anthropic", surface: "claude_code", input_form: "locally_cleaned_usage_export" };
+  assert.throws(() => validateResearchSafeUsage(notCursor), /only a Cursor export|measurement does not match/i);
+
+  // The covered status cannot appear on an ordinary partly priced Cursor report.
+  const ordinary = cursorReportFixture();
+  ordinary.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
+  ordinary.coverage.rows_with_recorded_cost = 0;
+  ordinary.coverage.rows_without_recorded_cost = 1;
+  ordinary.cost = {
+    status: "no_charge_subscription_covered",
+    usd: 0,
+    basis: "recorded_and_or_estimated_where_possible",
+    currency: "USD",
+    subscription_bill: false,
+  };
+  ordinary.by_model = ordinary.by_model.map((row) => ({ ...row, cost: { status: "no_charge_subscription_covered", usd: 0 } }));
+  assert.throws(() => validateResearchSafeUsage(ordinary), /outside a subscription-covered Cursor report|does not reconcile/i);
+
+  // And an unpriceable report is still unpriceable: the two statuses stay apart.
+  const unpriceable = cursorReportFixture();
+  unpriceable.measurement.cost_basis = "recorded_where_present_then_checked_rates_for_recognized_missing_rows";
+  unpriceable.coverage.rows_with_recorded_cost = 0;
+  unpriceable.coverage.rows_without_recorded_cost = 1;
+  unpriceable.cost = {
+    status: "unavailable",
+    usd: null,
+    basis: "recorded_and_or_estimated_where_possible",
+    currency: "USD",
+    subscription_bill: false,
+  };
+  unpriceable.pricing = {
+    status: "not_applied_no_recognized_rate",
+    reference_checked_date: "2026-07-16",
+    unit: "usd_per_million_tokens",
+    applied_rates: [],
+    unpriced_model_groups: 1,
+  };
+  unpriceable.by_model = unpriceable.by_model.map((row) => ({ ...row, cost: { status: "unavailable", usd: null } }));
+  assert.equal(validateResearchSafeUsage(unpriceable), true);
 });
 
 test("Cursor and Copilot source, measurement and questionnaire contracts remain exact", () => {

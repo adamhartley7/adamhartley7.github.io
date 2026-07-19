@@ -38,16 +38,16 @@ assert.equal(standard.missingCostRows, 0);
 assert.deepEqual(Object.keys(standard.by).sort(), ["claude-4.5-sonnet", "composer-1", "gpt-5"]);
 assert.deepEqual(
   modelRow(standard.by["composer-1"]),
-  { inp: 1000, out: 300, cw: 200, cr: 500, turns: 1, cost: 0.05, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } },
+  { inp: 1000, out: 300, cw: 200, cr: 500, turns: 1, cost: 0.05, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 }, coveredRows: 1, chargeKnownRows: 1 },
   "cache write must be the difference between the two input columns",
 );
 assert.deepEqual(
   modelRow(standard.by["claude-4.5-sonnet"]),
-  { inp: 1500, out: 400, cw: 500, cr: 0, turns: 1, cost: 1.95, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } },
+  { inp: 1500, out: 400, cw: 500, cr: 0, turns: 1, cost: 1.95, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 }, coveredRows: 0, chargeKnownRows: 1 },
 );
 assert.deepEqual(
   modelRow(standard.by["gpt-5"]),
-  { inp: 100, out: 0, cw: 0, cr: 0, turns: 1, cost: 0, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } },
+  { inp: 100, out: 0, cw: 0, cr: 0, turns: 1, cost: 0, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 }, coveredRows: 0, chargeKnownRows: 1 },
   "an errored, not-charged row must record a zero cost instead of a missing one",
 );
 assert.deepEqual({ ...standard.composer }, { rows: 1, tokens: 2000, cost: 0.05 }, "Composer rows must be separated for the agent-versus-other breakdown");
@@ -71,7 +71,7 @@ assert.equal(team.days, 1);
 assert.equal(team.costComplete, true);
 assert.deepEqual(
   modelRow(team.by["composer-2.5"]),
-  { inp: 10, out: 0, cw: 0, cr: 0, turns: 1, cost: 0, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } },
+  { inp: 10, out: 0, cw: 0, cr: 0, turns: 1, cost: 0, costRows: 1, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 }, coveredRows: 0, chargeKnownRows: 1 },
 );
 assert.equal(team.by["gemini-2.5-pro"].cost, 0.42, "a quoted model field must be read through RFC 4180 parsing");
 assert.equal(team.composer.rows, 2, "composer-2.5 and composer-2.5-fast are both Composer variants");
@@ -245,7 +245,7 @@ const forward = context.parseCursor([fileA, fileB]);
 const backward = context.parseCursor([fileB, fileA]);
 for (const result of [forward, backward]) {
   const { cost, ...counts } = modelRow(result.by["composer-1"]);
-  assert.deepEqual(counts, { inp: 230, out: 60, cw: 70, cr: 40, turns: 2, costRows: 2, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 } });
+  assert.deepEqual(counts, { inp: 230, out: 60, cw: 70, cr: 40, turns: 2, costRows: 2, missingCostRows: 0, missing: { inp: 0, out: 0, cw: 0, cr: 0 }, coveredRows: 0, chargeKnownRows: 2 });
   assert.ok(Math.abs(cost - 0.3) < 1e-9, "recorded costs must sum across files in any order");
   assert.equal(result.days, 2);
   assert.equal(result.coverage.files_with_usage, 2);
@@ -394,3 +394,32 @@ assert.ok(mixedDisclosure.totalTokens - mixedDisclosure.undisclosedTokens < mixe
   "the single named row is a rounding error of the work, which is why it must never be shown as 100%");
 
 console.log("TOP Analyzer Cursor parser regression tests passed");
+
+// Per-model subscription-covered counters. These are what lets a model group say its charge was
+// positively nothing rather than merely absent, so each one is pinned against a mixed export.
+const perModelCovered = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,composer-1,No,0,100,200,50,350,Included",
+  "2026-07-18T11:00:00.000Z,Included,composer-1,No,0,100,200,50,350,Included",
+  '2026-07-18T12:00:00.000Z,"Errored, Not Charged",composer-1,No,0,10,0,0,10,-',
+  "2026-07-18T13:00:00.000Z,On-Demand,claude-4.5-sonnet,No,0,100,200,50,350,",
+].join("\n")]);
+assert.equal(perModelCovered.by["composer-1"].coveredRows, 2,
+  "only the explicitly Included rows count as covered for this model");
+assert.equal(perModelCovered.by["composer-1"].chargeKnownRows, 3,
+  "an errored not-charged row has a known charge even though it is not an Included row");
+assert.equal(perModelCovered.by["claude-4.5-sonnet"].coveredRows, 0);
+assert.equal(perModelCovered.by["claude-4.5-sonnet"].chargeKnownRows, 0,
+  "a blank Cost cell leaves that row's charge unknown");
+assert.equal(perModelCovered.subscriptionCovered, false,
+  "one unreadable Cost cell withdraws the covered claim for the whole file");
+assert.equal(
+  perModelCovered.by["composer-1"].coveredRows + perModelCovered.by["claude-4.5-sonnet"].coveredRows,
+  perModelCovered.coveredRows,
+  "per-model covered counts must sum to the file-level count",
+);
+assert.equal(
+  perModelCovered.by["composer-1"].chargeKnownRows + perModelCovered.by["claude-4.5-sonnet"].chargeKnownRows,
+  perModelCovered.chargeKnownRows,
+  "per-model known-charge counts must sum to the file-level count",
+);

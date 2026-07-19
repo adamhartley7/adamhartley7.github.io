@@ -2329,7 +2329,7 @@ function parseCursor(texts){
         var excludedLabel=model||"(missing model name)";
         excludedModels[excludedLabel]=(excludedModels[excludedLabel]||0)+1;excludedRows++;continue;
       }
-      var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0}});
+      var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0},coveredRows:0,chargeKnownRows:0});
       e.inp+=tok.inp; e.out+=tok.out; e.cw+=tok.cw; e.cr+=tok.cr;
       if(recordedCost!==null){e.cost+=recordedCost;e.costRows++;costRows++;}
       else{e.missingCostRows++;missingCostRows++;e.missing.inp+=tok.inp;e.missing.out+=tok.out;e.missing.cw+=tok.cw;e.missing.cr+=tok.cr;}
@@ -2342,11 +2342,11 @@ function parseCursor(texts){
       totalTokens+=rowTokens;
       if(recordedCost!==null)recordedCostTotal+=recordedCost;
       var rowCovered=kind==="included"||/^included$/i.test(rawCost);
-      if(rowCovered){coveredRows++;coveredTokens+=rowTokens}
+      if(rowCovered){coveredRows++;coveredTokens+=rowTokens;e.coveredRows++}
       // A row's charge is known when Cursor either recorded a number for it or marked it Included.
       // A blank, "N/A" or "Free trial" Cost cell leaves it unknown, and an unknown charge can never be
       // reported as a zero one. This count is what lets the covered claim require every row, not one row.
-      if(rowCovered||recordedCost!==null)chargeKnownRows++;
+      if(rowCovered||recordedCost!==null){chargeKnownRows++;e.chargeKnownRows++}
       if(cursorUndisclosedModel(model)){undisclosedRows++;undisclosedTokens+=rowTokens}
       var rawDate=String(f[ci.date]===undefined?"":f[ci.date]).trim();
       var dayMatch=rawDate.match(/^(\d{4}-\d{2}-\d{2})/);
@@ -3732,6 +3732,10 @@ function plainCount(value){return value===null||value===undefined?null:fmtN(valu
 function describeResearchSafePlain(data,covered){
   if(!data)return null;
   var totals=data.totals||{},activity=data.activity||{},cost=data.cost||{},pricing=data.pricing||{},lines=[];
+  // Read out of the payload itself, so these words hold even when the report body's richer
+  // covered summary is not to hand. "We know it was free" and "we could not price it" are
+  // different facts and the payload now carries different statuses for them.
+  var knownZero=cost.status==="no_charge_subscription_covered";
   var breakdown=[
     plainCount(totals.input_tokens)&&plainCount(totals.input_tokens)+" sent to the AI",
     plainCount(totals.output_tokens)&&plainCount(totals.output_tokens)+" returned by the AI",
@@ -3752,7 +3756,7 @@ function describeResearchSafePlain(data,covered){
     ?"AI versions: none named. Cursor's Auto mode did not record which AI version ran, so the file carries "+fmtN(models)+" row"+(models===1?"":"s")+" of token counts with no model name behind "+(models===1?"it":"them")+"."
     :(covered&&covered.someUndisclosed
     ?"AI versions: not all named. Cursor's Auto mode did not record which AI version ran for "+fmtN(covered.undisclosedRows)+" of these usage events, so part of this token count has no model name behind it."
-    :"AI versions: "+fmtN(models)+" model name"+(models===1?"":"s")+", each with its own token counts"+(cost.usd===null||cost.usd===undefined?". No per-model billed cost is available.":" and cost figure.")));
+    :"AI versions: "+fmtN(models)+" model name"+(models===1?"":"s")+", each with its own token counts"+(knownZero?". No money was charged for any of them.":(cost.usd===null||cost.usd===undefined?". No per-model billed cost is available.":" and cost figure."))));
   var counts=[
     plainCount(activity.ai_replies)&&plainCount(activity.ai_replies)+" AI replies",
     plainCount(activity.usage_events)&&plainCount(activity.usage_events)+" usage events",
@@ -3767,6 +3771,8 @@ function describeResearchSafePlain(data,covered){
   // local history), or TOP simply could not price the file.
   lines.push(covered
     ?"Cost: no charge of your own, because your subscription covered this usage and the recorded charge is zero. In its place, one figure for what the same tokens would cost bought per token at published API rates: "+covered.amount+". That is an estimate of a hypothetical API bill, not money you paid and not a saving."
+    :(knownZero
+    ?"Cost: zero, and TOP knows it is zero rather than not knowing it: your subscription covered every usage event in this file and the recorded charge on each one is nothing. This is a known charge of nothing, not a missing figure."
     :(cost.usd===null||cost.usd===undefined
     ?(cost.basis==="not_available_in_local_codex_history"?"Cost: no dollar figure, because local Codex history does not contain plan allowance, credits charged or billed dollars.":"Cost: no dollar figure, because TOP could not price this file.")
     // A recorded zero outside the covered path is still a recorded fact, not a price TOP failed to work
@@ -3774,7 +3780,7 @@ function describeResearchSafePlain(data,covered){
     // above it, a reader could not tell which of the two had happened.
     :(Number(cost.usd)===0
     ?"Cost: no charge recorded, which is a recorded charge of zero rather than a price TOP could not work out. It is not your subscription bill."
-    :"Cost: one figure, "+fmt$(cost.usd)+", as a comparison against published API rates. It is not your subscription bill.")));
+    :"Cost: one figure, "+fmt$(cost.usd)+", as a comparison against published API rates. It is not your subscription bill."))));
   var rates=covered?covered.rateCount:(Array.isArray(pricing.applied_rates)?pricing.applied_rates.length:0);
   lines.push(covered&&covered.isRange
     ?"Pricing: the "+fmtN(rates)+" published rate card"+(rates===1?"":"s")+" TOP priced these tokens against to get both ends of that range, and the date those rates were checked."
@@ -3802,9 +3808,12 @@ function describeResearchSafePlain(data,covered){
       :" across "+fmtN(models)+" AI version"+(models===1?"":"s")))
     +(covered
       ?", with a "+covered.amount+" API-price comparison and no charge from your plan"
+      // A known zero is stated in words. Rendering it as "$0.00" would read as a spend figure,
+      // which is the thing the rail exists to avoid leading with.
+      :(knownZero?", and no charge from your plan"
       :(cost.usd===null||cost.usd===undefined?""
-      // Same rule on the rail: a recorded zero is said, never shown as a dollar figure.
-      :(Number(cost.usd)===0?", with no charge recorded":", with a "+fmt$(cost.usd)+" API-price comparison")))
+      // Same rule for any other recorded zero: state it, never print it as an unknown-looking $0.00.
+      :(Number(cost.usd)===0?", with no charge recorded":", with a "+fmt$(cost.usd)+" API-price comparison"))))
     +". No prompts, replies, code or file contents.";
   return {contains:lines,never:excluded.length?("Never included: "+plainWordList(excluded)+"."):"Never included: any of your original file content.",oneLine:oneLine};
 }
@@ -5071,7 +5080,9 @@ function researchSource(result,routeB){
 }
 function researchMeasurement(result){
   if(result.chatExport)return {token_basis:"estimated_from_visible_message_text",cache_basis:"not_available",reasoning_basis:"not_available",cost_basis:"not_available"};
-  if(result.cursor)return {token_basis:"exported_columns_where_present",cache_basis:"exported_columns_where_present",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export_as_billed_by_cursor":"recorded_where_present_then_checked_rates_for_recognized_missing_rows"};
+  // A covered export had no rates applied to it and no dollar amounts to read, so it must not
+  // claim either. Its cost basis is the Included marker itself.
+  if(result.cursor)return {token_basis:"exported_columns_where_present",cache_basis:"exported_columns_where_present",reasoning_basis:"not_available",cost_basis:result.subscriptionCovered?"marked_included_by_cursor_no_charge":(result.costComplete?"recorded_in_export_as_billed_by_cursor":"recorded_where_present_then_checked_rates_for_recognized_missing_rows")};
   if(result.copilot)return {token_basis:"not_available_copilot_meters_prompts_and_credits",cache_basis:"not_available",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export_as_billed_by_github":"recorded_where_present_never_estimated"};
   if(result.csv)return {token_basis:"exported_columns_where_present",cache_basis:"exported_columns_where_present",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export":"recorded_where_present_then_checked_rates_for_recognized_missing_rows"};
   return {token_basis:"recorded_usage_counters",cache_basis:"recorded_usage_counters",reasoning_basis:result.codex?"recorded_subset_of_output":"not_separately_available",cost_basis:result.codex?"not_available_in_local_codex_history":"checked_pay_as_you_go_rate_comparison"};
@@ -5161,6 +5172,19 @@ function researchCostRow(rawModel,entry,result){
     status=billedRecorded?(billedMissing?"partial_recorded":"recorded"):"unavailable";
     return {model:model,key:null,cost:researchMoneyOrNull(cost),complete:complete,status:status,rateApplied:false};
   }
+  // A positively-known zero charge is not an absent one. When Cursor marked every row of this
+  // model group "Included" the plan absorbed it and no money moved, which is a fact TOP knows,
+  // not a fact TOP is missing. Exporting that as "unavailable" put it in the same bucket as a
+  // file TOP could not price, and the share preview then told the person their own free usage
+  // could not be priced. It gets its own status and a real figure of zero.
+  // Guarded three ways so a zero is never invented: the whole file must already satisfy the
+  // all-or-nothing subscriptionCovered test (no excluded, malformed or unreadable rows anywhere),
+  // this model group must carry at least one explicitly Included row, every row in it must have a
+  // known charge, and the recorded total must not be above zero. Any one of those failing sends
+  // the row back down the ordinary recorded-or-estimated path below.
+  if(result.csv&&result.subscriptionCovered&&entry.coveredRows>0&&entry.chargeKnownRows===entry.turns&&!(Number(entry.cost)>0)){
+    return {model:model,key:null,cost:0,complete:true,status:"no_charge_subscription_covered",rateApplied:false};
+  }
   if(result.csv){
     var hasRecorded=!!entry.costRows&&isPricedNumber(entry.cost),recorded=hasRecorded?Number(entry.cost):0,hasMissing=!!entry.missingCostRows,estimated=null;
     if(hasMissing&&key)estimated=costOf(model,researchCount(entry.missing&&entry.missing.inp),researchCount(entry.missing&&entry.missing.out),researchCount(entry.missing&&entry.missing.cw),researchCount(entry.missing&&entry.missing.cr));
@@ -5174,6 +5198,9 @@ function researchCostRow(rawModel,entry,result){
 }
 function mergeResearchCostStatus(statuses,anyCost,allComplete){
   if(!anyCost)return "unavailable";
+  // A group made entirely of known-zero rows keeps the known-zero status rather than collapsing
+  // into "mixed", which would lose the one fact the group is certain about.
+  if(statuses.length&&statuses.every(function(status){return status==="no_charge_subscription_covered"}))return "no_charge_subscription_covered";
   if(!allComplete)return "partial";
   var unique={};statuses.forEach(function(status){unique[status]=1});
   return Object.keys(unique).length===1?statuses[0]:"mixed";
@@ -5205,11 +5232,15 @@ function buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,creat
   var totals=modelRows.reduce(function(out,row){out.input_tokens+=row.input_tokens;out.output_tokens+=row.output_tokens;if(row.cache_write_tokens!==null)out.cache_write_tokens+=row.cache_write_tokens;if(row.cache_read_tokens!==null)out.cache_read_tokens+=row.cache_read_tokens;if(row.reasoning_tokens!==null)out.reasoning_tokens+=row.reasoning_tokens;out.total_tokens+=row.total_tokens;return out},{input_tokens:0,output_tokens:0,cache_write_tokens:current.chatExport?null:0,cache_read_tokens:current.chatExport?null:0,reasoning_tokens:current.codex?0:null,total_tokens:0});
   var activity={ai_replies:null,usage_events:null,console_records:null,text_messages:null,sessions:current.csv?null:researchCount(current.sessions),active_days:current.pilotSafeSchemaVersion==="top.safe-usage.v2"?researchCount(current.days):(researchCount(current.days)||null)};
   if(current.codex||current.cursor||current.copilot)activity.usage_events=researchCount(current.turns);else if(current.csv)activity.console_records=researchCount(current.turns);else if(current.chatExport)activity.text_messages=researchCount(current.turns);else activity.ai_replies=researchCount(current.turns);
-  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.codex?"not_available_in_local_codex_history":(current.chatExport?"not_available":(current.copilot?(current.costComplete?"recorded_in_export":"recorded_where_present_never_estimated"):(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison"))),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&!current.codex&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
+  // On a subscription-covered export the whole-file guarantee is stronger than any per-row merge:
+  // every row's charge is known and none of them is above zero, so the report states the known
+  // zero outright instead of letting one oddly shaped model group turn it into "mixed".
+  var subscriptionCovered=!!(current.cursor&&current.subscriptionCovered&&anyCost&&totalCost===0&&statuses.length&&statuses.every(function(status){return status==="no_charge_subscription_covered"}));
+  var costStatus=subscriptionCovered?"no_charge_subscription_covered":mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.codex?"not_available_in_local_codex_history":(current.chatExport?"not_available":(current.copilot?(current.costComplete?"recorded_in_export":"recorded_where_present_never_estimated"):(current.csv?(subscriptionCovered?"subscription_covered_no_charge_in_export":(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible")):"estimated_pay_as_you_go_comparison"))),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&!current.codex&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
   if(routeB&&valueModel.truth_status==="not_available")valueModel.reason="scenario_control_not_shown_for_this_route";
   appliedRates.forEach(function(rate){Object.keys(rate.field_provenance).forEach(function(field){var origin=rate.field_provenance[field];if(origin==="user_edited_in_tab"||origin==="derived_from_user_edited_input")editedFields++;else referenceFields++})});
   if(current.codex)pricingStatus="not_applied_source_has_no_billed_cost";else if(current.chatExport)pricingStatus="not_applied";else if(current.csv&&current.costComplete)pricingStatus="not_needed_recorded_cost";else if(!appliedRates.length)pricingStatus="not_applied_no_recognized_rate";else if(editedFields&&referenceFields)pricingStatus=allComplete?"mixed_checked_and_user_edited_rates":"partially_applied_mixed_rate_provenance";else if(editedFields)pricingStatus=allComplete?"user_edited_in_tab":"partially_applied_user_edited_rates";else pricingStatus=allComplete?"checked_reference_rates":"partially_applied_checked_rates";
-  var output={schema_version:RESEARCH_SCHEMA_VERSION,collector:{collector_version:current.pilotCollectorVersion||RESEARCH_COLLECTOR_VERSION,parser_version:current.pilotParserVersion||RESEARCH_PARSER_VERSION},generated_date:researchDateOnly(createdDate),source:researchSource(current,routeB),measurement:researchMeasurement(current),scope:{selection:"supported_records_in_user_selected_local_data",full_account_or_subscription_claim:false,original_source_content_included:false},coverage:researchCoverage(current,routeB),totals:totals,activity:activity,cost:{status:costStatus,usd:anyCost?researchMoney(totalCost):null,basis:costBasis,currency:"USD",subscription_bill:false},pricing:{status:pricingStatus,reference_checked_date:PRICING_CHECKED_DATE,unit:"usd_per_million_tokens",applied_rates:appliedRates,unpriced_model_groups:modelRows.filter(function(row){return row.cost.status==="unavailable"}).length},permission_mode_counts:routeB&&routeB.res?safePermissionModeCounts(routeB.res.perm):null,by_model:modelRows,questionnaire:safeResearchQuestionnaire(questionnaire),value_model:valueModel,privacy:{network_delivery:"none",inspect_before_attaching:true,excluded:["prompts","replies","code","tool_output","paths","filenames","project_and_account_identifiers","email_addresses","exact_timestamps","original_ids"]}},v2=researchCopyV2Sections(current,totals,activity);
+  var output={schema_version:RESEARCH_SCHEMA_VERSION,collector:{collector_version:current.pilotCollectorVersion||RESEARCH_COLLECTOR_VERSION,parser_version:current.pilotParserVersion||RESEARCH_PARSER_VERSION},generated_date:researchDateOnly(createdDate),source:researchSource(current,routeB),measurement:researchMeasurement(current),scope:{selection:"supported_records_in_user_selected_local_data",full_account_or_subscription_claim:false,original_source_content_included:false},coverage:researchCoverage(current,routeB),totals:totals,activity:activity,cost:{status:costStatus,usd:anyCost?researchMoney(totalCost):null,basis:costBasis,currency:"USD",subscription_bill:false},pricing:{status:pricingStatus,reference_checked_date:PRICING_CHECKED_DATE,unit:"usd_per_million_tokens",applied_rates:appliedRates,unpriced_model_groups:modelRows.filter(function(row){return row.cost.usd===null}).length},permission_mode_counts:routeB&&routeB.res?safePermissionModeCounts(routeB.res.perm):null,by_model:modelRows,questionnaire:safeResearchQuestionnaire(questionnaire),value_model:valueModel,privacy:{network_delivery:"none",inspect_before_attaching:true,excluded:["prompts","replies","code","tool_output","paths","filenames","project_and_account_identifiers","email_addresses","exact_timestamps","original_ids"]}},v2=researchCopyV2Sections(current,totals,activity);
   if(v2){output.schema_version=RESEARCH_SCHEMA_VERSION_V2;output.timeline=v2.timeline;output.session_distributions=v2.session_distributions;output.workflow_shape=v2.workflow_shape}
   return output;
 }
