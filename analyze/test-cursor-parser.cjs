@@ -310,4 +310,87 @@ assert.equal(huge.eventTokens, null,
   "beyond the cap the sample is dropped, never truncated into a distribution that would misstate the shape");
 assert.equal(huge.turns, cap + 5, "dropping the sample must not change the counted usage events");
 
+// ---------- a row TOP never read cannot be vouched for ----------
+// chargeKnownRows===rows compares two counters that a dropped row is absent from on BOTH sides, so it
+// passed trivially for anything discarded before rows++. Each case below carries a genuine $50 On-Demand
+// charge that the covered claim would otherwise have declared "nothing extra was charged".
+
+// 1. An unrecognized model name. Cursor ships names outside the recognized list (code-supernova, sonic,
+// kimi-k2-instruct, qwen3-coder, minimax-m2, glm-4.6, o3, llama-4-maverick, gpt5-codex, default), so a
+// real charge landing on one of them is ordinary, not adversarial.
+const chargeOnExcludedModel = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+  "2026-07-18T11:00:00.000Z,On-Demand,code-supernova,No,0,1000,2000,500,3500,50.00",
+].join("\n")]);
+assert.equal(chargeOnExcludedModel.excludedRows, 1, "the unrecognized model must still be excluded and named");
+assert.equal(chargeOnExcludedModel.turns, 1, "only the recognized row is counted");
+assert.equal(chargeOnExcludedModel.subscriptionCovered, false,
+  "a $50 charge on a model TOP could not recognize must withdraw the covered claim, not slip past it because the row never reached the counters");
+
+// The eleven names Cursor ships today that fall outside the recognized list. Each must exclude the row
+// AND withdraw the claim, never be silently priced or silently ignored.
+for (const unknown of ["code-supernova", "code-supernova-1-million", "sonic", "kimi-k2-instruct",
+  "qwen3-coder", "minimax-m2", "glm-4.6", "o3", "llama-4-maverick", "default", "gpt5-codex"]) {
+  assert.equal(context.cursorRecognizedModel(unknown), false, `${unknown} is outside the recognized list`);
+  const withCharge = context.parseCursor([[
+    HEADER,
+    "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+    `2026-07-18T11:00:00.000Z,On-Demand,${unknown},No,0,1000,2000,500,3500,50.00`,
+  ].join("\n")]);
+  assert.equal(withCharge.subscriptionCovered, false,
+    `a real charge on ${unknown} must withdraw the covered claim`);
+}
+
+// 2. A truncated line. The row carries the same $50 and is dropped before anything can read its cost.
+const chargeOnMalformedRow = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+  "2026-07-18T11:00:00.000Z,On-Demand,50.00",
+].join("\n")]);
+assert.equal(chargeOnMalformedRow.malformedRows, 1);
+assert.equal(chargeOnMalformedRow.subscriptionCovered, false,
+  "a line too short to read may be carrying a charge, and an unread row cannot be reported as a zero one");
+
+// 3. A second file whose header TOP does not recognize. Its rows are never opened at all.
+const chargeInUnreadFile = context.parseCursor([
+  [HEADER, "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included"].join("\n"),
+  "something,else,entirely\n2026-07-18,On-Demand,50.00",
+]);
+assert.equal(chargeInUnreadFile.unrecognizedFiles, 1);
+assert.equal(chargeInUnreadFile.subscriptionCovered, false,
+  "a file TOP could not parse cannot be included in a claim about every row");
+
+// The tightening must not swing the other way: a clean export where every row parses still qualifies.
+const cleanCovered = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+  "2026-07-18T11:00:00.000Z,Included,claude-4.5-sonnet,No,0,1000,2000,500,3500,Included",
+].join("\n")]);
+assert.equal(cleanCovered.excludedRows, 0);
+assert.equal(cleanCovered.malformedRows, 0);
+assert.equal(cleanCovered.unrecognizedFiles, 0);
+assert.equal(cleanCovered.subscriptionCovered, true,
+  "an export where every row parses cleanly and every charge is a known zero is still subscription-covered");
+
+// ---------- the mixed export: some rows named, some not ----------
+// One disclosed row alongside Auto rows does not make the export model-disclosed. modelsUndisclosed is
+// correctly false, and undisclosedRows is what the report must read to decide whether it may name a model.
+const mixedDisclosure = context.parseCursor([[
+  HEADER,
+  ...Array.from({ length: 12 }, (_, i) =>
+    `2026-07-18T1${i % 10}:00:00.000Z,Included,auto,No,0,100000,450000,10000,560000,Included`),
+  "2026-07-18T23:00:00.000Z,Included,claude-4.5-sonnet,No,0,1000,0,300,1300,Included",
+].join("\n")]);
+assert.equal(mixedDisclosure.turns, 13);
+assert.equal(mixedDisclosure.undisclosedRows, 12);
+assert.equal(mixedDisclosure.modelsUndisclosed, false,
+  "one named model means the export is not wholly undisclosed");
+assert.ok(mixedDisclosure.undisclosedRows > 0 && mixedDisclosure.undisclosedRows < mixedDisclosure.turns,
+  "the mixed case is exactly the one the all-or-nothing flag cannot describe");
+assert.equal(mixedDisclosure.undisclosedTokens, 6720000);
+assert.equal(mixedDisclosure.totalTokens, 6721300);
+assert.ok(mixedDisclosure.totalTokens - mixedDisclosure.undisclosedTokens < mixedDisclosure.totalTokens / 1000,
+  "the single named row is a rounding error of the work, which is why it must never be shown as 100%");
+
 console.log("TOP Analyzer Cursor parser regression tests passed");

@@ -2158,8 +2158,16 @@ function parseCursor(texts){
     // of those known charges is above zero. A single real charge anywhere puts the report back on the
     // ordinary recorded-cost path, and so does a single row whose Cost cell TOP could not read: "nothing
     // was charged" is a claim about every row, so one unreadable row is enough to withdraw it.
+    // chargeKnownRows===rows can only ever speak for rows that reached the counters. A row dropped
+    // before rows++ is missing from BOTH sides of that comparison, so it cannot fail it: an unrecognized
+    // model name, a line too short to read, or a whole file whose header is not a Cursor export all left
+    // the equality trivially true while a real On-Demand charge sat in the file unread. Cursor ships
+    // model names outside the recognized list, so this is ordinary, not exotic. The claim is about every
+    // row in the export, not every row TOP managed to parse, so anything dropped unread withdraws it too
+    // and the report falls back to the ordinary recorded-cost path.
     chargeKnownRows:chargeKnownRows,
-    subscriptionCovered:rows>0&&totalTokens>0&&coveredRows>0&&recordedCostTotal===0&&chargeKnownRows===rows,
+    subscriptionCovered:rows>0&&totalTokens>0&&coveredRows>0&&recordedCostTotal===0&&chargeKnownRows===rows
+      &&excludedRows===0&&malformedRows===0&&unrecognizedFiles===0,
     excludedRows:excludedRows,excludedModels:excludedModels,malformedRows:malformedRows,unrecognizedFiles:unrecognizedFiles,
     coverage:{files_selected:texts.length,files_parsed:texts.length-unrecognizedFiles,files_with_usage:filesWithRows,files_skipped:unrecognizedFiles,malformed_lines:malformedRows,oversized_lines:0,counter_resets:0,complete:unrecognizedFiles===0&&malformedRows===0&&excludedRows===0},
     estimateReason:allRowsHaveCost?"":"one or more rows lacked a recorded cost; recognized missing rows use editable comparison rates and unrecognized models remain unpriced"};
@@ -2962,7 +2970,9 @@ function pilotRangeChartHTML(res,included){
     +" AI versions in TOP's checked price table run from "+fmt$(low)+" at the cheapest rate, "+lowName
     +", to "+fmt$(high)+" at the most expensive, "+highName+". Cursor charged nothing for this usage.";
   var caption=included.undisclosed
-    ?"Cursor's Auto mode picked an AI version for each request and did not record which one, so there is no model mix to draw. Rather than guess a model, TOP priced your tokens against every rate it has checked. The band is how wide the answer is when the AI version is not disclosed."
+    ?(res&&res.modelsUndisclosed
+      ?"Cursor's Auto mode picked an AI version for each request and did not record which one, so there is no model mix to draw. Rather than guess a model, TOP priced your tokens against every rate it has checked. The band is how wide the answer is when the AI version is not disclosed."
+      :"Cursor's Auto mode did not record which AI version ran on some of these requests, so a model mix would name only the rows that happened to carry a name. Rather than let those few stand for the whole export, TOP priced all of your tokens against every rate it has checked. The band is how wide the answer is when the AI version is not disclosed.")
     :"At least one AI version in this export has no checked rate, so TOP shows the full span of rates it has checked rather than a single number it cannot stand behind.";
   return pilotFigure(pilotSvg(W,H,label,body),caption)
     +pilotFoot("Rates come from TOP's checked price table, last checked "+PRICING_CHECKED_DATE+". This is an estimate of a hypothetical API bill. It is not money you paid and it is not a saving.");
@@ -2975,6 +2985,12 @@ function pilotMixChartHTML(rows,pricedTotal,res,unpriced,included){
   if(res&&res.cursor&&res.modelsUndisclosed){
     return pilotRangeChartHTML(res,included)
       ||pilotPlain("Cursor's Auto mode chose an AI version for each request and did not record which one ran, so there is no model mix to draw here and TOP will not invent one.");
+  }
+  // One disclosed row among undisclosed ones is not a mix either. Only a priced row can take a share of
+  // the cost column, and an Auto row can never be priced, so the named rows would fill the whole picture
+  // whatever fraction of the work they actually did. Same shape, same reason, stated for the mixed case.
+  if(pilotMixWithheld(res)){
+    return pilotRangeChartHTML(res,included)||pilotPlain(pilotMixWithheldText(res));
   }
   var entries=rows.map(function(r){
     return {label:safePublicModelLabel(r.model),tokens:r.e.inp+r.e.out+r.e.cw+r.e.cr,
@@ -3474,9 +3490,13 @@ function describeResearchSafePlain(data,covered){
   // Where the source never disclosed which AI version ran, the one row in by_model is not a model name.
   // Calling it one would state a fact the file does not contain, which is the whole reason this report
   // stopped drawing a single bar labelled "auto".
+  // A mixed export is not the ordinary case either. Some rows carry a model name and some do not, so the
+  // row count is not a count of AI versions: one of those rows is Auto, which is not an AI version.
   lines.push(covered&&covered.modelsUndisclosed
     ?"AI versions: none named. Cursor's Auto mode did not record which AI version ran, so the file carries "+fmtN(models)+" row"+(models===1?"":"s")+" of token counts with no model name behind "+(models===1?"it":"them")+"."
-    :"AI versions: "+fmtN(models)+" model name"+(models===1?"":"s")+", each with its own token counts and cost figure.");
+    :(covered&&covered.someUndisclosed
+    ?"AI versions: not all named. Cursor's Auto mode did not record which AI version ran for "+fmtN(covered.undisclosedRows)+" of these usage events, so part of this token count has no model name behind it."
+    :"AI versions: "+fmtN(models)+" model name"+(models===1?"":"s")+", each with its own token counts and cost figure."));
   var counts=[
     plainCount(activity.ai_replies)&&plainCount(activity.ai_replies)+" AI replies",
     plainCount(activity.usage_events)&&plainCount(activity.usage_events)+" usage events",
@@ -3513,7 +3533,9 @@ function describeResearchSafePlain(data,covered){
   // export it must be the API-equivalent the report leads with, never the zero recorded charge.
   // The full list stays one click away so the rail never buries the report.
   var oneLine="Counts and totals only: "+fmtN(totals.total_tokens||0)+" tokens"
-    +(covered&&covered.modelsUndisclosed?", AI version not disclosed":" across "+fmtN(models)+" AI version"+(models===1?"":"s"))
+    +(covered&&covered.modelsUndisclosed?", AI version not disclosed"
+      :(covered&&covered.someUndisclosed?", AI version not disclosed on some rows"
+      :" across "+fmtN(models)+" AI version"+(models===1?"":"s")))
     +(covered
       ?", with a "+covered.amount+" API-price comparison and no charge from your plan"
       :(cost.usd===null||cost.usd===undefined?"":", with a "+fmt$(cost.usd)+" API-price comparison"))
@@ -3569,6 +3591,37 @@ function revealStandardPostReport(){
   document.getElementById("out").scrollIntoView({behavior:"smooth",block:"start"});
   document.getElementById("resultsHeading").focus({preventScroll:true});
 }
+// ---------- the model mix panel ----------
+// A share of priced cost is only meaningful when every row could be priced. Cursor's Auto mode names no
+// AI version, so an Auto row can never carry a rate and never enters the priced total. In an export that
+// mixes Auto rows with one named model the named model therefore reads 100% of the priced cost however
+// small it is: on a 6,721,300 token export a 1,300 token row, 0.02% of the work, read as "100%" under the
+// heading "Which models drove that estimate?". The all-or-nothing modelsUndisclosed flag did not catch
+// that, because a single disclosed row anywhere switched model naming back on for the whole report. One
+// undisclosed row is enough to withhold the mix, exactly as one unreadable charge is enough to withhold
+// the covered claim. Kept out of render() so the decision can be tested on its own.
+function pilotMixWithheld(res){return !!(res&&res.cursor&&res.undisclosedRows>0)}
+function pilotMixWithheldText(res){
+  if(res&&res.modelsUndisclosed)return "Cursor's Auto mode does not record which AI version ran, so TOP cannot show a model mix for this export.";
+  return "Cursor's Auto mode did not record which AI version ran for "+fmtN((res&&res.undisclosedRows)||0)+" of these "+fmtN((res&&res.turns)||0)+" usage events. A share of the priced cost can only be worked out for the rest, so it would read as 100% for an AI version that ran a fraction of the work. TOP is not showing one.";
+}
+function pilotMixPanelHTML(res,shownRows,pricedTotal){
+  if(pilotMixWithheld(res))return "<p>"+esc(pilotMixWithheldText(res))+"</p>";
+  if(!shownRows.length)return "<p>TOP could not calculate a priced model mix from this file.</p>";
+  return shownRows.map(function(row){
+    var share=pricedTotal>0?Math.round(row.cost/pricedTotal*100):0;
+    return '<div class="pilot-model-row"><strong>'+esc(safePublicModelLabel(row.model))+'</strong><div class="pilot-model-track"><span style="width:'+Math.max(2,share)+'%"></span></div><span>'+fmtN(share)+'%</span></div>';
+  }).join("");
+}
+// With at least one row's AI version undisclosed there is no mix to head, so this step asks the question
+// TOP can actually answer from the same tokens. The heading and the lead follow the chart rather than
+// contradicting it, and neither counts "auto" as an AI version that was recorded.
+function pilotMixHeadingText(res){return pilotMixWithheld(res)?"What would these tokens cost at API prices?":"Which models drove that estimate?"}
+function pilotMixLeadText(res,modelCount){
+  if(!pilotMixWithheld(res))return fmtN(modelCount)+" AI version"+(modelCount===1?"":"s")+" recorded in the files you chose.";
+  if(res.modelsUndisclosed)return "Cursor's Auto mode picked an AI version for each of these "+fmtN(res.turns)+" usage events and did not record which one, so TOP prices the same tokens against every AI version in its checked table instead of naming one it cannot see.";
+  return "Cursor's Auto mode picked an AI version for "+fmtN(res.undisclosedRows)+" of these "+fmtN(res.turns)+" usage events and did not record which one. Naming only the rows that happened to carry a model would present a fraction of the work as the whole of it, so TOP prices these tokens against every AI version in its checked table instead.";
+}
 function render(res){
   LAST_RESULT=res;
   document.getElementById("codexObsidianDownloads").hidden=!res.codex;
@@ -3609,7 +3662,11 @@ function render(res){
     // For a range the rate cards applied are every card in the checked table; for a single exact figure
     // they are the cards the per-model rows actually used.
     rateCount:included.exact===null?included.range.count:Object.keys(usedPriceKeys).length,
-    modelsUndisclosed:!!res.modelsUndisclosed
+    modelsUndisclosed:!!res.modelsUndisclosed,
+    // Carried separately because the all-or-nothing flag above is false the moment one row names a
+    // model, and the rail must still not count the Auto rows beside it as AI versions that were recorded.
+    someUndisclosed:!!res.undisclosedRows,
+    undisclosedRows:res.undisclosedRows||0
   }:null;
   var cards=included
     ?[["Total AI usage",fmtN(totTok)+" tokens","i"],
@@ -3640,7 +3697,11 @@ function render(res){
       :"Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.");
   var estimateWord=res.chatExport?"Estimated ":"";
   var th='<thead><tr><th>AI version</th><th>'+estimateWord+'text sent to the AI</th><th>'+estimateWord+'text returned by the AI</th><th>'+estimateWord+'previously saved text: added / reused</th><th>'+countLabels.table+'</th><th>Cost</th></tr></thead>';
-  var tb=rows.map(function(r){var shown=res.chatExport?"Not in export":(res.cursor&&cursorUndisclosedModel(r.model)?"AI version not disclosed":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost)))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
+  // On a subscription-covered export nothing was charged on any row. The only figure TOP could put in
+  // this column for a named row is an API-price comparison, which is not a charge, and printing it beside
+  // a footer reading "No charge, plan covered" made one table state two different things about the same
+  // rows. The comparison has its own card and its own sentence; this column stays the charge column.
+  var tb=rows.map(function(r){var shown=res.chatExport?"Not in export":(res.cursor&&cursorUndisclosedModel(r.model)?"AI version not disclosed":(included?"No charge, plan covered":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost))))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
   var totalShown=res.chatExport?"Not in export":(included?"No charge, plan covered":(res.costAvailable?((res.estimate?"~":"")+fmt$(totCost)):(res.partialCost?("Partial "+fmt$(totCost)):"Not available")));
   var tf='<tfoot><tr><td>Total</td><td class="n">'+tokenPrefix+fmtN(totInp)+'</td><td class="n">'+tokenPrefix+fmtN(totOut)+'</td><td class="n">'+(res.chatExport?"Not in export":(fmtN(totCw)+' / '+fmtN(totCr)))+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
   if(res.copilot){
@@ -3678,15 +3739,9 @@ function render(res){
           ?"TOP priced "+fmtN(pricedRows.length)+" of "+fmtN(rows.length)+" AI versions. This is a partial API-rate comparison, not your subscription bill."
           :"This is an API-rate comparison based on recorded usage, not your subscription bill.")));
     var shownRows=pricedRows.slice().sort(function(a,b){return b.cost-a.cost}).slice(0,3);
-    // A model mix needs disclosed models. Cursor Auto never names one, so say that instead of drawing
-    // a single meaningless bar labelled "auto".
-    var mixUnavailable=res.cursor&&res.modelsUndisclosed
-      ?"<p>Cursor's Auto mode does not record which AI version ran, so TOP cannot show a model mix for this export.</p>"
-      :"<p>TOP could not calculate a priced model mix from this file.</p>";
-    document.getElementById("pilotUsageMix").innerHTML=shownRows.length?shownRows.map(function(row){
-      var share=pricedTotal>0?Math.round(row.cost/pricedTotal*100):0;
-      return '<div class="pilot-model-row"><strong>'+esc(safePublicModelLabel(row.model))+'</strong><div class="pilot-model-track"><span style="width:'+Math.max(2,share)+'%"></span></div><span>'+fmtN(share)+'%</span></div>';
-    }).join(""):mixUnavailable;
+    // A model mix needs disclosed models on every row. Cursor Auto never names one, so say that instead
+    // of drawing a bar, and say it just as plainly when only some of the rows were left unnamed.
+    document.getElementById("pilotUsageMix").innerHTML=pilotMixPanelHTML(res,shownRows,pricedTotal);
     document.getElementById("pilotValueCost").textContent=included
       ?(included.exact!==null?"Ready: ":"Range: ")+costText+" at API prices, nothing charged by Cursor"
       :(pricedTotal>0
@@ -3700,11 +3755,9 @@ function render(res){
     pilotDrawCharts(true);
     // With no disclosed model there is no mix, so this step asks the question TOP can actually answer
     // from the same tokens. The heading and lead follow the chart rather than contradicting it.
-    var undisclosedMix=!!(res.cursor&&res.modelsUndisclosed),mixHeading=document.getElementById("pilotUsageMixHeading");
-    if(mixHeading)mixHeading.textContent=undisclosedMix?"What would these tokens cost at API prices?":"Which models drove that estimate?";
-    document.getElementById("pilotMixLead").textContent=undisclosedMix
-      ?"Cursor's Auto mode picked an AI version for each of these "+fmtN(res.turns)+" usage events and did not record which one, so TOP prices the same tokens against every AI version in its checked table instead of naming one it cannot see."
-      :fmtN(rows.length)+" AI version"+(rows.length===1?"":"s")+" recorded in the files you chose.";
+    var mixHeading=document.getElementById("pilotUsageMixHeading");
+    if(mixHeading)mixHeading.textContent=pilotMixHeadingText(res);
+    document.getElementById("pilotMixLead").textContent=pilotMixLeadText(res,rows.length);
     document.getElementById("pilotCacheLead").textContent="Of "+fmtN(totTok)+" recorded tokens, "+fmtN(totInp)+" were sent fresh, "+fmtN(totOut)+" came back, "+fmtN(totCw)+" were saved for reuse and "+fmtN(totCr)+" were reused from the saved copy.";
     document.getElementById("pilotRoutingLead").textContent="TOP-2 asks whether some of this work could run on a cheaper model without changing the answer. That is an open research and development question. TOP has not benchmarked it and does not claim a saving.";
     document.getElementById("pilotShapeLead").textContent="A personalised forecast would learn from your own history, not from an average user. Here is the history it would have to learn from.";

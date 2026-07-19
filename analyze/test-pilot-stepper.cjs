@@ -408,4 +408,102 @@ for (const cls of ["pilot-sweep", "pilot-fade", "pilot-grow", "pilot-rise"]) {
 assert.match(html, /narrow\?"Dashed line: all events equal"/, "the event curve needs a phone-width label");
 assert.match(html, /narrow\?"Dashed line: all sessions equal"/, "the session curve needs a phone-width label");
 
+// ---------- a mixed Cursor export must not name a rounding error as the model that drove the cost ----
+// The shares in the mix panel are shares of PRICED cost. An Auto row can never be priced, so in an export
+// that mixes Auto with one named model the named model is always 100% of the priced total however small
+// it is. On the real shape below the named row is 1,300 of 6,721,300 tokens, 0.02% of the work, and it
+// rendered as "claude-4.5-sonnet 100%" under the heading "Which models drove that estimate?", beside a
+// lead reading "2 AI versions recorded" that counted Auto as one of them. The all-or-nothing
+// modelsUndisclosed flag could not catch it: one disclosed row switched model naming back on.
+const mixStart2 = html.indexOf("function pilotMixWithheld(");
+assert.ok(mixStart2 > 0,
+  "the mix panel's disclosure gate must be a named, testable function: inline res.modelsUndisclosed in render() lets one disclosed row put a 0.02%-of-tokens model on screen as '100%'");
+const mixPanelBody = html.slice(mixStart2, html.indexOf("function render(res){", mixStart2));
+assert.ok(mixPanelBody.length > 0, "the mix panel helpers must sit above render()");
+
+const helperStart = html.indexOf("function fmt$(x)");
+const mixCtx = { Math, Number, String, Array, Object };
+vm.createContext(mixCtx);
+vm.runInContext(html.slice(helperStart, html.indexOf("function pricingDetailsHTML(", helperStart)), mixCtx);
+vm.runInContext(mixPanelBody, mixCtx);
+
+const mixedRes = { cursor: true, turns: 13, undisclosedRows: 12, modelsUndisclosed: false };
+const namedRow = { model: "claude-4.5-sonnet", cost: 0.0047 };
+
+assert.equal(mixCtx.pilotMixWithheld(mixedRes), true,
+  "one undisclosed row is enough to withhold the mix, exactly as one unreadable charge withdraws the covered claim");
+const mixedPanel = mixCtx.pilotMixPanelHTML(mixedRes, [namedRow], 0.0047);
+assert.ok(!/<span>100%<\/span>/.test(mixedPanel),
+  "a mixed export must never present the only priceable row as 100% of the mix");
+assert.ok(!/pilot-model-track/.test(mixedPanel),
+  "no share track may be drawn from a priced total that excludes most of the work");
+assert.ok(!/claude-4\.5-sonnet/.test(mixedPanel),
+  "a model that ran 0.02% of the tokens must not be named as the one that drove the cost");
+assert.match(mixedPanel, /did not record which AI version ran for 12 of these 13 usage events/,
+  "the panel must say how many rows were left unnamed, and why there is no mix");
+assert.ok(!/<div class="pilot-model-row">/.test(mixedPanel), "no share bar may be drawn at all");
+
+assert.equal(mixCtx.pilotMixHeadingText(mixedRes), "What would these tokens cost at API prices?",
+  "the heading must not ask which models drove an estimate the file cannot attribute");
+const mixedLead = mixCtx.pilotMixLeadText(mixedRes, 2);
+assert.ok(!/2 AI versions recorded/.test(mixedLead),
+  '"auto" is not an AI version, so a mixed export must not report it as one');
+assert.match(mixedLead, /picked an AI version for 12 of these 13 usage events/);
+
+// The wholly-undisclosed export keeps its existing wording, and the wholly-disclosed one keeps its bars.
+const allAuto = { cursor: true, turns: 34, undisclosedRows: 34, modelsUndisclosed: true };
+assert.equal(mixCtx.pilotMixWithheld(allAuto), true);
+assert.match(mixCtx.pilotMixPanelHTML(allAuto, [], 0), /TOP cannot show a model mix for this export/);
+assert.equal(mixCtx.pilotMixHeadingText(allAuto), "What would these tokens cost at API prices?");
+assert.match(mixCtx.pilotMixLeadText(allAuto, 1), /each of these 34 usage events/);
+
+const allNamed = { cursor: true, turns: 5, undisclosedRows: 0, modelsUndisclosed: false };
+assert.equal(mixCtx.pilotMixWithheld(allNamed), false);
+assert.equal(mixCtx.pilotMixHeadingText(allNamed), "Which models drove that estimate?");
+assert.equal(mixCtx.pilotMixLeadText(allNamed, 2), "2 AI versions recorded in the files you chose.");
+const namedPanel = mixCtx.pilotMixPanelHTML(allNamed, [{ model: "claude-4.5-sonnet", cost: 3 }, { model: "gpt-5", cost: 1 }], 4);
+assert.match(namedPanel, /claude-4\.5-sonnet/);
+assert.match(namedPanel, /75%/, "a fully disclosed export must still get its real priced shares");
+// Non-Cursor sources are untouched by the gate.
+assert.equal(mixCtx.pilotMixWithheld({ turns: 3 }), false);
+assert.equal(mixCtx.pilotMixWithheld(null), false);
+// Model labels still reach the innerHTML sink through esc().
+assert.match(mixPanelBody, /esc\(safePublicModelLabel\(row\.model\)\)/,
+  "model labels must stay escaped before the innerHTML sink");
+assert.match(mixPanelBody, /"<p>"\+esc\(pilotMixWithheldText\(res\)\)\+"<\/p>"/,
+  "the withheld sentence must be escaped too");
+
+// The render call sites must go through those functions, or the panel could regress independently.
+assert.match(html, /document\.getElementById\("pilotUsageMix"\)\.innerHTML=pilotMixPanelHTML\(res,shownRows,pricedTotal\)/,
+  "the mix panel must be rendered by the gated function, never by an inline shownRows.length check");
+assert.match(html, /mixHeading\.textContent=pilotMixHeadingText\(res\)/);
+assert.match(html, /document\.getElementById\("pilotMixLead"\)\.textContent=pilotMixLeadText\(res,rows\.length\)/);
+assert.match(mixBody, /pilotMixWithheld\(res\)[\s\S]{0,120}pilotRangeChartHTML\(res,included\)/,
+  "the mix CHART must be withheld on the same condition as the mix panel");
+
+// ---------- the same table must not both print a cost and say nothing was charged ----------
+// On a covered export the row cost is an API-price comparison, not a charge. Printing "~$0.0047" in the
+// Cost column above a footer reading "No charge, plan covered" made one table say two things at once.
+assert.match(html, /cursorUndisclosedModel\(r\.model\)\?"AI version not disclosed":\(included\?"No charge, plan covered"/,
+  "a covered export's per-row cost cell must agree with its own table footer");
+
+// ---------- the pinned rail must not count "auto" as an AI version in a mixed export ----------
+const mixedNote = { amount: "$2.66 to $49.86", isRange: true, rateCount: 10, modelsUndisclosed: false, someUndisclosed: true, undisclosedRows: 12 };
+const mixedPlain = context.describeResearchSafePlain(
+  Object.assign({}, coveredSafeObject, { by_model: [{}, {}] }),
+  mixedNote,
+);
+assert.ok(!/across 2 AI versions/.test(mixedPlain.oneLine),
+  "a mixed export must not report Auto as one of two AI versions");
+assert.match(mixedPlain.oneLine, /AI version not disclosed on some rows/);
+const mixedModels = mixedPlain.contains.find((line) => /^AI versions: /.test(line));
+assert.match(mixedModels, /not all named/);
+assert.match(mixedModels, /did not record which AI version ran for 12 of these usage events/);
+assert.ok(!/2 model names/.test(mixedModels),
+  "one of those rows is Auto, which is not a model name");
+// render must publish the partial flag, or the describer could be right and still never see it.
+assert.match(html, /someUndisclosed:!!res\.undisclosedRows/,
+  "render must carry the partial-disclosure flag onto the covered summary the rail reads");
+assert.match(html, /undisclosedRows:res\.undisclosedRows\|\|0/);
+
 console.log("TOP Analyzer pilot stepper and pinned share tests passed");
