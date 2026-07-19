@@ -114,6 +114,38 @@ assert.match(html, /\.mobile-menu\{position:fixed;top:82px;left:14px;right:14px;
 assert.match(html, /\.motion-hint\{width:min\(280px,88vw\)[^}]*white-space:normal/);
 assert.match(html, /@media\(max-width:640px\)\{[\s\S]*?\.hero h1\{order:2\}[\s\S]*?\.hero-orbit-stage\{order:5/);
 
+assert.match(html, /href="#explain">Explain TOP to me<\/a>/);
+assert.match(html, /<section class="ai-guide-section" id="explain" aria-labelledby="ai-guide-title">/);
+assert.match(html, /id="copyTopExplainer"[^>]*aria-describedby="topExplainerStatus"/);
+assert.match(html, /id="topExplainerStatus" role="status" aria-live="polite"/);
+assert.match(html, /id="topExplainerPrompt" readonly/);
+assert.match(html, /Copies the exact prompt available under Preview/);
+assert.match(html, /Your AI provider handles anything you paste under its own terms and settings/);
+assert.match(html, /Do not attach your account-history export to that chat/);
+assert.match(html, /credential, password, secret, API key or confidential material/);
+assert.match(html, /do not provide operational instructions for uploading, submitting, emailing or sharing data with TOP/);
+assert.match(html, /TOP's own claims, not as independent proof/);
+assert.match(html, /That forecast is not yet proven/);
+assert.match(html, /Direct submission to TOP is not available today/);
+assert.match(html, /Local download, copy and device-sharing controls remain user-controlled/);
+assert.match(html, /visiting the sites can still disclose routine request metadata to their hosts and any permitted asset providers/);
+assert.match(html, /without sharing your account-history export with TOP/);
+assert.doesNotMatch(html, /without sharing any data/);
+assert.match(html, /typeof navigator\.clipboard\.writeText==='function'/);
+assert.match(html, /navigator\.clipboard\.writeText\(text\)/);
+assert.match(html, /document\.execCommand\('copy'\)/);
+assert.match(html, /field\.remove\(\);\s*button\.focus\(\);/);
+assert.equal((html.match(/id="copyTopExplainer"/g) || []).length, 1,
+  "the page must expose one explicit explainer-copy control");
+
+const explainerStart = html.indexOf("(function initTopExplainer");
+const explainerEnd = html.indexOf("})();", explainerStart);
+assert.ok(explainerStart >= 0 && explainerEnd > explainerStart,
+  "the explainer clipboard behavior must remain isolated and testable");
+const explainerScript = html.slice(explainerStart, explainerEnd);
+assert.doesNotMatch(explainerScript, /fetch\s*\(|XMLHttpRequest|sendBeacon|window\.open/,
+  "copying the public explainer prompt must not create a network or provider handoff");
+
 const menuStart = html.indexOf('id="explore-menu"');
 const menuEnd = html.indexOf('</div>', menuStart);
 const menu = html.slice(menuStart, menuEnd);
@@ -128,6 +160,7 @@ const front = html.indexOf('class="orbit-layer orbit-front"');
 assert.ok(back >= 0 && prism > back && front > prism,
   "the 3D prism must sit between the back and front orbit layers");
 
+const explain = html.indexOf('id="explain"');
 const usp = html.indexOf('id="usp"');
 const suite = html.indexOf('id="suite"');
 const problem = html.indexOf('id="problem"');
@@ -135,8 +168,8 @@ const how = html.indexOf('id="how"');
 const analyze = html.indexOf('id="analyse"');
 const status = html.indexOf('id="status"');
 const valueModel = html.indexOf('id="valuemodel"');
-assert.ok(usp >= 0 && suite > usp && problem > suite,
-  "the USP and TOP 1, 2, 3 explanation must appear before the problem detail");
+assert.ok(explain >= 0 && usp > explain && suite > usp && problem > suite,
+  "the plain-language bridge, USP and TOP 1, 2, 3 explanation must appear before the problem detail");
 assert.ok(how > problem && analyze > how && status > analyze && valueModel > status,
   "the live TOP-1 path and honest status must appear before the TOP-2 thought experiment");
 
