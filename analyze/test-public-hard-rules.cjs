@@ -49,11 +49,11 @@ function savingClaimMatch(source) {
   for (const pattern of claimPatterns) {
     for (const match of text.matchAll(pattern)) {
       const before = text.slice(Math.max(0, match.index - 180), match.index);
-      const clause = before.split(/[.!?;]|\b(?:but|however)\b/i).pop();
+      const clause = before.split(/[.!?;,]|\b(?:but|however|and|while|although|though|yet)\b/i).pop();
       const after = text.slice(match.index + match[0].length, match.index + match[0].length + 100);
       const afterClause = after.split(/[.!?;]/)[0];
       const negated = /\b(?:not|never|no|cannot|can't|won't|doesn't|didn't|isn't|aren't|without)\b/i.test(clause);
-      const explicitlyNonClaiming = /\b(?:coming soon|research only|not available|unsafe|unproven|not credible)\b/i.test(afterClause);
+      const explicitlyNonClaiming = /^\s*(?:(?:claim|pitch|promise|language|wording|figure)\s+)?(?:(?:is|are|would be|remains?)\s+)?(?:coming soon|research only|not available|unsafe|unproven|not credible)\b/i.test(afterClause);
       if (!negated && !explicitlyNonClaiming) return match[0];
     }
   }
@@ -87,6 +87,10 @@ test("public TOP pages obey the binding copy and research boundaries", () => {
     "a later research disclaimer must not excuse a separate saving claim");
   assert.ok(savingClaimMatch("This is a saving."), "the claim detector must catch an unquantified saving claim");
   assert.ok(savingClaimMatch("TOP delivers savings."), "the claim detector must catch an asserted saving outcome");
+  assert.ok(savingClaimMatch("TOP does not require setup and delivers savings."),
+    "an unrelated negative clause must not hide a later saving claim");
+  assert.ok(savingClaimMatch("TOP delivers savings while competitors are unsafe."),
+    "a warning about somebody else must not excuse a saving claim");
   assert.equal(savingClaimMatch("TOP has not proved that it saves money."), "",
     "a truthful negative boundary is not itself a saving claim");
   assert.equal(savingClaimMatch("This is not a saving."), "",
