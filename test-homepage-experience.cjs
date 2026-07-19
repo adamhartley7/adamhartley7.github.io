@@ -79,7 +79,8 @@ assert.match(html, /class="mobile-nav"/);
 assert.match(html, /class="face-labels"/);
 assert.match(html, /\.face-labels\{[^}]*translateZ\(19px\)[^}]*backface-visibility:hidden/);
 assert.match(html, /Why a cheaper task may not mean a smaller total bill/);
-assert.match(html, /illustrative index, example only/);
+assert.match(html, /time →/);
+assert.match(html, /AI cost · output value · value left after cost/);
 assert.match(html, /class="vm-layout"/);
 assert.match(html, /\.vm-layout\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
 assert.match(html, /\.vm-plot svg\{[^}]*width:100%[^}]*height:auto/);
@@ -87,11 +88,14 @@ assert.match(html, /data-vm-graph/);
 assert.match(html, /W:960,H:420/);
 assert.match(html, /W:760,H:460/);
 assert.match(html, /W:520,H:480/);
-assert.match(html, /lower-cost AI begins/);
-assert.match(html, /the green line rises twice as much as the red line/);
-assert.match(html, /useful work, rising 2× as much/);
-assert.doesNotMatch(html, /C\.vs1/,
-  "the surplus calculation must not depend on the retired value-slope constant");
+assert.match(html, /TOP-2 scenario begins/);
+assert.match(html, /lower AI cost while output value stays on its original path/);
+assert.match(html, /original cost gradient with output value rising much faster/);
+assert.match(html, /lower cost with the same output value/);
+assert.match(html, /the same cost gradient with much more output value/);
+assert.doesNotMatch(html, /green line rises twice as much|rising 2× as much/);
+assert.match(html, /C\.vs1/,
+  "the output-value path must be independent from the cost path");
 assert.doesNotMatch(html, /max-height:400px/);
 assert.match(html, /aria-valuetext/);
 assert.match(html, /Works now/);
@@ -110,6 +114,38 @@ assert.match(html, /\.mobile-menu\{position:fixed;top:82px;left:14px;right:14px;
 assert.match(html, /\.motion-hint\{width:min\(280px,88vw\)[^}]*white-space:normal/);
 assert.match(html, /@media\(max-width:640px\)\{[\s\S]*?\.hero h1\{order:2\}[\s\S]*?\.hero-orbit-stage\{order:5/);
 
+assert.match(html, /href="#explain">Explain TOP to me<\/a>/);
+assert.match(html, /<section class="ai-guide-section" id="explain" aria-labelledby="ai-guide-title">/);
+assert.match(html, /id="copyTopExplainer"[^>]*aria-describedby="topExplainerStatus"/);
+assert.match(html, /id="topExplainerStatus" role="status" aria-live="polite"/);
+assert.match(html, /id="topExplainerPrompt" readonly/);
+assert.match(html, /Copies the exact prompt available under Preview/);
+assert.match(html, /Your AI provider handles anything you paste under its own terms and settings/);
+assert.match(html, /Do not attach your account-history export to that chat/);
+assert.match(html, /credential, password, secret, API key or confidential material/);
+assert.match(html, /do not provide operational instructions for uploading, submitting, emailing or sharing data with TOP/);
+assert.match(html, /TOP's own claims, not as independent proof/);
+assert.match(html, /That forecast is not yet proven/);
+assert.match(html, /Direct submission to TOP is not available today/);
+assert.match(html, /Local download, copy and device-sharing controls remain user-controlled/);
+assert.match(html, /visiting the sites can still disclose routine request metadata to their hosts and any permitted asset providers/);
+assert.match(html, /without sharing your account-history export with TOP/);
+assert.doesNotMatch(html, /without sharing any data/);
+assert.match(html, /typeof navigator\.clipboard\.writeText==='function'/);
+assert.match(html, /navigator\.clipboard\.writeText\(text\)/);
+assert.match(html, /document\.execCommand\('copy'\)/);
+assert.match(html, /field\.remove\(\);\s*button\.focus\(\);/);
+assert.equal((html.match(/id="copyTopExplainer"/g) || []).length, 1,
+  "the page must expose one explicit explainer-copy control");
+
+const explainerStart = html.indexOf("(function initTopExplainer");
+const explainerEnd = html.indexOf("})();", explainerStart);
+assert.ok(explainerStart >= 0 && explainerEnd > explainerStart,
+  "the explainer clipboard behavior must remain isolated and testable");
+const explainerScript = html.slice(explainerStart, explainerEnd);
+assert.doesNotMatch(explainerScript, /fetch\s*\(|XMLHttpRequest|sendBeacon|window\.open/,
+  "copying the public explainer prompt must not create a network or provider handoff");
+
 const menuStart = html.indexOf('id="explore-menu"');
 const menuEnd = html.indexOf('</div>', menuStart);
 const menu = html.slice(menuStart, menuEnd);
@@ -124,6 +160,7 @@ const front = html.indexOf('class="orbit-layer orbit-front"');
 assert.ok(back >= 0 && prism > back && front > prism,
   "the 3D prism must sit between the back and front orbit layers");
 
+const explain = html.indexOf('id="explain"');
 const usp = html.indexOf('id="usp"');
 const suite = html.indexOf('id="suite"');
 const problem = html.indexOf('id="problem"');
@@ -131,41 +168,62 @@ const how = html.indexOf('id="how"');
 const analyze = html.indexOf('id="analyse"');
 const status = html.indexOf('id="status"');
 const valueModel = html.indexOf('id="valuemodel"');
-assert.ok(usp >= 0 && suite > usp && problem > suite,
-  "the USP and TOP 1, 2, 3 explanation must appear before the problem detail");
+assert.ok(explain >= 0 && usp > explain && suite > usp && problem > suite,
+  "the plain-language bridge, USP and TOP 1, 2, 3 explanation must appear before the problem detail");
 assert.ok(how > problem && analyze > how && status > analyze && valueModel > status,
   "the live TOP-1 path and honest status must appear before the TOP-2 thought experiment");
 
-const graphModelStart = html.indexOf("var VM_VALUE_RISE_RATIO");
+const graphModelStart = html.indexOf("function vmScenarioAmount");
 const graphModelEnd = html.indexOf("(function(){", graphModelStart);
 assert.ok(graphModelStart >= 0 && graphModelEnd > graphModelStart,
   "the value graph model must remain independently testable");
 const graphContext = {};
 vm.createContext(graphContext);
 vm.runInContext(html.slice(graphModelStart, graphModelEnd), graphContext);
-const graphConfig = { BEND: 3.3, c0: 0.5, cs1: 1.15, v0: 0.5 };
-for (const growth of [0.05, 0.2, 0.5, 1]) {
-  for (const [from, to] of [[0, 1.4], [1.4, 3.3], [3.3, 4.8], [4.8, 6], [0, 6]]) {
-    const redRise = graphContext.vmCostAt(graphConfig, to, growth)
-      - graphContext.vmCostAt(graphConfig, from, growth);
-    const greenRise = graphContext.vmValueAt(graphConfig, to, growth)
-      - graphContext.vmValueAt(graphConfig, from, growth);
-    assert.ok(redRise >= 0 && greenRise >= 0,
-      "both graph lines must continue rising across every segment");
-    assert.ok(Math.abs(greenRise - 2 * redRise) < 1e-10,
-      `green rise must be exactly twice red rise from ${from} to ${to} at ${growth}`);
-  }
+const graphConfig = {
+  BEND: 3.3, c0: 0.5, cs1: 1.15, saveCostSlope: 0.2,
+  v0: 0.3, vs1: 1, reinvestValueSlope: 3.5,
+};
+const baselineCostAt = (x) => graphConfig.c0 + graphConfig.cs1 * x;
+const baselineValueAt = (x) => graphConfig.v0 + graphConfig.vs1 * x;
+
+for (const x of [0, 1.4, 3.3]) {
+  assert.ok(Math.abs(graphContext.vmCostAt(graphConfig, x, 0) - baselineCostAt(x)) < 1e-10);
+  assert.ok(Math.abs(graphContext.vmCostAt(graphConfig, x, 1) - baselineCostAt(x)) < 1e-10);
+  assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, x, 0) - baselineValueAt(x)) < 1e-10);
+  assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, x, 1) - baselineValueAt(x)) < 1e-10);
+}
+
+for (const x of [4.8, 6]) {
+  assert.ok(graphContext.vmCostAt(graphConfig, x, 0) < baselineCostAt(x),
+    "the lower-cost endpoint must flatten cost after the scenario begins");
+  assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, x, 0) - baselineValueAt(x)) < 1e-10,
+    "the lower-cost endpoint must preserve the original output-value path exactly");
+  assert.ok(Math.abs(graphContext.vmCostAt(graphConfig, x, 1) - baselineCostAt(x)) < 1e-10,
+    "the reinvest endpoint must restore the original cost gradient exactly");
+  assert.ok(graphContext.vmValueAt(graphConfig, x, 1) > baselineValueAt(x),
+    "the reinvest endpoint must raise output value above its original path");
+}
+
+for (const amount of [0, 0.5, 1]) {
   for (const x of [0, 1.4, 3.3, 4.8, 6]) {
     for (const value of [
-      graphContext.vmCostAt(graphConfig, x, growth),
-      graphContext.vmValueAt(graphConfig, x, growth),
+      graphContext.vmCostAt(graphConfig, x, amount),
+      graphContext.vmValueAt(graphConfig, x, amount),
     ]) {
       assert.ok(value >= 0 && value <= 14,
-        "both graph lines must stay inside the graph at every slider extreme");
+        "both illustrative lines must stay inside the graph at every slider position");
     }
   }
 }
-assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, 6, 1) - 13.49) < 1e-10,
-  "the maximum green endpoint must remain visible below the graph ceiling");
+
+const lowCost = graphContext.vmCostAt(graphConfig, 6, 0);
+const baselineCost = baselineCostAt(6);
+assert.ok(lowCost / baselineCost < 0.66,
+  "the lower-cost endpoint must be visibly lower than the original cost path");
+assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, 6, 0) - baselineValueAt(6)) < 1e-10);
+assert.ok(Math.abs(graphContext.vmCostSlope(graphConfig, 1) - graphConfig.cs1) < 1e-10);
+assert.ok(graphContext.vmValueAt(graphConfig, 6, 1) / baselineValueAt(6) > 2,
+  "the reinvest endpoint must show a materially steeper illustrative output-value path");
 
 console.log("TOP homepage experience regression tests passed");

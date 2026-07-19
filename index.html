@@ -3,8 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TOP: Use your AI history to estimate your next task</title>
-<meta name="description" content="TOP creates a private report from your Claude and ChatGPT history on your device. It is testing a low, likely, and high cost estimate for your next AI task.">
+<title>TOP: Turn your AI history into a private usage report</title>
+<meta name="description" content="Choose a downloaded copy of your Claude or ChatGPT history and TOP builds a usage report in your browser. Your file stays on your device and is not sent to TOP. Free to use.">
+<link rel="canonical" href="https://tokenoptimisationprotocol.org/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TOP">
+<meta property="og:url" content="https://tokenoptimisationprotocol.org/">
+<meta property="og:title" content="TOP: Turn your AI history into a private usage report">
+<meta property="og:description" content="Choose a downloaded copy of your Claude or ChatGPT history and TOP builds a usage report in your browser. Your file stays on your device and is not sent to TOP. Free to use.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TOP: Turn your AI history into a private usage report">
+<meta name="twitter:description" content="Choose a downloaded copy of your Claude or ChatGPT history and TOP builds a usage report in your browser. Your file stays on your device and is not sent to TOP. Free to use.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%238B5CF6'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -126,6 +135,33 @@ nav>.wrap>.btn-primary{min-width:190px;justify-content:center;background:linear-
 /* trust strip */
 .trust{padding:34px 0;text-align:center;color:var(--faint);font-size:13.5px;font-family:"JetBrains Mono",monospace;letter-spacing:.03em}
 .trust b{color:var(--muted);font-weight:500}
+
+/* plain-language bridge: copies static text only and makes no network request */
+.ai-guide-section{padding:18px 0 clamp(68px,9vw,108px);scroll-margin-top:92px}
+.ai-guide{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.9fr);gap:clamp(24px,4vw,52px);align-items:center;padding:clamp(28px,4.5vw,50px);background:linear-gradient(145deg,rgba(139,92,246,.20),rgba(62,207,142,.08) 54%,rgba(20,20,24,.96));border:1px solid rgba(171,142,255,.38);border-radius:22px;box-shadow:0 36px 90px -54px #000}
+.ai-guide .eyebrow{color:var(--mint)}
+.ai-guide h2{font-size:clamp(29px,4vw,44px);margin:13px 0 16px;max-width:16ch}
+.ai-guide-intro>p{color:var(--muted);font-size:clamp(16px,1.8vw,18px);max-width:52ch}
+.ai-guide-steps{display:grid;gap:9px;margin-top:22px;color:#ddd6ef;font-size:14.5px}
+.ai-guide-step{display:flex;align-items:flex-start;gap:10px}
+.ai-guide-step b{flex:none;display:grid;place-items:center;width:24px;height:24px;border:1px solid rgba(62,207,142,.34);border-radius:8px;background:rgba(62,207,142,.10);color:var(--mint);font-family:"JetBrains Mono",monospace;font-size:11px}
+.ai-guide-action{min-width:0;padding:22px;background:rgba(8,8,12,.72);border:1px solid rgba(255,255,255,.12);border-radius:16px}
+.ai-guide-action .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--iris-2);margin-bottom:8px}
+.ai-guide-action h3{font-size:21px;margin-bottom:9px}
+.ai-guide-action>p{color:var(--muted);font-size:14.5px}
+.ai-guide-copy{width:100%;justify-content:center;margin-top:18px;padding:13px 18px;font-size:15px}
+.ai-guide-copy.copied{background:var(--mint);color:#06150e;box-shadow:0 8px 24px -8px rgba(62,207,142,.42)}
+.ai-guide-status{min-height:42px;margin-top:11px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.ai-guide-details{margin-top:13px;border-top:1px solid var(--border);padding-top:13px}
+.ai-guide-details summary{cursor:pointer;color:var(--iris-2);font-size:13.5px;font-weight:600}
+.ai-guide-details summary:hover{color:#e7ddff}
+.ai-guide-preview{display:grid;gap:9px;margin-top:13px}
+.ai-guide-preview label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.ai-guide-prompt{display:block;width:100%;min-height:230px;resize:vertical;padding:13px;border:1px solid var(--border-2);border-radius:10px;background:#09090d;color:#dddde4;font:12.5px/1.55 "JetBrains Mono",monospace}
+.ai-guide-prompt:focus{outline:3px solid var(--iris-2);outline-offset:2px}
+.ai-guide-provider{margin-top:14px;padding-top:13px;border-top:1px solid var(--border);color:var(--faint);font-size:12px;line-height:1.5}
+@media(max-width:800px){.ai-guide{grid-template-columns:1fr}.ai-guide h2{max-width:none}}
+@media(max-width:480px){.ai-guide-section .wrap{padding:0 14px}.ai-guide{padding:24px 18px;border-radius:17px}.ai-guide-action{padding:18px}.ai-guide-prompt{min-height:280px}}
 
 /* sections */
 section.blk{padding:clamp(64px,9vw,110px) 0}
@@ -260,6 +296,7 @@ footer a:hover{color:var(--muted)}
 .vm-controls input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.5)}
 .vm-controls input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--iris);cursor:pointer}
 .vm-controls .gval{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:500;min-width:64px;text-align:right;color:var(--iris-2)}
+.vm-scale{grid-column:1/-1;display:flex;justify-content:space-between;gap:18px;margin-top:-3px;color:var(--faint);font-family:"JetBrains Mono",monospace;font-size:10.5px;line-height:1.35}.vm-scale span{max-width:44%}.vm-scale span:last-child{text-align:right}
 .vm-cap{font-size:14px;color:var(--muted);margin:10px 0 0;min-height:22px;max-width:none;text-align:left}
 .vm-cap b{color:var(--text);font-weight:600}
 .vm-cards{grid-area:stats;display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -406,7 +443,7 @@ footer a:hover{color:var(--muted)}
     <p class="sub">TOP uses your past Claude and ChatGPT work to test a low, likely and high cost estimate for the next task. Today, you can privately turn a downloaded copy of your account history into a report on this device. The next-task estimate is still being tested.</p>
     <div class="cta">
       <a class="btn btn-primary" href="/analyze/?pilot=1">Analyze my past usage</a>
-      <a class="btn btn-ghost" href="#suite">Meet TOP 1, 2 and 3</a>
+      <a class="btn btn-ghost" href="#explain">Explain TOP to me</a>
     </div>
 
     <div class="stage reveal">
@@ -429,6 +466,81 @@ footer a:hover{color:var(--muted)}
 </header>
 
 <div class="trust wrap"><b>WORKS NOW:</b> see past usage &nbsp;·&nbsp; <b>BEING TESTED:</b> estimate the next task &nbsp;·&nbsp; <b>LATER:</b> help choose the right AI</div>
+
+<!-- PLAIN-LANGUAGE AI GUIDE -->
+<section class="ai-guide-section" id="explain" aria-labelledby="ai-guide-title">
+  <div class="wrap">
+    <div class="ai-guide">
+      <div class="ai-guide-intro">
+        <div class="eyebrow">too much jargon?</div>
+        <h2 id="ai-guide-title">Ask your AI to explain TOP in plain English.</h2>
+        <p>Copy a ready-made prompt that explains what TOP does, what is still being tested and whether it may matter for your work.</p>
+        <div class="ai-guide-steps" aria-label="How the prompt works">
+          <div class="ai-guide-step"><b>1</b><span>Copy public TOP information. This button does not read your files or account.</span></div>
+          <div class="ai-guide-step"><b>2</b><span>Paste it into an AI assistant you already use.</span></div>
+          <div class="ai-guide-step"><b>3</b><span>Get the product, limitations and a safe next step in ordinary language.</span></div>
+        </div>
+      </div>
+      <div class="ai-guide-action">
+        <div class="k">copy-only guide</div>
+        <h3>Translate the site, not your private data.</h3>
+        <p>The prompt tells the assistant not to request raw account exports, credentials or private material, and not to present TOP's experimental forecast as proven.</p>
+        <button class="btn btn-primary ai-guide-copy" type="button" id="copyTopExplainer" aria-describedby="topExplainerStatus">Copy explainer prompt</button>
+        <p class="ai-guide-status" id="topExplainerStatus" role="status" aria-live="polite">Copies the exact prompt available under Preview. It does not submit anything to TOP.</p>
+        <details class="ai-guide-details" id="topExplainerDetails">
+          <summary>Preview the prompt before copying</summary>
+          <div class="ai-guide-preview">
+            <label for="topExplainerPrompt">Prompt text</label>
+            <textarea class="ai-guide-prompt" id="topExplainerPrompt" readonly>I am deciding whether TOP, the Token Optimisation Protocol, is relevant to me.
+
+Public product page:
+https://tokenoptimisationprotocol.org/
+
+Guided analyzer page:
+https://tokenoptimisationprotocol.org/analyze/?pilot=1
+
+Treat statements on these pages as TOP's own claims, not as independent proof.
+
+Public facts to translate:
+- TOP currently states that its browser analyzer can create a historical usage report after I select a supported Claude or ChatGPT export locally. It states that the original export is not sent to TOP. This statement concerns the export itself; visiting the sites can still disclose routine request metadata to their hosts and any permitted asset providers.
+- TOP is testing whether past usage can support a personal low, likely, and high cost estimate for a future AI task. That forecast is not yet proven.
+- TOP describes model choice and budget controls as later ideas, not current features.
+- Direct submission to TOP is not available today. Local download, copy and device-sharing controls remain user-controlled.
+
+Privacy rules for this conversation:
+1. Personalize only from broad, non-sensitive context already visible in this conversation, or from optional answers I give below.
+2. Do not quote or expose private details from memory, prior chats or connected services.
+3. Do not search connected apps or files.
+4. Do not ask me to upload, paste, submit, email or share any AI export, prompt, code, log, report, contact detail, account identifier, credential, password, secret, API key or confidential material.
+5. I may skip every question.
+
+If more context is needed, ask no more than three short, optional questions:
+1. Which broad role best fits me: individual AI user, developer or technical team, finance or procurement, researcher, or other?
+2. What is my main need: understand current usage, estimate a future task, control a budget, choose an AI model, or simply understand TOP?
+3. How often do I use AI: occasionally, weekly, daily, or through automated workflows?
+
+Then provide:
+1. A 90-second explanation of TOP in ordinary language.
+2. One concrete example relevant to my broad situation.
+3. A clear separation between what appears to work now, what is still being tested and what is proposed for later.
+4. What evidence supports each important claim, and what remains uncertain or unverified.
+5. A plain-language description of the intended data journey, clearly separating activity on my device from anything that might be sent elsewhere.
+6. A safe next step that does not involve uploading or sharing data.
+7. A checklist I should receive before any future sharing: the exact fields, purpose, controller, lawful basis, recipients and processors, retention period, international transfers, security measures, withdrawal or deletion process, and whether sharing is optional.
+
+Do not describe information as anonymous, private, secure or GDPR-compliant merely because a webpage uses those words. Say "the site states" and explain what would still need verification.
+
+While TOP's delivery flow is under review, do not provide operational instructions for uploading, submitting, emailing or sharing data with TOP.
+
+End with this sentence:
+"You can decide whether TOP is relevant without sharing your account-history export with TOP."</textarea>
+          </div>
+        </details>
+        <p class="ai-guide-provider">Your AI provider handles anything you paste under its own terms and settings. Do not attach your account-history export to that chat.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- USP -->
 <section class="blk" id="usp">
@@ -582,21 +694,21 @@ footer a:hover{color:var(--muted)}
     <div class="shead reveal">
       <div class="eyebrow">a simple example for TOP-2</div>
       <h2 style="margin-top:14px">Cheaper is not better if the work gets worse.</h2>
-      <p>Daedalus is an idea for helping people choose which AI version to use for each task. The cheapest option is useless if it gives worse work. In this made-up example, the green line rises twice as much as the red line: one step of extra AI cost corresponds to two steps of useful work. It is not a customer result.</p>
+      <p>Daedalus is an idea for helping people choose which AI version to use for each task. Slide between two made-up choices: lower AI cost while output value stays on its original path, or the original cost gradient with output value rising much faster. These curves are not a customer result or proof that quality stays the same.</p>
     </div>
     <div class="vm-stage reveal">
       <div class="vm-card">
         <div class="cardtop"><span class="dt"></span><span class="dt"></span><span class="dt"></span><span class="lbl">TOP-2 IDEA, EXAMPLE NUMBERS ONLY</span></div>
         <div class="vm-legend">
-          <span><span class="sw" style="background:#F26D6D"></span>what the AI costs</span>
-          <span><span class="sw" style="background:#3ECF8E"></span>useful work, rising 2× as much</span>
-          <span><span class="sq" style="background:rgba(53,245,160,.42)"></span>invented example after the cost</span>
+          <span><span class="sw" style="background:#F26D6D"></span>AI cost</span>
+          <span><span class="sw" style="background:#3ECF8E"></span>output value</span>
+          <span><span class="sq" style="background:rgba(53,245,160,.42)"></span>value left after cost</span>
         </div>
         <div class="vm-layout">
           <div class="vm-plot">
             <svg id="vm_pv" viewBox="0 0 960 420" width="100%" role="img" aria-labelledby="vmChartTitle vmChartDesc">
-              <title id="vmChartTitle">Illustrative AI cost and useful work</title>
-              <desc id="vmChartDesc">An invented example in which every rise in useful work is exactly twice the corresponding rise in AI cost. This is not a customer result.</desc>
+              <title id="vmChartTitle">Illustrative AI cost and output value over time</title>
+              <desc id="vmChartDesc">A made-up TOP-2 scenario. At one end, AI cost falls while output value stays on its original path. At the other, AI cost keeps its original gradient while output value rises faster. This is not a customer result.</desc>
               <defs>
                 <linearGradient id="vm_valGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0" stop-color="#3ECF8E" stop-opacity="0.16"/>
@@ -608,16 +720,17 @@ footer a:hover{color:var(--muted)}
           <div class="vm-side">
             <div class="vm-tuning">
               <div class="vm-controls">
-                <label for="vm_g">How much extra AI work is run after tasks get cheaper?</label>
-                <input id="vm_g" type="range" min="0.05" max="1" step="0.01" value="0.2">
-                <span class="gval" id="vm_gout">low</span>
+                <label for="vm_g">Choose what happens after TOP-2 finds a lower-cost route</label>
+                <input id="vm_g" type="range" min="0" max="1" step="0.01" value="0" aria-describedby="vm_cap">
+                <span class="gval" id="vm_gout">lower cost</span>
+                <div class="vm-scale"><span>lower cost<br>same output value</span><span>same cost gradient<br>much more output value</span></div>
               </div>
-              <p class="vm-cap" id="vm_cap">Keep most of the saving while the value of the work keeps rising.</p>
+              <p class="vm-cap" id="vm_cap"><b>Lower cost, same output value.</b> The red line flattens while the green line keeps its original gradient.</p>
             </div>
             <div class="vm-cards">
-              <div class="vm-stat"><div class="k">useful work for every €1 or $1 spent, before</div><div class="n">~0.85</div></div>
-              <div class="vm-stat after"><div class="k">invented example, useful work for every €1 or $1 spent</div><div class="n"><span id="vm_vpa">5.4</span></div></div>
-              <div class="vm-stat imp"><div class="k">invented example change</div><div class="n"><span id="vm_imp">6.3</span>×</div></div>
+              <div class="vm-stat"><div class="k">AI cost at the right edge of this example</div><div class="n" id="vm_cost_outcome">35% lower</div></div>
+              <div class="vm-stat after"><div class="k">output value at the right edge</div><div class="n" id="vm_value_outcome">same</div></div>
+              <div class="vm-stat imp"><div class="k">illustrative choice</div><div class="n" id="vm_mode_outcome">lower cost</div></div>
             </div>
             <p class="vm-illus">Illustrative, not measured. These are example figures, not a customer's results.</p>
             <div class="jevons-note"><strong>Why a cheaper task may not mean a smaller total bill</strong>When each task costs less, teams may run more tasks. The price per task falls, but the total bill can still rise. This pattern is sometimes called the Jevons effect.</div>
@@ -708,24 +821,26 @@ footer a:hover{color:var(--muted)}
 
 <script src="assets/top-spin-physics.js"></script>
 <script>
-var VM_VALUE_RISE_RATIO=2;
-function vmCostAt(C,x,g){return x<=C.BEND?C.c0+C.cs1*x:(C.c0+C.cs1*C.BEND)+g*(x-C.BEND);}
-function vmValueAt(C,x,g){return C.v0+VM_VALUE_RISE_RATIO*(vmCostAt(C,x,g)-vmCostAt(C,0,g));}
+function vmScenarioAmount(value){return Math.max(0,Math.min(1,Number(value)||0));}
+function vmCostSlope(C,amount){amount=vmScenarioAmount(amount);return C.saveCostSlope+(C.cs1-C.saveCostSlope)*amount;}
+function vmValueSlope(C,amount){amount=vmScenarioAmount(amount);return C.vs1+(C.reinvestValueSlope-C.vs1)*amount;}
+function vmCostAt(C,x,amount){return x<=C.BEND?C.c0+C.cs1*x:(C.c0+C.cs1*C.BEND)+vmCostSlope(C,amount)*(x-C.BEND);}
+function vmValueAt(C,x,amount){return x<=C.BEND?C.v0+C.vs1*x:(C.v0+C.vs1*C.BEND)+vmValueSlope(C,amount)*(x-C.BEND);}
 (function(){
   var NS='http://www.w3.org/2000/svg';
   function el(id){ return document.getElementById(id); }
   function mk(tag,a){ var e=document.createElementNS(NS,tag); for(var k in a){ e.setAttribute(k,a[k]); } return e; }
   var pv=el('vm_pv');
   if(!pv) return;
-  var gEl=el('vm_g'), vpaEl=el('vm_vpa'), impEl=el('vm_imp'), goutEl=el('vm_gout'), capEl=el('vm_cap');
+  var gEl=el('vm_g'), costOutcomeEl=el('vm_cost_outcome'), valueOutcomeEl=el('vm_value_outcome'), modeOutcomeEl=el('vm_mode_outcome'), goutEl=el('vm_gout'), capEl=el('vm_cap');
   var compactQuery=window.matchMedia('(max-width:640px)');
   var tabletQuery=window.matchMedia('(max-width:820px)');
   var graph=null;
   function currentMode(){return compactQuery.matches?'small':(tabletQuery.matches?'tablet':'desktop');}
   function layout(mode){
-    if(mode==='small') return {W:520,H:480,X0:66,X1:502,YT:48,YB:430,font:22,small:20,dot:7,vMax:14,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,v0:0.5};
-    if(mode==='tablet') return {W:760,H:460,X0:76,X1:738,YT:50,YB:410,font:15,small:13,dot:6,vMax:14,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,v0:0.5};
-    return {W:960,H:420,X0:82,X1:936,YT:40,YB:370,font:15,small:14,dot:5,vMax:14,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,v0:0.5};
+    if(mode==='small') return {W:520,H:480,X0:66,X1:502,YT:48,YB:430,font:22,small:20,dot:7,vMax:14,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,saveCostSlope:0.2,v0:0.3,vs1:1,reinvestValueSlope:3.5};
+    if(mode==='tablet') return {W:760,H:460,X0:76,X1:738,YT:50,YB:410,font:15,small:13,dot:6,vMax:14,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,saveCostSlope:0.2,v0:0.3,vs1:1,reinvestValueSlope:3.5};
+    return {W:960,H:420,X0:82,X1:936,YT:40,YB:370,font:15,small:14,dot:5,vMax:14,spanX:6,BEND:3.3,c0:0.5,cs1:1.15,saveCostSlope:0.2,v0:0.3,vs1:1,reinvestValueSlope:3.5};
   }
   function build(mode){
     var compact=mode==='small';
@@ -737,17 +852,17 @@ function vmValueAt(C,x,g){return C.v0+VM_VALUE_RISE_RATIO*(vmCostAt(C,x,g)-vmCos
     function add(node){root.appendChild(node);return node;}
     function xToPx(x){return C.X0+(x/C.spanX)*(C.X1-C.X0);}
     function yToPx(v){v=Math.min(v,C.vMax);return C.YB-(v/C.vMax)*(C.YB-C.YT);}
-    function costAt(x,g){return vmCostAt(C,x,g);}
-    function valAt(x,g){return vmValueAt(C,x,g);}
-    function pts(fn,g){return [0,C.BEND,6].map(function(x){return xToPx(x)+','+yToPx(fn(x,g));}).join(' ');}
+    function costAt(x,amount){return vmCostAt(C,x,amount);}
+    function valAt(x,amount){return vmValueAt(C,x,amount);}
+    function pts(fn,amount){return [0,C.BEND,6].map(function(x){return xToPx(x)+','+yToPx(fn(x,amount));}).join(' ');}
     [3,6,9,12].forEach(function(v){add(mk('line',{x1:C.X0,y1:yToPx(v),x2:C.X1,y2:yToPx(v),stroke:'rgba(255,255,255,.055)','stroke-width':1,'vector-effect':'non-scaling-stroke'}));});
     add(mk('line',{x1:C.X0,y1:yToPx(0),x2:C.X1,y2:yToPx(0),stroke:'rgba(255,255,255,.24)','stroke-width':1,'vector-effect':'non-scaling-stroke'}));
     [[0,'0'],[6,'6'],[12,'12']].forEach(function(p){var t=mk('text',{x:C.X0-10,y:yToPx(p[0])+(compact?7:4),'text-anchor':'end','font-size':C.font,fill:'#7E7E89','font-family':'JetBrains Mono,monospace'});t.textContent=p[1];add(t);});
-    var xl=mk('text',{x:C.X1,y:C.YB+(compact?34:25),'text-anchor':'end','font-size':C.small,fill:'#8B8B96','font-family':'JetBrains Mono,monospace'});xl.textContent='more work completed →';add(xl);
-    var axisX=compact?22:20,yl=mk('text',{x:axisX,y:(C.YT+C.YB)/2,'text-anchor':'middle','font-size':C.small,fill:'#9B9BA6','font-family':'JetBrains Mono,monospace',transform:'rotate(-90 '+axisX+' '+((C.YT+C.YB)/2)+')'});yl.textContent='illustrative index, example only';add(yl);
+    var xl=mk('text',{x:C.X1,y:C.YB+(compact?34:25),'text-anchor':'end','font-size':C.small,fill:'#8B8B96','font-family':'JetBrains Mono,monospace'});xl.textContent='time →';add(xl);
+    var axisX=compact?22:20,yl=mk('text',{x:axisX,y:(C.YT+C.YB)/2,'text-anchor':'middle','font-size':compact?13:C.small,fill:'#9B9BA6','font-family':'JetBrains Mono,monospace',transform:'rotate(-90 '+axisX+' '+((C.YT+C.YB)/2)+')'});yl.textContent='AI cost · output value · value left after cost';add(yl);
     var marker=mk('g',{'class':'fx'});
     marker.appendChild(mk('line',{x1:xToPx(C.BEND),y1:C.YB,x2:xToPx(C.BEND),y2:C.YT+8,stroke:'#8B5CF6','stroke-width':1.3,'stroke-dasharray':'4 5','stroke-opacity':.7,'vector-effect':'non-scaling-stroke'}));
-    var markerText=mk('text',{x:compact?C.X1-8:xToPx(C.BEND)+10,y:C.YT-(compact?14:10),'text-anchor':compact?'end':'start','font-size':C.small,fill:'#C4A7FF','font-family':'JetBrains Mono,monospace'});markerText.textContent='lower-cost AI begins';marker.appendChild(markerText);add(marker);
+    var markerText=mk('text',{x:compact?C.X1-8:xToPx(C.BEND)+10,y:C.YT-(compact?14:10),'text-anchor':compact?'end':'start','font-size':C.small,fill:'#C4A7FF','font-family':'JetBrains Mono,monospace'});markerText.textContent='TOP-2 scenario begins';marker.appendChild(markerText);add(marker);
     var valueArea=add(mk('polygon',{'class':'fx',fill:'url(#vm_valGrad)'}));
     var surplus=add(mk('polygon',{'class':'fx',fill:'#35F5A0','fill-opacity':.34}));
     var costLine=add(mk('polyline',{'class':'ln','pathLength':1,fill:'none',stroke:'#F26D6D','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round','vector-effect':'non-scaling-stroke'}));
@@ -759,7 +874,7 @@ function vmValueAt(C,x,g){return C.v0+VM_VALUE_RISE_RATIO*(vmCostAt(C,x,g)-vmCos
     var costDot=add(mk('circle',{'class':'fx',r:C.dot,fill:'#F26D6D'}));
     var valDot=add(mk('circle',{'class':'fx',r:C.dot,fill:'#3ECF8E'}));
     var costLabel=add(mk('text',{'class':'fx',x:C.X1-10,'text-anchor':'end','font-size':C.small,fill:'#F58A8A','font-family':'JetBrains Mono,monospace',display:compact?'none':'inline'}));costLabel.textContent='AI cost';
-    var valLabel=add(mk('text',{'class':'fx',x:C.X1-10,'text-anchor':'end','font-size':C.small,fill:'#55DFA2','font-family':'JetBrains Mono,monospace',display:compact?'none':'inline'}));valLabel.textContent='invented useful work';
+    var valLabel=add(mk('text',{'class':'fx',x:C.X1-10,'text-anchor':'end','font-size':C.small,fill:'#55DFA2','font-family':'JetBrains Mono,monospace',display:compact?'none':'inline'}));valLabel.textContent='output value';
     graph={C:C,xToPx:xToPx,yToPx:yToPx,costAt:costAt,valAt:valAt,pts:pts,valueArea:valueArea,surplus:surplus,costLine:costLine,valueLine:valueLine,costDot:costDot,valDot:valDot,costLabel:costLabel,valLabel:valLabel};
     update();
     pv.classList.remove('drawn');
@@ -768,32 +883,34 @@ function vmValueAt(C,x,g){return C.v0+VM_VALUE_RISE_RATIO*(vmCostAt(C,x,g)-vmCos
   function update(){
     if(!graph) return;
     var C=graph.C,xToPx=graph.xToPx,yToPx=graph.yToPx,costAt=graph.costAt,valAt=graph.valAt;
-    var g=parseFloat(gEl.value);
-    graph.costLine.setAttribute('points',graph.pts(costAt,g));
-    graph.valueLine.setAttribute('points',graph.pts(valAt,g));
+    var amount=vmScenarioAmount(gEl.value);
+    graph.costLine.setAttribute('points',graph.pts(costAt,amount));
+    graph.valueLine.setAttribute('points',graph.pts(valAt,amount));
     graph.valueArea.setAttribute('points',
-      xToPx(0)+','+yToPx(valAt(0,g))+' '+xToPx(C.BEND)+','+yToPx(valAt(C.BEND,g))+' '+xToPx(6)+','+yToPx(valAt(6,g))+' '+xToPx(6)+','+C.YB+' '+xToPx(0)+','+C.YB);
-    var vs2=VM_VALUE_RISE_RATIO*g,poly='';
-    if(vs2>g){
-      var gap=costAt(C.BEND,g)-valAt(C.BEND,g);
-      var tc=gap/(vs2-g), xc=C.BEND+Math.min(Math.max(tc,0),6-C.BEND);
-      if(xc<6){ poly=[xToPx(xc)+','+yToPx(valAt(xc,g)),xToPx(6)+','+yToPx(valAt(6,g)),xToPx(6)+','+yToPx(costAt(6,g)),xToPx(xc)+','+yToPx(costAt(xc,g))].join(' '); }
+      xToPx(0)+','+yToPx(valAt(0,amount))+' '+xToPx(C.BEND)+','+yToPx(valAt(C.BEND,amount))+' '+xToPx(6)+','+yToPx(valAt(6,amount))+' '+xToPx(6)+','+C.YB+' '+xToPx(0)+','+C.YB);
+    var costSlope=vmCostSlope(C,amount),valueSlope=vmValueSlope(C,amount),poly='';
+    if(valueSlope>costSlope){
+      var gap=costAt(C.BEND,amount)-valAt(C.BEND,amount);
+      var tc=gap/(valueSlope-costSlope), xc=C.BEND+Math.min(Math.max(tc,0),6-C.BEND);
+      if(xc<6){ poly=[xToPx(xc)+','+yToPx(valAt(xc,amount)),xToPx(6)+','+yToPx(valAt(6,amount)),xToPx(6)+','+yToPx(costAt(6,amount)),xToPx(xc)+','+yToPx(costAt(xc,amount))].join(' '); }
     }
     graph.surplus.setAttribute('points',poly);
-    var vpa=vs2/g, imp=vpa/0.85;
-    vpaEl.textContent=vpa.toFixed(1);
-    impEl.textContent=imp.toFixed(1);
-    goutEl.textContent = g<=0.25?'low':(g>=0.7?'high':'medium');
-    gEl.setAttribute('aria-valuetext',goutEl.textContent+' extra AI work after tasks get cheaper');
+    var baselineCost=vmCostAt(C,6,1),baselineValue=C.v0+C.vs1*6,costEnd=costAt(6,amount),valueEnd=valAt(6,amount);
+    var costDrop=Math.max(0,Math.round((1-costEnd/baselineCost)*100)),valueGain=Math.max(0,Math.round((valueEnd/baselineValue-1)*100));
+    costOutcomeEl.textContent=costDrop<1?'same gradient':costDrop+'% lower';
+    valueOutcomeEl.textContent=valueGain<1?'same':valueGain+'% higher';
+    goutEl.textContent=amount===0?'lower cost':(amount===1?'reinvest':'blend');
+    modeOutcomeEl.textContent=amount===0?'lower cost':(amount===1?'more output':'blend both');
+    gEl.setAttribute('aria-valuetext',amount===0?'lower cost with the same output value':(amount===1?'the same cost gradient with much more output value':'a blend of lower cost and more output value'));
     var cap;
-    if(g<=0.35) cap='<b>Keep most of the saving.</b> AI cost flattens while the value of the work keeps rising.';
-    else if(g>=0.7) cap='<b>Run more useful work.</b> A similar budget now buys more output. Total spend can still rise.';
-    else cap='<b>Split the benefit.</b> Keep part of the saving and use part to run more valuable work.';
+    if(amount===0) cap='<b>Lower cost, same output value.</b> The red line flattens while the green line keeps its original gradient.';
+    else if(amount===1) cap='<b>Same cost gradient, much more output value.</b> The red line returns to its original gradient while the green line becomes much steeper.';
+    else cap='<b>Split the illustrative benefit.</b> The red cost gradient and green output-value gradient both rise as the control moves right.';
     capEl.innerHTML=cap;
-    graph.costDot.setAttribute('cx',xToPx(6));graph.costDot.setAttribute('cy',yToPx(costAt(6,g)));
-    graph.valDot.setAttribute('cx',xToPx(6));graph.valDot.setAttribute('cy',yToPx(valAt(6,g)));
-    graph.costLabel.setAttribute('y',yToPx(costAt(6,g))-12);
-    graph.valLabel.setAttribute('y',yToPx(valAt(6,g))-12);
+    graph.costDot.setAttribute('cx',xToPx(6));graph.costDot.setAttribute('cy',yToPx(costEnd));
+    graph.valDot.setAttribute('cx',xToPx(6));graph.valDot.setAttribute('cy',yToPx(valueEnd));
+    graph.costLabel.setAttribute('y',yToPx(costEnd)-12);
+    graph.valLabel.setAttribute('y',yToPx(valueEnd)-12);
   }
   gEl.addEventListener('input',update);
   function rebuild(){build(currentMode());}
@@ -1036,6 +1153,52 @@ var REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
 var els=document.querySelectorAll('.reveal');
 if(REDUCE||!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});}
 else{var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}})},{threshold:.12,rootMargin:'0px 0px -8% 0px'});els.forEach(function(e){io.observe(e)});}
+(function initTopExplainer(){
+  var button=document.getElementById('copyTopExplainer');
+  var prompt=document.getElementById('topExplainerPrompt');
+  var status=document.getElementById('topExplainerStatus');
+  var details=document.getElementById('topExplainerDetails');
+  if(!button||!prompt||!status||!details) return;
+  var originalLabel=button.textContent;
+  var resetTimer;
+  function showCopied(){
+    clearTimeout(resetTimer);
+    button.textContent='Prompt copied';
+    button.classList.add('copied');
+    status.textContent='Copied. Paste the prompt into your AI assistant, but do not attach your account-history export.';
+    resetTimer=setTimeout(function(){button.textContent=originalLabel;button.classList.remove('copied');},2600);
+  }
+  function copyFallback(text){
+    var field=document.createElement('textarea');
+    field.value=text;
+    field.setAttribute('readonly','');
+    field.style.position='fixed';
+    field.style.left='-9999px';
+    field.style.opacity='0';
+    document.body.appendChild(field);
+    field.select();
+    var copied=false;
+    try{copied=document.execCommand('copy');}catch(ignore){}
+    field.remove();
+    button.focus();
+    return copied;
+  }
+  function showManualCopy(){
+    details.open=true;
+    prompt.focus();
+    prompt.select();
+    status.textContent='Automatic copy was blocked. The prompt is selected; press Ctrl+C or Command+C.';
+  }
+  button.addEventListener('click',function(){
+    var text=prompt.value.trim();
+    if(navigator.clipboard&&typeof navigator.clipboard.writeText==='function'&&window.isSecureContext){
+      navigator.clipboard.writeText(text).then(showCopied,function(){
+        if(copyFallback(text)) showCopied(); else showManualCopy();
+      });
+    }else if(copyFallback(text)) showCopied();
+    else showManualCopy();
+  });
+})();
 </script>
 </body>
 </html>

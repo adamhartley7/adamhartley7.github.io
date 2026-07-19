@@ -32,6 +32,7 @@ const COST_STATUSES = new Set([
 ]);
 const PRICING_STATUSES = new Set([
   "not_applied",
+  "not_applied_source_has_no_billed_cost",
   "not_needed_recorded_cost",
   "not_applied_no_recognized_rate",
   "checked_reference_rates",
@@ -328,7 +329,7 @@ function validateMeasurement(value, source) {
   exactObject(value, ["token_basis", "cache_basis", "reasoning_basis", "cost_basis"], "measurement");
   const expected = {
     claude_code: ["recorded_usage_counters", "recorded_usage_counters", "not_separately_available", "checked_pay_as_you_go_rate_comparison"],
-    codex: ["recorded_usage_counters", "recorded_usage_counters", "recorded_subset_of_output", "checked_pay_as_you_go_rate_comparison"],
+    codex: ["recorded_usage_counters", "recorded_usage_counters", "recorded_subset_of_output", "not_available_in_local_codex_history"],
     claude_chat: ["estimated_from_visible_message_text", "not_available", "not_available", "not_available"],
     chatgpt: ["estimated_from_visible_message_text", "not_available", "not_available", "not_available"],
   }[source.surface];
@@ -473,6 +474,27 @@ function validatePricing(value, modelCount, source, modelLabels) {
   count(value.unpriced_model_groups, "pricing.unpriced_model_groups");
   if (value.unpriced_model_groups > modelCount) fail("invalid_reconciliation", "unpriced model count exceeds model rows.");
   return { rateModels: new Set(rateModels) };
+}
+
+function validateCodexCostContract(report) {
+  if (report.source.surface !== "codex") {
+    if (report.measurement.cost_basis === "not_available_in_local_codex_history"
+        || report.cost.basis === "not_available_in_local_codex_history"
+        || report.pricing.status === "not_applied_source_has_no_billed_cost") {
+      fail("invalid_reconciliation", "Codex-only cost provenance cannot be used for another source.");
+    }
+    return;
+  }
+  const unavailableModels = report.by_model.every((row) => row.cost.status === "unavailable" && row.cost.usd === null);
+  if (report.measurement.cost_basis !== "not_available_in_local_codex_history"
+      || report.cost.basis !== "not_available_in_local_codex_history"
+      || report.cost.status !== "unavailable" || report.cost.usd !== null
+      || report.pricing.status !== "not_applied_source_has_no_billed_cost"
+      || report.pricing.applied_rates.length !== 0
+      || report.pricing.unpriced_model_groups !== report.by_model.length
+      || !unavailableModels) {
+    fail("invalid_reconciliation", "Codex history cannot claim billed dollars or an applied API rate.");
+  }
 }
 
 function validatePermissionModes(value) {
@@ -1005,7 +1027,7 @@ export function validateResearchSafeUsage(report) {
   oneOf(report.cost.status, COST_STATUSES, "cost.status");
   nullableMoney(report.cost.usd, "cost.usd");
   if (report.cost.currency !== "USD" || report.cost.subscription_bill !== false) fail("invalid_schema", "cost contains an unsupported currency or subscription claim.");
-  oneOf(report.cost.basis, new Set(["not_available", "recorded_in_export", "recorded_and_or_estimated_where_possible", "recorded_where_present_never_estimated", "estimated_pay_as_you_go_comparison"]), "cost.basis");
+  oneOf(report.cost.basis, new Set(["not_available", "not_available_in_local_codex_history", "recorded_in_export", "recorded_and_or_estimated_where_possible", "recorded_where_present_never_estimated", "estimated_pay_as_you_go_comparison"]), "cost.basis");
   if (report.cost.status === "unavailable" && report.cost.usd !== null) fail("invalid_schema", "unavailable report cost must be null.");
   if (report.cost.status !== "unavailable" && report.cost.usd === null) fail("invalid_schema", "priced report cost is missing its amount.");
   validatePermissionModes(report.permission_mode_counts);
@@ -1014,6 +1036,7 @@ export function validateResearchSafeUsage(report) {
   const pricing = validatePricing(report.pricing, report.by_model.length, report.source, modelLabels);
   const unpriced = report.by_model.filter((row) => row.cost.status === "unavailable").length;
   if (unpriced !== report.pricing.unpriced_model_groups) fail("invalid_reconciliation", "unpriced model count does not reconcile.");
+  validateCodexCostContract(report);
   validateQuestionnaire(report.questionnaire);
   validateValueModel(report.value_model, report.cost);
   validatePrivacy(report.privacy);

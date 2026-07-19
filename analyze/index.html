@@ -4,8 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
-<title>TOP: understand AI usage or prepare an Obsidian vault for 7C's</title>
-<meta name="description" content="Open Claude, ChatGPT or Codex history for a private usage report, or check an Obsidian vault locally for a future 7C's memory setup. Nothing is sent to TOP.">
+<title>TOP: Build a private report from your AI history</title>
+<meta name="description" content="TOP reads a downloaded copy of your Claude, ChatGPT or coding assistant history inside this browser tab and builds a usage report. Your file is not uploaded and nothing is sent to TOP.">
+<link rel="canonical" href="https://tokenoptimisationprotocol.org/analyze/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TOP">
+<meta property="og:url" content="https://tokenoptimisationprotocol.org/analyze/">
+<meta property="og:title" content="TOP: Build a private report from your AI history">
+<meta property="og:description" content="TOP reads a downloaded copy of your Claude, ChatGPT or coding assistant history inside this browser tab and builds a usage report. Your file is not uploaded and nothing is sent to TOP.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TOP: Build a private report from your AI history">
+<meta name="twitter:description" content="TOP reads a downloaded copy of your Claude, ChatGPT or coding assistant history inside this browser tab and builds a usage report. Your file is not uploaded and nothing is sent to TOP.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='Inter,sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -92,6 +101,9 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .folder-choice{display:none;margin:0;padding:clamp(24px,5vw,36px) 18px;border:2px solid #6956d5;border-radius:22px;background:linear-gradient(145deg,#f3efff,#e8f8f3);color:var(--text);font-weight:800;text-align:center;cursor:pointer;box-shadow:0 18px 42px rgba(80,61,147,.14);transition:.18s}.folder-choice.show{display:block}.folder-choice:hover{transform:translateY(-2px);box-shadow:0 22px 48px rgba(80,61,147,.2)}.folder-choice strong{display:block;font-size:clamp(19px,3vw,25px)}.folder-choice span{display:block;max-width:62ch;margin:7px auto 0;color:var(--muted);font-size:14px;font-weight:550}.folder-choice input{display:none}
 .history-path-helper{display:none;margin:12px 0;padding:14px 16px;border:1px solid #c4b9e8;border-radius:16px;background:rgba(255,255,255,.88)}.history-path-helper.show{display:block}.history-path-helper strong{display:block}.history-path-helper p{margin:5px 0 10px;color:var(--muted);font-size:13.5px}.history-path-actions{display:flex;gap:8px;flex-wrap:wrap}.file-fallback{margin:12px 0 0;border:1px solid #c7d6dd;border-radius:16px;background:rgba(255,255,255,.76);overflow:hidden}.file-fallback>summary{cursor:pointer;padding:13px 16px;font-weight:750}.file-fallback .drop{border:0;border-top:1px solid #d7e2e7;border-radius:0;box-shadow:none;padding:24px 18px}.file-fallback .drop .big{font-size:18px}
 .file-status{min-height:22px;margin:11px 0 0;color:#087f62;font-size:13.5px;font-weight:700;text-align:center}
+.analysis-progress{margin:12px 0 18px;padding:14px 16px;border:1px solid rgba(8,127,98,.28);border-radius:16px;background:rgba(244,255,251,.94);box-shadow:0 12px 28px rgba(25,66,92,.08)}
+.analysis-progress[hidden]{display:none!important}.analysis-progress-head{display:flex;align-items:center;justify-content:space-between;gap:16px;color:#174a43;font-size:14px}.analysis-progress-head span{color:#087f62;font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;font-weight:800}.analysis-progress-track{height:12px;margin:10px 0 8px;border-radius:999px;background:#d5e5e2;overflow:hidden}.analysis-progress-track span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7565dc,#23b6ae,#35c98b);transition:width .18s ease}.analysis-progress-detail{color:var(--muted);font-size:12.5px;line-height:1.45}.analysis-progress.complete{border-color:rgba(8,127,98,.42);background:#edfff8}.analysis-progress.error{border-color:rgba(242,109,109,.38);background:#fff4f4}.analysis-progress.error .analysis-progress-head{color:#862e2e}
+.analysis-progress.building .analysis-progress-track span{width:38%!important;animation:analysis-building 1.15s ease-in-out infinite}@keyframes analysis-building{0%{transform:translateX(-115%)}50%{transform:translateX(85%)}100%{transform:translateX(265%)}}@media(prefers-reduced-motion:reduce){.analysis-progress-track span{transition:none}.analysis-progress.building .analysis-progress-track span{width:100%!important;opacity:.58;animation:none}}
 .obsidian-panel{scroll-margin-top:125px;margin:20px 0 34px;padding:clamp(20px,4vw,32px);border:1px solid rgba(255,255,255,.9);border-radius:27px;background:rgba(255,255,255,.9);box-shadow:0 22px 54px rgba(24,69,91,.13)}
 .obsidian-panel h2{margin-top:8px}.vault-truth{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;margin:14px 0 18px;padding:17px 18px;border:1px solid rgba(101,86,221,.24);border-radius:18px;background:linear-gradient(145deg,#f6f2ff,#edf9f5)}.vault-truth .mark{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:#6956d5;color:#fff;font-weight:900}.vault-truth strong{display:block;margin-bottom:4px;font-size:17px}.vault-truth p{color:var(--muted);font-size:14.5px}
 .vault-actions{display:grid;grid-template-columns:1.25fr .75fr;gap:12px}.vault-actions .drop{padding:28px 18px}.vault-fallback{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:128px;padding:18px;border:1px solid #b7cdd6;border-radius:20px;background:rgba(250,253,254,.94);text-align:center;cursor:pointer;font-weight:800}.vault-fallback span{display:block;color:var(--muted);font-size:13px;font-weight:550;margin-top:5px}.vault-fallback input{display:none}
@@ -252,7 +264,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 @media(max-width:430px){.tabs,.claude-kinds,.vault-stats,.vault-truth{grid-template-columns:1fr}.tab{min-height:82px}.vault-offer-actions .btn,.vault-recovery-actions .btn{width:100%;justify-content:center}.vault-path-row{align-items:stretch;flex-direction:column}.vault-path-row .btn{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.journey-world,.journey-sun,.journey-moon,.journey-track span{transition:none!important}}
 /* Two-question pilot journey. The normal analyzer remains available without ?pilot=1. */
-.pilot-flow{max-width:820px;margin:0 auto}.pilot-bubble{max-width:690px;margin:0 0 18px;padding:18px 20px;border-radius:8px 24px 24px 24px;background:#fff;box-shadow:0 12px 28px rgba(22,65,88,.1);font-size:16px;line-height:1.55}.pilot-bubble strong{display:block;font-size:20px;margin-bottom:5px}.pilot-question{margin:24px 0}.pilot-question h2{margin-bottom:8px}.pilot-question>p{color:var(--muted);margin:0 0 14px}.pilot-progress{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#087f87}.pilot-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pilot-choice{min-height:118px;padding:19px;border:2px solid rgba(71,92,112,.18);border-radius:20px;background:rgba(255,255,255,.9);color:var(--text);text-align:left;cursor:pointer;box-shadow:0 12px 26px rgba(22,65,88,.08)}.pilot-choice:hover,.pilot-choice:focus-visible{border-color:#7565dc;transform:translateY(-2px)}.pilot-choice.on{border-color:#087f87;background:#effffd}.pilot-choice strong{display:block;font-size:19px;margin-bottom:6px}.pilot-choice span{display:block;color:var(--muted);line-height:1.45}.pilot-method-panel{margin-top:18px;padding:20px;border:1px solid #c8d9df;border-radius:20px;background:rgba(255,255,255,.82)}.pilot-method-panel h3{margin:0 0 8px}.pilot-method-panel p{color:var(--muted)}.pilot-prompt{width:100%;height:116px;min-height:116px;margin:12px 0;padding:14px;border:1px solid #c6d4dc;border-radius:14px;background:#f8fbfc;color:#213544;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}.pilot-file{display:block;margin-top:12px;padding:20px;border:2px dashed #7a9cad;border-radius:18px;background:#f7fcff;text-align:center;cursor:pointer}.pilot-file strong{display:block;font-size:18px}.pilot-file span{display:block;color:var(--muted);margin-top:4px}.pilot-file input{position:absolute;opacity:0;pointer-events:none}.pilot-cta{display:block;width:100%;padding:20px 24px;font-size:19px;font-weight:800;border-radius:16px;margin-top:6px}.pilot-cta-note{margin:10px 0 0;font-size:14px;color:var(--muted);text-align:center}.pilot-path{display:block;padding:12px 14px;margin:12px 0;border-radius:12px;background:#edf5f8;overflow-wrap:anywhere}.pilot-status{display:none;margin:16px 0;padding:14px 16px;border-radius:14px}.pilot-status.show{display:block}.pilot-status.ok{background:#ebfff7;border:1px solid #77c9aa;color:#165d49}.pilot-status.error{background:#fff0f0;border:1px solid #df9696;color:#862e2e}.pilot-privacy{margin-top:14px;padding:13px 15px;border-left:4px solid #087f87;background:#effbf9;color:#31565d}.pilot-mobile-warning{display:none}.pilot-back{margin:0 0 8px}.pilot-mode #resonanceStep,.pilot-mode #providerStep,.pilot-mode #routechooser,.pilot-mode #obsidianPanel,.pilot-mode #routeb{display:none!important}.pilot-mode #routea>h2,.pilot-mode #routea>#routebanner,.pilot-mode #routea>#hint,.pilot-mode #routea>#historyFolderChoice,.pilot-mode #routea>#historyPathHelper,.pilot-mode #routea>#fileFallback,.pilot-mode #routea>#fileStatus,.pilot-mode #routea>#exportsteps,.pilot-mode #routea>#modenote,.pilot-mode #routea>#err{display:none!important}.pilot-mode #routea{padding-top:0}.pilot-mode #shareWithTopHeading{font-size:clamp(25px,4vw,38px)}
+.pilot-flow{max-width:820px;margin:0 auto}.pilot-bubble{max-width:690px;margin:0 0 18px;padding:18px 20px;border-radius:8px 24px 24px 24px;background:#fff;box-shadow:0 12px 28px rgba(22,65,88,.1);font-size:16px;line-height:1.55}.pilot-bubble strong{display:block;font-size:20px;margin-bottom:5px}.pilot-question{margin:24px 0}.pilot-question h2{margin-bottom:8px}.pilot-question>p{color:var(--muted);margin:0 0 14px}.pilot-progress{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#087f87}.pilot-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pilot-choice{min-height:118px;padding:19px;border:2px solid rgba(71,92,112,.18);border-radius:20px;background:rgba(255,255,255,.9);color:var(--text);text-align:left;cursor:pointer;box-shadow:0 12px 26px rgba(22,65,88,.08)}.pilot-choice:hover,.pilot-choice:focus-visible{border-color:#7565dc;transform:translateY(-2px)}.pilot-choice.on{border-color:#087f87;background:#effffd}.pilot-choice strong{display:block;font-size:19px;margin-bottom:6px}.pilot-choice span{display:block;color:var(--muted);line-height:1.45}a.pilot-choice{display:block;text-decoration:none}a.pilot-choice strong{color:var(--text)}.pilot-method-panel{margin-top:18px;padding:20px;border:1px solid #c8d9df;border-radius:20px;background:rgba(255,255,255,.82)}.pilot-method-panel h3{margin:0 0 8px}.pilot-method-panel p{color:var(--muted)}.pilot-prompt{width:100%;height:116px;min-height:116px;margin:12px 0;padding:14px;border:1px solid #c6d4dc;border-radius:14px;background:#f8fbfc;color:#213544;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}.pilot-file{display:block;margin-top:12px;padding:20px;border:2px dashed #7a9cad;border-radius:18px;background:#f7fcff;text-align:center;cursor:pointer}.pilot-file strong{display:block;font-size:18px}.pilot-file span{display:block;color:var(--muted);margin-top:4px}.pilot-file input{position:absolute;opacity:0;pointer-events:none}.pilot-cta{display:block;width:100%;padding:20px 24px;font-size:19px;font-weight:800;border-radius:16px;margin-top:6px}.pilot-cta-note{margin:10px 0 0;font-size:14px;color:var(--muted);text-align:center}.pilot-path{display:block;padding:12px 14px;margin:12px 0;border-radius:12px;background:#edf5f8;overflow-wrap:anywhere}.pilot-status{display:none;margin:16px 0;padding:14px 16px;border-radius:14px}.pilot-status.show{display:block}.pilot-status.ok{background:#ebfff7;border:1px solid #77c9aa;color:#165d49}.pilot-status.error{background:#fff0f0;border:1px solid #df9696;color:#862e2e}.pilot-privacy{margin-top:14px;padding:13px 15px;border-left:4px solid #087f87;background:#effbf9;color:#31565d}.pilot-mobile-warning{display:none}.pilot-back{margin:0 0 8px}.pilot-mode #resonanceStep,.pilot-mode #providerStep,.pilot-mode #routechooser,.pilot-mode #obsidianPanel,.pilot-mode #routeb{display:none!important}.pilot-mode #routea>h2,.pilot-mode #routea>#routebanner,.pilot-mode #routea>#hint,.pilot-mode #routea>#historyFolderChoice,.pilot-mode #routea>#historyPathHelper,.pilot-mode #routea>#fileFallback,.pilot-mode #routea>#fileStatus,.pilot-mode #routea>#exportsteps,.pilot-mode #routea>#modenote,.pilot-mode #routea>#err{display:none!important}.pilot-mode #routea{padding-top:0}.pilot-mode #shareWithTopHeading{font-size:clamp(25px,4vw,38px)}
 .pilot-mode header{padding:20px 0 12px}.pilot-mode header .badge{margin-bottom:9px;padding:6px 13px}.pilot-mode header h1{max-width:26ch;margin-bottom:8px;font-size:clamp(28px,3.8vw,39px);line-height:1.08}.pilot-mode header .sub{max-width:66ch;padding:9px 14px;font-size:15px}.pilot-mode .flow-shell{margin-top:0;padding:18px 24px}.pilot-mode .journey-rail{position:static;margin-bottom:12px;padding:10px 14px}.pilot-mode .pilot-bubble{display:none}.pilot-mode .pilot-question{margin:10px 0 16px}.pilot-mode .pilot-choice{min-height:96px;padding:16px 18px}
 .pilot-mode #pilotMethodStep.method-selected>.pilot-progress,.pilot-mode #pilotMethodStep.method-selected>h2,.pilot-mode #pilotMethodStep.method-selected>p,.pilot-mode #pilotMethodStep.method-selected>#pilotMethodChoices{display:none}
 .pilot-report{display:none;margin:4px 0 24px}.pilot-mode .pilot-report{display:block}.pilot-report[hidden]{display:none!important}.pilot-result-head{padding:22px;border:1px solid rgba(8,127,98,.24);border-radius:22px;background:linear-gradient(145deg,#f4fff9,#f7fbff);box-shadow:0 18px 42px rgba(25,66,92,.10)}.pilot-result-head h2{margin:0 0 7px;font-size:clamp(26px,4vw,38px)}.pilot-result-head p{margin:0;color:var(--muted);line-height:1.55}.pilot-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:14px 0}.pilot-metric{padding:17px;border:1px solid #cbdbe2;border-radius:17px;background:rgba(255,255,255,.92)}.pilot-metric strong{display:block;font-size:clamp(22px,3vw,30px);overflow-wrap:anywhere}.pilot-metric span{display:block;margin-top:5px;color:var(--muted);font-size:13px;line-height:1.35}.pilot-cost-note{margin:0 0 16px;padding:12px 14px;border-left:4px solid #d99a2b;background:#fff8e6;color:#65470e;line-height:1.5}.pilot-section{margin:15px 0;padding:18px;border:1px solid #cadbe2;border-radius:19px;background:rgba(255,255,255,.91)}.pilot-section h3{margin:0 0 10px;font-size:20px}.pilot-model-row{display:grid;grid-template-columns:minmax(120px,1.25fr) minmax(110px,2fr) auto;gap:10px;align-items:center;margin:9px 0;font-size:13.5px}.pilot-model-row strong{overflow-wrap:anywhere}.pilot-model-track{height:9px;border-radius:99px;background:#e4ebef;overflow:hidden}.pilot-model-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7565dc,#23b6ae)}.pilot-value-list{display:grid;gap:9px}.pilot-value-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #e0e8ec}.pilot-value-row:last-child{border-bottom:0}.pilot-value-row span{color:var(--muted)}.pilot-value-row strong{text-align:right}.pilot-report details{margin:14px 0;border:1px solid #cadbe2;border-radius:16px;background:#fff}.pilot-report summary{padding:14px 16px;font-weight:800;cursor:pointer}.pilot-detail-body{padding:0 16px 16px}.pilot-detail-body table{width:100%}.pilot-result-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.pilot-result-actions .btn{min-width:210px;justify-content:center}.pilot-mode #out>#reportScope,.pilot-mode #out>#cards,.pilot-mode #out>#includedUsage,.pilot-mode #out>#tokenhelp,.pilot-mode #out>#resultsHeading,.pilot-mode #out>div[style*="overflow-x:auto"],.pilot-mode #out>#vm,.pilot-mode #out>#shareSummaryBox,.pilot-mode #out>.note,.pilot-mode #out>.technical-details,.pilot-mode #survey{display:none!important}
@@ -392,16 +404,18 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 
     <section class="pilot-flow" id="pilotFlow" hidden aria-labelledby="pilotHeading">
       <div class="pilot-bubble"><strong id="pilotHeading">Let us get your usage report in two choices.</strong>Your raw AI history stays on this computer. Nothing is uploaded while TOP prepares your report.</div>
-      <div class="pilot-mobile-warning">Complete this analysis on the computer that holds your Claude Code or Codex history. A phone does not contain those local usage files.</div>
+      <div class="pilot-mobile-warning">Complete this analysis on the computer that holds your Claude Code or Codex history. A phone does not contain those local usage files. A Claude Chat or ChatGPT export arrives as a ZIP you have to extract, so a computer is easier there too.</div>
       <div class="pilot-question" id="pilotSourceStep">
         <div class="pilot-progress">Choice 1 of 2</div>
-        <h2><span class="flow-kicker">1</span>Which coding assistant do you use?</h2>
-        <p>Choose the app whose usage you want to understand.</p>
+        <h2><span class="flow-kicker">1</span>Which AI do you use?</h2>
+        <p>Choose the app whose usage you want to understand. Chatting in a browser counts, so you do not need to be a developer. Each option says what it needs and what it gives you before you start.</p>
         <div class="pilot-choices" id="pilotSourceChoices">
-          <button type="button" class="pilot-choice" data-pilot-source="cc" aria-pressed="false"><strong>Claude Code</strong><span>Usage saved by Claude while it works in coding projects.</span></button>
-          <button type="button" class="pilot-choice" data-pilot-source="codex" aria-pressed="false"><strong>Codex</strong><span>Usage counters saved in your local Codex sessions.</span></button>
-          <button type="button" class="pilot-choice" data-pilot-source="cursor" aria-pressed="false"><strong>Cursor</strong><span>The usage CSV you download from your account dashboard on cursor.com, in a web browser rather than in the Cursor editor.</span></button>
-          <button type="button" class="pilot-choice" data-pilot-source="copilot" aria-pressed="false"><strong>GitHub Copilot</strong><span>The usage report CSV you download from github.com/settings/billing.</span></button>
+          <a class="pilot-choice" data-pilot-entry="chat" href="/analyze/?start=chat"><strong>Claude Chat, in a browser</strong><span>For claude.ai or the Claude desktop app. Anthropic emails your data export, so there is a wait before you can start. TOP then shows token counts from that file, not a charged dollar figure. The export is a ZIP you extract, which is easiest on a computer.</span></a>
+          <a class="pilot-choice" data-pilot-entry="openai" href="/analyze/?start=openai"><strong>ChatGPT, in a browser</strong><span>For chatgpt.com. OpenAI emails your data export and says it can take up to seven days. TOP then shows token counts from that file, not a charged dollar figure. The export is a ZIP you extract, which is easiest on a computer.</span></a>
+          <button type="button" class="pilot-choice" data-pilot-source="cc" aria-pressed="false"><strong>Claude Code</strong><span>Usage saved by Claude while it works in coding projects. There is no export to request, because TOP reads files already on this computer, so you need that computer.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-source="codex" aria-pressed="false"><strong>Codex</strong><span>Usage counters saved in your local Codex sessions. There is no export to request, because TOP reads files already on this computer, so you need that computer.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-source="cursor" aria-pressed="false"><strong>Cursor</strong><span>The usage CSV you download from your account dashboard on cursor.com, in a web browser rather than in the Cursor editor. The CSV downloads straight away, with no email wait.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-source="copilot" aria-pressed="false"><strong>GitHub Copilot</strong><span>The usage report CSV you download from github.com/settings/billing. The CSV downloads straight away, with no email wait.</span></button>
         </div>
         <p class="pilot-full-link">Using Claude Chat, ChatGPT, Claude Console, or Obsidian? <a href="/analyze/">Open the full analyzer</a>.</p>
       </div>
@@ -518,6 +532,11 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
         </label>
       </details>
       <div class="file-status" id="fileStatus" role="status" aria-live="polite"></div>
+      <div class="analysis-progress" id="analysisProgress" hidden>
+        <div class="analysis-progress-head"><strong id="analysisProgressLabel">Reading and analysing locally</strong><span id="analysisProgressPercent">0%</span></div>
+        <div class="analysis-progress-track" id="analysisProgressTrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="analysisProgressLabel" aria-describedby="analysisProgressDetail"><span id="analysisProgressFill"></span></div>
+        <div class="analysis-progress-detail" id="analysisProgressDetail">Nothing has been read yet.</div>
+      </div>
 
       <div class="steps" id="exportsteps"></div>
       <div class="note" id="modenote"></div>
@@ -555,7 +574,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
               <p id="pilotQuickPrivacy">Your prompts, replies, code and files stayed on this computer.</p>
             </div>
             <div class="pilot-metrics">
-              <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span id="pilotQuickCostLabel">What this usage would cost at API prices</span></div>
+              <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span id="pilotQuickCostLabel">Actual cost in the selected files</span></div>
               <div class="pilot-metric"><strong id="pilotQuickSessions">0</strong><span id="pilotQuickSessionsLabel">Work sessions found</span></div>
               <div class="pilot-metric"><strong id="pilotQuickDays">0</strong><span>Active days found</span></div>
             </div>
@@ -564,12 +583,12 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
             <p class="pilot-cost-note" id="pilotQuickCostNote"></p>
           </section>
           <section class="pilot-step" id="pilotStepMix" data-step-label="Mix" aria-labelledby="pilotUsageMixHeading" hidden>
-            <h2 class="pilot-step-title" id="pilotUsageMixHeading" tabindex="-1">Which models drove that estimate?</h2>
+            <h2 class="pilot-step-title" id="pilotUsageMixHeading" tabindex="-1">Which models drove your usage?</h2>
             <p class="pilot-step-lead" id="pilotMixLead"></p>
             <div class="pilot-chart" id="pilotChartMix"></div>
             <div id="pilotUsageMix"></div>
             <details>
-              <summary>See the full usage and pricing details</summary>
+              <summary>See the full usage and cost details</summary>
               <div class="pilot-detail-body">
                 <p id="pilotFullScope"></p>
                 <p id="pilotFullCoverage"></p>
@@ -594,7 +613,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
             <p class="pilot-step-lead" id="pilotRoutingLead"></p>
             <div class="pilot-chart" id="pilotChartRouting"></div>
             <div class="pilot-value-list">
-              <div class="pilot-value-row"><span>Estimated cost so far</span><strong id="pilotValueCost">Not available</strong></div>
+              <div class="pilot-value-row"><span>Actual cost recorded</span><strong id="pilotValueCost">Not available</strong></div>
               <div class="pilot-value-row"><span>Value of completed work</span><strong>Not measured yet</strong></div>
               <div class="pilot-value-row"><span>Verified savings forecast</span><strong>Coming soon</strong></div>
             </div>
@@ -1199,7 +1218,69 @@ function setJourney(progress,label){
   root.dataset.journeyProgress=p.toFixed(3);
   window.dispatchEvent(new CustomEvent('top:journey-progress',{detail:{progress:p}}));
 }
-function resetDownstream(){
+var ANALYSIS_JOB_SEQUENCE=0,ANALYSIS_PROGRESS={active:false,jobId:0,totalBytes:0,totalFiles:0};
+function analysisProgressRatio(totalBytes,totalFiles,loadedBytes,completedFiles){
+  totalBytes=Math.max(0,Number(totalBytes)||0);totalFiles=Math.max(0,Number(totalFiles)||0);
+  loadedBytes=Math.max(0,Number(loadedBytes)||0);completedFiles=Math.max(0,Number(completedFiles)||0);
+  var ratio=totalBytes>0?loadedBytes/totalBytes:(totalFiles>0?completedFiles/totalFiles:0);
+  return Math.max(0,Math.min(1,ratio));
+}
+function analysisJobIsCurrent(jobId){return ANALYSIS_PROGRESS.active&&Number(jobId)>0&&ANALYSIS_PROGRESS.jobId===jobId}
+function analysisProgressSet(loadedBytes,completedFiles,detail,label,jobId){
+  if(!ANALYSIS_PROGRESS.active||jobId!==undefined&&!analysisJobIsCurrent(jobId))return false;
+  var box=document.getElementById('analysisProgress'),track=document.getElementById('analysisProgressTrack');
+  var ratio=analysisProgressRatio(ANALYSIS_PROGRESS.totalBytes,ANALYSIS_PROGRESS.totalFiles,loadedBytes,completedFiles);
+  var percent=Math.min(99,Math.floor(ratio*100));
+  box.hidden=false;box.className='analysis-progress';
+  document.getElementById('analysisProgressFill').style.width=percent+'%';
+  document.getElementById('analysisProgressPercent').textContent=percent+'%';
+  document.getElementById('analysisProgressLabel').textContent=label||'Reading and analysing locally';
+  document.getElementById('analysisProgressDetail').textContent=detail||fmtN(completedFiles)+' of '+fmtN(ANALYSIS_PROGRESS.totalFiles)+' files read. Nothing is uploaded.';
+  track.setAttribute('aria-valuenow',String(percent));
+  track.setAttribute('aria-valuetext',percent+' percent. '+document.getElementById('analysisProgressDetail').textContent);
+  return true;
+}
+function startAnalysisProgress(files){
+  var list=Array.prototype.slice.call(files||[]),totalBytes=list.reduce(function(total,file){return total+Math.max(0,Number(file&&file.size)||0)},0);
+  var jobId=++ANALYSIS_JOB_SEQUENCE;ANALYSIS_PROGRESS={active:true,jobId:jobId,totalBytes:totalBytes,totalFiles:list.length};
+  analysisProgressSet(0,0,'0 of '+fmtN(list.length)+' files read. Everything stays on this device.','Reading and analysing locally',jobId);
+  return jobId;
+}
+function analysisProgressBuilding(jobId){
+  if(!analysisJobIsCurrent(jobId))return false;
+  var box=document.getElementById('analysisProgress'),track=document.getElementById('analysisProgressTrack');box.hidden=false;box.className='analysis-progress building';
+  document.getElementById('analysisProgressFill').style.width='38%';document.getElementById('analysisProgressPercent').textContent='Final step';
+  document.getElementById('analysisProgressLabel').textContent='Building your report locally';document.getElementById('analysisProgressDetail').textContent='Reading is complete. Calculating totals and preparing charts now. This step has no honest percentage.';
+  track.removeAttribute('aria-valuenow');track.setAttribute('aria-valuetext','Building the report locally. Reading is complete, but this step has no honest percentage.');return true;
+}
+function completeAnalysisProgress(jobId){
+  if(!analysisJobIsCurrent(jobId))return false;
+  var box=document.getElementById('analysisProgress'),track=document.getElementById('analysisProgressTrack');
+  box.hidden=false;box.className='analysis-progress complete';
+  document.getElementById('analysisProgressFill').style.width='100%';
+  document.getElementById('analysisProgressPercent').textContent='100%';
+  document.getElementById('analysisProgressLabel').textContent='Report ready';
+  document.getElementById('analysisProgressDetail').textContent='Reading and analysis finished on this device.';
+  track.setAttribute('aria-valuenow','100');track.setAttribute('aria-valuetext','100 percent. Report ready.');
+  ANALYSIS_PROGRESS.active=false;
+  return true;
+}
+function failAnalysisProgress(message,jobId){
+  if(!ANALYSIS_PROGRESS.active||jobId!==undefined&&!analysisJobIsCurrent(jobId))return false;
+  var box=document.getElementById('analysisProgress');box.hidden=false;box.className='analysis-progress error';
+  document.getElementById('analysisProgressLabel').textContent='Analysis stopped';
+  document.getElementById('analysisProgressDetail').textContent=message||'The selected files could not be analysed.';
+  ANALYSIS_PROGRESS.active=false;
+  return true;
+}
+function resetAnalysisProgress(){
+  ANALYSIS_PROGRESS={active:false,jobId:++ANALYSIS_JOB_SEQUENCE,totalBytes:0,totalFiles:0};
+  var box=document.getElementById('analysisProgress');if(!box)return;
+  box.hidden=true;box.className='analysis-progress';
+  document.getElementById('analysisProgressFill').style.width='0%';document.getElementById('analysisProgressPercent').textContent='0%';
+  document.getElementById('analysisProgressTrack').setAttribute('aria-valuenow','0');document.getElementById('analysisProgressTrack').removeAttribute('aria-valuetext');
+}
+function resetDownstream(preserveAnalysisProgress){
   lastSummary='';
   LAST_RESULT=null;
   document.getElementById('out').style.display='none';
@@ -1211,6 +1292,7 @@ function resetDownstream(){
   document.getElementById('fileb').value='';
   document.getElementById('historyFolder').value='';
   document.getElementById('fileStatus').textContent='';
+  if(!preserveAnalysisProgress)resetAnalysisProgress();
   document.getElementById('shareWithTop').hidden=true;
   document.getElementById('finalPackagePreview').value='';
   document.getElementById('pilotResearchPreview').value='';
@@ -1301,11 +1383,13 @@ var PRICES = {
 var CACHE_WRITE_MULTIPLIER=1.25;
 var CACHE_READ_MULTIPLIER=.1;
 function priceKeyFor(model){
-  var m=(model||"").toLowerCase().trim().replace(/[_.]/g,"-").replace(/-+/g,"-");
-  var claudeAt=m.lastIndexOf("claude-");
-  var gptAt=m.lastIndexOf("gpt-");
-  if(claudeAt>=0) m=m.slice(claudeAt);
-  else if(gptAt>=0) m=m.slice(gptAt);
+  var m=(model||"").toLowerCase().trim();
+  // Accept only native model IDs or each provider's explicit namespace.
+  // Never strip arbitrary prefixes: synthetic-claude-sonnet-5 is not a known model ID.
+  if(m.indexOf("anthropic/claude-")===0) m=m.slice("anthropic/".length);
+  else if(m.indexOf("openai/gpt-")===0) m=m.slice("openai/".length);
+  else if(m.indexOf("claude-")!==0&&m.indexOf("gpt-")!==0) return null;
+  m=m.replace(/[_.]/g,"-").replace(/-+/g,"-");
   m=m.replace(/-\d{8}$/," ").trim();
   if(/^claude-(?:fable-5|5-fable)$/.test(m)) return "fable5";
   if(/^claude-(?:opus-4-[5-8]|4-[5-8]-opus)$/.test(m)) return "opusNew";
@@ -1403,7 +1487,7 @@ var MODES={
         "In the Windows picker, paste <code>%USERPROFILE%\\.codex\\sessions</code> into the address bar and press Enter, then choose <b>Select Folder</b>. Archived sessions can also be under <code>%USERPROFILE%\\.codex\\archived_sessions</code>.",
         "Do not choose <code>.codex\\history.jsonl</code>, <code>auth.json</code>, or the whole <code>.codex</code> folder.",
         "TOP reads only recorded token counters and the active AI version. It ignores transcript text, commands, tool output, paths, IDs, account limits and Git details."],
-      stepstip:"Codex token counts measure recorded model usage. They do not reveal your remaining ChatGPT allowance or prove a subscription charge. AI versions without a checked public API price remain unpriced.",
+      stepstip:"Codex token counts measure recorded model usage. They do not reveal your included plan allowance, credits charged or actual billed dollars, so this report does not turn them into a dollar charge.",
       note:"Some older or incomplete Codex sessions contain no recorded token counters. TOP will report that honestly and will not estimate usage from transcript text."},
   csv:{label:"Console CSV", small:"usage or cost .csv exported from console.anthropic.com",
       hint:"On <code>console.anthropic.com</code>, export either a Usage CSV for token data or a Cost CSV for recorded billed cost, then choose it here.",
@@ -1512,7 +1596,7 @@ function showClaudeChoices(){
   document.getElementById("claudeSources").scrollIntoView({behavior:"smooth",block:"start"});
   document.getElementById("claudeSourcesHeading").focus({preventScroll:true});
 }
-function setMode(m){
+function setMode(m,preserveAnalysisProgress){
   var changed=providerChosen&&mode!==m;
   providerChosen=true;
   mode=m;
@@ -1522,7 +1606,7 @@ function setMode(m){
     document.getElementById("routea").hidden=true;
     document.getElementById("routeb").hidden=true;
     document.getElementById("obsidianPanel").hidden=true;
-    resetDownstream();
+    resetDownstream(preserveAnalysisProgress);
   }
   var claudeMode=isClaudeMode(m);
   document.querySelectorAll("#tabs .tab").forEach(function(t){var on=t.dataset.mode===m||(t.dataset.provider==="claude"&&claudeMode);t.classList.toggle("on",on);t.setAttribute("aria-pressed",on?"true":"false")});
@@ -1585,9 +1669,9 @@ document.getElementById("copyAgentPathPrompt").addEventListener("click",function
 });
 document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab");if(!t)return;if(t.dataset.provider==="claude")showClaudeChoices();else setMode(t.dataset.mode)});
 document.getElementById("claudeSources").addEventListener("click",function(e){var button=e.target.closest(".claude-kind");if(button)setMode(button.dataset.mode)});
-function selectRoute(route){
+function selectRoute(route,preserveAnalysisProgress){
   selectedRoute=route;
-  resetDownstream();
+  resetDownstream(preserveAnalysisProgress);
   document.querySelectorAll(".routepick").forEach(function(b){var on=b.dataset.route===route;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false")});
   var a=document.getElementById("routea"), b=document.getElementById("routeb"), survey=document.getElementById("survey");
   survey.hidden=true;
@@ -1685,12 +1769,12 @@ function pilotCopyV2Sections(data){
 function pilotResultFromSafeUsage(data){
   var by={};data.by_model.forEach(function(row){by[row.model]={inp:row.input_tokens,out:row.output_tokens,cw:row.cache_write_input_tokens,cr:row.cache_read_input_tokens,reasoning:row.reasoning_output_tokens,turns:row.usage_records}});
   var codex=data.source.surface==="codex",isV2=data.schema_version==="top.safe-usage.v2";
-  return {by:by,turns:data.totals.usage_records,sessions:data.activity.sessions,days:data.activity.active_days,kind:codex?"Codex safe usage file":"Claude Code safe usage file",codex:codex,estimate:true,costLabel:codex?"API-rate comparison":"Estimated pay-as-you-go cost",estimateReason:codex?"recorded token counts priced only where an exact public API rate is available; ChatGPT subscription limits and charges may differ":"recorded token counts priced at editable public API rates; Claude subscription charges may differ",pilotSafe:true,pilotSafeSchemaVersion:data.schema_version,pilotV2Aggregate:isV2?pilotCopyV2Sections(data):null,pilotCollectorVersion:data.collector_version,pilotParserVersion:data.parser_version,pilotCoverage:data.coverage,coverage:codex?{files_selected:data.coverage.files_discovered,files_parsed:data.coverage.files_parsed,files_with_usage:data.coverage.files_with_usage,files_skipped:data.coverage.files_skipped,malformed_lines:data.coverage.malformed_lines,oversized_lines:data.coverage.oversized_lines,counter_resets:data.coverage.counter_resets,duplicate_usage_records:data.coverage.duplicate_usage_records,complete:data.coverage.complete}:undefined};
+  return {by:by,turns:data.totals.usage_records,sessions:data.activity.sessions,days:data.activity.active_days,kind:codex?"Codex safe usage file":"Claude Code safe usage file",codex:codex,estimate:!codex,costLabel:codex?"Actual cost unavailable":"Estimated pay-as-you-go cost",estimateReason:codex?"local Codex history records token use but not plan allowance, credits charged or billed dollars":"recorded token counts priced at editable public API rates; Claude subscription charges may differ",pilotSafe:true,pilotSafeSchemaVersion:data.schema_version,pilotV2Aggregate:isV2?pilotCopyV2Sections(data):null,pilotCollectorVersion:data.collector_version,pilotParserVersion:data.parser_version,pilotCoverage:data.coverage,coverage:codex?{files_selected:data.coverage.files_discovered,files_parsed:data.coverage.files_parsed,files_with_usage:data.coverage.files_with_usage,files_skipped:data.coverage.files_skipped,malformed_lines:data.coverage.malformed_lines,oversized_lines:data.coverage.oversized_lines,counter_resets:data.coverage.counter_resets,duplicate_usage_records:data.coverage.duplicate_usage_records,complete:data.coverage.complete}:undefined};
 }
 function pilotPromptFor(source){
   var sourceName=source==="codex"?"codex":"claude-code";
   var L=[];
-  L.push("I want to see what my own "+sourceName+" usage would cost at API prices, using TOP (tokenoptimisationprotocol.org), an open-source local analyzer. Please help me run their collector on this machine. Take your time and be skeptical: I would rather you check this properly than be fast.");
+  L.push("I want to understand my own "+sourceName+" usage using TOP (tokenoptimisationprotocol.org), an open-source local analyzer. Please help me run their collector on this machine. Take your time and be skeptical: I would rather you check this properly than be fast.");
   L.push("");
   L.push("The collector is open source. Please READ IT FIRST and tell me plainly what it does, and whether anything in it concerns you:");
   L.push(PILOT_COLLECTOR_URL);
@@ -1737,21 +1821,42 @@ function pilotComplete(data){
   pilotStatus(privacy,"ok");
 }
 function pilotReadSafeFile(file){
+  resetAnalysisProgress();
   if(!file){pilotStatus("Choose the single JSON file your AI created. Nothing was read or sent.","error");return}
   if(file.size>5*1024*1024){pilotStatus("That file is too large to be the small safe aggregate. It was not opened.","error");return}
-  pilotStatus("Checking the safe file structure on this device. Nothing is being sent.","ok");var reader=new FileReader();
-  reader.onload=function(){try{var safe=pilotValidateSafeUsage(JSON.parse(String(reader.result||""))),result=pilotResultFromSafeUsage(safe);document.getElementById("routea").hidden=false;pilotComplete(result);finishParsedResult(result,1)}catch(error){pilotStatus("This file was not accepted. It must be an unmodified top.safe-usage.v1 or top.safe-usage.v2 file from the pinned collector. Nothing was sent.","error")}};
-  reader.onerror=function(){pilotStatus("The file could not be opened on this device. Nothing was sent.","error")};reader.readAsText(file);
+  document.getElementById("routea").hidden=false;
+  var jobId=startAnalysisProgress([file]);pilotStatus("Checking the safe file structure on this device. Nothing is being sent.","ok");var reader=new FileReader();
+  reader.onprogress=function(event){if(event.lengthComputable)analysisProgressSet(event.loaded,0,"Reading the safe usage file on this device.",null,jobId)};
+  reader.onload=function(){
+    if(!analysisProgressBuilding(jobId))return;
+    setTimeout(function(){
+      if(!analysisJobIsCurrent(jobId))return;
+      try{var safe=pilotValidateSafeUsage(JSON.parse(String(reader.result||""))),result=pilotResultFromSafeUsage(safe);pilotComplete(result);finishParsedResult(result,1,jobId)}
+      catch(error){var message="This file was not accepted. It must be an unmodified top.safe-usage.v1 or top.safe-usage.v2 file from the pinned collector. Nothing was sent.";pilotStatus(message,"error");failAnalysisProgress(message,jobId)}
+    },0);
+  };
+  reader.onerror=function(){if(!analysisJobIsCurrent(jobId))return;var message="The file could not be opened on this device. Nothing was sent.";pilotStatus(message,"error");failAnalysisProgress(message,jobId)};reader.readAsText(file);
 }
 function initPilot(){
   var query=new URLSearchParams(window.location.search);if(query.get("pilot")!=="1")return;
   PILOT_MODE=true;document.documentElement.classList.add("pilot-mode");document.getElementById("pilotFlow").hidden=false;
-  document.querySelector("header h1").textContent="Understand your coding-assistant usage in two choices.";document.querySelector("header .sub").textContent="Your raw history stays on this computer. Start with Claude Code, Codex, Cursor or GitHub Copilot, then choose one preparation method.";
-  setJourney(.12,"Choice one of two: choose Claude Code, Codex, Cursor or GitHub Copilot.");
+  document.querySelector("header h1").textContent="Understand how you use AI.";document.querySelector("header .sub").textContent="Your raw history stays on this computer. Start with Claude Chat, ChatGPT, Claude Code, Codex, Cursor or GitHub Copilot. Each option tells you what it needs before you begin.";
+  setJourney(.12,"Choice one of two: choose the AI you use.");
+}
+// Browser-chat entry. Only acts when ?start=chat or ?start=openai is present, so every
+// existing address, including a plain /analyze/, keeps its current behaviour exactly.
+function initDirectStart(){
+  if(PILOT_MODE)return;
+  var query=new URLSearchParams(window.location.search),start=query.get("start");
+  if(start!=="chat"&&start!=="openai")return;
+  document.getElementById("resonanceStep").hidden=true;
+  document.getElementById("providerStep").hidden=false;
+  setMode(start);
+  selectRoute("a");
 }
 document.getElementById("pilotSourceChoices").addEventListener("click",function(event){var button=event.target.closest("[data-pilot-source]");if(button)pilotChooseSource(button.dataset.pilotSource)});
 document.getElementById("pilotMethodChoices").addEventListener("click",function(event){var button=event.target.closest("[data-pilot-method]");if(button)pilotChooseMethod(button.dataset.pilotMethod)});
-document.getElementById("pilotBackToSource").addEventListener("click",function(){PILOT_SOURCE="";var methodStep=document.getElementById("pilotMethodStep");methodStep.hidden=true;methodStep.classList.remove("method-selected");document.getElementById("pilotAgentPanel").hidden=true;document.getElementById("pilotFolderPanel").hidden=true;document.getElementById("pilotCursorPanel").hidden=true;document.getElementById("pilotCopilotPanel").hidden=true;document.getElementById("pilotSourceStep").hidden=false;document.querySelectorAll("[data-pilot-source],[data-pilot-method]").forEach(function(button){button.classList.remove("on");button.setAttribute("aria-pressed","false")});pilotStatus("Choose Claude Code, Codex, Cursor or GitHub Copilot.","ok");document.getElementById("pilotSourceStep").scrollIntoView({behavior:"smooth",block:"start"})});
+document.getElementById("pilotBackToSource").addEventListener("click",function(){PILOT_SOURCE="";var methodStep=document.getElementById("pilotMethodStep");methodStep.hidden=true;methodStep.classList.remove("method-selected");document.getElementById("pilotAgentPanel").hidden=true;document.getElementById("pilotFolderPanel").hidden=true;document.getElementById("pilotCursorPanel").hidden=true;document.getElementById("pilotCopilotPanel").hidden=true;document.getElementById("pilotSourceStep").hidden=false;document.querySelectorAll("[data-pilot-source],[data-pilot-method]").forEach(function(button){button.classList.remove("on");button.setAttribute("aria-pressed","false")});pilotStatus("Choose the AI you use: Claude Chat, ChatGPT, Claude Code, Codex, Cursor or GitHub Copilot.","ok");document.getElementById("pilotSourceStep").scrollIntoView({behavior:"smooth",block:"start"})});
 document.getElementById("pilotCopyPrompt").addEventListener("click",function(){var prompt=document.getElementById("pilotAgentPrompt");copyPlainText(prompt.value,this,"Prompt Copied").then(function(ok){if(!ok){prompt.focus();prompt.select()}})});
 document.getElementById("pilotSafeFile").addEventListener("change",function(){var files=this.files;if(!files||files.length!==1){pilotStatus("Choose exactly one safe JSON file.","error");return}pilotReadSafeFile(files[0])});
 document.getElementById("pilotSafeFileLabel").addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();document.getElementById("pilotSafeFile").click()}});
@@ -1975,7 +2080,7 @@ function createCodexAccumulator(){
   }
   function result(){
     var orderedSessions=sessionBuckets.slice().sort(function(a,b){return String(a.day||"9999-99-99").localeCompare(String(b.day||"9999-99-99"))});
-    return {by:by,turns:Object.keys(by).reduce(function(total,model){return total+by[model].turns},0),sessions:Math.max(coverage.files_with_usage,normalizedSessions),days:Math.max(Object.keys(days).length,normalizedDays),daily:daily,dailyStatus:dailyStatusFor(daily),sessionBuckets:orderedSessions,kind:"Codex local session logs",estimate:true,costLabel:"API-rate comparison",estimateReason:"recorded token counts priced only where an exact public API rate is available; ChatGPT subscription limits and charges may differ",codex:true,coverage:coverage};
+    return {by:by,turns:Object.keys(by).reduce(function(total,model){return total+by[model].turns},0),sessions:Math.max(coverage.files_with_usage,normalizedSessions),days:Math.max(Object.keys(days).length,normalizedDays),daily:daily,dailyStatus:dailyStatusFor(daily),sessionBuckets:orderedSessions,kind:"Codex local session logs",estimate:false,costLabel:"Actual cost unavailable",estimateReason:"local Codex history records token use but not plan allowance, credits charged or billed dollars",codex:true,coverage:coverage};
   }
   return {beginFile:beginFile,addLine:addLine,noteOversized:noteOversized,endFile:endFile,result:result};
 }
@@ -2441,6 +2546,7 @@ function parseOpenAI(texts){
 // ---------- render ----------
 function resolveCostRow(model,e,res){
   var key=priceKeyFor(model),cost=null,complete=!res.chatExport;
+  if(res.codex)return {model:model,e:e,key:null,cost:null,complete:false};
   if(!res.chatExport&&res.copilot){
     // Copilot exports carry no token counts, so rows without a billed amount are never priced by guess.
     cost=e.costRows?e.cost:0;
@@ -2657,7 +2763,7 @@ function pilotShortLabel(text,max){var s=String(text);return s.length>max?s.slic
 function pilotPct(part,whole){return whole>0?Math.round(part/whole*100):0}
 // Mirrors the rate-priced branch of resolveCostRow, so a decomposition drawn here can never
 // disagree with the total the rest of the report shows.
-function pilotRatePriced(res){return !!(res&&!res.chatExport&&!res.copilot&&!res.csv)}
+function pilotRatePriced(res){return !!(res&&!res.chatExport&&!res.copilot&&!res.csv&&!res.codex)}
 function pilotDailyCostSeries(res){
   if(!res||!res.daily||res.dailyStatus!=="ok"||!pilotRatePriced(res))return null;
   var points=[],unpricedDays=0;
@@ -2997,7 +3103,7 @@ function pilotMixChartHTML(rows,pricedTotal,res,unpriced,included){
             cost:(r.cost===null||!r.complete||!(r.cost>0))?0:r.cost,priced:r.cost!==null&&r.complete&&r.cost>0};
   }).filter(function(e){return e.tokens>0});
   if(!entries.length)return "";
-  if(!(pricedTotal>0))return pilotPlain("TOP could not match any of these AI versions to a checked price, so there is no cost mix to hold up against the token mix. Nothing has been guessed to fill the gap.");
+  if(!(pricedTotal>0))return pilotPlain(res.codex?"These files show how recorded tokens split across AI versions. They do not contain your actual Codex charge, so TOP has not drawn a cost comparison.":"TOP could not match any of these AI versions to a checked price, so there is no cost mix to hold up against the token mix. Nothing has been guessed to fill the gap.");
   if(entries.length===1)return pilotPlain("Everything in these files ran on one AI version, "+entries[0].label+", so there is no mix to compare yet.");
   entries.sort(function(a,b){
     if(a.priced!==b.priced)return a.priced?-1:1;
@@ -3150,7 +3256,7 @@ function pilotCacheChartHTML(rows,res,totals){
   var crPct=pilotPct(totals.cr,tokTotal),tilde=res.estimate?"~":"";
   var caption=twin
     ?"The top bar is how many tokens of each kind you used. The bottom bar is what each kind actually cost. They are not the same bar, and that gap is what infrastructure is worth."
-    :"How your tokens split by type. This source does not carry the rates TOP would need to price each type separately.";
+    :(res.codex?"How your tokens split by type. Codex history does not contain your plan allowance, credits charged or actual billed dollars.":"How your tokens split by type. This source does not carry the rates TOP would need to price each type separately.");
   var out=pilotFigure(pilotSvg(W,H,label,body),caption)+pilotLegend(PILOT_TYPE_ORDER.map(function(t){return [t[1],t[2],t[3]]}));
   if(twin&&totals.cr>0&&full>0){
     out+='<p class="pilot-chart-lever"><strong>'+esc(fmtN(totals.cr)+" tokens, "+crPct+"% of everything counted here, were reused from a saved copy.")+'</strong> '
@@ -3492,11 +3598,13 @@ function describeResearchSafePlain(data,covered){
   // stopped drawing a single bar labelled "auto".
   // A mixed export is not the ordinary case either. Some rows carry a model name and some do not, so the
   // row count is not a count of AI versions: one of those rows is Auto, which is not an AI version.
+  // The final branch also refuses to promise a per-model cost figure when the source carries none, which
+  // is the ordinary case for local Codex history.
   lines.push(covered&&covered.modelsUndisclosed
     ?"AI versions: none named. Cursor's Auto mode did not record which AI version ran, so the file carries "+fmtN(models)+" row"+(models===1?"":"s")+" of token counts with no model name behind "+(models===1?"it":"them")+"."
     :(covered&&covered.someUndisclosed
     ?"AI versions: not all named. Cursor's Auto mode did not record which AI version ran for "+fmtN(covered.undisclosedRows)+" of these usage events, so part of this token count has no model name behind it."
-    :"AI versions: "+fmtN(models)+" model name"+(models===1?"":"s")+", each with its own token counts and cost figure."));
+    :"AI versions: "+fmtN(models)+" model name"+(models===1?"":"s")+", each with its own token counts"+(cost.usd===null||cost.usd===undefined?". No per-model billed cost is available.":" and cost figure.")));
   var counts=[
     plainCount(activity.ai_replies)&&plainCount(activity.ai_replies)+" AI replies",
     plainCount(activity.usage_events)&&plainCount(activity.usage_events)+" usage events",
@@ -3506,15 +3614,18 @@ function describeResearchSafePlain(data,covered){
     plainCount(activity.active_days)&&plainCount(activity.active_days)+" active days"
   ].filter(Boolean);
   if(counts.length)lines.push("Activity counts: "+plainWordList(counts)+".");
+  // Three distinct reasons there is no single charge to state, kept apart so the rail names the right one:
+  // a subscription absorbed the charge (Cursor covered), the source records no billed cost at all (Codex
+  // local history), or TOP simply could not price the file.
   lines.push(covered
     ?"Cost: no charge of your own, because your subscription covered this usage and the recorded charge is zero. In its place, one figure for what the same tokens would cost bought per token at published API rates: "+covered.amount+". That is an estimate of a hypothetical API bill, not money you paid and not a saving."
     :(cost.usd===null||cost.usd===undefined
-    ?"Cost: no dollar figure, because TOP could not price this file."
+    ?(cost.basis==="not_available_in_local_codex_history"?"Cost: no dollar figure, because local Codex history does not contain plan allowance, credits charged or billed dollars.":"Cost: no dollar figure, because TOP could not price this file.")
     :"Cost: one figure, "+fmt$(cost.usd)+", as a comparison against published API rates. It is not your subscription bill."));
   var rates=covered?covered.rateCount:(Array.isArray(pricing.applied_rates)?pricing.applied_rates.length:0);
   lines.push(covered&&covered.isRange
     ?"Pricing: the "+fmtN(rates)+" published rate card"+(rates===1?"":"s")+" TOP priced these tokens against to get both ends of that range, and the date those rates were checked."
-    :"Pricing: the "+fmtN(rates)+" published rate card"+(rates===1?"":"s")+" TOP applied, and the date those rates were checked.");
+    :(rates?"Pricing: the "+fmtN(rates)+" published rate card"+(rates===1?"":"s")+" TOP applied, and the date those rates were checked.":"Pricing: no API rate card was applied to this file."));
   var questionnaire=data.questionnaire,answers=questionnaire?Object.keys(questionnaire).reduce(function(sum,key){
     var value=questionnaire[key];
     if(Array.isArray(value))return sum+value.length;
@@ -3605,20 +3716,37 @@ function pilotMixWithheldText(res){
   if(res&&res.modelsUndisclosed)return "Cursor's Auto mode does not record which AI version ran, so TOP cannot show a model mix for this export.";
   return "Cursor's Auto mode did not record which AI version ran for "+fmtN((res&&res.undisclosedRows)||0)+" of these "+fmtN((res&&res.turns)||0)+" usage events. A share of the priced cost can only be worked out for the rest, so it would read as 100% for an AI version that ran a fraction of the work. TOP is not showing one.";
 }
+// Two share bases, never mixed. Sources that record a billed or priced cost split the mix by cost.
+// Codex local history records no cost at all, so its mix is split by tokens and the caller labels it as
+// a token share. A Cursor export with any undisclosed row still withholds the mix entirely.
 function pilotMixPanelHTML(res,shownRows,pricedTotal){
   if(pilotMixWithheld(res))return "<p>"+esc(pilotMixWithheldText(res))+"</p>";
-  if(!shownRows.length)return "<p>TOP could not calculate a priced model mix from this file.</p>";
+  var byTokens=!!(res&&res.codex);
+  if(!shownRows.length)return "<p>"+esc(byTokens?"TOP could not calculate a model mix from this file.":"TOP could not calculate a priced model mix from this file.")+"</p>";
+  // The token denominator is derived here from the same by-model map the rows were built from, so a
+  // share shown on a bar cannot drift from the totals the rest of the report counted.
+  var tokenMixTotal=0;
+  if(byTokens){var by=(res&&res.by)||{};Object.keys(by).forEach(function(k){var t=by[k]||{};tokenMixTotal+=(t.inp||0)+(t.out||0)+(t.cw||0)+(t.cr||0)});}
   return shownRows.map(function(row){
-    var share=pricedTotal>0?Math.round(row.cost/pricedTotal*100):0;
+    // Token fields are read only on the token basis, so a cost-basis row needs no counters at all.
+    var share;
+    if(byTokens){var e=row.e||{},rowTokens=(e.inp||0)+(e.out||0)+(e.cw||0)+(e.cr||0);share=tokenMixTotal>0?Math.round(rowTokens/tokenMixTotal*100):0;}
+    else share=pricedTotal>0?Math.round(row.cost/pricedTotal*100):0;
     return '<div class="pilot-model-row"><strong>'+esc(safePublicModelLabel(row.model))+'</strong><div class="pilot-model-track"><span style="width:'+Math.max(2,share)+'%"></span></div><span>'+fmtN(share)+'%</span></div>';
   }).join("");
 }
 // With at least one row's AI version undisclosed there is no mix to head, so this step asks the question
 // TOP can actually answer from the same tokens. The heading and the lead follow the chart rather than
 // contradicting it, and neither counts "auto" as an AI version that was recorded.
-function pilotMixHeadingText(res){return pilotMixWithheld(res)?"What would these tokens cost at API prices?":"Which models drove that estimate?"}
+// Three headings, because three different things are true. With a row's AI version withheld there is no
+// mix to head at all. Codex history produces no estimate for a mix to drive, so that heading asks about
+// usage instead. Everywhere else an estimate genuinely exists and the heading still names it.
+function pilotMixHeadingText(res){
+  if(pilotMixWithheld(res))return "What would these tokens cost at API prices?";
+  return res&&res.codex?"Which models drove your usage?":"Which models drove that estimate?";
+}
 function pilotMixLeadText(res,modelCount){
-  if(!pilotMixWithheld(res))return fmtN(modelCount)+" AI version"+(modelCount===1?"":"s")+" recorded in the files you chose.";
+  if(!pilotMixWithheld(res))return fmtN(modelCount)+" AI version"+(modelCount===1?"":"s")+" recorded in the files you chose"+(res&&res.codex?", shown by token share because actual Codex cost is not in the files.":".");
   if(res.modelsUndisclosed)return "Cursor's Auto mode picked an AI version for each of these "+fmtN(res.turns)+" usage events and did not record which one, so TOP prices the same tokens against every AI version in its checked table instead of naming one it cannot see.";
   return "Cursor's Auto mode picked an AI version for "+fmtN(res.undisclosedRows)+" of these "+fmtN(res.turns)+" usage events and did not record which one. Naming only the rows that happened to carry a model would present a fraction of the work as the whole of it, so TOP prices these tokens against every AI version in its checked table instead.";
 }
@@ -3627,16 +3755,18 @@ function render(res){
   document.getElementById("codexObsidianDownloads").hidden=!res.codex;
   document.getElementById("reportScope").textContent=res.chatExport
     ?"This report covers only the conversation records and visible text inside the file you selected. It is not your full account total, subscription allowance, Claude Code usage or Codex usage."
-    :(res.codex?"This report covers only recorded token counters found in the selected Codex files.":(res.cursor?"This report covers only the rows found in the selected Cursor usage export.":(res.copilot?"This report covers only the rows found in the selected GitHub Copilot usage report.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files."))));
+    :(res.codex?"This report covers only recorded token counters found in the selected Codex files. Those files do not contain your included plan allowance, credits charged or actual billed dollars.":(res.cursor?"This report covers only the rows found in the selected Cursor usage export.":(res.copilot?"This report covers only the rows found in the selected GitHub Copilot usage report.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files."))));
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[];
   Object.keys(by).forEach(function(model){
     var e=by[model],resolved=resolveCostRow(model,e,res),key=resolved.key,cost=resolved.cost,complete=resolved.complete;
     if(key) usedPriceKeys[key]=1;
-    // Two different reasons a row goes unpriced, kept apart so the report can explain the right one.
+    // Three different reasons a row goes unpriced, kept apart so the report can explain the right one.
     // A named model TOP has no checked rate for belongs in the "no checked price" list. A row whose model
     // the source never disclosed does not: listing "auto" there would present it as a model name. That
     // case is stated instead by the res.undisclosedRows disclosures, which name the count and the reason.
-    if(!complete){allCostsAvailable=false;if(!(res.cursor&&cursorUndisclosedModel(model)))unpriced.push(safePublicModelLabel(model));}
+    // Codex rows are unpriced for a third reason entirely, that the source carries no billed cost at all,
+    // so listing them as models lacking a rate card would misstate why no figure is shown.
+    if(!complete){allCostsAvailable=false;if(!res.codex)if(!(res.cursor&&cursorUndisclosedModel(model)))unpriced.push(safePublicModelLabel(model));}
     if(cost!==null) totCost+=cost;
     totInp+=e.inp;totOut+=e.out;totCw+=e.cw;totCr+=e.cr;
     rows.push({model:model,e:e,cost:cost,complete:complete});
@@ -3646,8 +3776,8 @@ function render(res){
   res.costAvailable=allCostsAvailable&&rows.length>0;
   res.partialCost=!res.chatExport&&!allCostsAvailable&&totCost>0;
   // The Copilot routing scenario is withheld because credit metering undercounts agent work, so the mix is not a routing baseline.
-  res.valueModelEligible=valueModelAllowed(rows,res.costAvailable)&&!res.copilot;
-  var costCard=res.chatExport?["Recorded dollar cost","Not included",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):(res.cursor?"Cost as billed by Cursor":(res.copilot?"Cost as billed by GitHub":"Recorded spend")),(res.estimate?"~":"")+fmt$(totCost),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""]));
+  res.valueModelEligible=valueModelAllowed(rows,res.costAvailable)&&!res.copilot&&!res.codex;
+  var costCard=res.codex?["Actual Codex cost","Not in these files",""]:(res.chatExport?["Recorded dollar cost","Not included",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):(res.cursor?"Cost as billed by Cursor":(res.copilot?"Cost as billed by GitHub":"Recorded spend")),(res.estimate?"~":"")+fmt$(totCost),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""])));
   var countLabels=resultCountLabels(res), tokenPrefix=res.chatExport?"about ":"";
   // Subscription-covered sources lead with tokens, not dollars. Leading with $0.00 (or "Not available")
   // buries a real nine-million-token record behind a number that only means "your plan absorbed it".
@@ -3692,17 +3822,20 @@ function render(res){
   else{copilotNote.textContent="";copilotNote.hidden=true;}
   document.getElementById("tokenhelp").textContent=res.chatExport
     ?"This file has no recorded token counts. TOP divides visible message-text characters by four to make a rough text-only estimate. It excludes context replay, hidden instructions, tools, attachments, thinking, caching and every file you did not choose."
-    :(res.copilot
+    :(res.codex
+      ?"Codex history records token counters, not what you paid. Your plan allowance, any credits deducted and billed dollars are not present, so TOP does not turn these tokens into a dollar charge."
+      :res.copilot
       ?"GitHub Copilot meters prompts and AI credits, not tokens, so this report shows credits and billed dollars instead of token counts. One AI credit is one cent. Only the prompts you send are metered, so agent work between prompts is undercounted."
       :"Tokens are small pieces of text counted by AI services. They are a measure of usage, not a separate charge on a subscription plan.");
   var estimateWord=res.chatExport?"Estimated ":"";
-  var th='<thead><tr><th>AI version</th><th>'+estimateWord+'text sent to the AI</th><th>'+estimateWord+'text returned by the AI</th><th>'+estimateWord+'previously saved text: added / reused</th><th>'+countLabels.table+'</th><th>Cost</th></tr></thead>';
+  var th='<thead><tr><th>AI version</th><th>'+estimateWord+'text sent to the AI</th><th>'+estimateWord+'text returned by the AI</th><th>'+estimateWord+'previously saved text: added / reused</th><th>'+countLabels.table+'</th><th>'+(res.codex?'Actual cost':'Cost')+'</th></tr></thead>';
   // On a subscription-covered export nothing was charged on any row. The only figure TOP could put in
   // this column for a named row is an API-price comparison, which is not a charge, and printing it beside
   // a footer reading "No charge, plan covered" made one table state two different things about the same
   // rows. The comparison has its own card and its own sentence; this column stays the charge column.
-  var tb=rows.map(function(r){var shown=res.chatExport?"Not in export":(res.cursor&&cursorUndisclosedModel(r.model)?"AI version not disclosed":(included?"No charge, plan covered":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost))))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
-  var totalShown=res.chatExport?"Not in export":(included?"No charge, plan covered":(res.costAvailable?((res.estimate?"~":"")+fmt$(totCost)):(res.partialCost?("Partial "+fmt$(totCost)):"Not available")));
+  // Codex history carries no billed cost on any row either, so it states that rather than a dollar figure.
+  var tb=rows.map(function(r){var shown=res.codex?"Not in files":(res.chatExport?"Not in export":(res.cursor&&cursorUndisclosedModel(r.model)?"AI version not disclosed":(included?"No charge, plan covered":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost)))))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
+  var totalShown=res.codex?"Not in files":(res.chatExport?"Not in export":(included?"No charge, plan covered":(res.costAvailable?((res.estimate?"~":"")+fmt$(totCost)):(res.partialCost?("Partial "+fmt$(totCost)):"Not available"))));
   var tf='<tfoot><tr><td>Total</td><td class="n">'+tokenPrefix+fmtN(totInp)+'</td><td class="n">'+tokenPrefix+fmtN(totOut)+'</td><td class="n">'+(res.chatExport?"Not in export":(fmtN(totCw)+' / '+fmtN(totCr)))+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
   if(res.copilot){
     // Copilot exports contain no token counts, so the table shows what GitHub actually meters: requests, credits and billed dollars.
@@ -3717,9 +3850,9 @@ function render(res){
   });
   if(PILOT_MODE){
     var pricedRows=rows.filter(function(row){return row.cost!==null&&row.cost>0}),pricedTotal=pricedRows.reduce(function(sum,row){return sum+row.cost},0);
-    var costText=included?cursorIncludedUsageAmount(included):(res.chatExport?"Not included":(pricedTotal>0?((res.estimate?"~":"")+fmt$(pricedTotal)):"Not available"));
+    var costText=res.codex?"Not in these files":(included?cursorIncludedUsageAmount(included):(res.chatExport?"Not included":(pricedTotal>0?((res.estimate?"~":"")+fmt$(pricedTotal)):"Not available")));
     document.getElementById("pilotQuickCost").textContent=costText;
-    document.getElementById("pilotQuickCostLabel").textContent=included?"What this would cost at API prices":(res.cursor?"Cost recorded in Cursor's export":(res.copilot?"Cost as billed by GitHub":"What this usage would cost at API prices"));
+    document.getElementById("pilotQuickCostLabel").textContent=res.codex?"Actual Codex cost":(included?"What this would cost at API prices":(res.cursor?"Cost recorded in Cursor's export":(res.copilot?"Cost as billed by GitHub":(res.chatExport?"Actual cost in the export":"Estimated pay-as-you-go cost"))));
     document.getElementById("pilotQuickSessions").textContent=fmtN(res.sessions||0);
     document.getElementById("pilotQuickSessionsLabel").textContent=res.pilotSafeSchemaVersion==="top.safe-usage.v2"?"Deduplicated logical sessions":(res.cursor?"Usage events found":(res.copilot?"Usage records found":"Work sessions found"));
     document.getElementById("pilotQuickDays").textContent=fmtN(res.days||0);
@@ -3731,22 +3864,28 @@ function render(res){
       ?cursorIncludedUsageText(res,included)+" "+cursorBreakdownText(res)
       :(res.chatExport
       ?"This download does not contain reliable cost data. TOP has not invented a charge."
-      :(res.cursor
+      :(res.codex
+        ?"Codex history records token use, but not your included plan allowance, credits charged or billed dollars. TOP does not substitute an API-list comparison for your real cost."
+        :res.cursor
         ?"These dollar figures come from the Cost column Cursor exported, as billed by Cursor. "+cursorBreakdownText(res)
         :res.copilot
         ?"These dollar figures come from the billed amounts GitHub exported. "+copilotBreakdownText(res)
         :(unpriced.length
           ?"TOP priced "+fmtN(pricedRows.length)+" of "+fmtN(rows.length)+" AI versions. This is a partial API-rate comparison, not your subscription bill."
           :"This is an API-rate comparison based on recorded usage, not your subscription bill.")));
-    var shownRows=pricedRows.slice().sort(function(a,b){return b.cost-a.cost}).slice(0,3);
+    // The token denominator for a Codex mix is derived inside pilotMixPanelHTML from res.by, so it cannot
+    // drift from the rows this function counted.
+    // Codex history has no cost to rank by, so its rows are ranked by tokens. Every other source ranks by
+    // priced cost, exactly as before.
+    var shownRows=(res.codex?rows:pricedRows).slice().sort(function(a,b){return res.codex?((b.e.inp+b.e.out+b.e.cw+b.e.cr)-(a.e.inp+a.e.out+a.e.cw+a.e.cr)):(b.cost-a.cost)}).slice(0,3);
     // A model mix needs disclosed models on every row. Cursor Auto never names one, so say that instead
     // of drawing a bar, and say it just as plainly when only some of the rows were left unnamed.
     document.getElementById("pilotUsageMix").innerHTML=pilotMixPanelHTML(res,shownRows,pricedTotal);
-    document.getElementById("pilotValueCost").textContent=included
+    document.getElementById("pilotValueCost").textContent=res.codex?"Not available from Codex history":(included
       ?(included.exact!==null?"Ready: ":"Range: ")+costText+" at API prices, nothing charged by Cursor"
       :(pricedTotal>0
       ?(unpriced.length?"Partial: "+costText+" for models TOP could price":"Ready: "+costText+" across all models")
-      :"Not available from this file");
+      :"Not available from this file"));
     renderPilotPatterns(res);
     // Charts are redrawn from the same token counts on every render, including the re-render a price
     // edit triggers, so a changed rate moves every dollar on every chart.
@@ -3754,7 +3893,8 @@ function render(res){
       totals:{inp:totInp,out:totOut,cw:totCw,cr:totCr}};
     pilotDrawCharts(true);
     // With no disclosed model there is no mix, so this step asks the question TOP can actually answer
-    // from the same tokens. The heading and lead follow the chart rather than contradicting it.
+    // from the same tokens. The heading and lead follow the chart rather than contradicting it, and both
+    // helpers also carry the Codex case, where the mix is a token share and not a cost share.
     var mixHeading=document.getElementById("pilotUsageMixHeading");
     if(mixHeading)mixHeading.textContent=pilotMixHeadingText(res);
     document.getElementById("pilotMixLead").textContent=pilotMixLeadText(res,rows.length);
@@ -3784,9 +3924,10 @@ function render(res){
   lines.push("TOP Usage Report");
   lines.push("");
   lines.push("Where this came from: "+res.kind+".");
-  if(res.estimate&&!res.chatExport) lines.push("About the dollar figures: They are estimates based on the usage numbers in your file and checked pay-as-you-go prices, where each amount of AI use is billed separately. They are not your subscription bill.");
+  if(res.estimate&&!res.chatExport&&!res.codex) lines.push("About the dollar figures: They are estimates based on the usage numbers in your file and checked pay-as-you-go prices, where each amount of AI use is billed separately. They are not your subscription bill.");
   lines.push("");
-  if(res.chatExport) lines.push("Cost information: This download does not include a reliable dollar cost, so TOP has not guessed one.");
+  if(res.codex) lines.push("Cost information: The selected Codex files contain token counters, but not your plan allowance, credits charged or actual billed dollars. TOP has not converted this usage into a dollar charge.");
+  else if(res.chatExport) lines.push("Cost information: This download does not include a reliable dollar cost, so TOP has not guessed one.");
   else if(included){
     lines.push("Cost information: Your Cursor subscription covered this usage, so nothing extra was charged and the recorded charge is zero.");
     lines.push("Tokens consumed: "+fmtInt(totTok)+" across "+fmtInt(res.turns)+" usage events.");
@@ -3801,7 +3942,7 @@ function render(res){
   else if(res.costAvailable) lines.push("Cost information: "+(res.estimate?"Estimated pay-as-you-go cost: about ":(res.cursor?"Cost as billed by Cursor: ":(res.copilot?"Cost as billed by GitHub: ":"Cost recorded in the file: ")))+fmt$(totCost)+".");
   else if(res.partialCost) lines.push("Cost information: TOP could price only part of the usage. The "+(res.estimate?"estimated":"recorded")+" amount for the rows it could price is "+fmt$(totCost)+".");
   else lines.push("Cost information: TOP could not calculate a reliable dollar cost.");
-  if(unpriced.length) lines.push("AI versions without a checked price: "+unpriced.join(", ")+".");
+  if(unpriced.length&&!res.codex) lines.push("AI versions without a checked price: "+unpriced.join(", ")+".");
   lines.push("");
   if(res.copilot){
     lines.push("Metering: GitHub Copilot bills prompts and AI credits, not tokens, so this report has no token counts. One AI credit is one cent.");
@@ -3850,7 +3991,7 @@ function render(res){
   document.getElementById("summary").value=lines.join("\n");
   lastSummary=lines.join("\n");
   document.getElementById("shareStatus").textContent="";
-  document.getElementById("prices").innerHTML=res.chatExport?"No dollar cost is guessed for chat-history downloads.":pricingDetailsHTML(priceKeys);
+  document.getElementById("prices").innerHTML=res.codex?"No dollar cost is shown for Codex history because these files do not contain your plan allowance, credits charged or billed dollars.":(res.chatExport?"No dollar cost is guessed for chat-history downloads.":pricingDetailsHTML(priceKeys));
   document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
     var v=parseFloat(inp.value); if(!isNaN(v)){PRICES[inp.dataset.k][inp.dataset.f]=v;PRICING_EDITED_FIELDS[inp.dataset.k+":"+inp.dataset.f]=true;} render(res);
   })});
@@ -4202,7 +4343,7 @@ document.getElementById("vaultCopyClaudePath").addEventListener("click",function
 
 // ---------- file handling ----------
 var HISTORY_LIMITS={maxFiles:10000,maxFileBytes:350*1024*1024,maxConversationDesktopBytes:64*1024*1024,maxConversationMobileBytes:12*1024*1024,maxCodexFileBytes:4*1024*1024*1024,maxTotalBytes:128*1024*1024,maxClaudeTotalBytes:8*1024*1024*1024,maxCodexTotalBytes:12*1024*1024*1024};
-function showErr(msg){var e=document.getElementById("err");e.textContent=msg;e.style.display="block";document.getElementById("out").style.display="none";document.getElementById("fileStatus").textContent="";if(PILOT_MODE)pilotStatus(msg,"error");}
+function showErr(msg,jobId){if(jobId!==undefined&&!analysisJobIsCurrent(jobId))return;var e=document.getElementById("err");e.textContent=msg;e.style.display="block";document.getElementById("out").style.display="none";document.getElementById("fileStatus").textContent="";failAnalysisProgress(msg,jobId);if(PILOT_MODE)pilotStatus(msg,"error");}
 function conversationLimitBytes(){
   var width=typeof window!=="undefined"?Number(window.innerWidth||0):0,touch=typeof navigator!=="undefined"?Number(navigator.maxTouchPoints||0):0;
   return (width&&width<=768)||(touch&&width&&width<=1024)?HISTORY_LIMITS.maxConversationMobileBytes:HISTORY_LIMITS.maxConversationDesktopBytes;
@@ -4222,22 +4363,24 @@ function inferModeFromFileNames(files){
 }
 function switchToDetectedMode(targetMode){
   var previous=mode,route=selectedRoute||"a";
-  if(previous!==targetMode){setMode(targetMode);selectRoute(route)}
+  if(previous!==targetMode){setMode(targetMode,true);selectRoute(route,true)}
   AUTO_DETECTED_NOTE="TOP recognized this as "+MODES[targetMode].label+" and used the matching reader instead of "+MODES[previous].label+".";
 }
 function openDetectedConversationFiles(files){
   var checked=historyFilesForMode(files,"chat");
   if(!checked.files.length){showErr("Choose conversations.json from a Claude Chat or ChatGPT export. Project JSON files are not conversation or usage history.");return}
   if(checked.files.length>HISTORY_LIMITS.maxFiles||checked.totalBytes>conversationLimitBytes()){showErr("Those conversation files are too large to open safely on this device. Choose a smaller export batch or use a computer with more memory.");return}
+  var jobId=startAnalysisProgress(checked.files);
   document.getElementById("fileStatus").textContent="Checking the conversation-export format on this device.";
   readTextFiles(checked.files,function(texts,failed){
-    if(failed===checked.files.length){showErr("TOP could not read the selected conversation file. Nothing was sent.");return}
+    if(!analysisJobIsCurrent(jobId))return;
+    if(failed===checked.files.length){showErr("TOP could not read the selected conversation file. Nothing was sent.",jobId);return}
     var detected=detectConversationMode(texts);
-    if(detected==="mixed"){showErr("That selection mixes Claude Chat and ChatGPT conversation formats. Choose one provider's conversation files at a time so totals are not blended.");return}
-    if(!detected){showErr("TOP could not recognize this as a Claude Chat or ChatGPT conversation export. A project JSON file is not a usage log. Nothing was sent.");return}
+    if(detected==="mixed"){showErr("That selection mixes Claude Chat and ChatGPT conversation formats. Choose one provider's conversation files at a time so totals are not blended.",jobId);return}
+    if(!detected){showErr("TOP could not recognize this as a Claude Chat or ChatGPT conversation export. A project JSON file is not a usage log. Nothing was sent.",jobId);return}
     if(mode!==detected)switchToDetectedMode(detected);
-    run(texts,checked.files.length-failed);
-  });
+    run(texts,checked.files.length-failed,jobId);
+  },jobId);
 }
 function historyFilesForMode(files,targetMode,origin){
   var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,oversized=0,total=0,codexRollouts=0,codexAggregates=0,regularJson=0,projectJson=0,contextJson=0,folderRoots=Object.create(null),unsafeClaudeHistory=false;
@@ -4262,15 +4405,16 @@ function historyFilesForMode(files,targetMode,origin){
   var rejectedRoot=unsafeCodexRoot||unsafeClaudeRoot||invalidClaudeFolder||unsafeClaudeHistory||mixedCodexSources||multipleCodexAggregates;
   return {files:rejectedRoot?[]:allowed,markdown:markdown,archives:archives,unsupported:unsupported,oversized:oversized,totalBytes:rejectedRoot?0:total,selected:list.length,unsafeCodexRoot:unsafeCodexRoot,unsafeClaudeRoot:unsafeClaudeRoot,invalidClaudeFolder:invalidClaudeFolder,unsafeClaudeHistory:unsafeClaudeHistory,mixedCodexSources:mixedCodexSources,multipleCodexAggregates:multipleCodexAggregates,regularJson:regularJson,projectJson:projectJson,contextJson:contextJson};
 }
-function finishParsedResult(res,openedCount){
+function finishParsedResult(res,openedCount,jobId){
+  if(jobId!==undefined&&!analysisJobIsCurrent(jobId))return;
   res.filesOpened=safeCodexCount(openedCount);
   var n=Object.keys(res.by).length;
   if(!n||res.turns===0){
-    if(mode==="csv") showErr("TOP could not find recognized usage or cost columns with real values in that CSV. An Obsidian note is not a Console export. Choose an Anthropic Usage or Cost CSV.");
-    else if(mode==="cursor") showErr("TOP could not find recognized Cursor usage rows in that file. Sign in at cursor.com/dashboard in a web browser, open Usage, then download the CSV from the usage events table and choose that file. The export is on the Cursor website, not inside the Cursor editor.");
-    else if(mode==="copilot") showErr("TOP could not find recognized GitHub Copilot usage rows in that file. On github.com/settings/billing, open Usage and choose Get usage report, then choose the downloaded CSV here.");
-    else if(mode==="codex") showErr("TOP found no recorded token usage in those Codex session files. Some older or incomplete Codex sessions have no token_count records. TOP will not estimate usage from transcript text.");
-    else showErr("TOP could not find usage data for the source you chose. Try the matching Claude Code JSONL, Claude Chat conversations.json, or ChatGPT conversations.json file.");
+    if(mode==="csv") showErr("TOP could not find recognized usage or cost columns with real values in that CSV. An Obsidian note is not a Console export. Choose an Anthropic Usage or Cost CSV.",jobId);
+    else if(mode==="cursor") showErr("TOP could not find recognized Cursor usage rows in that file. Sign in at cursor.com/dashboard in a web browser, open Usage, then download the CSV from the usage events table and choose that file. The export is on the Cursor website, not inside the Cursor editor.",jobId);
+    else if(mode==="copilot") showErr("TOP could not find recognized GitHub Copilot usage rows in that file. On github.com/settings/billing, open Usage and choose Get usage report, then choose the downloaded CSV here.",jobId);
+    else if(mode==="codex") showErr("TOP found no recorded token usage in those Codex session files. Some older or incomplete Codex sessions have no token_count records. TOP will not estimate usage from transcript text.",jobId);
+    else showErr("TOP could not find usage data for the source you chose. Try the matching Claude Code JSONL, Claude Chat conversations.json, or ChatGPT conversations.json file.",jobId);
     return;
   }
   if(PILOT_MODE&&!res.pilotSafe){
@@ -4281,6 +4425,7 @@ function finishParsedResult(res,openedCount){
     pilotComplete(res);
   }
   render(res);
+  completeAnalysisProgress(jobId);
   var status=(AUTO_DETECTED_NOTE?AUTO_DETECTED_NOTE+" ":"")+"Report ready from "+fmtN(openedCount)+" file"+(openedCount===1?"":"s")+" opened only on this device.";
   if(res.codex&&res.coverage&&!res.coverage.complete) status+=" Some malformed, oversized or reset usage records were skipped, so coverage may be incomplete.";
   if(res.cursor&&res.unrecognizedFiles) status+=" "+fmtN(res.unrecognizedFiles)+" file"+(res.unrecognizedFiles===1?" was":"s were")+" skipped because the Cursor usage CSV header was not recognized.";
@@ -4292,24 +4437,35 @@ function finishParsedResult(res,openedCount){
   document.getElementById("fileStatus").textContent=status;if(PILOT_MODE)pilotStatus(status,"ok");AUTO_DETECTED_NOTE="";
   document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
-function readClaudeFiles(files){
-  var accumulator=createClaudeCodeAccumulator(),index=0,failed=0;
+function readClaudeFiles(files,jobId){
+  var accumulator=createClaudeCodeAccumulator(),index=0,failed=0,completedBytes=0;
   function next(){
-    if(index>=files.length){try{var result=accumulator.result();if(PILOT_MODE)result.pilotCoverage={files_discovered:files.length,files_parsed:files.length-failed,files_with_usage:files.length-failed,files_skipped:failed,malformed_lines:0,oversized_lines:0,counter_resets:0,duplicate_usage_records:0,complete:false};finishParsedResult(result,files.length-failed)}catch(err){showErr("TOP could not read those files: "+err.message+". Nothing was sent.")}return}
+    if(!analysisJobIsCurrent(jobId))return;
+    if(index>=files.length){
+      if(!analysisProgressBuilding(jobId))return;
+      setTimeout(function(){
+        if(!analysisJobIsCurrent(jobId))return;
+        try{var result=accumulator.result();if(PILOT_MODE)result.pilotCoverage={files_discovered:files.length,files_parsed:files.length-failed,files_with_usage:files.length-failed,files_skipped:failed,malformed_lines:0,oversized_lines:0,counter_resets:0,duplicate_usage_records:0,complete:false};finishParsedResult(result,files.length-failed,jobId)}catch(err){showErr("TOP could not read those files: "+err.message+". Nothing was sent.",jobId)}
+      },0);
+      return;
+    }
     var file=files[index],fileIndex=index,reader=new FileReader();index++;
-    reader.onload=function(){try{accumulator.addText(String(reader.result||""),fileIndex)}catch(err){failed++}document.getElementById("fileStatus").textContent="Reading Claude Code history on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.";if(PILOT_MODE&&index%25===0)pilotStatus("Reading Claude Code history on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.","ok");setTimeout(next,0)};
-    reader.onerror=function(){failed++;setTimeout(next,0)};
+    reader.onprogress=function(event){if(event.lengthComputable)analysisProgressSet(completedBytes+Math.min(event.loaded,file.size),fileIndex,"Reading Claude Code history: file "+fmtN(index)+" of "+fmtN(files.length)+".",null,jobId)};
+    reader.onload=function(){if(!analysisJobIsCurrent(jobId))return;try{accumulator.addText(String(reader.result||""),fileIndex)}catch(err){failed++}completedBytes+=Number(file.size||0);analysisProgressSet(completedBytes,index,"Read "+fmtN(index)+" of "+fmtN(files.length)+" Claude Code files.",null,jobId);document.getElementById("fileStatus").textContent="Reading Claude Code history on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.";if(PILOT_MODE&&index%25===0)pilotStatus("Reading Claude Code history on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.","ok");setTimeout(next,0)};
+    reader.onerror=function(){if(!analysisJobIsCurrent(jobId))return;failed++;completedBytes+=Number(file.size||0);analysisProgressSet(completedBytes,index,"Attempted "+fmtN(index)+" of "+fmtN(files.length)+" Claude Code files.",null,jobId);setTimeout(next,0)};
     reader.readAsText(file);
   }
   next();
 }
-function readTextFiles(files,done){
-  var texts=[],index=0,failed=0;
+function readTextFiles(files,done,jobId){
+  var texts=[],index=0,failed=0,completedBytes=0;
   function next(){
+    if(!analysisJobIsCurrent(jobId))return;
     if(index>=files.length){done(texts,failed);return}
-    var file=files[index],reader=new FileReader();index++;
-    reader.onload=function(){texts.push(String(reader.result||""));document.getElementById("fileStatus").textContent="Reading on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.";if(PILOT_MODE&&index%25===0)pilotStatus("Reading on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.","ok");setTimeout(next,0)};
-    reader.onerror=function(){failed++;setTimeout(next,0)};
+    var file=files[index],fileIndex=index,reader=new FileReader();index++;
+    reader.onprogress=function(event){if(event.lengthComputable)analysisProgressSet(completedBytes+Math.min(event.loaded,file.size),fileIndex,"Reading file "+fmtN(index)+" of "+fmtN(files.length)+" on this device.",null,jobId)};
+    reader.onload=function(){if(!analysisJobIsCurrent(jobId))return;texts.push(String(reader.result||""));completedBytes+=Number(file.size||0);analysisProgressSet(completedBytes,index,"Read "+fmtN(index)+" of "+fmtN(files.length)+" files on this device.",null,jobId);document.getElementById("fileStatus").textContent="Reading on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.";if(PILOT_MODE&&index%25===0)pilotStatus("Reading on this device: "+fmtN(index)+" of "+fmtN(files.length)+" files.","ok");setTimeout(next,0)};
+    reader.onerror=function(){if(!analysisJobIsCurrent(jobId))return;failed++;completedBytes+=Number(file.size||0);analysisProgressSet(completedBytes,index,"Attempted "+fmtN(index)+" of "+fmtN(files.length)+" files.",null,jobId);setTimeout(next,0)};
     reader.readAsText(file);
   }
   next();
@@ -4318,25 +4474,39 @@ function readBlobChunk(blob){
   if(blob.arrayBuffer) return blob.arrayBuffer();
   return new Promise(function(resolve,reject){var reader=new FileReader();reader.onload=function(){resolve(reader.result)};reader.onerror=function(){reject(reader.error||new Error("read failed"))};reader.readAsArrayBuffer(blob)});
 }
-async function streamCodexFile(file,fileIndex,accumulator){
+async function streamCodexFile(file,fileIndex,accumulator,completedBytes,totalFiles,jobId){
+  if(!analysisJobIsCurrent(jobId))return null;
   var state=accumulator.beginFile(fileIndex),decoder=new TextDecoder("utf-8"),collector=createBoundedLineCollector(function(line){accumulator.addLine(state,line)},accumulator.noteOversized,2*1024*1024),offset=0,chunkSize=1024*1024;
   try{
     while(offset<file.size){
+      if(!analysisJobIsCurrent(jobId))return null;
       var end=Math.min(file.size,offset+chunkSize),buffer=await readBlobChunk(file.slice(offset,end));
+      if(!analysisJobIsCurrent(jobId))return null;
       collector.push(decoder.decode(buffer,{stream:end<file.size}));offset=end;
+      analysisProgressSet(completedBytes+offset,fileIndex,"Reading Codex history: file "+fmtN(fileIndex+1)+" of "+fmtN(totalFiles)+", "+Math.round(100*offset/Math.max(file.size,1))+"% of this file.",null,jobId);
       document.getElementById("fileStatus").textContent="Reading Codex sessions on this device: file "+fmtN(fileIndex+1)+", "+Math.round(100*offset/Math.max(file.size,1))+"%.";if(PILOT_MODE)pilotStatus("Reading Codex sessions on this device: file "+fmtN(fileIndex+1)+", "+Math.round(100*offset/Math.max(file.size,1))+"%.","ok");
       await new Promise(function(resolve){setTimeout(resolve,0)});
     }
     collector.push(decoder.decode());collector.finish();accumulator.endFile(state,false);return true;
-  }catch(error){accumulator.endFile(state,true);return false}
+  }catch(error){if(analysisJobIsCurrent(jobId))accumulator.endFile(state,true);return false}
 }
-async function readCodexFiles(files){
-  var accumulator=createCodexAccumulator(),opened=0;
-  for(var index=0;index<files.length;index++){if(await streamCodexFile(files[index],index,accumulator))opened++}
-  try{finishParsedResult(accumulator.result(),opened)}catch(error){showErr("TOP could not read those Codex session files. Nothing was sent.")}
+async function readCodexFiles(files,jobId){
+  var accumulator=createCodexAccumulator(),opened=0,completedBytes=0;
+  for(var index=0;index<files.length;index++){
+    if(!analysisJobIsCurrent(jobId))return;
+    var readOk=await streamCodexFile(files[index],index,accumulator,completedBytes,files.length,jobId);
+    if(readOk===null||!analysisJobIsCurrent(jobId))return;
+    if(readOk)opened++;
+    completedBytes+=Number(files[index].size||0);analysisProgressSet(completedBytes,index+1,(readOk?"Read ":"Attempted ")+fmtN(index+1)+" of "+fmtN(files.length)+" Codex files.",null,jobId);
+  }
+  if(!analysisProgressBuilding(jobId))return;
+  await new Promise(function(resolve){setTimeout(resolve,0)});
+  if(!analysisJobIsCurrent(jobId))return;
+  try{finishParsedResult(accumulator.result(),opened,jobId)}catch(error){showErr("TOP could not read those Codex session files. Nothing was sent.",jobId)}
 }
 function handle(files,origin){
   document.getElementById("err").style.display="none";
+  resetAnalysisProgress();
   if(!files||!files.length){showErr("No files were chosen. Nothing was read or sent.");return}
   AUTO_DETECTED_NOTE="";
   var inferred=inferModeFromFileNames(files);
@@ -4365,30 +4535,35 @@ function handle(files,origin){
   var totalLimit=mode==="cc"?HISTORY_LIMITS.maxClaudeTotalBytes:(mode==="codex"?HISTORY_LIMITS.maxCodexTotalBytes:HISTORY_LIMITS.maxTotalBytes);
   if(checked.totalBytes>totalLimit){showErr("Those supported files are too large to open safely in one browser tab. Choose a smaller export or split the files into batches.");return}
   var skipped=checked.selected-checked.files.length;
+  var jobId=startAnalysisProgress(checked.files);
   document.getElementById("fileStatus").textContent="Opening "+fmtN(checked.files.length)+" supported file"+(checked.files.length===1?"":"s")+" on this device"+(skipped?" and skipping "+fmtN(skipped)+" unsupported file"+(skipped===1?"":"s")+".":".");
-  if(mode==="cc") readClaudeFiles(checked.files);
-  else if(mode==="codex") readCodexFiles(checked.files);
-  else readTextFiles(checked.files,function(texts,failed){if(failed===checked.files.length){showErr("TOP could not read the selected files. Nothing was sent.");return}run(texts,checked.files.length-failed)});
+  if(mode==="cc") readClaudeFiles(checked.files,jobId);
+  else if(mode==="codex") readCodexFiles(checked.files,jobId);
+  else readTextFiles(checked.files,function(texts,failed){if(!analysisJobIsCurrent(jobId))return;if(failed===checked.files.length){showErr("TOP could not read the selected files. Nothing was sent.",jobId);return}run(texts,checked.files.length-failed,jobId)},jobId);
 }
-function run(texts,openedCount){
-  try{
-    if(mode==="csv"||mode==="cursor"||mode==="copilot"){
-      var csvKind=detectUsageCsvKind(texts);
-      if(csvKind==="mixed"){showErr("That selection mixes different usage export formats. Choose one tool's export at a time so totals are not blended.");return}
-      if(csvKind==="cursor"&&mode!=="cursor")switchToDetectedMode("cursor");
-      if(csvKind==="copilot"&&mode!=="copilot")switchToDetectedMode("copilot");
-    }
-    var res;
-    if(mode==="cc") res=parseClaudeCode(texts);
-    else if(mode==="codex") res=parseCodex(texts);
-    else if(mode==="csv") res=parseCSV(texts);
-    else if(mode==="cursor") res=parseCursor(texts);
-    else if(mode==="copilot") res=parseCopilot(texts);
-    else if(mode==="chat") res=parseChat(texts);
-    else if(mode==="openai") res=parseOpenAI(texts);
-    else{showErr("Choose an AI history source before opening usage data.");return}
-    finishParsedResult(res,openedCount||texts.length);
-  }catch(err){showErr("TOP could not read that file: "+err.message+". Nothing was uploaded or sent. Try a different file or AI source.");}
+function run(texts,openedCount,jobId){
+  if(!analysisProgressBuilding(jobId))return;
+  setTimeout(function(){
+    if(!analysisJobIsCurrent(jobId))return;
+    try{
+      if(mode==="csv"||mode==="cursor"||mode==="copilot"){
+        var csvKind=detectUsageCsvKind(texts);
+        if(csvKind==="mixed"){showErr("That selection mixes different usage export formats. Choose one tool's export at a time so totals are not blended.",jobId);return}
+        if(csvKind==="cursor"&&mode!=="cursor")switchToDetectedMode("cursor");
+        if(csvKind==="copilot"&&mode!=="copilot")switchToDetectedMode("copilot");
+      }
+      var res;
+      if(mode==="cc") res=parseClaudeCode(texts);
+      else if(mode==="codex") res=parseCodex(texts);
+      else if(mode==="csv") res=parseCSV(texts);
+      else if(mode==="cursor") res=parseCursor(texts);
+      else if(mode==="copilot") res=parseCopilot(texts);
+      else if(mode==="chat") res=parseChat(texts);
+      else if(mode==="openai") res=parseOpenAI(texts);
+      else{showErr("Choose an AI history source before opening usage data.",jobId);return}
+      finishParsedResult(res,openedCount||texts.length,jobId);
+    }catch(err){showErr("TOP could not read that file: "+err.message+". Nothing was uploaded or sent. Try a different file or AI source.",jobId)}
+  },0);
 }
 var drop=document.getElementById("drop"),fileInput=document.getElementById("file"),historyFolderInput=document.getElementById("historyFolder"),historyFolderChoice=document.getElementById("historyFolderChoice");
 fileInput.addEventListener("change",function(){handle(takeChosenFiles(fileInput),"files")});
@@ -4600,7 +4775,7 @@ function researchMeasurement(result){
   if(result.cursor)return {token_basis:"exported_columns_where_present",cache_basis:"exported_columns_where_present",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export_as_billed_by_cursor":"recorded_where_present_then_checked_rates_for_recognized_missing_rows"};
   if(result.copilot)return {token_basis:"not_available_copilot_meters_prompts_and_credits",cache_basis:"not_available",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export_as_billed_by_github":"recorded_where_present_never_estimated"};
   if(result.csv)return {token_basis:"exported_columns_where_present",cache_basis:"exported_columns_where_present",reasoning_basis:"not_available",cost_basis:result.costComplete?"recorded_in_export":"recorded_where_present_then_checked_rates_for_recognized_missing_rows"};
-  return {token_basis:"recorded_usage_counters",cache_basis:"recorded_usage_counters",reasoning_basis:result.codex?"recorded_subset_of_output":"not_separately_available",cost_basis:"checked_pay_as_you_go_rate_comparison"};
+  return {token_basis:"recorded_usage_counters",cache_basis:"recorded_usage_counters",reasoning_basis:result.codex?"recorded_subset_of_output":"not_separately_available",cost_basis:result.codex?"not_available_in_local_codex_history":"checked_pay_as_you_go_rate_comparison"};
 }
 function researchCoverage(result,routeB){
   var coverage={status:"limited_to_current_parser_checks",files_opened:result.filesOpened===null||result.filesOpened===undefined?null:researchCount(result.filesOpened)};
@@ -4676,6 +4851,7 @@ function researchMoneyOrNull(value){return value===null||value===undefined?null:
 function researchCostRow(rawModel,entry,result){
   var model=strictResearchModelLabel(rawModel),key=model==="Unrecognized AI version"?null:priceKeyFor(model),cost=null,complete=false,status="unavailable",rateApplied=false;
   if(result.chatExport)return {model:model,key:null,cost:null,complete:false,status:status,rateApplied:false};
+  if(result.codex)return {model:model,key:null,cost:null,complete:false,status:"source_has_no_billed_cost",rateApplied:false};
   if(result.copilot){
     // Copilot rows without a billed amount stay unpriced: the export has no token counts to price.
     var billedRecorded=!!entry.costRows,billedMissing=!!entry.missingCostRows;
@@ -4727,10 +4903,10 @@ function buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,creat
   var totals=modelRows.reduce(function(out,row){out.input_tokens+=row.input_tokens;out.output_tokens+=row.output_tokens;if(row.cache_write_tokens!==null)out.cache_write_tokens+=row.cache_write_tokens;if(row.cache_read_tokens!==null)out.cache_read_tokens+=row.cache_read_tokens;if(row.reasoning_tokens!==null)out.reasoning_tokens+=row.reasoning_tokens;out.total_tokens+=row.total_tokens;return out},{input_tokens:0,output_tokens:0,cache_write_tokens:current.chatExport?null:0,cache_read_tokens:current.chatExport?null:0,reasoning_tokens:current.codex?0:null,total_tokens:0});
   var activity={ai_replies:null,usage_events:null,console_records:null,text_messages:null,sessions:current.csv?null:researchCount(current.sessions),active_days:current.pilotSafeSchemaVersion==="top.safe-usage.v2"?researchCount(current.days):(researchCount(current.days)||null)};
   if(current.codex||current.cursor||current.copilot)activity.usage_events=researchCount(current.turns);else if(current.csv)activity.console_records=researchCount(current.turns);else if(current.chatExport)activity.text_messages=researchCount(current.turns);else activity.ai_replies=researchCount(current.turns);
-  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.chatExport?"not_available":(current.copilot?(current.costComplete?"recorded_in_export":"recorded_where_present_never_estimated"):(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison")),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
+  var costStatus=mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.codex?"not_available_in_local_codex_history":(current.chatExport?"not_available":(current.copilot?(current.costComplete?"recorded_in_export":"recorded_where_present_never_estimated"):(current.csv?(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible"):"estimated_pay_as_you_go_comparison"))),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&!current.codex&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
   if(routeB&&valueModel.truth_status==="not_available")valueModel.reason="scenario_control_not_shown_for_this_route";
   appliedRates.forEach(function(rate){Object.keys(rate.field_provenance).forEach(function(field){var origin=rate.field_provenance[field];if(origin==="user_edited_in_tab"||origin==="derived_from_user_edited_input")editedFields++;else referenceFields++})});
-  if(current.chatExport)pricingStatus="not_applied";else if(current.csv&&current.costComplete)pricingStatus="not_needed_recorded_cost";else if(!appliedRates.length)pricingStatus="not_applied_no_recognized_rate";else if(editedFields&&referenceFields)pricingStatus=allComplete?"mixed_checked_and_user_edited_rates":"partially_applied_mixed_rate_provenance";else if(editedFields)pricingStatus=allComplete?"user_edited_in_tab":"partially_applied_user_edited_rates";else pricingStatus=allComplete?"checked_reference_rates":"partially_applied_checked_rates";
+  if(current.codex)pricingStatus="not_applied_source_has_no_billed_cost";else if(current.chatExport)pricingStatus="not_applied";else if(current.csv&&current.costComplete)pricingStatus="not_needed_recorded_cost";else if(!appliedRates.length)pricingStatus="not_applied_no_recognized_rate";else if(editedFields&&referenceFields)pricingStatus=allComplete?"mixed_checked_and_user_edited_rates":"partially_applied_mixed_rate_provenance";else if(editedFields)pricingStatus=allComplete?"user_edited_in_tab":"partially_applied_user_edited_rates";else pricingStatus=allComplete?"checked_reference_rates":"partially_applied_checked_rates";
   var output={schema_version:RESEARCH_SCHEMA_VERSION,collector:{collector_version:current.pilotCollectorVersion||RESEARCH_COLLECTOR_VERSION,parser_version:current.pilotParserVersion||RESEARCH_PARSER_VERSION},generated_date:researchDateOnly(createdDate),source:researchSource(current,routeB),measurement:researchMeasurement(current),scope:{selection:"supported_records_in_user_selected_local_data",full_account_or_subscription_claim:false,original_source_content_included:false},coverage:researchCoverage(current,routeB),totals:totals,activity:activity,cost:{status:costStatus,usd:anyCost?researchMoney(totalCost):null,basis:costBasis,currency:"USD",subscription_bill:false},pricing:{status:pricingStatus,reference_checked_date:PRICING_CHECKED_DATE,unit:"usd_per_million_tokens",applied_rates:appliedRates,unpriced_model_groups:modelRows.filter(function(row){return row.cost.status==="unavailable"}).length},permission_mode_counts:routeB&&routeB.res?safePermissionModeCounts(routeB.res.perm):null,by_model:modelRows,questionnaire:safeResearchQuestionnaire(questionnaire),value_model:valueModel,privacy:{network_delivery:"none",inspect_before_attaching:true,excluded:["prompts","replies","code","tool_output","paths","filenames","project_and_account_identifiers","email_addresses","exact_timestamps","original_ids"]}},v2=researchCopyV2Sections(current,totals,activity);
   if(v2){output.schema_version=RESEARCH_SCHEMA_VERSION_V2;output.timeline=v2.timeline;output.session_distributions=v2.session_distributions;output.workflow_shape=v2.workflow_shape}
   return output;
@@ -4994,6 +5170,7 @@ document.getElementById("dljsonb").addEventListener("click",function(){ if(ROUTE
 renderSteps("cc");
 setJourney(.08,"Sunrise: tell us what you want to improve.");
 initPilot();
+initDirectStart();
 </script>
 <script src="../assets/analyzer-water.js" defer></script>
 </body>

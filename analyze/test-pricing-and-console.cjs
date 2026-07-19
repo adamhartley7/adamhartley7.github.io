@@ -21,14 +21,18 @@ const cases = [
   ["claude-opus-4-8", "opusNew", 5, 25],
   ["claude-opus-4-1", "opusOld", 15, 75],
   ["claude-3-opus-20240229", "opusOld", 15, 75],
+  ["anthropic/claude-3-opus-20240229", "opusOld", 15, 75],
   ["claude-sonnet-5", "sonnet5", 2, 10],
+  ["anthropic/claude-5-sonnet-20260717", "sonnet5", 2, 10],
   ["claude-sonnet-4-6", "sonnet4", 3, 15],
   ["claude-3-5-sonnet-20241022", "sonnet4", 3, 15],
   ["claude-haiku-4-5", "haiku45", 1, 5],
   ["claude-3-5-haiku", "haiku35", 0.8, 4],
   ["claude-fable-5", "fable5", 10, 50],
   ["gpt-5.6-sol", "gpt56sol", 5, 30],
+  ["openai/gpt-5.6-sol", "gpt56sol", 5, 30],
   ["gpt-5.6-terra", "gpt56terra", 2.5, 15],
+  ["openai/gpt-5.6-terra", "gpt56terra", 2.5, 15],
   ["gpt-5.6-luna", "gpt56luna", 1, 6],
 ];
 
@@ -48,6 +52,17 @@ for (const model of [
   "claude-opus-4-80",
   "claude-opus-4-9",
   "claude-sonnet-4-9",
+  "vendor/claude-5-sonnet-20260717",
+  "synthetic-claude-sonnet-5",
+  "not-a-model/claude-opus-4-8",
+  "anthropic/other/claude-sonnet-5",
+  "anthropic/gpt-5.6-sol",
+  "vendor/gpt-5.6-sol",
+  "synthetic-gpt-5.6-terra",
+  "gemini-gpt-5.6-sol",
+  "not-a-model/gpt-5.6-luna",
+  "openai/claude-sonnet-5",
+  "claude-sonnet-5/gpt-5.6-sol",
 ]) {
   assert.equal(context.priceFor(model), null, `${model} must not inherit a nearby model's price`);
 }
@@ -112,6 +127,18 @@ assert.equal(context.tierOf("gpt-5.6-luna"), "cheap");
   }, { csv: true, chatExport: false });
   assert.equal(resolved.cost, 0.02,
     "a known recorded amount must survive when another row for that model cannot be priced");
+  assert.equal(resolved.complete, false);
+}
+
+{
+  const resolved = context.resolveCostRow("gpt-5.6-sol", {
+    inp: 1_432_000_000,
+    cr: 38_056_000_000,
+    cw: 0,
+    out: 129_550_000,
+  }, { codex: true, chatExport: false });
+  assert.equal(resolved.cost, null, "Codex token counters must never be presented as an actual dollar charge");
+  assert.equal(resolved.key, null, "Codex reports must not attach an API rate card to actual-cost output");
   assert.equal(resolved.complete, false);
 }
 

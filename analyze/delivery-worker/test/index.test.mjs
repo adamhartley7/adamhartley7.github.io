@@ -388,8 +388,10 @@ function v2CodexReportFixture() {
     token_basis: "recorded_usage_counters",
     cache_basis: "recorded_usage_counters",
     reasoning_basis: "recorded_subset_of_output",
-    cost_basis: "checked_pay_as_you_go_rate_comparison",
+    cost_basis: "not_available_in_local_codex_history",
   };
+  report.cost.basis = "not_available_in_local_codex_history";
+  report.pricing.status = "not_applied_source_has_no_billed_cost";
   report.activity.ai_replies = null;
   report.activity.usage_events = 2;
   report.totals.reasoning_tokens = 1;
@@ -627,6 +629,26 @@ test("strict v2 Claude Code and Codex fixtures validate without weakening v1", (
   const v1WithV2Field = reportFixture();
   v1WithV2Field.timeline = v2ReportFixture().timeline;
   assert.throws(() => validateResearchSafeUsage(v1WithV2Field), /unsupported or missing fields/i);
+});
+
+test("Codex history cannot claim billed dollars or applied API pricing", () => {
+  const falseBasis = v2CodexReportFixture();
+  falseBasis.cost.basis = "estimated_pay_as_you_go_comparison";
+  assert.throws(() => validateResearchSafeUsage(falseBasis), /cannot claim billed dollars or an applied API rate/i);
+
+  const falsePricing = v2CodexReportFixture();
+  falsePricing.pricing.status = "checked_reference_rates";
+  assert.throws(() => validateResearchSafeUsage(falsePricing), /cannot claim billed dollars or an applied API rate/i);
+});
+
+test("non-Codex sources cannot use Codex-only cost provenance", () => {
+  const falseClaudeBasis = reportFixture();
+  falseClaudeBasis.cost.basis = "not_available_in_local_codex_history";
+  assert.throws(() => validateResearchSafeUsage(falseClaudeBasis), /Codex-only cost provenance cannot be used for another source/i);
+
+  const falseClaudePricing = reportFixture();
+  falseClaudePricing.pricing.status = "not_applied_source_has_no_billed_cost";
+  assert.throws(() => validateResearchSafeUsage(falseClaudePricing), /Codex-only cost provenance cannot be used for another source/i);
 });
 
 test("vetted collector v2 aggregate maps to the strict research-safe v2 contract", () => {
