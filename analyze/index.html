@@ -1333,11 +1333,13 @@ var PRICES = {
 var CACHE_WRITE_MULTIPLIER=1.25;
 var CACHE_READ_MULTIPLIER=.1;
 function priceKeyFor(model){
-  var m=(model||"").toLowerCase().trim().replace(/[_.]/g,"-").replace(/-+/g,"-");
-  var claudeAt=m.lastIndexOf("claude-");
-  var gptAt=m.lastIndexOf("gpt-");
-  if(claudeAt>=0) m=m.slice(claudeAt);
-  else if(gptAt>=0) m=m.slice(gptAt);
+  var m=(model||"").toLowerCase().trim();
+  // Accept only native model IDs or each provider's explicit namespace.
+  // Never strip arbitrary prefixes: synthetic-claude-sonnet-5 is not a known model ID.
+  if(m.indexOf("anthropic/claude-")===0) m=m.slice("anthropic/".length);
+  else if(m.indexOf("openai/gpt-")===0) m=m.slice("openai/".length);
+  else if(m.indexOf("claude-")!==0&&m.indexOf("gpt-")!==0) return null;
+  m=m.replace(/[_.]/g,"-").replace(/-+/g,"-");
   m=m.replace(/-\d{8}$/," ").trim();
   if(/^claude-(?:fable-5|5-fable)$/.test(m)) return "fable5";
   if(/^claude-(?:opus-4-[5-8]|4-[5-8]-opus)$/.test(m)) return "opusNew";
