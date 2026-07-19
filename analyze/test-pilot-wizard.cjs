@@ -11,17 +11,35 @@ assert.match(html, /id="pilotFlow" hidden/);
 assert.match(html, /class="resonance-step" id="resonanceStep"/);
 assert.match(html, /\.pilot-mode #resonanceStep[^}]*#providerStep[^}]*#routechooser[^}]*#obsidianPanel/);
 
-// Two decisions only, with the AI-assisted route first and folder escape second.
+// One decision, then the per-source preparation panel for that decision.
 // Sources: Claude Code, Codex, the Cursor CSV export, and the Copilot usage report.
 assert.equal((html.match(/data-pilot-source=/g) || []).length, 4);
 assert.match(html, /data-pilot-source="cursor"/);
 assert.match(html, /data-pilot-source="copilot"/);
 assert.match(html, /id="pilotCursorFile" accept="\.csv"/);
 assert.match(html, /id="pilotCopilotFile" accept="\.csv,\.json"/);
-assert.equal((html.match(/data-pilot-method=/g) || []).length, 2);
-assert.ok(html.indexOf('data-pilot-method="agent"') < html.indexOf('data-pilot-method="folder"'));
-assert.match(html, /Choice 1 of 2/);
-assert.match(html, /Choice 2 of 2/);
+assert.match(html, /Step 1 of 2/);
+assert.match(html, /Step 2 of 2/);
+
+// The "let my AI prepare one safe file" route is withdrawn from the interface.
+// It was refused in the field on 2026-07-17 by the very agents it depended on, so it
+// was a guaranteed dead end rather than a broken feature worth repairing. These
+// assertions replace the ones that used to pin the route in place, and they now fail
+// if any part of it is reintroduced to the UI.
+assert.equal((html.match(/data-pilot-method=/g) || []).length, 0,
+  "the agent-versus-folder method choice must not return");
+assert.doesNotMatch(html, /id="pilotAgentPanel"/, "the agent prompt panel must not return");
+assert.doesNotMatch(html, /id="pilotAgentPrompt"/);
+assert.doesNotMatch(html, /id="pilotCopyPrompt"/);
+assert.doesNotMatch(html, /id="pilotSafeFile"/,
+  "the safe-file upload input was the only entry to the withdrawn route");
+assert.doesNotMatch(html, /Let My AI Prepare One Safe File/);
+assert.doesNotMatch(html, /function pilotChooseMethod/);
+// No listener may bind an element the markup no longer contains.
+for (const goneId of ["pilotMethodChoices", "pilotAgentPanel", "pilotAgentPrompt", "pilotCopyPrompt", "pilotSafeFile", "pilotSafeFileLabel"]) {
+  assert.ok(html.indexOf(`getElementById("${goneId}")`) < 0,
+    `${goneId} is removed from the markup, so nothing may still reference it`);
+}
 assert.match(html, /id="pilotBackToSource"/);
 assert.match(html, /Complete this analysis on the computer that holds your Claude Code or Codex history/);
 assert.match(html, /Using Claude Chat, ChatGPT, Claude Console, or Obsidian\?/);
@@ -34,6 +52,11 @@ assert.match(html, /PILOT_COLLECTOR_VERSION="top\.local-collector\.2026-07-16\.2
 assert.match(html, /--schema v2/);
 assert.doesNotMatch(html, /COLLECTOR_(?:SHA256|VERSION)_PLACEHOLDER/);
 
+// pilotPromptFor is retained but is no longer reachable from any UI control: the
+// route it served was withdrawn (see above), and it is kept only because the
+// collector on disk and the validator slice below are still exercised. If it is ever
+// wired to a control again, the wording below is the wording it must keep.
+//
 // The prompt must be one an aligned agent can safely accept. A prompt that gags the
 // agent, or tells it to withhold detail from its own user, reads as an injection
 // attack and gets refused. It got refused in the field on 2026-07-17. So the prompt
@@ -46,10 +69,12 @@ assert.match(html, /be skeptical/);
 assert.doesNotMatch(html, /Do not print, quote, summarize/);
 assert.doesNotMatch(html, /return only the generated TOP filename/);
 assert.doesNotMatch(html, /without its full path/);
-assert.match(html, /id="pilotSafeFile" accept="\.json,application\/json"/);
-assert.doesNotMatch(html, /id="pilotSafeFile"[^>]*multiple/);
-assert.match(html, /small, content-free aggregate file/);
-assert.match(html, /create one content-free aggregate file/);
+// The three assertions that stood here pinned UI copy belonging to the withdrawn
+// route: the safe-file input, the "small, content-free aggregate file" step lead, and
+// the agent panel's "create one content-free aggregate file" blurb. All three strings
+// are gone from the markup with the route; absence is asserted above instead.
+assert.match(html, /ONE small JSON of aggregate numbers/,
+  "the retained collector prompt must still describe a content-free aggregate");
 
 // Folder fallback preselects a source, exposes the exact paths, copies, then opens
 // the existing read-only folder input from the same deliberate button action.
