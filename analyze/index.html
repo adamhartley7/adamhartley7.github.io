@@ -3884,7 +3884,7 @@ function render(res){
     document.getElementById("pilotValueCost").textContent=res.codex?"Not available from Codex history":(included
       ?(included.exact!==null?"Ready: ":"Range: ")+costText+" at API prices, nothing charged by Cursor"
       :(pricedTotal>0
-      ?(unpriced.length?"Partial: "+costText+" for models TOP could price":"Ready: "+costText+" across all models")
+      ?((unpriced.length||pricedRows.length<rows.length)?"Partial: "+costText+" for models TOP could price":"Ready: "+costText+" across all models")
       :"Not available from this file"));
     renderPilotPatterns(res);
     // Charts are redrawn from the same token counts on every render, including the re-render a price
