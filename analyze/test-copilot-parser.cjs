@@ -21,22 +21,22 @@ const DAILY_HEADER = "date,username,model,quantity,exceeds_quota,total_monthly_q
 const CONSOLE_CSV = "model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,100,10,0.01";
 const CURSOR_CSV = "Date,Kind,Model,Max Mode,Input (w/ Cache Write),Input (w/o Cache Write),Cache Read,Output Tokens,Total Tokens,Cost\n2026-07-10T09:00:00.000Z,On-Demand,composer-1,No,100,80,10,20,110,0.10";
 
-// Modern AI usage report: premium requests and AI credits, an unknown SKU, an unknown model,
-// and a fractional multiplier-weighted request quantity.
+// Modern AI usage report: premium requests and AI credits, an unknown SKU,
+// and a fractional multiplier-weighted request quantity. Unknown-model retention is pinned by
+// the dedicated never-zero contract so this general parser fixture does not assert the old drop behavior.
 const billing = context.parseCopilot([[
   BILLING_HEADER,
   `2026-06-02,copilot,copilot_premium_request,12,requests,0.04,0.48,0.08,0.40,${PRIVATE}-org,${PRIVATE}-center,"Claude Sonnet 4.5",${PRIVATE}-user`,
   `2026-06-02,copilot,copilot_ai_credit,250.5,ai-credits,0.01,2.505,0,2.505,${PRIVATE}-org,${PRIVATE}-center,Claude Opus 4.6,${PRIVATE}-user`,
   `2026-06-03,copilot,coding_agent_ai_credit,40,ai-credits,0.01,0.4,0,0.4,${PRIVATE}-org,${PRIVATE}-center,GPT-5.2,${PRIVATE}-user`,
   `2026-06-03,copilot,copilot_mystery_thing,5,ai-credits,0.01,0.05,0,0.05,${PRIVATE}-org,${PRIVATE}-center,Claude Opus 4.6,${PRIVATE}-user`,
-  `2026-06-03,copilot,copilot_ai_credit,5,ai-credits,0.01,0.05,0,0.05,${PRIVATE}-org,${PRIVATE}-center,totally-unknown-model,${PRIVATE}-user`,
   `2026-06-04,copilot,copilot_premium_request,0.25,requests,0.04,0.01,0,0.01,${PRIVATE}-org,${PRIVATE}-center,"Gemini 2.0 Flash",${PRIVATE}-user`,
 ].join("\n")]);
 assert.equal(billing.kind, "GitHub Copilot usage report");
 assert.equal(billing.copilot, true);
 assert.equal(billing.csv, true);
 assert.equal(billing.topSource, "copilot");
-assert.equal(billing.turns, 4, "the unknown-SKU and unknown-model rows must be excluded from counted usage records");
+assert.equal(billing.turns, 4, "the unknown-SKU row must be excluded from counted usage records");
 assert.equal(billing.days, 3);
 assert.equal(billing.estimate, false, "Copilot dollars are recorded billed amounts, never an estimate");
 assert.equal(billing.costComplete, true);
@@ -60,9 +60,9 @@ assert.deepEqual(
 );
 assert.equal(billing.credits, 290.5);
 assert.equal(billing.requests, 12.25);
-assert.equal(billing.excludedRows, 2);
+assert.equal(billing.excludedRows, 1);
 assert.deepEqual({ ...billing.excludedSkus }, { copilot_mystery_thing: 1 }, "unknown SKUs must be excluded and named, never guessed");
-assert.deepEqual({ ...billing.excludedModels }, { "totally-unknown-model": 1 }, "unknown models must be excluded and named, never priced");
+assert.deepEqual({ ...billing.excludedModels }, {});
 assert.equal(billing.coverage.complete, false, "excluded rows must fail the coverage-complete claim");
 assert.doesNotMatch(JSON.stringify(billing), new RegExp(PRIVATE), "organization, cost center and username columns must never reach the parsed result");
 
@@ -130,21 +130,16 @@ assert.deepEqual(
 assert.deepEqual({ ...api.excludedSkus }, { "Copilot Mystery Credits": 1 }, "unknown API SKUs must be excluded and named");
 assert.doesNotMatch(JSON.stringify(api), new RegExp(PRIVATE), "the API user field must never reach the parsed result");
 
-// Hostile labels are sanitized before being named, and dangerous keys stay safe.
-const hostile = context.parseCopilot([[
+// An unsafe unknown SKU remains excluded and sanitized. Unknown-model retention is a separate transition
+// contract at the end of this file because model usage must remain visible after its label is made safe.
+const hostileSku = context.parseCopilot([[
   BILLING_HEADER,
-  "2026-06-05,copilot,copilot_ai_credit,1,ai-credits,0.01,0.01,0,0.01,org,cc,<img src=x onerror=alert(1)>,user",
-  "2026-06-05,copilot,copilot_ai_credit,1,ai-credits,0.01,0.01,0,0.01,org,cc,__proto__,user",
-  "2026-06-05,copilot,copilot_ai_credit,1,ai-credits,0.01,0.01,0,0.01,org,cc,constructor,user",
   "2026-06-05,copilot,<script>alert(1)</script>,1,ai-credits,0.01,0.01,0,0.01,org,cc,Claude Haiku 4.5,user",
 ].join("\n")]);
-assert.equal(hostile.turns, 0);
-assert.equal(hostile.excludedRows, 4);
-assert.deepEqual(Object.keys(hostile.by), []);
-assert.ok(Object.keys(hostile.excludedModels).every(name => !/[<>\\/]/.test(name)), "excluded model names must not carry HTML or path characters");
-assert.ok(Object.keys(hostile.excludedSkus).every(name => !/[<>\\/]/.test(name)), "excluded SKU names must not carry HTML or path characters");
-assert.equal(hostile.excludedModels["__proto__"], 1);
-assert.equal(hostile.excludedModels["constructor"], 1);
+assert.equal(hostileSku.turns, 0);
+assert.equal(hostileSku.excludedRows, 1);
+assert.deepEqual(Object.keys(hostileSku.by), []);
+assert.ok(Object.keys(hostileSku.excludedSkus).every(name => !/[<>\\/]/.test(name)), "excluded SKU names must not carry HTML or path characters");
 
 // Model recognition is exact: routed and display names pass, everything else is excluded.
 assert.equal(context.copilotRecognizedModel("Claude Sonnet 4.5"), true);
@@ -185,5 +180,36 @@ assert.equal(context.detectUsageCsvKind([CURSOR_CSV]), "cursor");
 assert.equal(context.detectUsageCsvKind([CONSOLE_CSV]), "");
 assert.equal(context.detectUsageCsvKind([fileA, CURSOR_CSV]), "mixed");
 assert.equal(context.detectUsageCsvKind([fileA, CONSOLE_CSV]), "mixed");
+
+// Founder transition contracts. These replace the old model-drop assertions with stronger requirements
+// in the same parser regression: hostile labels are made safe without losing usage, and a safe unknown
+// label keeps requests or credits but never receives a guessed cost.
+const retainedHostile = context.parseCopilot([[
+  BILLING_HEADER,
+  "2026-06-05,copilot,copilot_ai_credit,1,ai-credits,0.01,0.01,0,0.01,org,cc,<img src=x onerror=alert(1)>,user",
+  "2026-06-05,copilot,copilot_ai_credit,1,ai-credits,0.01,0.01,0,0.01,org,cc,__proto__,user",
+  "2026-06-05,copilot,copilot_ai_credit,1,ai-credits,0.01,0.01,0,0.01,org,cc,constructor,user",
+].join("\n")]);
+assert.equal(retainedHostile.turns, 3, "hostile unknown labels must not erase their Copilot usage records");
+assert.equal(Object.values(retainedHostile.by).reduce((total, entry) => total + entry.requests + entry.credits, 0), 3,
+  "all source-native usage from hostile unknown labels must remain visible");
+assert.ok(Object.keys(retainedHostile.by).length > 0, "hostile labels must reach a safe unpriced bucket");
+assert.ok(Object.keys(retainedHostile.by).every((name) => !/[<>\\/]/.test(name) && name !== "__proto__" && name !== "constructor"),
+  "hostile model text and prototype keys must never become report keys");
+assert.ok(Object.values(retainedHostile.by).every((entry) => entry.costRows === 0 && entry.missingCostRows > 0),
+  "hostile unknown labels must remain unpriced rather than keeping a recorded or guessed zero");
+
+const retainedUnknown = context.parseCopilot([[
+  BILLING_HEADER,
+  "2026-07-19,copilot,copilot_ai_credit,5,ai-credits,,,,,synthetic-org,synthetic-center,totally-unknown-model,synthetic-user",
+].join("\n")]);
+assert.equal(retainedUnknown.turns, 1, "a safe unknown-model row must remain in counted Copilot usage records");
+assert.deepEqual(
+  modelRow(retainedUnknown.by["totally-unknown-model"]),
+  { inp: 0, out: 0, cw: 0, cr: 0, turns: 1, cost: 0, costRows: 0, missingCostRows: 1, missing: { inp: 0, out: 0, cw: 0, cr: 0 }, credits: 5, requests: 0 },
+  "unknown-model credits must remain visible without a guessed or false-zero cost",
+);
+assert.equal(retainedUnknown.excludedRows, 0, "a safe unknown label is unpriceable, not disposable");
+assert.equal(retainedUnknown.costComplete, false, "unknown billed cost must remain incomplete");
 
 console.log("TOP Analyzer Copilot parser regression tests passed");

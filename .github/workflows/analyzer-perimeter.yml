@@ -46,6 +46,9 @@ jobs:
         run: |
           $files = @(
             "analyze/test-clean-machine-collector-prerequisite.cjs",
+            "analyze/test-copilot-parser.cjs",
+            "analyze/test-cursor-parser.cjs",
+            "analyze/test-guided-acquisition-contracts.cjs",
             "analyze/test-never-zero-render.cjs",
             "analyze/test-no-network-ever.cjs",
             "analyze/test-pilot-collector-pin.cjs",
@@ -65,6 +68,9 @@ jobs:
         run: |
           $excluded = @(
             "test-clean-machine-collector-prerequisite.cjs",
+            "test-copilot-parser.cjs",
+            "test-cursor-parser.cjs",
+            "test-guided-acquisition-contracts.cjs",
             "test-never-zero-render.cjs",
             "test-no-network-ever.cjs",
             "test-pilot-collector-pin.cjs",
@@ -84,7 +90,7 @@ jobs:
           node --test $files
       - name: Run delivery worker regressions
         working-directory: analyze/delivery-worker
-        run: node --test test/*.test.mjs
+        run: npm test
       - name: Run collector suites
         shell: pwsh
         run: |
@@ -105,6 +111,9 @@ jobs:
         run: >-
           node --test
           analyze/test-clean-machine-collector-prerequisite.cjs
+          analyze/test-copilot-parser.cjs
+          analyze/test-cursor-parser.cjs
+          analyze/test-guided-acquisition-contracts.cjs
           analyze/test-never-zero-render.cjs
           analyze/test-no-network-ever.cjs
           analyze/test-pilot-collector-pin.cjs

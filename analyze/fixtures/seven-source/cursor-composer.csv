@@ -1,0 +1,2 @@
+Date,Kind,Model,Max Mode,Input (w/ Cache Write),Input (w/o Cache Write),Cache Read,Output Tokens,Total Tokens,Cost
+2026-07-19T12:30:00.000Z,On-Demand,composer-1,No,120,100,30,20,170,0.05

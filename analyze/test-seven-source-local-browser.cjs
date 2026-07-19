@@ -25,6 +25,8 @@ const { spawn } = require("node:child_process");
 const { pathToFileURL } = require("node:url");
 
 const PAGE_PATH = path.join(__dirname, "index.html");
+const FIXTURE_ROOT = path.join(__dirname, "fixtures", "seven-source");
+const FIXTURE_MANIFEST = JSON.parse(fs.readFileSync(path.join(FIXTURE_ROOT, "manifest.json"), "utf8"));
 const WAIT_STEP_MS = 50;
 const WAIT_ATTEMPTS = 300;
 
@@ -32,31 +34,12 @@ if (typeof WebSocket !== "function") {
   throw new Error("This browser test requires Node.js 22 or newer for its built-in WebSocket client");
 }
 
-function jsonLine(value) {
-  return JSON.stringify(value);
-}
-
 const CASES = [
   {
     name: "Claude Code file input reaches the rendered local report",
     mode: "cc",
     fileName: "synthetic-claude-code.jsonl",
-    content: jsonLine({
-      type: "assistant",
-      sessionId: "synthetic-session-claude-code",
-      timestamp: "2026-07-19T10:00:00Z",
-      requestId: "synthetic-request-claude-code",
-      message: {
-        id: "synthetic-message-claude-code",
-        model: "claude-opus-4-8",
-        usage: {
-          input_tokens: 100,
-          output_tokens: 20,
-          cache_creation_input_tokens: 10,
-          cache_read_input_tokens: 30,
-        },
-      },
-    }),
+    fixtureFile: "claude-code.jsonl",
     expectedKind: "Claude Code",
     expectedFlags: { codex: false, cursor: false, copilot: false, chatProvider: "", topSource: "" },
     evidence: [
@@ -72,14 +55,7 @@ const CASES = [
     mode: "chat",
     query: "?start=chat",
     fileName: "conversations.json",
-    content: JSON.stringify([{
-      uuid: "synthetic-claude-chat-conversation",
-      name: "Synthetic Claude Chat conversation",
-      chat_messages: [
-        { sender: "human", text: "12345678" },
-        { sender: "assistant", text: "123456789012" },
-      ],
-    }]),
+    fixtureFile: "claude-chat.json",
     expectedKind: "Claude Chat conversation export",
     expectedFlags: { codex: false, cursor: false, copilot: false, chatProvider: "Claude Chat", topSource: "" },
     evidence: [
@@ -95,36 +71,7 @@ const CASES = [
     mode: "openai",
     query: "?start=openai",
     fileName: "conversations.json",
-    content: JSON.stringify([{
-      id: "synthetic-chatgpt-conversation",
-      title: "Synthetic ChatGPT conversation",
-      create_time: 1784455200,
-      default_model_slug: "gpt-5.6-sol",
-      mapping: {
-        root: { id: "root", parent: null, children: ["user"], message: null },
-        user: {
-          id: "user",
-          parent: "root",
-          children: ["assistant"],
-          message: {
-            author: { role: "user" },
-            create_time: 1784455200,
-            content: { content_type: "text", parts: ["12345678"] },
-          },
-        },
-        assistant: {
-          id: "assistant",
-          parent: "user",
-          children: [],
-          message: {
-            author: { role: "assistant" },
-            create_time: 1784455260,
-            content: { content_type: "text", parts: ["123456789012"] },
-            metadata: { model_slug: "gpt-5.6-sol" },
-          },
-        },
-      },
-    }]),
+    fixtureFile: "chatgpt.json",
     expectedKind: "ChatGPT conversation export",
     expectedFlags: { codex: false, cursor: false, copilot: false, chatProvider: "ChatGPT", topSource: "" },
     evidence: [
@@ -139,44 +86,13 @@ const CASES = [
     name: "Codex rollout file input reaches the rendered local report",
     mode: "codex",
     fileName: "rollout-synthetic-codex.jsonl",
-    content: [
-      jsonLine({
-        timestamp: "2026-07-19T11:00:00Z",
-        type: "turn_context",
-        payload: { model: "gpt-5.6-sol" },
-      }),
-      jsonLine({
-        timestamp: "2026-07-19T11:00:01Z",
-        type: "event_msg",
-        payload: {
-          type: "token_count",
-          info: {
-            total_token_usage: {
-              input_tokens: 100,
-              cached_input_tokens: 20,
-              output_tokens: 30,
-              reasoning_output_tokens: 5,
-              total_tokens: 130,
-            },
-            last_token_usage: {
-              input_tokens: 100,
-              cached_input_tokens: 20,
-              output_tokens: 30,
-              reasoning_output_tokens: 5,
-              total_tokens: 130,
-            },
-          },
-        },
-      }),
-    ].join("\n"),
+    fixtureFile: "codex.jsonl",
     expectedKind: "Codex local session logs",
     expectedFlags: { codex: true, cursor: false, copilot: false, chatProvider: "", topSource: "" },
     evidence: [
       ["reportScope", /recorded token counters found in the selected Codex files/i],
       ["cards", /130 tokens/i],
-      ["cards", /Not in these files/i],
-      ["modelTable", /gpt-5\.6-sol/i],
-      ["modelTable", /Not in files/i],
+      ["modelTable", /gpt-5\.6-sol[\s\S]*80[\s\S]*30/i],
       ["summary", /Where this came from: Codex local session logs\./i],
       ["summary", /Total AI usage: 130 tokens\./i],
     ],
@@ -185,10 +101,7 @@ const CASES = [
     name: "Cursor usage CSV reaches the rendered local report",
     mode: "cursor",
     fileName: "synthetic-cursor-usage.csv",
-    content: [
-      "Date,Kind,Model,Max Mode,Input (w/ Cache Write),Input (w/o Cache Write),Cache Read,Output Tokens,Total Tokens,Cost",
-      "2026-07-19T12:00:00.000Z,On-Demand,claude-4.5-sonnet,No,120,100,30,20,170,1.25",
-    ].join("\n"),
+    fixtureFile: "cursor.csv",
     expectedKind: "Cursor usage CSV",
     expectedFlags: { codex: false, cursor: true, copilot: false, chatProvider: "", topSource: "cursor" },
     evidence: [
@@ -205,10 +118,7 @@ const CASES = [
     name: "Cursor Composer CSV reaches the rendered Composer breakdown",
     mode: "cursor",
     fileName: "synthetic-cursor-composer-usage.csv",
-    content: [
-      "Date,Kind,Model,Max Mode,Input (w/ Cache Write),Input (w/o Cache Write),Cache Read,Output Tokens,Total Tokens,Cost",
-      "2026-07-19T12:30:00.000Z,On-Demand,composer-1,No,120,100,30,20,170,0.05",
-    ].join("\n"),
+    fixtureFile: "cursor-composer.csv",
     expectedKind: "Cursor usage CSV",
     expectedFlags: { codex: false, cursor: true, copilot: false, chatProvider: "", topSource: "cursor" },
     evidence: [
@@ -225,11 +135,7 @@ const CASES = [
     name: "GitHub Copilot usage CSV reaches the rendered metering report",
     mode: "copilot",
     fileName: "synthetic-github-copilot-usage.csv",
-    content: [
-      "date,product,sku,quantity,unit_type,applied_cost_per_quantity,gross_amount,discount_amount,net_amount,organization,cost_center_name,model,username",
-      "2026-07-19,copilot,copilot_premium_request,12,requests,0.04,0.48,0.08,0.40,synthetic-org,synthetic-center,Claude Sonnet 4.5,synthetic-user",
-      "2026-07-19,copilot,copilot_ai_credit,25,ai-credits,0.01,0.25,0,0.25,synthetic-org,synthetic-center,Claude Sonnet 4.5,synthetic-user",
-    ].join("\n"),
+    fixtureFile: "github-copilot.csv",
     expectedKind: "GitHub Copilot usage report",
     expectedFlags: { codex: false, cursor: false, copilot: true, chatProvider: "", topSource: "copilot" },
     evidence: [
@@ -245,6 +151,13 @@ const CASES = [
     ],
   },
 ];
+
+assert.equal(FIXTURE_MANIFEST.schema_version, "top.synthetic-fixtures.v1");
+assert.deepEqual(
+  Object.keys(FIXTURE_MANIFEST.fixtures).sort(),
+  CASES.map((sourceCase) => sourceCase.fixtureFile).sort(),
+  "the synthetic manifest must name exactly one fixture for every source journey",
+);
 
 function browserPath() {
   const candidates = [
@@ -728,7 +641,24 @@ async function runCase(sourceCase) {
   const profile = path.join(temporaryRoot, "browser-profile");
   fs.mkdirSync(profile);
   const fixturePath = sourceCase.fileName ? path.join(temporaryRoot, sourceCase.fileName) : "";
-  if (fixturePath) fs.writeFileSync(fixturePath, sourceCase.content, "utf8");
+  if (fixturePath) {
+    assert.match(sourceCase.fixtureFile, /^[a-z0-9-]+\.(?:csv|json|jsonl)$/,
+      "each source journey must name one checked-in synthetic fixture");
+    const checkedInFixture = path.resolve(FIXTURE_ROOT, sourceCase.fixtureFile);
+    assert.ok(checkedInFixture.startsWith(`${path.resolve(FIXTURE_ROOT)}${path.sep}`),
+      "a source fixture must stay inside analyze/fixtures/seven-source");
+    assert.ok(fs.existsSync(checkedInFixture), `missing checked-in source fixture: ${sourceCase.fixtureFile}`);
+    const fixtureText = fs.readFileSync(checkedInFixture, "utf8");
+    const declaration = FIXTURE_MANIFEST.fixtures[sourceCase.fixtureFile];
+    assert.deepEqual(
+      { synthetic: declaration?.synthetic, contains_real_user_data: declaration?.contains_real_user_data },
+      { synthetic: true, contains_real_user_data: false },
+      `${sourceCase.fixtureFile} must be declared synthetic and free of real user data`,
+    );
+    assert.doesNotMatch(fixtureText, /(?:[A-Z]:\\Users\\|\/Users\/|\/home\/|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/i,
+      `${sourceCase.fixtureFile} must contain no home path or email address`);
+    fs.copyFileSync(checkedInFixture, fixturePath);
+  }
 
   const port = await getFreePort();
   const browser = spawn(browserPath(), [

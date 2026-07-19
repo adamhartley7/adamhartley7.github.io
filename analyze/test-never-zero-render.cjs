@@ -90,11 +90,14 @@ loadSlice("function estTokens", "// ---------- render ----------");
 loadSlice("function resolveCostRow", "function pilotMonthLabel");
 loadSlice("function pilotMonthLabel", "function render(res)");
 loadSlice("function render(res)", "// ---------- your value model");
+loadSlice("var RESEARCH_SCHEMA_VERSION=", 'document.getElementById("downloadResearchJSON")');
+loadSlice("function renderB(res)", "function showErrB");
 
 // Keep the harness on the standard report path. These functions do not affect the cost cells under test.
 context.PILOT_MODE = false;
 context.renderValueModel = () => {};
 context.revealStandardPostReport = () => {};
+context.setJourney = () => {};
 
 function resetElements() {
   for (const element of Object.values(elements)) {
@@ -376,6 +379,84 @@ function mixedCopilotResult() {
   return context.parseCopilot([[header, known, unknown].join("\n")]);
 }
 
+function anthropicConsoleNegativeCostResult() {
+  return context.parseCSV([[
+    "model,input_tokens,output_tokens,cost",
+    "claude-sonnet-4-6,100,20,15.00",
+    "claude-sonnet-4-6,50,10,-20.00",
+  ].join("\n")]);
+}
+
+function cursorUnknownOutsideAllowlistResult() {
+  return context.parseCursor([[
+    CURSOR_HEADER,
+    "2026-07-19T00:00:00Z,On-Demand,claude-sonnet-4-6,No,100,80,10,20,110,1.25",
+    "2026-07-19T00:01:00Z,On-Demand,totally-unknown-model-x,No,10,8,4,12,26,",
+  ].join("\n")]);
+}
+
+function copilotUnknownOutsideAllowlistResult() {
+  const header = [
+    "date", "product", "sku", "quantity", "unit_type", "applied_cost_per_quantity",
+    "gross_amount", "discount_amount", "net_amount", "organization", "cost_center_name",
+    "model", "username",
+  ].join(",");
+  return context.parseCopilot([[
+    header,
+    "2026-07-19,copilot,copilot_ai_credit,2,ai-credits,0.01,0.02,0,0.02,synthetic-org,synthetic-center,Claude Sonnet 4.5,synthetic-user",
+    "2026-07-19,copilot,copilot_ai_credit,3,ai-credits,,,,,synthetic-org,synthetic-center,totally-unknown-model-x,synthetic-user",
+  ].join("\n")]);
+}
+
+function cursorHostileUnknownResult() {
+  return context.parseCursor([[
+    CURSOR_HEADER,
+    "2026-07-19T00:00:00Z,On-Demand,<img src=x onerror=alert(1)>,No,10,10,0,1,11,0.01",
+    "2026-07-19T00:01:00Z,On-Demand,__proto__,No,10,10,0,1,11,0.01",
+    "2026-07-19T00:02:00Z,On-Demand,constructor,No,10,10,0,1,11,0.01",
+  ].join("\n")]);
+}
+
+function copilotHostileUnknownResult() {
+  const header = [
+    "date", "product", "sku", "quantity", "unit_type", "applied_cost_per_quantity",
+    "gross_amount", "discount_amount", "net_amount", "organization", "cost_center_name",
+    "model", "username",
+  ].join(",");
+  return context.parseCopilot([[
+    header,
+    "2026-07-19,copilot,copilot_ai_credit,1,ai-credits,0.01,0.01,0,0.01,synthetic-org,synthetic-center,<img src=x onerror=alert(1)>,synthetic-user",
+    "2026-07-19,copilot,copilot_ai_credit,1,ai-credits,0.01,0.01,0,0.01,synthetic-org,synthetic-center,__proto__,synthetic-user",
+    "2026-07-19,copilot,copilot_ai_credit,1,ai-credits,0.01,0.01,0,0.01,synthetic-org,synthetic-center,constructor,synthetic-user",
+  ].join("\n")]);
+}
+
+function negativeCursorResult(model) {
+  return context.parseCursor([[
+    CURSOR_HEADER,
+    `2026-07-19T00:00:00Z,On-Demand,${model},No,10,8,4,12,26,-5.00`,
+  ].join("\n")]);
+}
+
+function negativeCopilotResult() {
+  const header = [
+    "date", "product", "sku", "quantity", "unit_type", "applied_cost_per_quantity",
+    "gross_amount", "discount_amount", "net_amount", "organization", "cost_center_name",
+    "model", "username",
+  ].join(",");
+  return context.parseCopilot([[
+    header,
+    "2026-07-19,copilot,copilot_ai_credit,3,ai-credits,0.01,0.03,0,-5.00,synthetic-org,synthetic-center,Gemini 9.9 Pro,synthetic-user",
+  ].join("\n")]);
+}
+
+function coveredCursorResult() {
+  return context.parseCursor([[
+    CURSOR_HEADER,
+    "2026-07-19T00:00:00Z,Included,auto,No,0,80,40,20,140,Included",
+  ].join("\n")]);
+}
+
 test("Claude Code never-zero render contract", () => {
   const result = claudeCodeResult();
   assertModelsHaveNoKnownRate(result);
@@ -441,6 +522,164 @@ test("GitHub Copilot never-zero render contract", () => {
   assert.match(rendered.tokenHelp, /not tokens[\s\S]*instead of token counts/i);
   assert.doesNotMatch(rendered.table, /text sent to the AI|text returned by the AI/i);
   assertNeverZeroContract(rendered, Object.keys(result.by));
+});
+
+test("Anthropic Console CSV rejects a negative recorded cost instead of netting it against billed cost", () => {
+  const result = anthropicConsoleNegativeCostResult();
+  const model = result.by["claude-sonnet-4-6"];
+  assert.ok(model, "the synthetic Console CSV must retain the model row");
+  assert.equal(model.cost, 15,
+    "a refund or credit row must not reduce the positive billed amount");
+  assert.equal(model.costRows, 1,
+    "a negative number is not a valid recorded-cost row");
+  assert.equal(model.missingCostRows, 1,
+    "the invalid cost must remain visibly incomplete instead of becoming a genuine zero");
+  assert.equal(result.costComplete, false,
+    "one invalid cost means the Console total is not complete");
+  const rendered = renderResult(result);
+  const visible = Object.values(rendered.surfaces).join("\n");
+  assert.doesNotMatch(visible, /\$\s*-/,
+    "a negative amount must never reach a user-visible cost surface");
+});
+
+test("truly unknown Cursor and Copilot rows retain their source-native usage and render unpriced", () => {
+  const cases = [
+    {
+      name: "Cursor",
+      result: cursorUnknownOutsideAllowlistResult(),
+      model: "totally-unknown-model-x",
+      usage(entry) { return entry.inp + entry.out + entry.cw + entry.cr; },
+      expectedUsage: 26,
+    },
+    {
+      name: "GitHub Copilot",
+      result: copilotUnknownOutsideAllowlistResult(),
+      model: "totally-unknown-model-x",
+      usage(entry) { return entry.requests + entry.credits; },
+      expectedUsage: 3,
+    },
+  ];
+  const failures = [];
+  for (const sourceCase of cases) {
+    const entry = sourceCase.result.by[sourceCase.model];
+    if (!entry) {
+      failures.push(`${sourceCase.name}: parser discarded the unknown model and its usage`);
+    } else if (sourceCase.usage(entry) !== sourceCase.expectedUsage) {
+      failures.push(`${sourceCase.name}: parser did not retain the source-native usage count`);
+    }
+    const rendered = renderResult(sourceCase.result);
+    for (const failure of neverZeroFailures(rendered, [sourceCase.model])) {
+      failures.push(`${sourceCase.name}: ${failure}`);
+    }
+    if (sourceCase.name === "GitHub Copilot" && !/not tokens[\s\S]*instead of token counts/i.test(rendered.tokenHelp)) {
+      failures.push("GitHub Copilot: report must say that requests and AI credits are available but token counts are not");
+    }
+  }
+  assert.deepEqual(failures, [], failures.join("\n"));
+});
+
+test("hostile unknown model labels are made safe without losing usage or becoming priced", () => {
+  const cases = [
+    {
+      name: "Cursor",
+      result: cursorHostileUnknownResult(),
+      usage(entry) { return entry.inp + entry.out + entry.cw + entry.cr; },
+      expectedUsage: 33,
+    },
+    {
+      name: "GitHub Copilot",
+      result: copilotHostileUnknownResult(),
+      usage(entry) { return entry.requests + entry.credits; },
+      expectedUsage: 3,
+    },
+  ];
+  const failures = [];
+  for (const sourceCase of cases) {
+    const models = Object.keys(sourceCase.result.by);
+    const totalUsage = Object.values(sourceCase.result.by).reduce(
+      (total, entry) => total + sourceCase.usage(entry), 0,
+    );
+    if (totalUsage !== sourceCase.expectedUsage) {
+      failures.push(`${sourceCase.name}: hostile labels erased source-native usage`);
+    }
+    if (!models.length) failures.push(`${sourceCase.name}: no safe unpriced model bucket remains`);
+    if (models.some((model) => /[<>\\/]/.test(model) || model === "__proto__" || model === "constructor")) {
+      failures.push(`${sourceCase.name}: hostile model text reached a report key`);
+    }
+    if (models.length) {
+      const rendered = renderResult(sourceCase.result);
+      for (const failure of neverZeroFailures(rendered, models)) failures.push(`${sourceCase.name}: ${failure}`);
+      const visible = Object.values(rendered.surfaces).join("\n");
+      if (/<img|__proto__|onerror=/i.test(visible)) failures.push(`${sourceCase.name}: hostile model text reached the visible report`);
+    }
+  }
+  assert.deepEqual(failures, [], failures.join("\n"));
+});
+
+test("negative Cursor, Composer, and Copilot costs remain incomplete and render unpriced", () => {
+  const cases = [
+    { name: "Cursor", model: "gemini-9.9-pro", result: negativeCursorResult("gemini-9.9-pro") },
+    { name: "Cursor Composer", model: "composer-9.9", result: negativeCursorResult("composer-9.9") },
+    { name: "GitHub Copilot", model: "Gemini 9.9 Pro", result: negativeCopilotResult() },
+  ];
+  const failures = [];
+  for (const sourceCase of cases) {
+    const entry = sourceCase.result.by[sourceCase.model];
+    if (!entry) {
+      failures.push(`${sourceCase.name}: synthetic negative-cost row was discarded`);
+      continue;
+    }
+    if (entry.costRows !== 0) failures.push(`${sourceCase.name}: negative cost counted as a recorded-cost row`);
+    if (entry.missingCostRows !== 1) failures.push(`${sourceCase.name}: negative cost did not stay on the incomplete path`);
+    if (sourceCase.result.costComplete !== false) failures.push(`${sourceCase.name}: negative cost incorrectly left the report complete`);
+    const rendered = renderResult(sourceCase.result);
+    for (const failure of neverZeroFailures(rendered, [sourceCase.model])) {
+      failures.push(`${sourceCase.name}: ${failure}`);
+    }
+  }
+  assert.deepEqual(failures, [], failures.join("\n"));
+});
+
+test("subscription-covered Cursor zero stays distinct in the report and research-safe JSON", () => {
+  const result = coveredCursorResult();
+  assert.equal(result.subscriptionCovered, true, "fixture must reach the genuine covered-zero branch");
+  const rendered = renderResult(result);
+  const visible = Object.values(rendered.surfaces).join("\n");
+  assert.match(visible, /No charge, plan covered/i,
+    "the visible report must identify the genuine zero as plan-covered");
+  assert.doesNotMatch(visible, /(?:US\$|\$|USD\s*)0(?!\.\d*[1-9]\d*)(?:\.0+)?(?!\d)/i,
+    "covered usage must not be reduced to a bare zero-dollar display");
+
+  const exported = context.buildResearchSafeObject(result, null, null, 0.4, "2026-07-19");
+  assert.equal(exported.cost.status, "subscription_covered");
+  assert.equal(exported.cost.usd, 0);
+  assert.equal(exported.cost.basis, "subscription_covered_by_plan");
+  assert.ok(exported.by_model.length > 0, "covered export must retain its usage row");
+  assert.ok(exported.by_model.every((row) => row.cost.status === "subscription_covered" && row.cost.usd === 0),
+    "every covered model row must remain distinct from an unpriced row");
+});
+
+test("pilot and cleaned-file cost surfaces use the same exact unpriced vocabulary", () => {
+  const rows = [
+    { model: "claude-sonnet-4-6", e: { inp: 100, out: 20, cw: 0, cr: 0, turns: 1 }, cost: 1.25, complete: true },
+    { model: "claude-opus-9-9", e: { inp: 8, out: 12, cw: 2, cr: 4, turns: 1 }, cost: null, complete: false },
+  ];
+  const pilot = context.pilotMixChartHTML(rows, 1.25, { estimate: false }, ["claude-opus-9-9"], false);
+  assert.match(pilot, /\bunpriced\b/i, "pilot chart must call the unknown cost unpriced");
+  assert.doesNotMatch(pilot, /\bnot priced\b/i, "pilot chart must not invent a second label for unpriced");
+
+  resetElements();
+  context.renderB({
+    by: { "claude-opus-9-9": { inp: 8, out: 12, cw: 2, cr: 4, turns: 1 } },
+    turns: 1,
+    sessions: 1,
+    days: 1,
+    perm: {},
+  });
+  const cleanedVisible = `${elements.cardsb.innerHTML}\n${elements.modeltableb.innerHTML}\n${context.lastSummary}`;
+  assert.match(cleanedVisible, /\bunpriced\b/i, "cleaned-file output must call the unknown cost unpriced");
+  assert.doesNotMatch(cleanedVisible, /\b(?:not priced|not available|cost not available)\b/i,
+    "cleaned-file output must not invent a second label for unpriced");
 });
 
 test("mixed priced and unpriceable reports keep every unknown row explicitly unpriced", () => {

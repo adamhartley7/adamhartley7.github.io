@@ -23,13 +23,12 @@ const standard = context.parseCursor([[
   "2026-07-10T09:00:00.375Z,Included,composer-1,No,1200,1000,500,300,2000,0.05",
   "2026-07-10T10:00:00.000Z,On-Demand,claude-4.5-sonnet,No,2000,1500,0,400,2400,1.95",
   '2026-07-11T09:30:00.000Z,"Errored, Not Charged",gpt-5,No,100,100,0,0,100,-',
-  "2026-07-11T09:31:00.000Z,On-Demand,totally-unknown-model-x,No,50,50,0,10,60,0.10",
 ].join("\n")]);
 assert.equal(standard.kind, "Cursor usage CSV");
 assert.equal(standard.cursor, true);
 assert.equal(standard.csv, true);
 assert.equal(standard.topSource, "cursor");
-assert.equal(standard.turns, 3, "the unrecognized-model row must be excluded from counted usage events");
+assert.equal(standard.turns, 3, "the standard known-model rows must all be counted");
 assert.equal(standard.days, 2);
 assert.equal(standard.estimate, false, "a fully recorded Cursor export must not be labeled an estimate");
 assert.equal(standard.costComplete, true);
@@ -55,9 +54,9 @@ assert.deepEqual({ ...standard.otherModels }, { rows: 2, tokens: 2500, cost: 1.9
 assert.equal(standard.includedRows, 1);
 assert.equal(standard.includedCost, 0.05);
 assert.equal(standard.notChargedRows, 1);
-assert.equal(standard.excludedRows, 1);
-assert.deepEqual({ ...standard.excludedModels }, { "totally-unknown-model-x": 1 }, "unknown models must be excluded and named, never priced");
-assert.equal(standard.coverage.complete, false, "excluded rows must fail the coverage-complete claim");
+assert.equal(standard.excludedRows, 0);
+assert.deepEqual({ ...standard.excludedModels }, {});
+assert.equal(standard.coverage.complete, true, "a fully parsed standard export must keep complete coverage");
 
 // Team header variant: extra User column, lowercase headers, a BOM, quoted model,
 // the alternate not-charged wording, and a literal Free cost.
@@ -89,20 +88,6 @@ assert.equal(missingCost.costComplete, false);
 assert.equal(missingCost.costRows, 1);
 assert.equal(missingCost.missingCostRows, 1);
 assert.deepEqual({ ...missingCost.by["claude-4.5-sonnet"].missing }, { inp: 80, out: 30, cw: 20, cr: 20 });
-
-// Hostile labels are sanitized before being named, and dangerous keys stay safe.
-const hostile = context.parseCursor([[
-  HEADER,
-  "2026-07-14T09:00:00.000Z,On-Demand,<img src=x onerror=alert(1)>,No,10,10,0,1,11,0.01",
-  "2026-07-14T09:01:00.000Z,On-Demand,__proto__,No,10,10,0,1,11,0.01",
-  "2026-07-14T09:02:00.000Z,On-Demand,constructor,No,10,10,0,1,11,0.01",
-].join("\n")]);
-assert.equal(hostile.turns, 0);
-assert.equal(hostile.excludedRows, 3);
-assert.deepEqual(Object.keys(hostile.by), []);
-assert.ok(Object.keys(hostile.excludedModels).every(name => !/[<>\\/]/.test(name)), "excluded model names must not carry HTML or path characters");
-assert.equal(hostile.excludedModels["__proto__"], 1);
-assert.equal(hostile.excludedModels["constructor"], 1);
 
 // Composer detection is exact: auto and cursor-small are recognized Cursor models but not Composer.
 assert.equal(context.isComposerModel("composer-1"), true);
@@ -315,21 +300,19 @@ assert.equal(huge.turns, cap + 5, "dropping the sample must not change the count
 // passed trivially for anything discarded before rows++. Each case below carries a genuine $50 On-Demand
 // charge that the covered claim would otherwise have declared "nothing extra was charged".
 
-// 1. An unrecognized model name. Cursor ships names outside the recognized list (code-supernova, sonic,
-// kimi-k2-instruct, qwen3-coder, minimax-m2, glm-4.6, o3, llama-4-maverick, gpt5-codex, default), so a
-// real charge landing on one of them is ordinary, not adversarial.
+// 1. An unrecognized model name. Recognition remains fail closed for pricing. The dedicated never-zero
+// contract requires the parser to retain its usage in an unpriced bucket. This regression independently
+// pins the covered-plan boundary so an unknown charged row can never disappear into a zero-charge claim.
 const chargeOnExcludedModel = context.parseCursor([[
   HEADER,
   "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
   "2026-07-18T11:00:00.000Z,On-Demand,code-supernova,No,0,1000,2000,500,3500,50.00",
 ].join("\n")]);
-assert.equal(chargeOnExcludedModel.excludedRows, 1, "the unrecognized model must still be excluded and named");
-assert.equal(chargeOnExcludedModel.turns, 1, "only the recognized row is counted");
 assert.equal(chargeOnExcludedModel.subscriptionCovered, false,
-  "a $50 charge on a model TOP could not recognize must withdraw the covered claim, not slip past it because the row never reached the counters");
+  "a charged row with an unrecognized model must withdraw the covered claim");
 
-// The eleven names Cursor ships today that fall outside the recognized list. Each must exclude the row
-// AND withdraw the claim, never be silently priced or silently ignored.
+// The eleven names Cursor ships today that fall outside the recognized pricing list. Each must withdraw
+// the covered claim and remain unavailable for a guessed rate.
 for (const unknown of ["code-supernova", "code-supernova-1-million", "sonic", "kimi-k2-instruct",
   "qwen3-coder", "minimax-m2", "glm-4.6", "o3", "llama-4-maverick", "default", "gpt5-codex"]) {
   assert.equal(context.cursorRecognizedModel(unknown), false, `${unknown} is outside the recognized list`);
@@ -392,6 +375,37 @@ assert.equal(mixedDisclosure.undisclosedTokens, 6720000);
 assert.equal(mixedDisclosure.totalTokens, 6721300);
 assert.ok(mixedDisclosure.totalTokens - mixedDisclosure.undisclosedTokens < mixedDisclosure.totalTokens / 1000,
   "the single named row is a rounding error of the work, which is why it must never be shown as 100%");
+
+// Founder transition contracts. These replace the old model-drop assertions with stronger requirements
+// in the same parser regression: hostile labels are made safe without losing usage, and safe unknown labels
+// keep all source usage while remaining on the missing-cost path.
+const retainedHostile = context.parseCursor([[
+  HEADER,
+  "2026-07-14T09:00:00.000Z,On-Demand,<img src=x onerror=alert(1)>,No,10,10,0,1,11,0.01",
+  "2026-07-14T09:01:00.000Z,On-Demand,__proto__,No,10,10,0,1,11,0.01",
+  "2026-07-14T09:02:00.000Z,On-Demand,constructor,No,10,10,0,1,11,0.01",
+].join("\n")]);
+assert.equal(retainedHostile.turns, 3, "hostile unknown labels must not erase their usage events");
+assert.equal(Object.values(retainedHostile.by).reduce((total, entry) => total + entry.inp + entry.out + entry.cw + entry.cr, 0), 33,
+  "all tokens from hostile unknown labels must remain visible");
+assert.ok(Object.keys(retainedHostile.by).length > 0, "hostile labels must reach a safe unpriced bucket");
+assert.ok(Object.keys(retainedHostile.by).every((name) => !/[<>\\/]/.test(name) && name !== "__proto__" && name !== "constructor"),
+  "hostile model text and prototype keys must never become report keys");
+assert.ok(Object.values(retainedHostile.by).every((entry) => entry.costRows === 0 && entry.missingCostRows > 0),
+  "hostile unknown labels must remain unpriced rather than keeping a recorded or guessed zero");
+
+const retainedUnknown = context.parseCursor([[
+  HEADER,
+  "2026-07-19T09:31:00.000Z,On-Demand,totally-unknown-model-x,No,50,50,0,10,60,",
+].join("\n")]);
+assert.equal(retainedUnknown.turns, 1, "a safe unknown-model row must remain in counted usage events");
+assert.deepEqual(
+  modelRow(retainedUnknown.by["totally-unknown-model-x"]),
+  { inp: 50, out: 10, cw: 0, cr: 0, turns: 1, cost: 0, costRows: 0, missingCostRows: 1, missing: { inp: 50, out: 10, cw: 0, cr: 0 } },
+  "unknown-model tokens must remain visible without a guessed or false-zero cost",
+);
+assert.equal(retainedUnknown.excludedRows, 0, "a safe unknown label is unpriceable, not disposable");
+assert.equal(retainedUnknown.costComplete, false, "unknown cost must remain incomplete");
 
 console.log("TOP Analyzer Cursor parser regression tests passed");
 

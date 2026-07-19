@@ -1,0 +1,2 @@
+Date,Kind,Model,Max Mode,Input (w/ Cache Write),Input (w/o Cache Write),Cache Read,Output Tokens,Total Tokens,Cost
+2026-07-19T12:00:00.000Z,On-Demand,claude-4.5-sonnet,No,120,100,30,20,170,1.25

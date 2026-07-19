@@ -1,0 +1,12 @@
+{
+  "schema_version": "top.synthetic-fixtures.v1",
+  "fixtures": {
+    "chatgpt.json": { "source": "ChatGPT", "synthetic": true, "contains_real_user_data": false },
+    "claude-chat.json": { "source": "Claude Chat", "synthetic": true, "contains_real_user_data": false },
+    "claude-code.jsonl": { "source": "Claude Code", "synthetic": true, "contains_real_user_data": false },
+    "codex.jsonl": { "source": "Codex", "synthetic": true, "contains_real_user_data": false },
+    "cursor-composer.csv": { "source": "Cursor Composer", "synthetic": true, "contains_real_user_data": false },
+    "cursor.csv": { "source": "Cursor", "synthetic": true, "contains_real_user_data": false },
+    "github-copilot.csv": { "source": "GitHub Copilot", "synthetic": true, "contains_real_user_data": false }
+  }
+}

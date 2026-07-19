@@ -51,6 +51,42 @@ function foldIdentifierStringConcatenations(source) {
   );
 }
 
+function extractFunctionSource(source, marker) {
+  const start = source.indexOf(marker);
+  assert.ok(start >= 0, `missing function marker: ${marker}`);
+  const braceStart = source.indexOf("{", start + marker.length);
+  assert.ok(braceStart >= 0, `missing function body: ${marker}`);
+  let depth = 0;
+  let quote = "";
+  let escaped = false;
+  let lineComment = false;
+  let blockComment = false;
+  for (let index = braceStart; index < source.length; index++) {
+    const character = source[index];
+    const next = source[index + 1];
+    if (lineComment) {
+      if (character === "\n") lineComment = false;
+      continue;
+    }
+    if (blockComment) {
+      if (character === "*" && next === "/") { blockComment = false; index++; }
+      continue;
+    }
+    if (quote) {
+      if (escaped) { escaped = false; continue; }
+      if (character === "\\") { escaped = true; continue; }
+      if (character === quote) quote = "";
+      continue;
+    }
+    if (character === "/" && next === "/") { lineComment = true; index++; continue; }
+    if (character === "/" && next === "*") { blockComment = true; index++; continue; }
+    if (character === "'" || character === '"' || character === "`") { quote = character; continue; }
+    if (character === "{") depth++;
+    if (character === "}" && --depth === 0) return source.slice(start, index + 1);
+  }
+  assert.fail(`unterminated function body: ${marker}`);
+}
+
 // Static spellings complement the browser integration test, which traps these
 // APIs at runtime and rejects every non-file page request. Keep both layers so
 // a dormant future gate cannot silently re-enable a connection path.
@@ -62,7 +98,9 @@ const directNetworkCalls = [
   ["EventSource", /(?:\bnew\s+EventSource\b|\bEventSource\s*(?:\(|\.|\?\.)|\.\s*EventSource\b|[=(:,{]\s*\bEventSource\b)/],
 ];
 
-test("the analyzer exposes no direct connection API and keeps a fail-closed CSP", () => {
+const permittedUserInitiatedFetch = 'await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:attempt.requestBody,mode:"cors",cache:"no-store",credentials:"omit",redirect:"error",referrerPolicy:"no-referrer"})';
+
+test("the analyzer exposes only the byte-pinned user-initiated delivery fetch and keeps every other connection API absent", () => {
   assert.match(html, /connect-src 'none'/,
     "the browser policy must continue to block analyzer connections");
 
@@ -88,11 +126,35 @@ test("the analyzer exposes no direct connection API and keeps a fail-closed CSP"
   assert.ok(staticSources.some((source) => source.label === "assets/analyzer-water.js"),
     "the static gate must include the analyzer's loaded local script assets");
   for (const staticSource of staticSources) {
-    const executable = foldIdentifierStringConcatenations(staticSource.source);
+    let executable = foldIdentifierStringConcatenations(staticSource.source);
+    if (staticSource.label === "analyze/index.html") {
+      const exactFetchCount = executable.split(permittedUserInitiatedFetch).length - 1;
+      assert.equal(exactFetchCount, 1,
+        "the one pre-existing user-initiated delivery fetch must remain byte-identical");
+      const handler = extractFunctionSource(executable, "async function submitResearchSafeReport()");
+      assert.equal(handler.split(permittedUserInitiatedFetch).length - 1, 1,
+        "the permitted fetch must be structurally inside the submit handler");
+      const consentGuard = handler.indexOf("!consent.checked");
+      const handlerFetch = handler.indexOf(permittedUserInitiatedFetch);
+      assert.ok(consentGuard >= 0 && consentGuard < handlerFetch,
+        "the explicit consent guard must run before the permitted fetch");
+      const submitListener = 'submitResearchButton.addEventListener("click",submitResearchSafeReport)';
+      assert.equal(executable.split(submitListener).length - 1, 1,
+        "the Submit click must be the only registered entry point");
+      const outsideHandlerAndListener = executable.replace(handler, "").replace(submitListener, "");
+      assert.doesNotMatch(outsideHandlerAndListener, /\bsubmitResearchSafeReport\b/,
+        "the submit handler must have no call or reference outside the one Submit listener");
+      assert.match(executable, /var TOP_DELIVERY_ENDPOINT="";/,
+        "the pre-existing delivery endpoint must remain unconfigured in the analyzer source");
+      executable = executable.replace(permittedUserInitiatedFetch, "");
+    } else {
+      assert.equal(executable.includes(permittedUserInitiatedFetch), false,
+        `${staticSource.label} must not copy the one delivery-fetch exception`);
+    }
     for (const [label, pattern] of directNetworkCalls) {
       const matches = executable.match(pattern) || [];
       assert.equal(matches.length, 0,
-        `${label} must not exist in ${staticSource.label}, even behind a blank endpoint or future configuration gate`);
+        `${label} must not exist in ${staticSource.label} outside the one exact user-initiated delivery fetch`);
     }
   }
 
