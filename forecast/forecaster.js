@@ -318,6 +318,153 @@
     return Math.max(1.0, Math.min(1000.0, k));
   }
 
+  // ============================================================ retrieval (ABE neighbourhood)
+  //
+  // Replaces the (project, archetype) CELL as the definition of "similar past work"
+  // with analogy-based retrieval over the user's own prior prompts:
+  //
+  //   1. EXACT REPEAT  - same normalised prompt hash -> those tasks are the neighbourhood.
+  //   2. ANALOGY       - k nearest EARLIER prompts by word 3-gram Jaccard similarity;
+  //                      neighbourhood location = median of their log costs.
+  //   3. FALLBACK      - if the best similarity is below simFloor, no trustworthy analogy
+  //                      exists: back off to a recency-weighted global median (half-life
+  //                      in days), which tracks cost-regime drift that a flat median misses.
+  //
+  // Neighbourhood DISPERSION is retained and returned, not discarded. Following
+  // Kocaguneli et al. 2012 (IEEE TSE 38(2):425-438), the stability of a neighbourhood is
+  // itself a measurable, ex-ante signal: a high-variance neighbourhood should widen the
+  // band rather than assert a confident point. That dispersion flows into the existing
+  // empirical-Bayes blend as s_group, so an unstable neighbourhood is automatically
+  // distrusted instead of being reported with false confidence.
+  //
+  // TEMPORAL SAFETY: candidate.ts < query.ts is enforced HERE, unconditionally, inside the
+  // retrieval function itself. It is not delegated to harness bookkeeping. An index that
+  // contains future tasks still cannot leak them.
+
+  // Jaccard over two ASCENDING-sorted arrays of 32-bit shingle hashes.
+  function jaccard(a, b) {
+    var na = a.length, nb = b.length;
+    if (na === 0 || nb === 0) return 0;
+    var i = 0, j = 0, inter = 0;
+    while (i < na && j < nb) {
+      var x = a[i], y = b[j];
+      if (x === y) { inter++; i++; j++; }
+      else if (x < y) i++;
+      else j++;
+    }
+    var uni = na + nb - inter;
+    return uni > 0 ? inter / uni : 0;
+  }
+
+  function medianOf(xs) {
+    if (xs.length === 0) return null;
+    var s = xs.slice().sort(function (p, q) { return p - q; });
+    var m = s.length >> 1;
+    return (s.length % 2) ? s[m] : 0.5 * (s[m - 1] + s[m]);
+  }
+
+  // Recency-weighted median: weight 0.5^(age_days / halfLifeDays).
+  function recencyWeightedMedian(entries, tNow, halfLifeDays) {
+    if (entries.length === 0) return null;
+    var HL = Math.max(1e-6, halfLifeDays) * 86400000;
+    var rows = [];
+    var total = 0, i;
+    for (i = 0; i < entries.length; i++) {
+      var age = Math.max(0, tNow - entries[i].ts);
+      var w = Math.pow(0.5, age / HL);
+      if (!(w > 0)) continue;
+      rows.push([entries[i].y, w]);
+      total += w;
+    }
+    if (!rows.length || !(total > 0)) return medianOf(entries.map(function (e) { return e.y; }));
+    rows.sort(function (p, q) { return p[0] - q[0]; });
+    var half = total / 2, acc = 0;
+    for (i = 0; i < rows.length; i++) {
+      acc += rows[i][1];
+      if (acc >= half) return rows[i][0];
+    }
+    return rows[rows.length - 1][0];
+  }
+
+  // Build an index. `records` need {ts|timestamp, ph, sh} plus a cost the regime can score.
+  // Records the regime cannot score (non-positive cost) are dropped.
+  function buildRetrieval(records, regime, opts) {
+    opts = opts || {};
+    var entries = [];
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i];
+      var y = targetOf(r, regime);
+      if (y === null) continue;
+      var ts = (typeof r.ts === "number") ? r.ts : Date.parse(r.ts || r.timestamp || 0);
+      if (!isFinite(ts)) continue;
+      entries.push({ ts: ts, y: y, ph: r.ph, sh: r.sh || [] });
+    }
+    entries.sort(function (p, q) { return p.ts - q.ts; });
+    return {
+      entries: entries,
+      k: opts.k !== undefined ? opts.k : 3,
+      simFloor: opts.simFloor !== undefined ? opts.simFloor : 0.22,
+      halfLifeDays: opts.halfLifeDays !== undefined ? opts.halfLifeDays : 5,
+      mode: opts.mode || "eb"          // "eb" = feed the EB blend, "replace" = use directly
+    };
+  }
+
+  // Returns {mu, s, n, source} or null. ALWAYS strictly-earlier-only.
+  function retrieveNeighbourhood(rec, R) {
+    var tq = (typeof rec.ts === "number") ? rec.ts : Date.parse(rec.ts || rec.timestamp || 0);
+    if (!isFinite(tq)) return null;
+    var E = R.entries, i;
+
+    // --- strict temporal gate: only tasks that finished strictly before this one exists.
+    var past = [];
+    for (i = 0; i < E.length; i++) {
+      if (E[i].ts < tq) past.push(E[i]);
+      else break;                      // entries are ts-sorted, so we can stop
+    }
+    if (past.length === 0) return null;
+
+    // --- 1. exact repeat
+    // An exact repeat has Jaccard 1.0, so it is simply the top of the similarity ranking and
+    // obeys the same k cap. Ties at similarity 1.0 break toward the MOST RECENT repeat: a
+    // duplicate prompt issued yesterday is a better analogy for today than the same prompt
+    // issued five weeks ago, and in a drifting cost regime the stale ones bias the median down.
+    var sh = rec.sh || [];
+    if (rec.ph !== undefined && rec.ph !== null) {
+      var exact = [];
+      for (i = past.length - 1; i >= 0 && exact.length < R.k; i--) {
+        if (past[i].ph === rec.ph) exact.push(past[i].y);   // past is ts-ascending, so walk back
+      }
+      if (exact.length > 0) {
+        return { mu: medianOf(exact), s: std(exact), n: exact.length, source: "exact" };
+      }
+    }
+
+    // --- 2. k nearest earlier prompts by 3-gram Jaccard
+    if (sh.length > 0) {
+      var scored = [];
+      for (i = 0; i < past.length; i++) {
+        var sim = jaccard(sh, past[i].sh);
+        if (sim > 0) scored.push([sim, past[i].y, past[i].ts]);
+      }
+      if (scored.length > 0) {
+        // similarity descending, then most-recent-first so ties resolve toward the current regime
+        scored.sort(function (p, q) { return (q[0] - p[0]) || (q[2] - p[2]); });
+        if (scored[0][0] >= R.simFloor) {
+          var top = scored.slice(0, R.k);
+          var ys = top.map(function (t) { return t[1]; });
+          return { mu: medianOf(ys), s: std(ys), n: ys.length, source: "analogy" };
+        }
+      }
+    }
+
+    // --- 3. no trustworthy analogy -> recency-weighted global median
+    var mu = recencyWeightedMedian(past, tq, R.halfLifeDays);
+    if (mu === null) return null;
+    var allY = [];
+    for (i = 0; i < past.length; i++) allY.push(past[i].y);
+    return { mu: mu, s: std(allY), n: 1, source: "recency" };
+  }
+
   // ============================================================ EB blend
 
   // returns [mu, sigma] in target space for one record (Python _blend)
@@ -329,9 +476,24 @@
     if (pr) { mu_p = pr[0]; s_p = pr[1]; }
     else { mu_p = P.globalPrior[0]; s_p = P.globalPrior[1]; }   // cold archetype -> global prior
 
-    var gr = P.group.get(g + SEP + a);
-    if (!gr) return [mu_p, s_p];                                // cold start: pure archetype prior
-    var gm = gr[0], gs = gr[1], n = gr[2];
+    var gm, gs, n;
+
+    if (P.retrieval) {
+      // RETRIEVAL defines the neighbourhood; the EB machinery below still decides how much
+      // to trust it. Retrieval answers WHICH past tasks are relevant, shrinkage answers HOW
+      // MUCH a small or unstable neighbourhood should move us off the prior.
+      var nb = retrieveNeighbourhood(rec, P.retrieval);
+      if (!nb) return [mu_p, s_p];                              // nothing earlier exists at all
+      if (P.retrieval.mode === "replace") {
+        var sr = (nb.n >= 2 && nb.s > 0) ? nb.s : s_p;
+        return [nb.mu, Math.sqrt(Math.max(sr * sr, 1e-9))];
+      }
+      gm = nb.mu; gs = nb.s; n = nb.n;
+    } else {
+      var gr = P.group.get(g + SEP + a);
+      if (!gr) return [mu_p, s_p];                              // cold start: pure archetype prior
+      gm = gr[0]; gs = gr[1]; n = gr[2];
+    }
     if (n <= 0 || gm === null) return [mu_p, s_p];
 
     var s_user = (n >= 2 && gs > 0) ? gs : s_p;
@@ -404,6 +566,12 @@
     var priors = { opts: o };
     for (var i = 0; i < regimes.length; i++) {
       priors[regimes[i]] = fitRegime(trainSessions, regimes[i], o);
+      if (opts.retrieval) {
+        // Index defaults to the same records the priors were fitted on. The caller may pass
+        // `records` to index a wider history; the strictly-earlier gate makes that safe.
+        var src = opts.retrieval.records || trainSessions;
+        priors[regimes[i]].retrieval = buildRetrieval(src, regimes[i], opts.retrieval);
+      }
     }
     return priors;
   }
@@ -430,6 +598,11 @@
     classifyArchetype: classifyArchetype,
     fitPriors: fitPriors,
     calibrate: calibrate,
-    forecast: forecast
+    forecast: forecast,
+    // retrieval internals, exported for the leakage test and offline evaluation
+    buildRetrieval: buildRetrieval,
+    retrieveNeighbourhood: retrieveNeighbourhood,
+    jaccard: jaccard,
+    recencyWeightedMedian: recencyWeightedMedian
   };
 });
