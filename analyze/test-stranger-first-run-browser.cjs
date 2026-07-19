@@ -49,8 +49,12 @@ test("the canonical analyzer opens a visible seven-source stranger chooser in a 
       "GitHub Copilot",
     ];
     for (const source of requiredSources) {
-      if (!entry.sourceChoices.some((choice) => choice.includes(source))) {
+      const named = entry.sourceChoices.some((choice) => choice.includes(source));
+      const visiblyNamed = entry.visibleSourceChoices.some((choice) => choice.includes(source));
+      if (!named) {
         failures.push(`${source} is not named in the first source chooser`);
+      } else if (!visiblyNamed) {
+        failures.push(`${source} is named but not visibly reachable in the first source chooser`);
       }
     }
 

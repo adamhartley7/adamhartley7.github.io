@@ -126,6 +126,7 @@ function renderedModelCosts(table) {
     assert.ok(cells.length >= 2, "each rendered model row must have a model and cost cell");
     return {
       model: plainText(cells[0][1]),
+      usageCells: cells.slice(1, -1).map((cell) => plainText(cell[1])),
       cost: plainText(cells[cells.length - 1][1]),
     };
   });
@@ -158,6 +159,11 @@ function expectedDisplayModel(model) {
   return plainText(context.safePublicModelLabel(model));
 }
 
+function hasVisibleUsageEvidence(row) {
+  return row.usageCells.some((cell) => Array.from(cell.matchAll(/\d[\d,]*(?:\.\d+)?/g))
+    .some((match) => Number(match[0].replace(/,/g, "")) > 0));
+}
+
 function neverZeroFailures(rendered, unpricedModels) {
   const failures = [];
   for (const model of unpricedModels) {
@@ -165,8 +171,13 @@ function neverZeroFailures(rendered, unpricedModels) {
     const row = rendered.modelCosts.find((candidate) => candidate.model.toLowerCase() === expected.toLowerCase());
     if (!row) {
       failures.push(`the rendered table omitted unpriceable model "${expected}"`);
-    } else if (!/^unpriced$/i.test(row.cost)) {
-      failures.push(`${expected} cost must be exactly "unpriced" (case-insensitive), received "${row.cost}"`);
+    } else {
+      if (!/^unpriced$/i.test(row.cost)) {
+        failures.push(`${expected} cost must be exactly "unpriced" (case-insensitive), received "${row.cost}"`);
+      }
+      if (!hasVisibleUsageEvidence(row)) {
+        failures.push(`${expected} must retain a visible nonzero usage count when its cost is unpriced`);
+      }
     }
   }
   if (!/\bunpriced\b/i.test(rendered.summary)) {
