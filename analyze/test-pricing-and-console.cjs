@@ -61,6 +61,30 @@ assert.match(context.PRICES.fable5.source, /^https:\/\/platform\.claude\.com\//)
 assert.match(context.PRICES.gpt56sol.source, /^https:\/\/openai\.com\//);
 assert.equal(context.PRICING_CHECKED, "16 Jul 2026");
 
+// The API-equivalent range is what a subscription user gets instead of an invented model attribution.
+// It must span the whole checked table, name both ends, and never collapse to a single guessed model.
+const range = context.apiEquivalentRange(1e6, 0, 0, 0);
+assert.equal(range.count, Object.keys(context.PRICES).length,
+  "the range must price against every checked rate family, not a hand-picked subset");
+assert.equal(range.low.key, "haiku35");
+assert.equal(range.high.key, "opusOld");
+assert.ok(range.low.cost < range.high.cost, "the low end must be cheaper than the high end");
+assert.equal(range.low.label, context.PRICES.haiku35.label, "both ends must be named so the assumption is visible");
+assert.equal(range.high.label, context.PRICES.opusOld.label);
+// One million input tokens: 0.8 at the cheapest checked input rate, 15 at the dearest.
+assert.ok(Math.abs(range.low.cost - 0.8) < 1e-9);
+assert.ok(Math.abs(range.high.cost - 15) < 1e-9);
+// Cache reads are billed at a tenth of input, so a cache-heavy range must reflect that, not the input rate.
+const cacheRange = context.apiEquivalentRange(0, 0, 0, 1e6);
+assert.ok(Math.abs(cacheRange.low.cost - 0.08) < 1e-9, "cache reads must use the checked cache-read discount");
+assert.ok(Math.abs(cacheRange.high.cost - 1.5) < 1e-9);
+// The range tracks edited rates, so a corrected price moves the reported figure.
+const originalHaiku35In = context.PRICES.haiku35.in;
+context.PRICES.haiku35.in = 0.4;
+assert.ok(Math.abs(context.apiEquivalentRange(1e6, 0, 0, 0).low.cost - 0.4) < 1e-9,
+  "the range must be derived from PRICES at call time so a rate edit re-renders it");
+context.PRICES.haiku35.in = originalHaiku35In;
+
 const csvStart = html.indexOf("function splitCSV");
 const csvEnd = html.indexOf("function estTokens", csvStart);
 assert.ok(csvStart >= 0 && csvEnd > csvStart, "could not locate CSV parser");

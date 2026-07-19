@@ -57,6 +57,27 @@ assert.match(html, /pilotContinueToShare.*finishSurvey\(true\)/s);
 assert.match(html, /TOP priced "\+fmtN\(pricedRows\.length\)\+" of "\+fmtN\(rows\.length\)/);
 assert.match(html, /not your subscription bill/);
 
+// Subscription-covered reports lead with tokens, never with a meaningless zero, and never guess the
+// model behind Cursor's Auto mode.
+assert.match(html, /What this would cost at API prices/);
+assert.match(html, /Your Cursor subscription covered this usage, so nothing extra was charged/);
+assert.match(html, /not money you paid and not a saving/);
+assert.match(html, /Cursor's Auto mode does not record which AI version ran/);
+assert.match(html, /so TOP cannot show a model mix for this export/);
+assert.match(html, /AI version not disclosed/);
+assert.match(html, /No charge, plan covered/);
+assert.match(html, /id="includedUsage" hidden/);
+assert.match(html, /\.pilot-mode #out>#includedUsage/,
+  "the covered-usage callout must be hidden in pilot mode, where the pilot report already carries it");
+// Every sentence that states the API-equivalent amount must carry the "not a saving" qualifier in the
+// same breath, so the hypothetical can never be read as money the subscription earned back.
+for (const claim of html.match(/[^".]*would cost (?:about|somewhere between)[^"]*?(?:saving|bill)[^"]*/g) || []) {
+  assert.match(claim, /not money you paid and not a saving/,
+    `an API-equivalent figure was stated without the not-a-saving qualifier: ${claim.slice(0, 120)}`);
+}
+assert.ok((html.match(/not money you paid and not a saving/g) || []).length >= 2,
+  "both the on-screen callout and the downloaded summary must carry the not-a-saving qualifier");
+
 const sunRule = html.match(/\.journey-sun\{[^}]+\}/);
 assert.ok(sunRule, "sun rule missing");
 assert.match(sunRule[0], /radial-gradient/);

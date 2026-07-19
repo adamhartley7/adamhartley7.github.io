@@ -114,6 +114,124 @@ assert.equal(context.cursorRecognizedModel("grok-code-fast-1"), true);
 assert.equal(context.cursorRecognizedModel("totally-unknown-model-x"), false);
 assert.equal(context.cursorRecognizedModel(""), false);
 
+// Subscription-covered detection. The founder's real export is every row Kind "Included", Cost
+// "Included", Model "auto": no money changed hands, but ~9.8M real tokens did. The report must be able
+// to tell that apart from "no data", so the parser records covered rows, covered tokens and the fact
+// that no model was ever disclosed.
+const covered = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:26:09.565Z,Included,auto,No,0,77554,356352,6578,440484,Included",
+  "2026-07-18T10:25:45.159Z,Included,auto,No,0,143210,268288,7602,419100,Included",
+].join("\n")]);
+assert.equal(covered.subscriptionCovered, true, "all-Included rows carrying real tokens must be flagged subscription-covered");
+assert.equal(covered.coveredRows, 2);
+assert.equal(covered.coveredTokens, 859584);
+assert.equal(covered.recordedCostTotal, 0);
+assert.equal(covered.totalTokens, 859584);
+assert.equal(covered.undisclosedRows, 2);
+assert.equal(covered.modelsUndisclosed, true, "Cursor Auto never names the model, so no per-model split is possible");
+assert.equal(covered.costComplete, false, "an Included cost cell is not a priced row; pricing must stay fail-closed");
+
+// A Cost cell reading "Included" counts as covered even when the Kind column says otherwise.
+const coveredByCostCell = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,On-Demand,auto,No,0,100,200,50,350,Included",
+].join("\n")]);
+assert.equal(coveredByCostCell.subscriptionCovered, true);
+assert.equal(coveredByCostCell.coveredRows, 1);
+
+// Fail-closed boundaries: one real charge anywhere puts the report back on the recorded-cost path,
+// and an Included marker with no tokens behind it is not a covered-usage story worth leading with.
+const mixedCharge = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,100,200,50,350,Included",
+  "2026-07-18T11:00:00.000Z,On-Demand,claude-4.5-sonnet,No,2000,1500,0,400,2400,1.95",
+].join("\n")]);
+assert.equal(mixedCharge.subscriptionCovered, false, "a real recorded charge must suppress the covered-usage framing");
+assert.equal(mixedCharge.recordedCostTotal, 1.95);
+assert.equal(mixedCharge.modelsUndisclosed, false, "a named model alongside auto means the split is only partly unavailable");
+
+const includedButCharged = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,100,200,50,350,0.42",
+].join("\n")]);
+assert.equal(includedButCharged.subscriptionCovered, false, "an Included row carrying a real dollar amount is not free usage");
+
+const includedNoTokens = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,0,0,0,0,Included",
+].join("\n")]);
+assert.equal(includedNoTokens.subscriptionCovered, false, "no tokens means there is no consumed-usage story to tell");
+
+const erroredOnly = context.parseCursor([[
+  HEADER,
+  '2026-07-18T10:00:00.000Z,"Errored, Not Charged",gpt-5,No,100,100,0,0,100,-',
+].join("\n")]);
+assert.equal(erroredOnly.subscriptionCovered, false, "a zero total with no Included marker is not a subscription-covered export");
+assert.equal(erroredOnly.coveredRows, 0);
+
+// "Nothing extra was charged and the recorded charge is zero" is a claim about EVERY row, so it needs
+// every row's charge to be known. A Cost cell TOP cannot read leaves that row's charge unknown, and an
+// unknown charge is not a zero one. One Included row among rows whose cost is blank, "N/A" or
+// "Free trial" is not a subscription-covered export, and must degrade to the ordinary recorded-cost
+// path rather than assert coverage over rows TOP knows nothing about.
+const partialCoverage = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+  "2026-07-18T11:00:00.000Z,On-Demand,auto,No,0,1000,2000,500,3500,",
+  "2026-07-18T12:00:00.000Z,On-Demand,auto,No,0,1000,2000,500,3500,N/A",
+  "2026-07-18T13:00:00.000Z,On-Demand,auto,No,0,1000,2000,500,3500,Free trial",
+].join("\n")]);
+assert.equal(partialCoverage.turns, 4);
+assert.equal(partialCoverage.coveredRows, 1, "only the explicitly Included row is covered");
+assert.equal(partialCoverage.missingCostRows, 4);
+assert.equal(partialCoverage.recordedCostTotal, 0, "no row recorded a readable charge");
+assert.equal(partialCoverage.chargeKnownRows, 1,
+  "three rows carry a Cost cell TOP cannot read, so their charge is unknown");
+assert.equal(partialCoverage.subscriptionCovered, false,
+  "one Included row cannot vouch for three rows whose charge TOP does not know");
+
+// The tightening must not swing the other way. A row Cursor recorded as genuinely not charged has a
+// KNOWN charge of zero, so it does not withdraw the covered claim.
+const coveredWithNotCharged = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+  '2026-07-18T11:00:00.000Z,"Errored, Not Charged",auto,No,0,100,200,50,350,-',
+].join("\n")]);
+assert.equal(coveredWithNotCharged.chargeKnownRows, 2);
+assert.equal(coveredWithNotCharged.subscriptionCovered, true,
+  "a recorded not-charged row is a known zero, not an unknown");
+
+// The founder's real shape: every row Included, so every row's charge is known and the claim holds.
+const fullyCovered = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+  "2026-07-18T11:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+].join("\n")]);
+assert.equal(fullyCovered.chargeKnownRows, fullyCovered.turns);
+assert.equal(fullyCovered.subscriptionCovered, true);
+
+// A single unreadable Cost cell anywhere is enough to withdraw the claim.
+const oneUnreadable = context.parseCursor([[
+  HEADER,
+  "2026-07-18T10:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+  "2026-07-18T11:00:00.000Z,Included,auto,No,0,1000,2000,500,3500,Included",
+  "2026-07-18T12:00:00.000Z,On-Demand,claude-4.5-sonnet,No,0,1000,2000,500,3500,pending",
+].join("\n")]);
+assert.equal(oneUnreadable.coveredRows, 2);
+assert.equal(oneUnreadable.chargeKnownRows, 2);
+assert.equal(oneUnreadable.subscriptionCovered, false,
+  "an unreadable charge on one row withdraws a claim made about all of them");
+
+// Auto is the only undisclosed-model marker. Named models, including Cursor's own, stay attributable.
+assert.equal(context.cursorUndisclosedModel("auto"), true);
+assert.equal(context.cursorUndisclosedModel("AUTO"), true);
+assert.equal(context.cursorUndisclosedModel(" auto "), true);
+assert.equal(context.cursorUndisclosedModel("auto-2"), false);
+assert.equal(context.cursorUndisclosedModel("cursor-small"), false);
+assert.equal(context.cursorUndisclosedModel("claude-4.5-sonnet"), false);
+assert.equal(context.cursorUndisclosedModel(""), false);
+
 // A file whose header is not a Cursor usage export is skipped and counted, not guessed.
 const wrongFile = context.parseCursor(["model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,100,10,0.01"]);
 assert.equal(wrongFile.turns, 0, "a Console CSV must not be ingested by the Cursor reader");
@@ -138,5 +256,58 @@ for (const result of [forward, backward]) {
 assert.equal(context.detectUsageCsvKind([fileA]), "cursor");
 assert.equal(context.detectUsageCsvKind(["model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,100,10,0.01"]), "");
 assert.equal(context.detectUsageCsvKind([fileA, "model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,100,10,0.01"]), "mixed");
+
+// ---------- local-only time buckets for the token-over-time chart ----------
+// A subscription-coveredExport export charges nothing, so a dollar axis is a flat line at zero. The chart
+// is drawn in tokens instead, which needs real time buckets. These stay on this machine: they are
+// charted locally and never enter the research-safe export, which excludes exact timestamps.
+const coveredExport = context.parseCursor([[
+  HEADER,
+  '"2026-07-18T01:26:09.565Z","Included","auto","No","0","77554","356352","6578","440484","Included"',
+  '"2026-07-18T01:59:00.000Z","Included","auto","No","0","1000","2000","500","3500","Included"',
+  '"2026-07-18T10:26:09.565Z","Included","auto","No","0","143210","268288","7602","419100","Included"',
+].join("\n")]);
+assert.equal(coveredExport.subscriptionCovered, true);
+assert.equal(coveredExport.modelsUndisclosed, true);
+assert.equal(coveredExport.days, 1, "the whole export lands on one calendar day");
+assert.deepEqual(Object.keys(coveredExport.tokenTimeline.byDay), ["2026-07-18"]);
+assert.deepEqual(Object.keys(coveredExport.tokenTimeline.byHour).sort(), ["2026-07-18T01", "2026-07-18T10"],
+  "rows must bucket by the hour their own timestamp records");
+assert.equal(coveredExport.tokenTimeline.byHour["2026-07-18T01"].rows, 2, "two rows share the 01:00 hour");
+assert.equal(coveredExport.tokenTimeline.byHour["2026-07-18T01"].cr, 358352);
+assert.equal(coveredExport.tokenTimeline.hourRows, 3);
+assert.equal(coveredExport.tokenTimeline.datedRows, 3);
+assert.equal(coveredExport.tokenTimeline.undatedRows, 0);
+// Day totals must agree with the report totals, or a chart could contradict the number beside it.
+const dayBucket = coveredExport.tokenTimeline.byDay["2026-07-18"];
+assert.equal(dayBucket.inp + dayBucket.out + dayBucket.cw + dayBucket.cr, coveredExport.totalTokens,
+  "the charted day buckets must sum to the same tokens the report shows");
+
+// A date cell with no time contributes a day bucket and no hour bucket, so an hourly axis is never
+// drawn over a time the file did not record.
+const dateOnly = context.parseCursor([[HEADER, "2026-07-12,Included,auto,No,100,80,10,20,110,Included"].join("\n")]);
+assert.deepEqual(Object.keys(dateOnly.tokenTimeline.byDay), ["2026-07-12"]);
+assert.deepEqual(Object.keys(dateOnly.tokenTimeline.byHour), [], "a date without an hour must not invent one");
+assert.equal(dateOnly.tokenTimeline.hourRows, 0);
+assert.equal(dateOnly.tokenTimeline.datedRows, 1);
+
+// An unreadable date is counted as undated rather than dropped silently or coerced to a date.
+const undated = context.parseCursor([[HEADER, "not-a-date,Included,auto,No,100,80,10,20,110,Included"].join("\n")]);
+assert.equal(undated.tokenTimeline.undatedRows, 1);
+assert.equal(undated.tokenTimeline.datedRows, 0);
+assert.deepEqual(Object.keys(undated.tokenTimeline.byDay), []);
+assert.equal(undated.turns, 1, "an undated row still counts toward the totals");
+
+// Per-event token totals feed the concentration curve, and are bounded rather than grown without limit.
+assert.deepEqual(Array.from(coveredExport.eventTokens), [440484, 3500, 419100]);
+assert.equal(Array.from(coveredExport.eventTokens).reduce((s, v) => s + v, 0), coveredExport.totalTokens,
+  "per-event samples must account for exactly the tokens the report totals");
+assert.match(html, /var CURSOR_EVENT_SAMPLE_CAP=\d+;/, "the per-event sample must carry an explicit cap");
+const cap = Number(/var CURSOR_EVENT_SAMPLE_CAP=(\d+);/.exec(html)[1]);
+const huge = context.parseCursor([[HEADER, ...Array.from({ length: cap + 5 },
+  () => "2026-07-12T01:00:00Z,Included,auto,No,100,80,10,20,110,Included")].join("\n")]);
+assert.equal(huge.eventTokens, null,
+  "beyond the cap the sample is dropped, never truncated into a distribution that would misstate the shape");
+assert.equal(huge.turns, cap + 5, "dropping the sample must not change the counted usage events");
 
 console.log("TOP Analyzer Cursor parser regression tests passed");
