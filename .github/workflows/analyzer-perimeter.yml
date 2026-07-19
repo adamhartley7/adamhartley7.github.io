@@ -89,7 +89,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - name: Enforce never-zero, no-network, and collector pin contracts
+      - name: Enforce protected perimeter contracts
         run: >-
           node --test
           analyze/test-never-zero-render.cjs
