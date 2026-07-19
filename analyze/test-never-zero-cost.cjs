@@ -124,6 +124,34 @@ sevenSources.forEach(([name, res, entry]) => {
     `${name}: an unpriceable model must reach the reader as unpriced`);
 });
 
+// ---------------------------------------------------------------------------
+// The model table must agree with the cost card above it. The card already routes
+// through costCell, so on a source whose recorded charges are genuine zeros it read
+// "No charge recorded" while the table two inches below still printed "$0.00" for
+// the same fact. Both rows of the table now go through the same chokepoint.
+// ---------------------------------------------------------------------------
+{
+  const tableRow = html.slice(html.indexOf("var tb=rows.map(function(r){var shown="));
+  const rowExpr = tableRow.slice(0, tableRow.indexOf(";var saved="));
+  assert.match(rowExpr, /costCell\(r\.cost,r\.complete,/,
+    "each model row must take its dollar cell from the shared chokepoint");
+  assert.doesNotMatch(rowExpr, /fmt\$\(/,
+    "no model row may format a dollar amount without passing the never-zero rule first");
+
+  const totalStart = html.indexOf("var totalShown=");
+  const totalExpr = html.slice(totalStart, html.indexOf("\n", totalStart));
+  assert.match(totalExpr, /costCell\(totCost,true,/,
+    "the table total must take its dollar cell from the shared chokepoint");
+  assert.match(totalExpr, /costCell\(totCost,false,/,
+    "a partly priced total must go through the chokepoint too, so a zero cannot slip out as $0.00");
+  assert.doesNotMatch(totalExpr, /fmt\$\(/,
+    "the table total must not format a dollar amount without passing the never-zero rule first");
+}
+
+// A recorded zero reaches the table as words, and reads the same as the cost card.
+assert.equal(fmt.costCell(0, true, ""), fmt.costCell(0, true, "~"),
+  "an estimate marker must not turn a recorded zero back into a dollar figure");
+
 // The token counts stay visible for every one of those rows: unpriced is not the same as hidden.
 sevenSources.forEach(([name, , entry]) => {
   assert.ok(entry.inp > 0 && report.fmtN(entry.inp) === "62,000",

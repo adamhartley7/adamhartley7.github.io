@@ -193,4 +193,34 @@ assert.equal(context.valueModelAllowed([
     "a CSV row with no usage or recorded cost must not create a fake record");
 }
 
+{
+  // A negative billed amount is a refund or credit adjustment, not a discount on this row's usage.
+  // Netting it against a sibling row would understate what was actually charged, so the row stays
+  // unpriced and counted, exactly as parseCursor and parseCopilot already do.
+  const result = context.parseCSV([
+    "model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,100,10,20.00\nclaude-opus-4-8,200,20,-15.00",
+  ]);
+  assert.equal(result.costRows, 1,
+    "a negative billed amount must not be counted as a recorded cost");
+  assert.equal(result.missingCostRows, 1,
+    "a negative billed amount must be routed to the unpriced count");
+  assert.equal(result.by["claude-opus-4-8"].cost, 20,
+    "a refund row must not be netted against a genuinely billed row");
+  assert.equal(result.costComplete, false);
+  assert.equal(result.estimate, true,
+    "a CSV containing a negative billed amount must not be called exact");
+}
+
+{
+  const result = context.parseCSV([
+    "model,input_tokens,output_tokens,cost_usd\nclaude-opus-4-8,100,10,-15.00",
+  ]);
+  assert.equal(result.costRows, 0);
+  assert.equal(result.missingCostRows, 1);
+  assert.equal(result.by["claude-opus-4-8"].cost, 0,
+    "a lone negative billed amount must never reach the report as a negative dollar figure");
+  assert.equal(result.turns, 1,
+    "the row still has real token usage, so it must still be counted as usage");
+}
+
 console.log("TOP Analyzer pricing and Console CSV regression tests passed");

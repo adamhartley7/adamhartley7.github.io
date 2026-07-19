@@ -78,7 +78,11 @@ nav a.back{font-size:14px;color:var(--muted)}
 header{text-align:center;padding:52px 0 24px}
 .badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#075f4b;border:1px solid rgba(8,127,98,.28);background:rgba(255,255,255,.78);padding:8px 16px;border-radius:100px;margin-bottom:20px;box-shadow:0 12px 34px rgba(27,73,99,.10)}
 .badge .lk{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 7px var(--mint)}
-h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-width:16ch;margin:0 auto 14px}
+/* 26ch, not 16ch. 16ch is a measure for a three-word headline; this one is 78 characters, so it was
+   setting six lines of 46px type and pushing everything below it off the first screen. The size,
+   weight and letter-spacing are unchanged: this is the measure being corrected, not the hero shrunk.
+   26ch is the value .pilot-mode already uses for the same element, so the two modes now agree. */
+h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-width:26ch;margin:0 auto 14px}
 .sub{color:var(--text);max-width:60ch;margin:0 auto;font-size:18px;background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.82);border-radius:17px;padding:12px 18px;box-shadow:0 14px 34px rgba(25,66,92,.10);backdrop-filter:blur(8px)}
 .sub b{color:var(--text)}
 .tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:18px 0 8px}
@@ -409,11 +413,11 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <p class="sub">Choose a Claude, ChatGPT, Codex, Cursor or GitHub Copilot history file for a usage report, or choose an Obsidian vault folder for a local 7C's readiness check. The files stay in this browser and are not sent to TOP.</p>
   </header>
   <div class="flow-shell">
-    <div class="journey-rail" aria-live="polite">
-      <div class="journey-meta"><span id="journeyLabel">Sunrise: tell us what you want to improve</span><strong id="journeyPercent">8%</strong></div>
-      <div class="journey-track" aria-hidden="true"><span id="journeyFill"></span></div>
-    </div>
-
+    <!-- The jargon buster comes before the journey rail on purpose. It is the escape hatch for a
+         visitor who does not yet know whether any of this is for them, and a progress bar reading
+         "8%" answers a question that person has not asked yet. Offer the help first, then the
+         machinery. It stays inside .flow-shell and ahead of both #pilotFlow and #resonanceStep, so
+         it still shows in the pilot flow and the ordinary analyzer alike. -->
     <details class="jargon-buster" id="jargonBusterDetails">
       <summary>Too much technical jargon? Not sure how this helps you?</summary>
       <div class="jargon-body">
@@ -459,6 +463,11 @@ Then, using whatever I tell you, explain:
 Keep it short and concrete, in ordinary language. If you have to use a technical term, define it in the same sentence.</textarea>
       </div>
     </details>
+
+    <div class="journey-rail" aria-live="polite">
+      <div class="journey-meta"><span id="journeyLabel">Sunrise: tell us what you want to improve</span><strong id="journeyPercent">8%</strong></div>
+      <div class="journey-track" aria-hidden="true"><span id="journeyFill"></span></div>
+    </div>
 
     <section class="pilot-flow" id="pilotFlow" hidden aria-labelledby="pilotHeading">
       <div class="pilot-bubble"><strong id="pilotHeading">Let us get your usage report in two steps.</strong>Your raw AI history stays on this computer. Nothing is uploaded while TOP prepares your report.</div>
@@ -2221,7 +2230,9 @@ function parseCSV(texts){
       var rawCost=ci.cost>=0?String(f[ci.cost]===undefined?"":f[ci.cost]).trim():"";
       var parsedCost=rawCost?strictMoney(rawCost):null;
       var hasTokenValues=rowTokens.inp>0||rowTokens.out>0||rowTokens.cw>0||rowTokens.cr>0;
-      var hasCostValue=parsedCost!==null;
+      // A negative billed amount is a refund or credit adjustment, not this row's charge. Counting it
+      // would net real money away from a sibling row, so the row stays unpriced instead.
+      var hasCostValue=parsedCost!==null&&parsedCost>=0;
       if(!hasTokenValues&&!hasCostValue) continue;
       var model=(ci.model>=0?f[ci.model]:"unknown")||"unknown";
       var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0}});
@@ -4119,8 +4130,8 @@ function render(res){
   // a footer reading "No charge, plan covered" made one table state two different things about the same
   // rows. The comparison has its own card and its own sentence; this column stays the charge column.
   // Codex history carries no billed cost on any row either, so it states that rather than a dollar figure.
-  var tb=rows.map(function(r){var shown=res.codex?"Not in files":(res.chatExport?"Not in export":(res.cursor&&cursorUndisclosedModel(r.model)?"AI version not disclosed":(included?"No charge, plan covered":(r.cost===null?"Not priced":(!r.complete?(r.cost>0?"Partial "+fmt$(r.cost):"Not priced"):((res.estimate?"~":"")+fmt$(r.cost)))))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
-  var totalShown=res.codex?"Not in files":(res.chatExport?"Not in export":(included?"No charge, plan covered":(res.costAvailable?((res.estimate?"~":"")+fmt$(totCost)):(res.partialCost?("Partial "+fmt$(totCost)):"Not available"))));
+  var tb=rows.map(function(r){var shown=res.codex?"Not in files":(res.chatExport?"Not in export":(res.cursor&&cursorUndisclosedModel(r.model)?"AI version not disclosed":(included?"No charge, plan covered":costCell(r.cost,r.complete,res.estimate?"~":""))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
+  var totalShown=res.codex?"Not in files":(res.chatExport?"Not in export":(included?"No charge, plan covered":(res.costAvailable?costCell(totCost,true,res.estimate?"~":""):(res.partialCost?costCell(totCost,false,""):"Not available"))));
   var tf='<tfoot><tr><td>Total</td><td class="n">'+tokenPrefix+fmtN(totInp)+'</td><td class="n">'+tokenPrefix+fmtN(totOut)+'</td><td class="n">'+(res.chatExport?"Not in export":(fmtN(totCw)+' / '+fmtN(totCr)))+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
   if(res.copilot){
     // Copilot exports contain no token counts, so the table shows what GitHub actually meters: requests, credits and billed dollars.
