@@ -3,23 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TOP Forecast — predict your Claude Code spend, locally</title>
-<meta name="description" content="Drop your Claude Code logs in and see your real spend, then back-test TOP's cost forecast on your own sessions — parsed 100% in your browser. Nothing is uploaded.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>TOP Forecast: experimental Claude Code back-test, locally</title>
+<meta name="description" content="Select Claude Code logs to review an estimated API list-price equivalent and back-test an experimental cost band. The estimate is not validated. Selected log contents are processed locally and are not sent by this page.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236E7BF2'/%3E%3Ctext x='16' y='22' font-size='15' font-weight='700' text-anchor='middle' font-family='sans-serif' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#08080A;--bg1:#0C0C0F;--panel:#141418;--panel2:#191920;--border:#232329;--border2:#33333d;
-  --text:#F1F1F3;--muted:#9B9BA6;--faint:#6A6A74;--iris:#6E7BF2;--iris2:#9AA2F7;--glow:rgba(110,123,242,.30);
+  --text:#F1F1F3;--muted:#9B9BA6;--faint:#92929D;--iris:#6E7BF2;--iris2:#9AA2F7;--glow:rgba(110,123,242,.30);
   --mint:#3ECF8E;--amber:#E8B23A;--red:#F26D6D;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
   background-image:radial-gradient(800px 460px at 72% -8%,rgba(110,123,242,.13),transparent 60%)}
 .mono{font-family:var(--mono)}
 a{color:var(--iris2);text-decoration:none}
-.wrap{max-width:960px;margin:0 auto;padding:0 22px}
+.wrap{width:100%;max-width:960px;margin:0 auto;padding:0 22px}
 nav{border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,10,.8);backdrop-filter:blur(10px);z-index:5}
 nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
 .logo{display:flex;align-items:center;gap:9px;font-weight:700}
@@ -32,14 +35,18 @@ h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;max-widt
 .sub{color:var(--muted);max-width:60ch;margin:0 auto;font-size:17px}
 .sub b{color:var(--text)}
 .hint{text-align:center;color:var(--faint);font-size:13.5px;margin:14px auto 18px;max-width:66ch}
-.hint code{color:var(--muted);background:var(--panel);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:12.5px}
+.hint code{color:var(--muted);background:var(--panel);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:12.5px;overflow-wrap:anywhere;word-break:break-word}
+#agentcmd{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+#agentcmd:focus{outline:3px solid var(--iris2);outline-offset:3px}
 .drop{display:block;width:100%;border:1.5px dashed var(--border2);border-radius:16px;background:var(--panel);padding:clamp(26px,6vw,40px) 20px;text-align:center;cursor:pointer;transition:.2s}
 .drop .big{overflow-wrap:anywhere}
 .drop.over{border-color:var(--iris);background:rgba(110,123,242,.08)}
 .drop .big{font-size:19px;font-weight:600;margin-bottom:6px}
 .drop .small{color:var(--muted);font-size:14px}
 .drop input{display:none}
-.note{color:var(--faint);font-size:13px;text-align:center;margin:14px auto;max-width:66ch}
+.picker-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.picker-actions .btn{margin-top:0}
+.note{color:var(--muted);font-size:13px;text-align:center;margin:14px auto;max-width:66ch}
 .note.warn{color:var(--amber)}
 #err{display:none;color:var(--red);background:rgba(242,109,109,.08);border:1px solid rgba(242,109,109,.3);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:14.5px}
 #busy{display:none;color:var(--muted);text-align:center;margin:18px 0;font-family:var(--mono);font-size:14px}
@@ -64,6 +71,8 @@ tfoot td{font-weight:700;border-top:1px solid var(--border2);border-bottom:none}
 .band .rng{position:absolute;top:0;bottom:0;background:rgba(110,123,242,.35);border-left:1px solid var(--iris2);border-right:1px solid var(--iris2)}
 .band .act{position:absolute;top:-2px;width:2px;height:16px;background:var(--mint)}
 .band .act.m{background:var(--red)}
+.band-values{display:block;color:var(--muted);font-family:var(--mono);font-size:11px;white-space:nowrap;margin-top:3px}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .toggle{display:inline-flex;gap:6px;margin:2px 0 14px}
 .toggle button{font-family:var(--mono);font-size:12.5px;padding:7px 13px;border:1px solid var(--border2);border-radius:8px;background:var(--panel);color:var(--muted);cursor:pointer;transition:.2s}
 .toggle button.on{color:#fff;border-color:var(--iris);background:rgba(110,123,242,.12)}
@@ -74,9 +83,10 @@ tfoot td{font-weight:700;border-top:1px solid var(--border2);border-bottom:none}
 .summbox p{color:var(--muted);font-size:14px;margin-bottom:12px}
 textarea{width:100%;min-height:150px;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-family:var(--mono);font-size:12.5px;padding:14px;resize:vertical}
 .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;padding:11px 18px;border-radius:9px;border:1px solid var(--border2);background:var(--panel);color:var(--text);cursor:pointer;transition:.2s;margin-top:10px}
-.btn.p{background:var(--iris);border-color:transparent;color:#fff}
+.btn.p{background:#4B56C9;border-color:transparent;color:#fff}
 .btn:hover{transform:translateY(-1px)}
-.pricerow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--faint);margin-top:18px}
+.btn:focus-visible,.toggle button:focus-visible,textarea:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--iris2);outline-offset:3px}
+.pricerow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:18px}
 .pricerow input{width:64px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 7px;font-family:var(--mono);font-size:12.5px}
 .pricerow select{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 7px;font-family:var(--mono);font-size:12.5px;max-width:240px}
 footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font-size:13px;text-align:center}
@@ -86,6 +96,16 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 .sw{width:14px;height:10px;border-radius:3px;display:inline-block}
 .sw.rng{background:rgba(110,123,242,.5);border:1px solid var(--iris2)}
 .sw.act{width:3px;height:14px;background:var(--mint);border-radius:1px}
+@media(max-width:480px){
+  .wrap{padding-left:14px;padding-right:14px}
+  header{padding:34px 0 18px}
+  h1{font-size:30px}
+  .sub{font-size:15.5px}
+  .priv{font-size:12px;line-height:1.45}
+  .hint{font-size:12.5px}
+  .drop{padding:24px 12px}
+  #agentcmd{font-size:11.5px;line-height:1.45}
+}
 </style>
 </head>
 <body>
@@ -95,57 +115,63 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
 </div></nav>
 
 <header class="wrap">
-  <div class="badge"><span class="lk"></span> raw data never leaves your browser</div>
-  <h1>Forecast your Claude Code spend — before you spend it.</h1>
-  <p class="sub">Drop your Claude Code logs in below. Files are parsed <b>entirely on your own machine</b> — <b>your raw logs, prompts and code never leave your browser, and nothing is uploaded anywhere.</b> First you see exactly what you've already spent; then TOP <b>back-tests its cost forecast on your own history</b> and shows you the honest result.</p>
+  <div class="badge"><span class="lk"></span> selected log contents stay in this browser</div>
+  <h1>Test an experimental Claude Code API-equivalent cost band.</h1>
+  <p class="sub">Select Claude Code logs below. This page reads the selected files inside your browser tab and <b>does not send their contents to TOP or another service.</b> Loading the hosted page still creates routine web requests. First you see an estimated API list-price equivalent for the selected historical usage; then TOP <b>back-tests an experimental cost band on that history</b> and shows you the result.</p>
 </header>
 
 <div class="wrap">
-  <div class="priv"><span>🔒</span> 100% client-side · no network calls · your logs stay on your device · view source and check</div>
+  <div class="priv"><span>🔒</span> local log processing · no log-content upload request · source available to inspect</div>
 
   <div class="hint">
     Your Claude Code logs live in <code>~/.claude/projects/</code> (Windows: <code>C:\Users\YOU\.claude\projects\</code>).
-    Easiest: pick that whole folder once. Real token counts per turn; the most accurate source there is.
+    Easiest: pick that whole folder once. It contains recorded token counters per turn and is the most complete supported source.
   </div>
 
-  <label class="drop" id="drop">
-    <div class="big"><a href="#" id="pickfolder">Choose your whole ~/.claude/projects folder</a> — or drop it here</div>
-    <div class="small">only the .jsonl session logs inside it are read, on this device · prefer single files? click here to choose them</div>
-    <input type="file" id="file" multiple>
+  <div class="drop" id="drop">
+    <div class="big">Choose Claude Code logs, or drop them here</div>
+    <div class="small">Only selected .jsonl session logs are read, on this device.</div>
+    <div class="picker-actions">
+      <button type="button" class="btn p" id="pickfolder">Choose whole ~/.claude/projects folder</button>
+      <button type="button" class="btn" id="pickfiles">Choose individual .jsonl files</button>
+    </div>
+    <input type="file" id="file" accept=".jsonl,application/x-ndjson" multiple>
     <input type="file" id="folder" webkitdirectory>
-  </label>
+  </div>
 
   <div class="hint" style="margin-top:8px">
     <b>Zero-friction option: let your agent do it.</b> Paste this to Claude Code or Codex and it bundles
     your whole history into one file in Downloads; then drop that single file above.
-    <code id="agentcmd" style="display:block;margin:6px 0;padding:6px 8px;white-space:pre-wrap;cursor:pointer" title="click to copy">Bundle every .jsonl under my ~/.claude/projects into one file, TOP-claude-export.jsonl, in my Downloads folder (not a cloud-synced folder like Desktop, these logs contain my prompts), adding a newline between files so records never merge. Windows PowerShell: $o="$env:USERPROFILE\Downloads\TOP-claude-export.jsonl"; Remove-Item $o -EA 0; Get-ChildItem "$env:USERPROFILE\.claude\projects" -Recurse -Filter *.jsonl | ForEach-Object { Add-Content $o (Get-Content $_.FullName -Raw) }. Mac or Linux: find ~/.claude/projects -name '*.jsonl' -exec awk 1 {} + > ~/Downloads/TOP-claude-export.jsonl</code>
+    <code id="agentcmd" tabindex="-1" style="display:block;margin:6px 0;padding:6px 8px;white-space:pre-wrap">Bundle every .jsonl under my ~/.claude/projects into one file, TOP-claude-export.jsonl, in my Downloads folder (not a cloud-synced folder like Desktop, these logs contain my prompts), adding a newline between files so records never merge. Windows PowerShell: $o="$env:USERPROFILE\Downloads\TOP-claude-export.jsonl"; Remove-Item $o -EA 0; Get-ChildItem "$env:USERPROFILE\.claude\projects" -Recurse -Filter *.jsonl | ForEach-Object { Add-Content $o (Get-Content $_.FullName -Raw) }. Mac or Linux: find ~/.claude/projects -name '*.jsonl' -exec awk 1 {} + > ~/Downloads/TOP-claude-export.jsonl</code>
+    <button type="button" class="btn" id="copyagent" aria-describedby="agentcopy-status">Copy agent prompt</button>
+    <span class="small" id="agentcopy-status" role="status" aria-live="polite">Copies only the prompt shown above.</span>
     <span class="small">One merged file parses identically to the folder; sessions are grouped by their IDs, not by file. If the merged file tops ~800 MB, use the folder picker instead; browsers cannot read single files that large.</span>
   </div>
 
-  <div id="busy">Parsing and back-testing on your device…</div>
-  <div id="err"></div>
+  <div id="busy" role="status" aria-live="polite">Parsing and back-testing on your device…</div>
+  <div id="err" role="alert" aria-live="assertive"></div>
 
   <div id="out">
 
-    <h2>Your spend so far</h2>
-    <p class="lead">This is real and immediately useful on its own — computed from the token counts in your logs, at the (editable) prices below.</p>
+    <h2>Estimated API list-price equivalent</h2>
+    <p class="lead">This comparison applies the editable API list prices below to recorded token counters. It does not reproduce subscription charges, discounts, provider invoices, or historical rates.</p>
     <div class="cards" id="cards"></div>
     <div style="overflow-x:auto"><table id="modeltable"></table></div>
     <p class="note warn" id="unpricedwarn" style="display:none"></p>
     <p class="note" id="spendnote"></p>
 
     <h2>The forecast, back-tested on your data</h2>
-    <p class="lead">TOP sorts your sessions in time, fits its cost model on the <b>older</b> ones, then predicts the <b>most recent</b> ones it never saw — and checks itself. A P10–P90 band should contain the real cost <b>80%</b> of the time. These are your true numbers, not a demo.</p>
+    <p class="lead">TOP sorts your sessions in time, fits its cost model on the <b>older</b> ones, then predicts the <b>most recent</b> ones it never saw and checks itself. A P10 to P90 band is evaluated against an <b>80% coverage target</b>. These are held-out results from the selected history, not a general validation.</p>
     <div class="cards" id="btcards"></div>
     <div id="btbody">
-      <div class="toggle" id="regtoggle">
-        <button data-reg="description" class="on">from the task alone</button>
-        <button data-reg="oracle">given the turn count</button>
+      <div class="toggle" id="regtoggle" role="group" aria-label="Back-test information regime">
+        <button type="button" data-reg="description" class="on" aria-pressed="true">from the task alone</button>
+        <button type="button" data-reg="oracle" aria-pressed="false">given the turn count</button>
       </div>
       <p class="lead" id="regexplain"></p>
       <div class="legend">
         <span><i class="sw rng"></i> P10–P90 forecast band</span>
-        <span><i class="sw act"></i> actual cost (green = inside band, red = missed)</span>
+        <span><i class="sw act"></i> historical API-price equivalent (green = inside band, red = missed)</span>
         <span>log scale, recent sessions</span>
       </div>
       <div style="overflow-x:auto"><table id="bttable"></table></div>
@@ -155,59 +181,78 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <div class="status" id="status"></div>
 
     <div class="summbox" id="quotebox" style="display:none">
-      <h3>Quote your next task before you run it</h3>
+      <h3>Try an experimental API-equivalent band for your next task</h3>
+      <p class="lead">Research-only. The next-task estimate is not validated, and it is not a price, guarantee or spending limit.</p>
       <p id="quotelead"></p>
       <div id="quoteform" style="display:none">
-        <textarea id="qdesc" style="min-height:72px" placeholder="Type what you're about to ask Claude Code to do, e.g. fix the failing login test in api/auth.test.ts"></textarea>
+        <label for="qdesc">Task description</label>
+        <textarea id="qdesc" style="min-height:72px" placeholder="For example: fix the failing login test in api/auth.test.ts"></textarea>
         <div class="pricerow" style="margin-top:12px">
-          <span>project</span> <select id="qproj"></select>
-          <span>expected turns (optional)</span> <input id="qturns" type="number" min="1" step="1" placeholder="e.g. 25">
+          <label for="qproj">Project</label> <select id="qproj"></select>
+          <label for="qturns">Expected turns (optional)</label> <input id="qturns" type="number" min="1" step="1" placeholder="e.g. 25">
         </div>
-        <button class="btn p" id="qbtn">Quote it</button>
+        <button class="btn p" id="qbtn">Generate experimental band</button>
       </div>
       <div class="cards" id="qcards" style="margin:14px 0 0"></div>
-      <p class="note" id="qnote" style="display:none;text-align:left;margin:10px 0 0"></p>
+      <p class="note" id="qnote" role="status" aria-live="polite" aria-atomic="true" style="display:none;text-align:left;margin:10px 0 0"></p>
     </div>
 
     <div class="summbox">
-      <h3>Share your (anonymised) result <span style="color:var(--faint);font-weight:400;font-size:13px">— totals only, never prompts or code</span></h3>
-      <p>Nothing here has been sent anywhere. If you want to help calibrate TOP, copy this summary and send it to Adam yourself. It contains <b>aggregate numbers only</b> — no prompt text, no code, no file names, no project names.</p>
+      <h3>Review a content-free aggregate summary <span style="color:var(--faint);font-weight:400;font-size:13px">(totals and labels only, never prompts or code)</span></h3>
+      <p>Nothing in this summary has been sent by this page. External collection is currently paused. You can copy or download it to your own device for inspection, but do not send it to TOP until an approved consent and privacy process is available. It contains <b>aggregate numbers and labels only</b>, with no prompt text, code, file names or project names. These exclusions reduce disclosure risk, but they do not guarantee anonymity.</p>
       <textarea id="summary" readonly></textarea>
       <div>
-        <button class="btn p" id="copybtn">Copy anonymised summary</button>
-        <button class="btn" id="dlbtn">Download .txt</button>
+        <button class="btn p" id="copybtn" aria-describedby="summarycopy-status">Copy aggregate summary</button>
+        <button class="btn" id="dlbtn">Download local .txt</button>
       </div>
+      <p class="note" id="summarycopy-status" role="status" aria-live="polite" style="text-align:left;margin:8px 0 0">Copies only the aggregate text shown above.</p>
     </div>
 
     <div class="pricerow" id="prices"></div>
-    <p class="note">Prices are editable estimates (USD per million tokens) applied locally; adjust to match your plan and everything above recomputes on your device. Cache-write is charged at 1.25× the input rate, cache-read at 0.1×. Rates updated 6 Jul 2026 to current published list prices.</p>
+    <p class="note">Editable standard global Claude API list prices are applied locally. The comparison does not infer subscriptions, discounts, batch processing, fast mode, data-residency premiums, or the price in force on a past date. Cache-write counters are treated as five-minute writes at 1.25 times input, and cache reads at 0.1 times input. Rates checked 17 Jul 2026 against <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener">Anthropic's pricing documentation</a>.</p>
+    <p class="note" id="price-status" role="status" aria-live="polite" style="min-height:20px"></p>
   </div>
 </div>
 
-<footer><div class="wrap">TOP Forecast · built by <a href="/">Adam Hartley</a> · everything above happens in your browser, with no network calls — <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/forecast/index.html">read the source</a></div></footer>
+<footer><div class="wrap">TOP Forecast · built by <a href="/">Adam Hartley</a> · selected log contents are processed in this browser and are not sent by this page · <a href="https://github.com/adamhartley7/adamhartley7.github.io/blob/main/forecast/index.html">read the source</a></div></footer>
 
 <script src="forecaster.js"></script>
 <script>
 "use strict";
 
-// ---- editable pricing (USD per 1M tokens); cache write = 1.25x input, cache read = 0.1x input ----
-// Rates updated 6 Jul 2026 to current published list prices. (Reused verbatim from the TOP Analyzer.)
+// ---- editable standard global Claude API pricing, USD per 1M tokens ----
+// Checked 17 Jul 2026. Five-minute cache write = 1.25x input; cache read = 0.1x input.
+// Exact model recognition is deliberate. Unknown or ambiguous models receive no price.
 var PRICES = {
-  opus:   {in:5,   out:25},
-  sonnet: {in:3,   out:15},
-  haiku:  {in:1,   out:5},
-  fable:  {in:10,  out:50}
+  opusNew:{label:"Claude Opus 4.5 to 4.8",in:5,out:25},
+  opusOld:{label:"Claude Opus 3, 4, or 4.1",in:15,out:75},
+  sonnet5:{label:"Claude Sonnet 5 promo through 31 Aug 2026",in:2,out:10},
+  sonnet4:{label:"Claude Sonnet 3.5 to 4.6",in:3,out:15},
+  haiku45:{label:"Claude Haiku 4.5",in:1,out:5},
+  haiku35:{label:"Claude Haiku 3.5",in:.8,out:4},
+  fable5:{label:"Claude Fable 5",in:10,out:50}
 };
 // Fail closed: a model name that matches no tier gets NO price. Its cost is excluded
 // rather than guessed at a default rate, and the page shows a warning listing it.
-function priceFor(model){
-  var m=(model||"").toLowerCase();
-  if(m.indexOf("opus")>=0) return PRICES.opus;
-  if(m.indexOf("sonnet")>=0) return PRICES.sonnet;
-  if(m.indexOf("haiku")>=0) return PRICES.haiku;
-  if(m.indexOf("fable")>=0) return PRICES.fable;
+function priceKeyFor(model){
+  var m=(model||"").toLowerCase().trim();
+  // Accept only the native Claude ID or Anthropic's explicit provider namespace.
+  // Never strip an arbitrary prefix: "synthetic-claude-sonnet-5" is not a known model ID.
+  if(m.indexOf("anthropic/claude-")===0) m=m.slice("anthropic/".length);
+  else if(m.indexOf("claude-")!==0) return null;
+  m=m.replace(/[_.]/g,"-").replace(/-+/g,"-");
+  m=m.replace(/-\d{8}$/," ").trim();
+  if(/^claude-(?:fable-5|5-fable)$/.test(m)) return "fable5";
+  if(/^claude-(?:opus-4-[5-8]|4-[5-8]-opus)$/.test(m)) return "opusNew";
+  if(/^claude-(?:opus-(?:3|4|4-1)|(?:3|4|4-1)-opus)$/.test(m)) return "opusOld";
+  if(/^claude-(?:sonnet-5|5-sonnet)$/.test(m)) return "sonnet5";
+  if(/^claude-(?:sonnet-(?:3-(?:5|7)|4(?:-[0-6])?)|(?:3-(?:5|7)|4(?:-[0-6])?)-sonnet)$/.test(m)) return "sonnet4";
+  if(/^claude-(?:haiku-4-5|4-5-haiku)$/.test(m)) return "haiku45";
+  if(/^claude-(?:haiku-3-5|3-5-haiku)$/.test(m)) return "haiku35";
   return null;
 }
+function priceFor(model){var key=priceKeyFor(model);return key?PRICES[key]:null;}
+function validatedPrice(raw){var text=String(raw).trim(),value=Number(text);return text&&Number.isFinite(value)&&value>=0?value:null;}
 function costOf(model,inp,out,cw,cr){
   var p=priceFor(model);
   if(!p) return null; // unknown model: no known price, cost excluded (never defaulted)
@@ -344,9 +389,13 @@ function medianOf(a){
   return s.length%2? s[m] : (s[m-1]+s[m])/2;
 }
 var REGIMES={
-  description:"“From the task alone”: TOP sees only the archetype of the work and which project it belongs to — no idea how long the run will take. This is the real deployment case: forecasting before you press go.",
-  oracle:"“Given the turn count”: TOP is also told how many turns the session actually ran. That's an upper bound on accuracy — you rarely know this in advance — but it isolates how well the cost-per-turn model does."
+  description:"“From the task alone”: TOP sees only the archetype of the work and which project it belongs to, with no idea how long the run will take. This is the research case most similar to a future pre-run use.",
+  oracle:"“Given the turn count”: TOP is also told how many turns the session actually ran. This is an optimistic diagnostic that uses information unavailable before the run, and it isolates how well the cost-per-turn model does."
 };
+
+function heldOutStatus(cov,err){
+  return "In this held-out split, observed coverage was "+fmtPct(cov)+" against an 80% target, and median relative error was "+fmtPct(err)+". This selected-history result does not validate the model for a future task or another user.";
+}
 function runBacktest(sessions){
   // usable = fully priced cost + turns; sessions containing any model with no known price are
   // excluded (fail closed) so the back-test never fits or scores on partial costs
@@ -400,7 +449,7 @@ var SESSIONS=null, BT=null, QP=null, curReg="description";
 
 function render(){
   if(!SESSIONS) return;
-  // --- spend breakdown (model aggregate uses live PRICES) ---
+  // --- API list-price-equivalent breakdown (model aggregate uses live PRICES) ---
   var by={}, totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,totTurns=0, rows=[];
   SESSIONS.forEach(function(s){
     totTurns+=s.turns;
@@ -431,16 +480,16 @@ function render(){
   var medSess=medianOf(perSess), maxSess=perSess.length?perSess[perSess.length-1]:0;
 
   var cards=[
-    ["Total spend",fmt$(totCost),"a",""],
+    ["Estimated API equivalent",fmt$(totCost),"a",""],
     ["Total tokens",fmtN(totTok),"i",fmtN(totTurns)+" turns · "+nDays+" active days"],
-    ["Cache-read share",fmtPct(crShare),"g","of all tokens billed at 0.1×"],
-    ["Sessions",fmtN(SESSIONS.length),"","median "+fmt$(medSess)+" · max "+fmt$(maxSess)]
+    ["Cache-read share",fmtPct(crShare),"g","priced at 0.1 times input in this estimate"],
+    ["Sessions",fmtN(SESSIONS.length),"","median estimated equivalent "+fmt$(medSess)+" · max "+fmt$(maxSess)]
   ];
   document.getElementById("cards").innerHTML=cards.map(function(c){
     return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div>'+(c[3]?'<div class="sm">'+c[3]+'</div>':'')+'</div>';
   }).join("");
 
-  var th='<thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cache w/r</th><th>Cost</th><th>Share</th></tr></thead>';
+  var th='<thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cache w/r</th><th>API equivalent</th><th>Share</th></tr></thead>';
   var tb=rows.map(function(r){
     var priced=r.cost!==null;
     var share=(priced&&totCost)? (r.cost/totCost*100):0;
@@ -456,12 +505,12 @@ function render(){
     uw.textContent=unpriced.length+" model"+(unpriced.length===1?"":"s")+" had no known price and "+(unpriced.length===1?"was":"were")+" excluded from cost: "+unpriced.map(function(r){
       var tok=r.e.inp+r.e.out+r.e.cw+r.e.cr;
       return r.model+" ("+fmtN(r.e.turns)+" turn"+(r.e.turns===1?"":"s")+", "+fmtN(tok)+" tokens)";
-    }).join(", ")+". The cost figures above understate your real spend by whatever those turns cost, and sessions containing these models are left out of the back-test.";
+    }).join(", ")+". The displayed API equivalent is incomplete because those costs remain unknown, and sessions containing these models are left out of the back-test.";
   } else {
     uw.style.display="none";
     uw.textContent="";
   }
-  document.getElementById("spendnote").textContent="Across "+fmtN(SESSIONS.length)+" sessions and "+fmtN(totTurns)+" billed turns. Cache reads are "+fmtPct(crShare)+" of your tokens — that's the big lever on cost.";
+  document.getElementById("spendnote").textContent="Across "+fmtN(SESSIONS.length)+" sessions and "+fmtN(totTurns)+" recorded turns. Cache reads are "+fmtPct(crShare)+" of the selected token counters. All dollar values are API list-price equivalents, not verified charges.";
 
   // --- back-test ---
   BT=runBacktest(SESSIONS);
@@ -472,11 +521,16 @@ function render(){
   buildSummary(rows,{totCost:totCost,totTok:totTok,totInp:totInp,totOut:totOut,totCw:totCw,totCr:totCr,totTurns:totTurns,crShare:crShare,nDays:nDays,medSess:medSess,maxSess:maxSess});
 
   // price editors
-  document.getElementById("prices").innerHTML="Prices $/Mtok — "+["opus","sonnet","haiku","fable"].map(function(k){
-    return k+" in <input data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> out <input data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";
+  document.getElementById("prices").innerHTML="Editable API list prices, USD per million tokens: "+Object.keys(PRICES).map(function(k){
+    var label=PRICES[k].label;
+    return esc(label)+" input <input type='number' min='0' step='any' inputmode='decimal' aria-label='"+esc(label)+" input API price in US dollars per million tokens' data-k='"+k+"' data-f='in' value='"+PRICES[k].in+"'> output <input type='number' min='0' step='any' inputmode='decimal' aria-label='"+esc(label)+" output API price in US dollars per million tokens' data-k='"+k+"' data-f='out' value='"+PRICES[k].out+"'>";
   }).join(" &nbsp;·&nbsp; ");
   document.querySelectorAll("#prices input").forEach(function(inp){inp.addEventListener("change",function(){
-    var v=parseFloat(inp.value); if(!isNaN(v)) PRICES[inp.dataset.k][inp.dataset.f]=v; render();
+    var key=inp.dataset.k,field=inp.dataset.f,prior=PRICES[key][field],v=validatedPrice(inp.value),status=document.getElementById("price-status");
+    if(v===null){inp.value=prior;inp.setAttribute("aria-invalid","true");status.textContent="Price not changed. Enter a finite number of zero or more.";inp.focus();return;}
+    PRICES[key][field]=v;render();
+    var replacement=document.querySelector("#prices input[data-k='"+key+"'][data-f='"+field+"']");if(replacement)replacement.focus();
+    status.textContent="Price updated locally. All displayed API-equivalent figures were recomputed on this device.";
   })});
 
   document.getElementById("out").style.display="block";
@@ -493,16 +547,16 @@ function renderBacktest(){
       : "You have "+BT.n+" session"+(BT.n===1?"":"s")+" with fully priced cost. The back-test needs at least "+BT.min+" so it can fit on the older ones and test on the newer. Drop in more of your ~/.claude/projects logs and it'll run.";
     cardsEl.innerHTML="";
     bodyEl.style.display="none";
-    statusEl.innerHTML="<b>Not enough history yet for a back-test.</b> "+msg+" Your spend breakdown above is unaffected.";
+    statusEl.innerHTML="<b>Not enough history yet for a back-test.</b> "+msg+" The historical API-equivalent breakdown above is unaffected.";
     return;
   }
   bodyEl.style.display="block";
   var d=BT.stats.description, o=BT.stats.oracle;
   var cards=[
     ["Coverage (task-only)",fmtPct(d.coverage),covClass(d.coverage),"target 80% · "+d.hits+"/"+BT.nTest+" inside band"],
-    ["Median error (task-only)",fmtPct(d.medErr),errClass(d.medErr),"|P50 − actual| ÷ actual"],
+    ["Median error (task-only)",fmtPct(d.medErr),errClass(d.medErr),"|P50 minus historical equivalent| divided by historical equivalent"],
     ["Coverage (turn-count)",fmtPct(o.coverage),covClass(o.coverage),"target 80% · "+o.hits+"/"+BT.nTest+" inside band"],
-    ["Median error (turn-count)",fmtPct(o.medErr),errClass(o.medErr),"upper-bound regime"]
+    ["Median error (turn-count)",fmtPct(o.medErr),errClass(o.medErr),"future-unavailable diagnostic"]
   ];
   cardsEl.innerHTML=cards.map(function(c){
     return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div><div class="sm">'+c[3]+'</div></div>';
@@ -512,17 +566,14 @@ function renderBacktest(){
 
   // honest status line
   var cov=d.coverage, err=d.medErr;
-  var verdict;
-  if(cov>=75 && err<=15) verdict="On your data the bands are well-calibrated and the point forecast is tight — your workloads look homogeneous enough for v1 to do well.";
-  else if(cov>=65) verdict="On your data the bands are roughly calibrated but the point forecast is loose — typical when your workloads vary a lot.";
-  else verdict="On your data the bands under-cover (they should catch 80%, they caught "+fmtPct(cov)+") — a sign your sessions are varied enough that v1 struggles. That's the honest state of the art here.";
+  var verdict=heldOutStatus(cov,err);
   var caveat="";
   if(BT.thin) caveat=" These numbers come from a small test set ("+BT.nTest+" sessions), so treat them as noisy.";
-  statusEl.innerHTML="<b>Early v1.</b> Accuracy depends heavily on how varied your workloads are. "+verdict+caveat+" Sharing your (anonymised) result below helps calibrate it.";
+  statusEl.innerHTML="<b>Early v1.</b> Accuracy depends heavily on how varied your workloads are. "+verdict+caveat+" The content-free aggregate summary below is for local inspection only while external collection is paused.";
 }
 
 function renderRegime(){
-  document.querySelectorAll("#regtoggle button").forEach(function(b){b.classList.toggle("on",b.dataset.reg===curReg);});
+  document.querySelectorAll("#regtoggle button").forEach(function(b){var selected=b.dataset.reg===curReg;b.classList.toggle("on",selected);b.setAttribute("aria-pressed",String(selected));});
   document.getElementById("regexplain").textContent=REGIMES[curReg];
   var recs=BT.stats[curReg].recs;
   // most recent first, cap rows for a light DOM
@@ -533,11 +584,11 @@ function renderRegime(){
   shown.forEach(function(r){ lo=Math.min(lo,r.f.p10,r.y); hi=Math.max(hi,r.f.p90,r.y); });
   var ll=Math.log(Math.max(lo,1e-6)), lh=Math.log(Math.max(hi,1e-6)), span=(lh-ll)||1;
   function pos(v){ return (Math.log(Math.max(v,1e-6))-ll)/span*100; }
-  var th='<thead><tr><th>When</th><th>Project</th><th>Archetype</th><th>Turns</th><th>Actual</th><th>P50</th><th>Band (P10–P90) vs actual</th><th>Hit</th></tr></thead>';
+  var th='<thead><tr><th>When</th><th>Project</th><th>Archetype</th><th>Turns</th><th>Historical equivalent</th><th>P50</th><th>Band (P10 to P90)</th><th>Result</th></tr></thead>';
   var tb=shown.map(function(r){
     var s=r.s, p10=pos(r.f.p10), p90=pos(r.f.p90), pa=pos(r.y);
-    var bar='<div class="band"><div class="rng" style="left:'+p10.toFixed(1)+'%;width:'+Math.max(0.5,(p90-p10)).toFixed(1)+'%"></div><div class="act'+(r.hit?'':' m')+'" style="left:'+pa.toFixed(1)+'%"></div></div>';
-    return '<tr><td class="n">'+(s.ts?esc(String(s.ts).slice(0,10)):"—")+'</td><td>'+esc(s.projShort)+'</td><td class="arch">'+esc(s.archetype)+'</td><td class="n">'+fmtN(s.turn_count)+'</td><td class="n">'+fmt$(r.y)+'</td><td class="n">'+fmt$(r.f.p50)+'</td><td>'+bar+'</td><td>'+(r.hit?'<span class="hit">✓</span>':'<span class="miss">✕</span>')+'</td></tr>';
+    var bar='<div class="band" aria-hidden="true"><div class="rng" style="left:'+p10.toFixed(1)+'%;width:'+Math.max(0.5,(p90-p10)).toFixed(1)+'%"></div><div class="act'+(r.hit?'':' m')+'" style="left:'+pa.toFixed(1)+'%"></div></div><span class="band-values">P10 '+fmt$(r.f.p10)+' to P90 '+fmt$(r.f.p90)+'</span>';
+    return '<tr><td class="n">'+(s.ts?esc(String(s.ts).slice(0,10)):"not dated")+'</td><td>'+esc(s.projShort)+'</td><td class="arch">'+esc(s.archetype)+'</td><td class="n">'+fmtN(s.turn_count)+'</td><td class="n">'+fmt$(r.y)+'</td><td class="n">'+fmt$(r.f.p50)+'</td><td>'+bar+'</td><td>'+(r.hit?'<span class="hit">Inside</span>':'<span class="miss">Missed</span>')+'</td></tr>';
   }).join("");
   document.getElementById("bttable").innerHTML=th+'<tbody>'+tb+'</tbody>';
   var extra=view.length>CAP? " (showing the "+CAP+" most recent of "+view.length+" test sessions; all "+view.length+" count toward the numbers above)":"";
@@ -578,11 +629,11 @@ function renderQuote(){
   cards.innerHTML=""; note.style.display="none"; note.textContent="";
   if(!QP){
     form.style.display="none";
-    lead.textContent="Not enough history to quote from yet. A quote uses the same model as the back-test above, fitted only on your own sessions, so it unlocks once the back-test can run: at least 8 fully priced sessions, and you have "+(BT?BT.n:0)+". Drop in more of your ~/.claude/projects logs and this will work.";
+    lead.textContent="Not enough history to try an experimental band yet. It uses the same model as the back-test above, fitted only on your own sessions, so it unlocks once the back-test can run: at least 8 fully priced sessions, and you have "+(BT?BT.n:0)+". Add more ~/.claude/projects logs to run the research path.";
     return;
   }
   form.style.display="block";
-  lead.textContent="Type what you're about to ask Claude Code to do, pick the project, and get a price band before you run it. Classified and priced entirely on your device, from a model fitted on your own "+BT.usable.length+" uploaded sessions.";
+  lead.textContent="Type a task description and pick the project to generate an experimental band. It is classified and priced inside this browser from a model fitted on your own "+BT.usable.length+" selected local sessions. Do not rely on it for a purchase or budget decision.";
   // option value = the RAW cwd (the exact group key the priors were fitted on); the label is
   // the short name. The empty value = a project not in your history: the model cold-starts
   // to the pure archetype prior, which is the honest, wider answer.
@@ -599,19 +650,19 @@ function renderQuote(){
 
 function buildSummary(rows,t){
   var L=[];
-  L.push("TOP Forecast — anonymised result summary");
-  L.push("generated locally in the browser; never uploaded");
+  L.push("TOP Forecast - content-free aggregate summary");
+  L.push("generated locally in the browser; not sent by this page");
   L.push("");
-  L.push("[spend]");
-  L.push("total_cost_usd: "+t.totCost.toFixed(2));
+  L.push("[estimated_api_list_price_equivalent]");
+  L.push("estimated_api_list_price_equivalent_usd: "+t.totCost.toFixed(2));
   L.push("total_tokens: "+t.totTok);
   L.push("input: "+t.totInp+" | output: "+t.totOut+" | cache_write: "+t.totCw+" | cache_read: "+t.totCr);
   L.push("cache_read_share_pct: "+t.crShare.toFixed(1));
   L.push("sessions: "+SESSIONS.length+" | turns: "+t.totTurns+" | active_days: "+t.nDays);
-  L.push("median_cost_per_session_usd: "+t.medSess.toFixed(4)+" | max_session_usd: "+t.maxSess.toFixed(2));
+  L.push("median_estimated_equivalent_per_session_usd: "+t.medSess.toFixed(4)+" | max_estimated_session_equivalent_usd: "+t.maxSess.toFixed(2));
   L.push("");
   L.push("[by_model]  (no prompts, no content)");
-  rows.forEach(function(r){ L.push("  "+r.model+": cost="+(r.cost===null?"excluded (no known price)":r.cost.toFixed(2))+" in="+r.e.inp+" out="+r.e.out+" cw="+r.e.cw+" cr="+r.e.cr); });
+  rows.forEach(function(r){ L.push("  "+r.model+": estimated_api_equivalent="+(r.cost===null?"excluded (no known price)":r.cost.toFixed(2))+" in="+r.e.inp+" out="+r.e.out+" cw="+r.e.cw+" cr="+r.e.cr); });
   var unpricedRows=rows.filter(function(r){return r.cost===null;});
   if(unpricedRows.length) L.push("  note: unpriced models above are excluded from all cost totals and from the back-test");
   L.push("");
@@ -637,7 +688,7 @@ function buildSummary(rows,t){
     L.push("not_enough_sessions: "+BT.n+" (need "+BT.min+")");
   }
   L.push("");
-  L.push("[aggregates only — no prompts, no code, no file names, no project names]");
+  L.push("[content-free aggregates only: no prompts, no code, no file names, no project names]");
   document.getElementById("summary").value=L.join("\n");
 }
 
@@ -652,7 +703,7 @@ function handle(files){
     if(!texts.length && failed){
       // every read failed — the classic cause is a dropped folder in a browser whose drag
       // API can't open directories. Say that, instead of the generic "no usage found" error.
-      showErr("Couldn't read what was dropped. If that was a folder, this browser can't open folders from a drag. Use the \"choose a whole folder\" link instead, or drop the .jsonl files themselves. Nothing was uploaded.");
+      showErr("Couldn't read what was dropped. If that was a folder, this browser can't open folders from a drag. Use the \"choose a whole folder\" link instead, or drop the .jsonl files themselves. No selected log contents were sent.");
       return;
     }
     run(texts);
@@ -666,17 +717,17 @@ function handle(files){
 }
 function run(texts){
   try{
-    if(typeof Forecaster==="undefined" || !Forecaster.forecast){ showErr("forecaster.js didn't load — the forecast engine is missing. Nothing was uploaded. Reload the page and try again."); return; }
+    if(typeof Forecaster==="undefined" || !Forecaster.forecast){ showErr("forecaster.js didn't load. The forecast engine is missing. No selected log contents were sent. Reload the page and try again."); return; }
     var agg=parseClaudeCode(texts);
     if(!Object.keys(agg.by).length || agg.turns===0){
-      showErr("Couldn't find Claude Code usage in those files. Make sure they're the .jsonl session logs from ~/.claude/projects (not a CSV or claude.ai export). Nothing was uploaded.");
+      showErr("Couldn't find Claude Code usage in those files. Make sure they're the .jsonl session logs from ~/.claude/projects (not a CSV or claude.ai export). No selected log contents were sent.");
       return;
     }
     SESSIONS=buildSessions(texts);
     document.getElementById("busy").style.display="none";
     render();
     document.getElementById("out").scrollIntoView({behavior:"smooth",block:"nearest"});
-  }catch(err){ showErr("Something went wrong parsing that on your device: "+err.message+". Nothing was uploaded. Try different files."); }
+  }catch(err){ showErr("Something went wrong while parsing in this browser: "+err.message+". No selected log contents were sent. Try different files."); }
 }
 
 // ---- folder support ----
@@ -709,15 +760,21 @@ function walkEntry(entry,files,done){
 }
 
 var drop=document.getElementById("drop"), fileInput=document.getElementById("file"), folderInput=document.getElementById("folder");
-fileInput.addEventListener("change",function(){handle(fileInput.files)});
+fileInput.addEventListener("change",function(){
+  var picked=Array.prototype.filter.call(fileInput.files,isJsonl);
+  if(!picked.length){showErr("Choose one or more Claude Code .jsonl session logs.");return;}
+  handle(picked);
+});
 folderInput.addEventListener("change",function(){
   var picked=Array.prototype.filter.call(folderInput.files,isJsonl);
   if(!picked.length){showErr("No .jsonl files found in that folder. Your logs live in ~/.claude/projects. Pick that folder, or one of its project subfolders.");return;}
   handle(picked);
 });
 document.getElementById("pickfolder").addEventListener("click",function(e){
-  // the link sits inside the drop label: stop the label from also opening the file picker
-  e.preventDefault(); e.stopPropagation(); folderInput.click();
+  e.preventDefault(); folderInput.click();
+});
+document.getElementById("pickfiles").addEventListener("click",function(e){
+  e.preventDefault(); fileInput.click();
 });
 ["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("over")})});
 ["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("over")})});
@@ -741,7 +798,7 @@ drop.addEventListener("drop",function(e){
     var files=[], pending=entries.length;
     entries.forEach(function(en){walkEntry(en,files,function(){
       if(--pending!==0) return;
-      var use=sawDir? files.filter(isJsonl) : files;
+      var use=files.filter(isJsonl);
       if(!use.length){
         showErr(sawDir? "No .jsonl files found in that folder. Your logs live in ~/.claude/projects. Drop that folder, or the .jsonl files inside it." : "No files selected.");
         return;
@@ -750,19 +807,22 @@ drop.addEventListener("drop",function(e){
     });});
     return;
   }
-  if(dt.files) handle(dt.files);
+  if(dt.files){
+    var picked=Array.prototype.filter.call(dt.files,isJsonl);
+    if(!picked.length){showErr("Drop one or more Claude Code .jsonl session logs, or the folder containing them.");return;}
+    handle(picked);
+  }
 });
 
 document.getElementById("regtoggle").addEventListener("click",function(e){
   var b=e.target.closest("button"); if(!b) return; curReg=b.dataset.reg; renderRegime();
-  document.querySelectorAll("#regtoggle button").forEach(function(x){x.classList.toggle("on",x===b);});
 });
 
 document.getElementById("qbtn").addEventListener("click",function(){
   var cards=document.getElementById("qcards"), note=document.getElementById("qnote");
   if(!QP) return;
   var desc=document.getElementById("qdesc").value.trim();
-  if(!desc){ cards.innerHTML=""; note.style.display="block"; note.textContent="Describe the task first, then quote it."; return; }
+  if(!desc){ cards.innerHTML=""; note.style.display="block"; note.textContent="Describe the task first, then generate the experimental band."; return; }
   var arch=Forecaster.classifyArchetype(desc);
   var projVal=document.getElementById("qproj").value;
   // "\u0000" can never appear in a real cwd, so this key is guaranteed cold (pure archetype prior)
@@ -780,24 +840,57 @@ document.getElementById("qbtn").addEventListener("click",function(){
     }
   }catch(e){
     cards.innerHTML=""; note.style.display="block";
-    note.textContent="Couldn't produce a quote on this device: "+e.message+".";
+    note.textContent="Couldn't produce an experimental band on this device: "+e.message+".";
     return;
   }
   cards.innerHTML=html;
   var msg='Read the task as "'+arch+'"'+(projVal===""?" in a project the model has never seen, so this is the archetype-wide band":"")+
-    ". Fitted and calibrated on your own "+BT.usable.length+" uploaded sessions only, on this device. The back-test line on each card is how this same model scored on your most recent sessions, so trust the band about that much.";
+    ". Fitted and calibrated on your own "+BT.usable.length+" selected local sessions only, in this browser. The held-out score is context for this estimate, not evidence that the next estimate will be accurate. This is not a price, guarantee or spending limit.";
   if(BT.thin) msg+=" That score came from a small test set ("+BT.nTest+" sessions), so it is noisy.";
   if(tRaw!=="" && !hasTurns) msg+=" The expected-turns value was ignored (enter a whole number of at least 1).";
   note.style.display="block";
   note.textContent=msg;
 });
 
+document.getElementById("copyagent").addEventListener("click",function(){
+  var source=document.getElementById("agentcmd"), button=this, status=document.getElementById("agentcopy-status"), text=source.textContent;
+  function copied(){
+    button.textContent="Agent prompt copied";
+    status.textContent="Copied. No log contents were read or sent by this action.";
+    button.focus();
+    setTimeout(function(){button.textContent="Copy agent prompt";},1600);
+  }
+  function fallback(){
+    source.focus();
+    var selection=window.getSelection(), range=document.createRange(), ok=false;
+    range.selectNodeContents(source);selection.removeAllRanges();selection.addRange(range);
+    try{ok=document.execCommand("copy");}catch(ignore){}
+    if(ok) copied();
+    else status.textContent="Automatic copy was blocked. The prompt is selected; press Ctrl+C or Command+C.";
+  }
+  if(navigator.clipboard&&typeof navigator.clipboard.writeText==="function"&&window.isSecureContext){
+    navigator.clipboard.writeText(text).then(copied,fallback);
+  }else fallback();
+});
+
 document.getElementById("copybtn").addEventListener("click",function(){
-  var t=document.getElementById("summary"); t.select();
-  var b=this;
-  if(navigator.clipboard){ navigator.clipboard.writeText(t.value).then(function(){b.textContent="Copied ✓";}).catch(function(){document.execCommand("copy");b.textContent="Copied ✓";}); }
-  else { document.execCommand("copy"); b.textContent="Copied ✓"; }
-  setTimeout(function(){b.textContent="Copy anonymised summary";},1600);
+  var t=document.getElementById("summary"), b=this, status=document.getElementById("summarycopy-status");
+  function copied(){
+    b.textContent="Summary copied";
+    status.textContent="Copied. No data was submitted by this page.";
+    b.focus();
+    setTimeout(function(){b.textContent="Copy aggregate summary";},1600);
+  }
+  function fallback(){
+    t.focus(); t.select();
+    var ok=false;
+    try{ok=document.execCommand("copy");}catch(ignore){}
+    if(ok) copied();
+    else status.textContent="Automatic copy was blocked. The aggregate summary is selected; press Ctrl+C or Command+C.";
+  }
+  if(navigator.clipboard&&typeof navigator.clipboard.writeText==="function"&&window.isSecureContext){
+    navigator.clipboard.writeText(t.value).then(copied,fallback);
+  }else fallback();
 });
 document.getElementById("dlbtn").addEventListener("click",function(){
   var blob=new Blob([document.getElementById("summary").value],{type:"text/plain"});
