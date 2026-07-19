@@ -118,14 +118,19 @@ function plainText(value) {
     .trim();
 }
 
-function firstModelCost(table) {
+function renderedModelCosts(table) {
   const body = /<tbody>([\s\S]*?)<\/tbody>/i.exec(table);
   assert.ok(body, "rendered model table must have a body");
-  const row = /<tr>([\s\S]*?)<\/tr>/i.exec(body[1]);
-  assert.ok(row, "rendered model table must have a model row");
-  const cells = Array.from(row[1].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi));
-  assert.ok(cells.length, "rendered model row must have cells");
-  return plainText(cells[cells.length - 1][1]);
+  const rows = Array.from(body[1].matchAll(/<tr>([\s\S]*?)<\/tr>/gi)).map((row) => {
+    const cells = Array.from(row[1].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi));
+    assert.ok(cells.length >= 2, "each rendered model row must have a model and cost cell");
+    return {
+      model: plainText(cells[0][1]),
+      cost: plainText(cells[cells.length - 1][1]),
+    };
+  });
+  assert.ok(rows.length > 0, "rendered model table must have at least one model row");
+  return rows;
 }
 
 function renderResult(result) {
@@ -141,7 +146,7 @@ function renderResult(result) {
     tokenHelp: elements.tokenhelp.textContent,
   };
   return {
-    cost: firstModelCost(surfaces.modelTable),
+    modelCosts: renderedModelCosts(surfaces.modelTable),
     surfaces,
     summary: surfaces.summary,
     table: surfaces.modelTable,
@@ -149,10 +154,20 @@ function renderResult(result) {
   };
 }
 
-function assertNeverZeroContract(rendered) {
+function expectedDisplayModel(model) {
+  return plainText(context.safePublicModelLabel(model));
+}
+
+function neverZeroFailures(rendered, unpricedModels) {
   const failures = [];
-  if (!/^unpriced$/i.test(rendered.cost)) {
-    failures.push(`model cost must be exactly "unpriced" (case-insensitive), received "${rendered.cost}"`);
+  for (const model of unpricedModels) {
+    const expected = expectedDisplayModel(model);
+    const row = rendered.modelCosts.find((candidate) => candidate.model.toLowerCase() === expected.toLowerCase());
+    if (!row) {
+      failures.push(`the rendered table omitted unpriceable model "${expected}"`);
+    } else if (!/^unpriced$/i.test(row.cost)) {
+      failures.push(`${expected} cost must be exactly "unpriced" (case-insensitive), received "${row.cost}"`);
+    }
   }
   if (!/\bunpriced\b/i.test(rendered.summary)) {
     failures.push('the user-visible summary must identify the unknown cost as "unpriced"');
@@ -165,7 +180,17 @@ function assertNeverZeroContract(rendered) {
     .filter(([, value]) => zeroMoneyPatterns.some((pattern) => pattern.test(String(value))))
     .map(([name]) => name);
   if (zeroSurfaces.length) failures.push(`zero money appeared in user-visible surfaces: ${zeroSurfaces.join(", ")}`);
+  return failures;
+}
+
+function assertNeverZeroContract(rendered, unpricedModels) {
+  const failures = neverZeroFailures(rendered, unpricedModels);
   assert.equal(failures.length, 0, failures.join("\n"));
+}
+
+function hasPositiveMoney(value) {
+  const match = /\$([0-9]+(?:\.[0-9]+)?)/.exec(value);
+  return Boolean(match) && Number(match[1]) > 0;
 }
 
 function assertModelsHaveNoKnownRate(result) {
@@ -194,6 +219,42 @@ function claudeCodeResult() {
     },
   };
   return context.parseClaudeCode([JSON.stringify(record)]);
+}
+
+function mixedClaudeCodeResult() {
+  const known = {
+    type: "assistant",
+    sessionId: "session-known",
+    timestamp: "2026-07-19T00:00:00Z",
+    requestId: "request-known",
+    message: {
+      id: "message-known",
+      model: "claude-sonnet-4-6",
+      usage: {
+        input_tokens: 1_000_000,
+        output_tokens: 100_000,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 0,
+      },
+    },
+  };
+  const unknown = {
+    type: "assistant",
+    sessionId: "session-unknown",
+    timestamp: "2026-07-19T00:01:00Z",
+    requestId: "request-unknown",
+    message: {
+      id: "message-unknown",
+      model: "claude-opus-9-9",
+      usage: {
+        input_tokens: 8,
+        output_tokens: 12,
+        cache_creation_input_tokens: 2,
+        cache_read_input_tokens: 4,
+      },
+    },
+  };
+  return context.parseClaudeCode([JSON.stringify(known), JSON.stringify(unknown)]);
 }
 
 function claudeChatResult() {
@@ -262,6 +323,14 @@ function cursorResult(model) {
   ].join("\n")]);
 }
 
+function mixedCursorResult(unknownModel) {
+  return context.parseCursor([[
+    CURSOR_HEADER,
+    "2026-07-19T00:00:00Z,On-Demand,claude-sonnet-4-6,No,100,80,10,20,130,1.25",
+    `2026-07-19T00:01:00Z,On-Demand,${unknownModel},No,10,8,4,12,26,`,
+  ].join("\n")]);
+}
+
 function copilotResult() {
   const header = [
     "date", "product", "sku", "quantity", "unit_type", "applied_cost_per_quantity",
@@ -279,13 +348,30 @@ function copilotResult() {
   return context.parseCopilot([[header, premiumRequest, aiCredits].join("\n")]);
 }
 
+function mixedCopilotResult() {
+  const header = [
+    "date", "product", "sku", "quantity", "unit_type", "applied_cost_per_quantity",
+    "gross_amount", "discount_amount", "net_amount", "organization", "cost_center_name",
+    "model", "username",
+  ].join(",");
+  const known = [
+    "2026-07-19", "copilot", "copilot_premium_request", "2", "requests", "", "", "", "0.20",
+    "org", "cost-center", "Claude Sonnet 4.5", "user",
+  ].join(",");
+  const unknown = [
+    "2026-07-19", "copilot", "copilot_ai_credit", "3", "ai-credits", "", "", "", "",
+    "org", "cost-center", "Gemini 9.9 Pro", "user",
+  ].join(",");
+  return context.parseCopilot([[header, known, unknown].join("\n")]);
+}
+
 test("Claude Code never-zero render contract", () => {
   const result = claudeCodeResult();
   assertModelsHaveNoKnownRate(result);
   const rendered = renderResult(result);
   assert.match(rendered.summary, /Total AI usage: 26 tokens\./);
   assert.match(rendered.summary, /8 sent, 12 returned, 2 cache added, 4 cache reused/);
-  assertNeverZeroContract(rendered);
+  assertNeverZeroContract(rendered, Object.keys(result.by));
 });
 
 test("Claude Chat never-zero render contract", () => {
@@ -294,7 +380,7 @@ test("Claude Chat never-zero render contract", () => {
   const rendered = renderResult(result);
   assert.match(rendered.summary, /Rough text-only estimate from selected file: about 5 tokens\./);
   assert.match(rendered.summary, /about 2 sent, about 3 returned/);
-  assertNeverZeroContract(rendered);
+  assertNeverZeroContract(rendered, Object.keys(result.by));
 });
 
 test("ChatGPT never-zero render contract", () => {
@@ -303,7 +389,7 @@ test("ChatGPT never-zero render contract", () => {
   const rendered = renderResult(result);
   assert.match(rendered.summary, /Rough text-only estimate from selected file: about 5 tokens\./);
   assert.match(rendered.summary, /about 2 sent, about 3 returned/);
-  assertNeverZeroContract(rendered);
+  assertNeverZeroContract(rendered, Object.keys(result.by));
 });
 
 test("Codex never-zero render contract", () => {
@@ -312,7 +398,7 @@ test("Codex never-zero render contract", () => {
   const rendered = renderResult(result);
   assert.match(rendered.summary, /Total AI usage: 20 tokens\./);
   assert.match(rendered.summary, /6 sent, 12 returned, 0 cache added, 2 cache reused/);
-  assertNeverZeroContract(rendered);
+  assertNeverZeroContract(rendered, Object.keys(result.by));
 });
 
 test("Cursor never-zero render contract", () => {
@@ -321,7 +407,7 @@ test("Cursor never-zero render contract", () => {
   const rendered = renderResult(result);
   assert.match(rendered.summary, /Total AI usage: 26 tokens\./);
   assert.match(rendered.summary, /8 sent, 12 returned, 2 cache added, 4 cache reused/);
-  assertNeverZeroContract(rendered);
+  assertNeverZeroContract(rendered, Object.keys(result.by));
 });
 
 test("Cursor Composer never-zero render contract", () => {
@@ -330,7 +416,7 @@ test("Cursor Composer never-zero render contract", () => {
   const rendered = renderResult(result);
   assert.match(rendered.summary, /Total AI usage: 26 tokens\./);
   assert.match(rendered.summary, /8 sent, 12 returned, 2 cache added, 4 cache reused/);
-  assertNeverZeroContract(rendered);
+  assertNeverZeroContract(rendered, Object.keys(result.by));
 });
 
 test("GitHub Copilot never-zero render contract", () => {
@@ -343,5 +429,25 @@ test("GitHub Copilot never-zero render contract", () => {
   // Copilot exports expose metered requests and credits, not tokens. Keep that limitation visible.
   assert.match(rendered.tokenHelp, /not tokens[\s\S]*instead of token counts/i);
   assert.doesNotMatch(rendered.table, /text sent to the AI|text returned by the AI/i);
-  assertNeverZeroContract(rendered);
+  assertNeverZeroContract(rendered, Object.keys(result.by));
+});
+
+test("mixed priced and unpriceable reports keep every unknown row explicitly unpriced", () => {
+  const cases = [
+    { name: "Claude Code", result: mixedClaudeCodeResult(), unknown: ["claude-opus-9-9"] },
+    { name: "Cursor", result: mixedCursorResult("gemini-9.9-pro"), unknown: ["gemini-9.9-pro"] },
+    { name: "Cursor Composer", result: mixedCursorResult("composer-9.9"), unknown: ["composer-9.9"] },
+    { name: "GitHub Copilot", result: mixedCopilotResult(), unknown: ["Gemini 9.9 Pro"] },
+  ];
+  const failures = [];
+  for (const sourceCase of cases) {
+    const rendered = renderResult(sourceCase.result);
+    if (!rendered.modelCosts.some((row) => hasPositiveMoney(row.cost))) {
+      failures.push(`${sourceCase.name}: fixture did not reach the mixed priced and unpriceable render path`);
+    }
+    for (const failure of neverZeroFailures(rendered, sourceCase.unknown)) {
+      failures.push(`${sourceCase.name}: ${failure}`);
+    }
+  }
+  assert.deepEqual(failures, [], failures.join("\n"));
 });

@@ -84,7 +84,9 @@ function namedDeliveryPromise(value) {
   const text = textOnly(String(value).replace(/<\/(?:p|li|h[1-6]|button|div|section)>/gi, ". "));
   const patterns = [
     /\b(?:TOP|Adam|Sam)(?:'s team)?\s+(?:can|will|may|does|is\s+(?:going|ready)\s+to)\s+(?:submit|send|deliver|upload|email|share)\b/gi,
+    /\b(?:TOP|Adam|Sam)(?:'s team)?\s+(?:submits?|sends?|delivers?|uploads?|emails?|shares?)\b/gi,
     /\b(?:submit|send|deliver|upload|email|share)\s+(?:the|this|your|my|our|a\s+)?[^.!?]{0,60}\b(?:to|with)\s+(?:TOP|Adam|Sam)\b/gi,
+    /\b(?:is|are|was|were)\s+(?:submitted|sent|delivered|uploaded|emailed|shared)[^.!?]{0,60}\b(?:to|with)\s+(?:TOP|Adam|Sam)\b/gi,
     /\b(?:will|can|may)\s+be\s+(?:submitted|sent|delivered|uploaded|emailed)[^.!?]{0,60}\b(?:to|with)\s+(?:TOP|Adam|Sam)\b/gi,
     /\b(?:accepted|queued|ready)\s+for\s+delivery[^.!?]{0,60}\b(?:to\s+)?(?:TOP|Adam|Sam)\b/gi,
     /\b(?:TOP|Adam|Sam)(?:'s team)?\s+(?:(?:will|can|may)\s+)?(?:receives?|gets?)\b/gi,
@@ -201,10 +203,13 @@ test("the canonical analyzer route opens the guided chooser and keeps an explici
 
 test("the local-only terminal offers an artifact without a named remote-delivery action", () => {
   assert.ok(namedDeliveryPromise("TOP can send this report to Adam."));
+  assert.ok(namedDeliveryPromise("TOP sends this report to Adam."));
   assert.ok(namedDeliveryPromise("Submit this report to Sam."));
+  assert.ok(namedDeliveryPromise("The report is submitted to TOP."));
   assert.ok(namedDeliveryPromise("Adam receives the report."));
   assert.equal(namedDeliveryPromise("Nothing is submitted to TOP."), "");
   assert.equal(namedDeliveryPromise("Do not submit this report to TOP."), "");
+  assert.equal(namedDeliveryPromise("The report is not submitted to TOP."), "");
   assert.equal(namedDeliveryPromise("TOP does not receive the report."), "");
 
   const rail = sourceBetween('id="pilotShareRail"', 'id="pilotStepper"');

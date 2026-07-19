@@ -5,8 +5,12 @@ on:
     paths:
       - "index.html"
       - "analyze/**"
+      - "assets/**"
+      - "dashboard/**"
       - "forecast/index.html"
       - "forecast/test-*.cjs"
+      - "pilot/**"
+      - "pitch/**"
       - "test-*.cjs"
       - ".github/workflows/analyzer-perimeter.yml"
   push:
@@ -15,8 +19,12 @@ on:
     paths:
       - "index.html"
       - "analyze/**"
+      - "assets/**"
+      - "dashboard/**"
       - "forecast/index.html"
       - "forecast/test-*.cjs"
+      - "pilot/**"
+      - "pitch/**"
       - "test-*.cjs"
       - ".github/workflows/analyzer-perimeter.yml"
 
@@ -41,6 +49,7 @@ jobs:
             "analyze/test-no-network-ever.cjs",
             "analyze/test-pilot-collector-pin.cjs",
             "analyze/test-public-hard-rules.cjs",
+            "analyze/test-stranger-first-run-browser.cjs",
             "analyze/test-stranger-first-run-contract.cjs",
             "analyze/test-seven-source-local-browser.cjs"
           )
@@ -58,6 +67,7 @@ jobs:
             "test-no-network-ever.cjs",
             "test-pilot-collector-pin.cjs",
             "test-public-hard-rules.cjs",
+            "test-stranger-first-run-browser.cjs",
             "test-stranger-first-run-contract.cjs",
             "test-seven-source-local-browser.cjs"
           )
@@ -96,4 +106,5 @@ jobs:
           analyze/test-no-network-ever.cjs
           analyze/test-pilot-collector-pin.cjs
           analyze/test-public-hard-rules.cjs
+          analyze/test-stranger-first-run-browser.cjs
           analyze/test-stranger-first-run-contract.cjs
