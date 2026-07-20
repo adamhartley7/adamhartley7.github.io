@@ -625,7 +625,7 @@ async function removeTemporaryTree(target) {
   let lastError;
   for (let attempt = 0; attempt < 30; attempt += 1) {
     try {
-      fs.rmSync(target, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+      await fs.promises.rm(target, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
       return;
     } catch (error) {
       lastError = error;
@@ -751,6 +751,9 @@ async function runCase(sourceCase) {
       client.close();
     }
     await stopOwnedBrowser(browser);
+    // Chrome can report its parent process closed while a short-lived profile helper still owns a
+    // Windows file handle. Yield once before the asynchronous retry loop removes the owned tree.
+    await delay(250);
     await removeTemporaryTree(temporaryRoot);
   }
 }
