@@ -437,7 +437,7 @@ What TOP says it does today:
 - It states that when it cannot match a model to a published rate, it shows the token count and marks the cost as unpriced, rather than showing it as zero.
 
 What TOP does not do today:
-- It does not reduce, optimise or lower any bill. It describes past usage. It does not promise a saving.
+- It describes past usage only. It does not state that any bill would have been different.
 - It does not pick models for me and it does not personalise anything. Those are described as research directions, not as working features.
 - It cannot see a provider's actual invoice. Some tools record a real charge, some record only token counts, and some usage is covered by a subscription with no per-use charge. A figure worked out from published rates is a comparison, not a bill, and the two should not be added together.
 
@@ -682,9 +682,9 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
             <div class="pilot-value-list">
               <div class="pilot-value-row"><span>Actual cost recorded</span><strong id="pilotValueCost">Unpriced</strong></div>
               <div class="pilot-value-row"><span>Value of completed work</span><strong>Not measured yet</strong></div>
-              <div class="pilot-value-row"><span>Verified savings forecast</span><strong>Coming soon</strong></div>
+              <div class="pilot-value-row"><span>Validated customer cost outcome</span><strong>Coming soon</strong></div>
             </div>
-            <p class="note">TOP-2 and TOP-3 remain in research and development. TOP will not invent the value of your work or promise a saving before it has been tested. A future opt-in can let you enter the value of completed work yourself.</p>
+            <p class="note">TOP-2 and TOP-3 remain in research and development. TOP will not invent the value of your work or state a customer cost outcome before it has been tested. A future opt-in can let you enter the value of completed work yourself.</p>
           </section>
           <section class="pilot-step" id="pilotStepShape" data-step-label="Shape" aria-labelledby="pilotShapeHeading" hidden>
             <h2 class="pilot-step-title" id="pilotShapeHeading" tabindex="-1">Could a forecast learn from your history?</h2>
@@ -693,7 +693,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
             <div class="pilot-forecast">
               <p class="pilot-forecast-head" id="pilotForecastHead">The history a personalised forecast would learn from</p>
               <div class="pilot-value-list" id="pilotForecastList"></div>
-              <p class="note" id="pilotForecastNote">TOP-3 is research and development, not a shipped feature. It asks whether a cost forecast built from your own history would beat one built from the average user. When it does make a forecast, it will print its own measured accuracy next to the number, openly, and that accuracy is still early. Nothing here has been benchmarked and no saving is promised.</p>
+              <p class="note" id="pilotForecastNote">TOP-3 is research and development, not a shipped feature. It asks whether a cost forecast built from your own history would beat one built from the average user. Nothing here has been benchmarked, and no customer result has been established.</p>
             </div>
             <details class="pilot-patterns" id="pilotPatternDetails" hidden>
               <summary>See monthly usage and session shapes</summary>
@@ -748,7 +748,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
         </div>
         <div class="vbody">
           <div class="plot">
-            <svg id="vmsvg" viewBox="0 0 520 390" width="100%" role="img" aria-label="AI cost, invented example of useful work, and invented example of value left after cost. Any lower-cost line is an estimate, not a measured saving."></svg>
+            <svg id="vmsvg" viewBox="0 0 520 390" width="100%" role="img" aria-label="AI cost, invented example of useful work, and invented example of value left after cost. Every line is illustrative and is not a measured customer result."></svg>
           </div>
           <div class="vside">
             <div class="vcontrols">
@@ -760,7 +760,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
             <div class="vcards">
               <div class="vstat"><div class="k" id="vmNowLabel">Cost recorded in your file</div><div class="n" id="vmnow">$0</div></div>
               <div class="vstat after"><div class="k">Possible cost after changes <span class="tag est">estimate</span></div><div class="n" id="vmafter">$0</div></div>
-              <div class="vstat save"><div class="k">Possible saving <span class="tag est">estimate</span></div><div class="n" id="vmsave">$0</div></div>
+              <div class="vstat save"><div class="k">Illustrative cost difference <span class="tag est">estimate</span></div><div class="n" id="vmsave">$0</div></div>
             </div>
             <p class="villus" id="vmillus"></p>
           </div>
@@ -2780,7 +2780,7 @@ function cursorBreakdownText(res){
 }
 // The included-usage view. For a subscription user the money column is $0 and therefore says nothing;
 // the tokens are the real record of the work. This builds the token-first figures plus what those same
-// tokens would cost bought per token at API rates. It never asserts a saving and never names a model
+// tokens would cost bought per token at API rates. It never asserts a customer outcome or names a model
 // Cursor did not name.
 // modelRows is the per-model breakdown render already built. When Cursor named every model and TOP has
 // a checked rate for each, the API-equivalent is a single exact figure. A range is only used when at
@@ -2808,10 +2808,10 @@ function cursorIncludedUsageText(res,included){
   var covered=res.coveredRows||0;
   var text="Your Cursor subscription covered this usage, so nothing extra was charged: "+fmtN(covered)+" usage event"+(covered===1?"":"s")+" came back marked Included and the recorded charge is zero. The figure worth reading is the work itself, "+fmtN(included.tokens)+" tokens across "+fmtN(res.turns)+" usage event"+(res.turns===1?"":"s")+(res.days?" over "+fmtN(res.days)+" day"+(res.days===1?"":"s"):"")+".";
   if(included.exact!==null){
-    text+=" Bought per token at pay-as-you-go API prices, that same usage would cost about "+fmt$(included.exact)+". That is an estimate of a hypothetical API bill, not money you paid and not a saving.";
+    text+=" Bought per token at pay-as-you-go API prices, that same usage would cost about "+fmt$(included.exact)+". That is a hypothetical API comparison, not your bill or a measured customer outcome.";
     return text;
   }
-  text+=" Bought per token at pay-as-you-go API prices, that same usage would cost somewhere between "+fmt$(included.range.low.cost)+" and "+fmt$(included.range.high.cost)+". That is an estimate of a hypothetical API bill, not money you paid and not a saving.";
+  text+=" Bought per token at pay-as-you-go API prices, that same usage would cost somewhere between "+fmt$(included.range.low.cost)+" and "+fmt$(included.range.high.cost)+". That is a hypothetical API comparison, not your bill or a measured customer outcome.";
   text+=included.undisclosed
     ?" It is a range rather than one number because Cursor's Auto mode does not record which AI version ran. Rather than guess one, TOP priced these tokens against all "+fmtN(included.range.count)+" AI versions in its checked price table: "+fmt$(included.range.low.cost)+" at the cheapest rate ("+included.range.low.label+") and "+fmt$(included.range.high.cost)+" at the most expensive ("+included.range.high.label+")."
     :" It is a range rather than one number because at least one AI version in this export has no checked rate. The ends span all "+fmtN(included.range.count)+" AI versions in TOP's checked price table, from "+included.range.low.label+" to "+included.range.high.label+".";
@@ -3272,7 +3272,7 @@ function pilotRangeChartHTML(res,included){
       :"Cursor's Auto mode did not record which AI version ran on some of these requests, so a model mix would name only the rows that happened to carry a name. Rather than let those few stand for the whole export, TOP priced all of your tokens against every rate it has checked. The band is how wide the answer is when the AI version is not disclosed.")
     :"At least one AI version in this export has no checked rate, so TOP shows the full span of rates it has checked rather than a single number it cannot stand behind.";
   return pilotFigure(pilotSvg(W,H,label,body),caption)
-    +pilotFoot("Rates come from TOP's checked price table, last checked "+PRICING_CHECKED_DATE+". This is an estimate of a hypothetical API bill. It is not money you paid and it is not a saving.");
+    +pilotFoot("Rates come from TOP's checked price table, last checked "+PRICING_CHECKED_DATE+". This is a hypothetical API comparison, not your bill or a measured customer outcome.");
 }
 // Step 2: tokens are not dollars. Two 100% columns joined by one ribbon per AI version, so a thin
 // band of tokens swelling into a fat band of cost is the whole argument in one picture.
@@ -3384,7 +3384,7 @@ function pilotCompositionChartHTML(res,totals,tokTotal){
       +biggest[1].toLowerCase()+", at "+pilotPct(totals[biggest[0]],tokTotal)+"% of everything counted here.")
     +pilotCompositionRows(present.map(function(t){return [t[1],t[2],t[3],totals[t[0]]]}),tokTotal);
   // The cache share is usually the surprise on a source like this, so it is called out in words as
-  // well as colour. No rate is applied and no saving is claimed: this is a count and a share, nothing more.
+  // well as colour. No rate is applied and no customer cost outcome is stated: this is a count and a share, nothing more.
   if(totals.cr>0){
     var crPct=pilotPct(totals.cr,tokTotal);
     out+='<p class="pilot-chart-lever"><strong>'+esc(fmtN(totals.cr)+" tokens, "+crPct+"% of everything counted here, were text the AI read again from a saved copy rather than fresh.")+'</strong> '
@@ -3452,7 +3452,7 @@ function pilotCacheChartHTML(rows,res,totals){
   if(twin&&totals.cr>0&&full>0){
     out+='<p class="pilot-chart-lever"><strong>'+esc(fmtN(totals.cr)+" tokens, "+crPct+"% of everything counted here, were reused from a saved copy.")+'</strong> '
       +esc("Reused text is priced at "+CACHE_READ_MULTIPLIER+" times the input rate, so it carries "+pilotPct(costs.cr,costTotal)+"% of your cost rather than "+crPct+"%. At the full input rate that same count of tokens would come to "+tilde+fmt$(full)+".")+'</p>'
-      +pilotFoot("That last figure is arithmetic on the published rate card, not a measured saving. TOP has not tested what this work would have cost without caching, and it is not claiming you saved the difference.");
+      +pilotFoot("That last figure is arithmetic on the published rate card, not a measured customer result. TOP has not tested what this work would have cost without caching.");
   }
   return out;
 }
@@ -3813,7 +3813,7 @@ function describeResearchSafePlain(data,covered){
   // a subscription absorbed the charge (Cursor covered), the source records no billed cost at all (Codex
   // local history), or TOP simply could not price the file.
   lines.push(covered
-    ?"Cost: no charge of your own, because your subscription covered this usage and the recorded charge is zero. In its place, one figure for what the same tokens would cost bought per token at published API rates: "+covered.amount+". That is an estimate of a hypothetical API bill, not money you paid and not a saving."
+    ?"Cost: no charge of your own, because your subscription covered this usage and the recorded charge is zero. In its place, one figure for what the same tokens would cost bought per token at published API rates: "+covered.amount+". That is a hypothetical API comparison, not your bill or a measured customer outcome."
     :(knownZero
     ?"Cost: zero, and TOP knows it is zero rather than not knowing it: your subscription covered every usage event in this file and the recorded charge on each one is nothing. This is a known charge of nothing, not a missing figure."
     :(cost.usd===null||cost.usd===undefined
@@ -4252,7 +4252,7 @@ function render(res){
     if(mixHeading)mixHeading.textContent=pilotMixHeadingText(res);
     document.getElementById("pilotMixLead").textContent=pilotMixLeadText(res,rows.length);
     document.getElementById("pilotCacheLead").textContent="Of "+fmtN(totTok)+" recorded tokens, "+fmtN(totInp)+" were sent fresh, "+fmtN(totOut)+" came back, "+fmtN(totCw)+" were saved for reuse and "+fmtN(totCr)+" were reused from the saved copy.";
-    document.getElementById("pilotRoutingLead").textContent="TOP-2 asks whether some of this work could run on a cheaper model without changing the answer. That is an open research and development question. TOP has not benchmarked it and does not claim a saving.";
+    document.getElementById("pilotRoutingLead").textContent="TOP-2 asks whether some of this work could run on a cheaper model without changing the answer. That is an open research and development question. TOP has not benchmarked a customer result.";
     document.getElementById("pilotShapeLead").textContent="A personalised forecast would learn from your own history, not from an average user. Here is the history it would have to learn from.";
     // The forecast ingredients are the real counts already parsed on this machine. Nothing is invented to fill a row.
     var forecastItems=[];
@@ -4284,9 +4284,9 @@ function render(res){
   else if(included){
     lines.push("Cost information: Your Cursor subscription covered this usage, so nothing extra was charged and the recorded charge is zero.");
     lines.push("Tokens consumed: "+fmtInt(totTok)+" across "+fmtInt(res.turns)+" usage events.");
-    if(included.exact!==null) lines.push("What that would cost at pay-as-you-go API prices: about "+fmt$(included.exact)+". This is an estimate of a hypothetical API bill, not money you paid and not a saving.");
+    if(included.exact!==null) lines.push("What that would cost at pay-as-you-go API prices: about "+fmt$(included.exact)+". This is a hypothetical API comparison, not your bill or a measured customer outcome.");
     else{
-      lines.push("What that would cost at pay-as-you-go API prices: between "+fmt$(included.range.low.cost)+" and "+fmt$(included.range.high.cost)+". This is an estimate of a hypothetical API bill, not money you paid and not a saving.");
+      lines.push("What that would cost at pay-as-you-go API prices: between "+fmt$(included.range.low.cost)+" and "+fmt$(included.range.high.cost)+". This is a hypothetical API comparison, not your bill or a measured customer outcome.");
       lines.push(included.undisclosed
         ?"Why a range: Cursor's Auto mode does not record which AI version ran, so TOP priced these tokens against all "+fmtInt(included.range.count)+" AI versions in its checked price table instead of guessing one. Low end "+included.range.low.label+", high end "+included.range.high.label+"."
         :"Why a range: at least one AI version in this export has no checked rate, so the ends span all "+fmtInt(included.range.count)+" AI versions in TOP's checked price table, from "+included.range.low.label+" to "+included.range.high.label+".");
@@ -4386,13 +4386,13 @@ function renderValueModel(rows, totCost, res){
   var pct = Math.round(fFrac*100);
   var lead;
   if(fS<=0){
-    lead=opening+" Most of this already uses lower-cost AI versions, so there may be little room to cut costs by switching versions. That is a good sign. The chart still shows the idea, but the possible saving is small.";
+    lead=opening+" Most of this already uses lower-cost AI versions. The chart still shows an invented routing scenario, but TOP has not measured a customer outcome.";
   } else {
-    lead=opening+" About <b>"+pre+fmt$(fS)+" ("+pct+"%)</b> was used by the most expensive AI versions we could match. This example moves some simpler work to an AI version that costs one fifth as much. That could mean <b>"+pre+fmt$(saveLo)+" to "+pre+fmt$(saveHi)+"</b> less spend, but only if the cheaper option still does the work well. We have not tested that yet.";
+    lead=opening+" About <b>"+pre+fmt$(fS)+" ("+pct+"%)</b> was used by the most expensive AI versions we could match. This invented example moves some simpler work to an AI version priced at one fifth of that rate and draws a cost difference of <b>"+pre+fmt$(saveLo)+" to "+pre+fmt$(saveHi)+"</b>. TOP has not tested whether the cheaper option does the work well.";
   }
   document.getElementById("vmlead").innerHTML=lead;
-  document.getElementById("vmillus").innerHTML="Example only, not a measured saving. Your current cost comes from "+(VM.est?"the usage numbers and checked AI prices":"the cost data")+" in your file. The lower-cost line assumes some tasks can move to a cheaper AI version without making the work worse.";
-  document.getElementById("vmnote").innerHTML="<b>What this means.</b> Your files are read on this device. Nothing here proves that a cheaper AI version will do the job as well. TOP still needs to test that on real work, so treat every saving as a possibility, not a promise.";
+  document.getElementById("vmillus").innerHTML="Example only, not a measured customer result. Your current cost comes from "+(VM.est?"the usage numbers and checked AI prices":"the cost data")+" in your file. The lower-cost line assumes some tasks can move to a cheaper AI version without making the work worse.";
+  document.getElementById("vmnote").innerHTML="<b>What this means.</b> Your files are read on this device. Nothing here proves that a cheaper AI version will do the job as well. TOP still needs to test that on real work, so the illustrated cost difference is not a customer result.";
   buildVMChart();
   updateVM();
   vm.style.display="block";
@@ -4444,7 +4444,7 @@ function updateVM(){
   var afterFrac=VM.C>0? after/VM.C : 1;
   var pre=VM.est?"~":"";
   function costAt(x){ if(x<=g.BEND) return 0.35+(1.0-0.35)*(x/g.BEND); return 1.0+(afterFrac-1.0)*((x-g.BEND)/(g.spanX-g.BEND)); }
-  var val6=1.26+0.24*a; // illustrative: reinvesting the saving (Jevons) lifts output further
+  var val6=1.26+0.24*a; // illustrative: assigning the cost difference to more work lifts output further
   function valAt(x){ if(x<=g.BEND) return 0.30+(0.92-0.30)*(x/g.BEND); return 0.92+(val6-0.92)*((x-g.BEND)/(g.spanX-g.BEND)); }
   function seg(fn,x1,x2){ return xToPx(x1)+","+yToPx(fn(x1))+" "+xToPx(x2)+","+yToPx(fn(x2)); }
   VM.costLine.setAttribute("points", seg(costAt,0,g.BEND));
@@ -4468,8 +4468,8 @@ function updateVM(){
   document.getElementById("vmgout").textContent = a<=0.33?"change less":(a>=0.66?"change more":"middle ground");
   document.getElementById("vmg").setAttribute("aria-valuetext",document.getElementById("vmgout").textContent+" AI version changes");
   var cap;
-  if(a<=0.33) cap="<b>Change less.</b> Move only the simplest work to cheaper AI versions. This gives up some possible saving to protect quality.";
-  else if(a>=0.66) cap="<b>Change more.</b> Move more work to cheaper AI versions, then use the freed budget for extra work. This may save more, but it carries more quality risk.";
+  if(a<=0.33) cap="<b>Change less.</b> Move only the simplest work in this invented scenario. The smaller routing assumption leaves the output line close to its original path.";
+  else if(a>=0.66) cap="<b>Change more.</b> Move more work in this invented scenario, then assign the illustrated cost difference to extra output. The quality risk is untested.";
   else cap="<b>Middle ground.</b> Move obvious low-risk work to cheaper AI versions and keep the strongest version for tasks where quality matters most.";
   document.getElementById("vmcap").innerHTML=cap;
 }

@@ -159,8 +159,8 @@ const coveredCost = coveredPlain.contains.find((line) => /^Cost: /.test(line));
 assert.ok(coveredCost, "a cost line must still be described");
 assert.match(coveredCost, /subscription covered this usage/);
 assert.match(coveredCost, /\$2\.66 to \$49\.86/);
-assert.match(coveredCost, /not money you paid and not a saving/,
-  "the covered cost line must refuse both the bill claim and the saving claim");
+assert.match(coveredCost, /hypothetical API comparison, not your bill or a measured customer outcome/,
+  "the covered cost line must refuse both a bill claim and a measured customer outcome");
 assert.ok(!/comparison against published API rates\. It is not your subscription bill\./.test(coveredCost),
   "the uncovered wording inverts the facts on a covered export and must not be reused there");
 
@@ -366,8 +366,8 @@ assert.match(mixBody, /res\.cursor&&res\.modelsUndisclosed[\s\S]{0,300}pilotRang
   "an undisclosed model must get the API-equivalent range chart, never a bar labelled auto");
 const rangeStart = html.indexOf("function pilotRangeChartHTML(");
 const rangeBody = html.slice(rangeStart, mixStart);
-assert.match(rangeBody, /not money you paid and it is not a saving/,
-  "the range chart must refuse both the bill claim and the saving claim");
+assert.match(rangeBody, /hypothetical API comparison, not your bill or a measured customer outcome/,
+  "the range chart must refuse both a bill claim and a measured customer outcome");
 assert.match(rangeBody, /PRICING_CHECKED_DATE/, "the range must name when its rates were checked");
 assert.match(rangeBody, /stacked/, "the two range labels must stack rather than collide on a narrow phone");
 
