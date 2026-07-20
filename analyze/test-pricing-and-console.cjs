@@ -75,6 +75,10 @@ assert.equal(context.cacheReadRate(context.PRICES.fable5), 1);
 assert.match(context.PRICES.fable5.source, /^https:\/\/platform\.claude\.com\//);
 assert.match(context.PRICES.gpt56sol.source, /^https:\/\/openai\.com\//);
 assert.equal(context.PRICING_CHECKED, "16 Jul 2026");
+assert.equal(context.costOf("gpt-5.6-sol", 0, 1e6, 0, 0), 30,
+  "one million Sol output tokens must cost $30, not $30,000");
+assert.equal(context.costOf("gpt-5.6-sol", 0, 1000, 0, 0), 0.03,
+  "the per-million rate must be scaled down for ordinary token counts");
 
 // The API-equivalent range is what a subscription user gets instead of an invented model attribution.
 // It must span the whole checked table, name both ends, and never collapse to a single guessed model.
