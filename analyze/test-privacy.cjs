@@ -126,15 +126,22 @@ assert.match(html, /if\(res\.csv\) return \{card:"Records",table:"Records",summa
 assert.match(html, /if\(res\.chatExport\) return \{card:"Text messages found",table:"Text messages found",summary:"Text messages found in selected file"\}/);
 assert.doesNotMatch(html, /starting_challenges:|provider_selected:|privacy_route:|task_archetypes:/);
 assert.match(html, /id="shareWithTop" hidden/);
-assert.match(html, /<h2 id="shareWithTopHeading" tabindex="-1">Download Or Share My Safe Report<\/h2>/);
+assert.match(html, /<h2 id="shareWithTopHeading" tabindex="-1">Download Or Copy My Safe Report<\/h2>/);
 assert.match(html, /Nothing is submitted automatically\./);
 assert.match(html, /Download My Own Copy/);
 assert.match(html, /Copy Exact Summary/);
-assert.match(html, /Optional Research Submission To Adam And Sam/);
-assert.match(html, /This page cannot choose, change or add recipients/);
+const terminalStart = html.indexOf('<section class="share-stage" id="shareWithTop"');
+const terminalEnd = html.indexOf("</section>", terminalStart);
+assert.ok(terminalStart >= 0 && terminalEnd > terminalStart, "the local report terminal must exist");
+const terminal = html.slice(terminalStart, terminalEnd);
+assert.match(terminal, /This page has no configured remote recipient/);
+assert.match(terminal, /<div class="share-form" hidden aria-hidden="true">/);
+assert.match(terminal, /id="researchConsent" disabled/);
+assert.match(terminal, /id="submitResearchReport" disabled>Unavailable<\/button>/);
+assert.doesNotMatch(terminal, /Optional Research Submission|Submit Reviewed Safe Report|Adam And Sam/i,
+  "the local terminal must not name a remote submission action");
 assert.match(html, /id="researchConsent"/);
 assert.match(html, /id="submitResearchReport" disabled/);
-assert.match(html, /retained for up to 30 days/);
 assert.doesNotMatch(html, /id="shareRecipients"|id="openEmailDraft"|mailto:/,
   "the browser must not accept or construct delivery recipients");
 assert.match(html, /id="finalPackagePreview" readonly/);
