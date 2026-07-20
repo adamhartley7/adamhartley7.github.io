@@ -477,25 +477,36 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
         <h2><span class="flow-kicker">1</span>Which AI do you use?</h2>
         <p>Choose the app whose usage you want to understand. Chatting in a browser counts, so you do not need to be a developer. Each option says what it needs and what it gives you before you start.</p>
         <div class="pilot-choices" id="pilotSourceChoices">
-          <a class="pilot-choice" data-pilot-entry="chat" href="/analyze/?start=chat"><strong>Claude Chat, in a browser</strong><span>For claude.ai or the Claude desktop app. Anthropic emails your data export, so there is a wait before you can start. TOP then shows token counts from that file, not a charged dollar figure. The export is a ZIP you extract, which is easiest on a computer.</span></a>
+          <a class="pilot-choice" data-pilot-entry="chat" href="/analyze/?start=chat"><strong>Claude Chat, in a browser</strong><span>For claude.ai or the Claude desktop app. Anthropic emails a download link for your data export, so there is a wait before you can start. TOP then shows token counts from that file, not a charged dollar figure. The export is a ZIP you extract, which is easiest on a computer.</span></a>
           <a class="pilot-choice" data-pilot-entry="openai" href="/analyze/?start=openai"><strong>ChatGPT, in a browser</strong><span>For chatgpt.com. OpenAI emails your data export and says it can take up to seven days. TOP then shows token counts from that file, not a charged dollar figure. The export is a ZIP you extract, which is easiest on a computer.</span></a>
           <button type="button" class="pilot-choice" data-pilot-source="cc" aria-pressed="false"><strong>Claude Code</strong><span>Usage saved by Claude while it works in coding projects. There is no export to request, because TOP reads files already on this computer, so you need that computer.</span></button>
           <button type="button" class="pilot-choice" data-pilot-source="codex" aria-pressed="false"><strong>Codex</strong><span>Usage counters saved in your local Codex sessions. There is no export to request, because TOP reads files already on this computer, so you need that computer.</span></button>
-          <button type="button" class="pilot-choice" data-pilot-source="cursor" aria-pressed="false"><strong>Cursor</strong><span>The usage CSV you download from your account dashboard on cursor.com, in a web browser rather than in the Cursor editor. The CSV downloads straight away, with no email wait.</span></button>
-          <button type="button" class="pilot-choice" data-pilot-source="copilot" aria-pressed="false"><strong>GitHub Copilot</strong><span>The usage report CSV you download from github.com/settings/billing. The CSV downloads straight away, with no email wait.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-source="cursor" aria-pressed="false"><strong>Cursor and Cursor Composer</strong><span>The usage CSV you download from your account dashboard on cursor.com, in a web browser rather than in the Cursor editor. The CSV downloads straight away, with no email wait.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-source="copilot" aria-pressed="false"><strong>GitHub Copilot</strong><span>Request the usage report at github.com/settings/billing. GitHub emails you a download link that expires after 24 hours.</span></button>
         </div>
-        <p class="pilot-full-link">Using Claude Chat, ChatGPT, Claude Console, or Obsidian? <a href="/analyze/">Open the full analyzer</a>.</p>
+        <p class="pilot-full-link">Need Claude Console, Obsidian, or the manual controls? <a href="/analyze/?full=1">Open the advanced analyzer</a>.</p>
       </div>
       <div class="pilot-question" id="pilotMethodStep" hidden>
         <button type="button" class="step-back pilot-back" id="pilotBackToSource">← Back</button>
         <div class="pilot-progress">Step 2 of 2</div>
         <h2><span class="flow-kicker">2</span>Give TOP your usage data</h2>
         <p>TOP reads the usage counters on this computer and builds your report here. Nothing is uploaded.</p>
+        <div class="pilot-choices" id="pilotMethodChoices" hidden>
+          <button type="button" class="pilot-choice" data-pilot-method="agent" aria-pressed="true"><strong>Use my coding agent</strong><span>Recommended. Your agent inspects the pinned collector before running it, then gives you one small aggregate JSON file.</span></button>
+          <button type="button" class="pilot-choice" data-pilot-method="folder" aria-pressed="false"><strong>Use the folder fallback</strong><span>Choose the local usage folder in this browser. Use this if Node.js is unavailable or you do not want to run the collector.</span></button>
+        </div>
+        <div class="pilot-method-panel" id="pilotAgentPanel" hidden>
+          <h3>Ask your coding agent to prepare the safe file</h3>
+          <p><strong>The Node runtime is required to run the verified collector.</strong> Copy the prompt below into Claude Code or Codex. It tells the agent to inspect the exact pinned file, check its hash, and stop safely if Node is missing.</p>
+          <textarea id="pilotAgentPrompt" readonly aria-label="Verified local collector prompt" style="width:100%;min-height:230px"></textarea>
+          <button type="button" class="btn p" id="pilotCopyAgentPrompt">Copy The Verified Prompt</button>
+          <label class="pilot-file" id="pilotSafeFileLabel" tabindex="0" role="button"><strong>Choose The Safe JSON It Creates</strong><span>The small aggregate file is checked locally before TOP accepts it</span><input type="file" id="pilotSafeFile" accept=".json"></label>
+        </div>
         <div class="pilot-method-panel" id="pilotFolderPanel" hidden>
           <h3 id="pilotFolderHeading">Choose the usage folder</h3>
-          <p>The button copies the exact Windows address and opens the folder chooser. Paste the address into the chooser, press Enter, then select that folder.</p>
+          <p id="pilotFolderInstructions">For Codex, use the verified collector to read both <code>%USERPROFILE%\.codex\sessions</code> and <code>%USERPROFILE%\.codex\archived_sessions</code>. It combines both folders. For Claude Code, use <code>%USERPROFILE%\.claude\projects</code>.</p>
           <code class="pilot-path" id="pilotFolderPath">%USERPROFILE%\.claude\projects</code>
-          <button type="button" class="btn p pilot-cta" id="pilotChooseFolder">Parse My Data Locally And Privately</button><p class="pilot-cta-note">Reads the counters on this device and builds your report here. Nothing is uploaded, and nothing is shared unless you choose to afterwards.</p><input type="file" id="pilotHistoryFolder" webkitdirectory directory multiple style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-hidden="true" tabindex="-1">
+          <div class="share-buttons"><button type="button" class="btn" id="pilotCopyFolderPath">Copy Folder Address</button><button type="button" class="btn p" id="pilotChooseFolder">Choose The Folder</button></div><p class="pilot-cta-note">Copying the address and opening the picker are separate actions. Reads happen on this device. Nothing is uploaded.</p><input type="file" id="pilotHistoryFolder" webkitdirectory directory multiple style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-hidden="true" tabindex="-1">
         </div>
         <div class="pilot-method-panel" id="pilotCursorPanel" hidden>
           <h3>Download your Cursor usage CSV from cursor.com</h3>
@@ -504,7 +515,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
         </div>
         <div class="pilot-method-panel" id="pilotCopilotPanel" hidden>
           <h3>Download your Copilot usage report</h3>
-          <p>On <b>github.com/settings/billing</b>, open <b>Usage</b> and choose <b>Get usage report</b>. GitHub emails you a download link that expires after 24 hours. Then choose that CSV here. It is read on this computer and is not uploaded. Copilot meters prompts and AI credits, not tokens, so this report shows credits and dollars instead of token counts.</p>
+          <p>On <b>github.com/settings/billing</b>, open <b>Usage</b> and choose <b>Get usage report</b>. GitHub emails you a download link that expires after 24 hours. Personally billed users can request the usage report themselves. Organization-managed accounts require an owner or billing manager to request the usage report. Then choose that CSV here. It is read on this computer and is not uploaded.</p>
           <label class="pilot-file" id="pilotCopilotFileLabel" tabindex="0" role="button"><strong>Choose The Downloaded Copilot Report</strong><span>Choose the usage report CSV from GitHub billing</span><input type="file" id="pilotCopilotFile" accept=".csv,.json" multiple></label>
         </div>
       </div>
@@ -603,22 +614,22 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
       <div class="pilot-share-rail" id="pilotShareRail" hidden>
         <div class="pilot-share-rail-open" id="pilotShareRailOpen">
           <div class="pilot-share-rail-body">
-            <h2 class="pilot-share-rail-title" id="pilotShareRailHeading">Share this report with the TOP team</h2>
+            <h2 class="pilot-share-rail-title" id="pilotShareRailHeading">Save your safe report locally</h2>
             <p class="pilot-share-rail-lead" id="pilotShareRailOneLine"></p>
             <details class="pilot-share-details">
-              <summary>See exactly what would be shared, in plain English</summary>
+              <summary>See exactly what is in the local file, in plain English</summary>
               <ul class="pilot-share-facts" id="pilotShareFacts"></ul>
               <p class="pilot-share-never" id="pilotShareNever"></p>
             </details>
           </div>
           <div class="pilot-share-rail-actions">
-            <button type="button" class="btn p" id="pilotShareRailGo">Share with the TOP team</button>
+            <button type="button" class="btn p" id="pilotShareRailGo">Download Or Copy My Report</button>
             <button type="button" class="pilot-share-skip" id="pilotShareRailSkip">Not now, just show my report</button>
           </div>
         </div>
         <div class="pilot-share-rail-slim" id="pilotShareRailSlim" hidden>
-          <span>Sharing skipped. Nothing was sent, and your full report is still here.</span>
-          <button type="button" class="pilot-share-reopen" id="pilotShareRailReopen">Share with the TOP team</button>
+          <span>Saving skipped. Nothing was sent, and your full report is still here.</span>
+          <button type="button" class="pilot-share-reopen" id="pilotShareRailReopen">Save A Local Copy</button>
         </div>
       </div>
       <div class="pilot-stepper" id="pilotStepper">
@@ -1169,9 +1180,9 @@ if __name__ == "__main__":
 
   <section class="share-stage" id="shareWithTop" hidden aria-labelledby="shareWithTopHeading">
     <div class="step-overline">Final Step</div>
-    <h2 id="shareWithTopHeading" tabindex="-1">Download Or Share My Safe Report</h2>
+    <h2 id="shareWithTopHeading" tabindex="-1">Download Or Copy My Safe Report</h2>
     <p class="share-lead">Your original file stays on this device. The copy below contains the full usage breakdown and any optional answers you chose. It leaves out conversation text, code, file contents, paths and original IDs.</p>
-    <p class="share-hold" id="shareHold"><strong>Nothing is submitted automatically.</strong> You can download your own copy now. TOP can send only the exact research-safe JSON below, and only after you review it, consent and press the Submit button yourself.</p>
+    <p class="share-hold" id="shareHold"><strong>Nothing is submitted automatically.</strong> You can download or copy your own file now. This page has no configured remote recipient.</p>
     <div class="summbox">
       <h3>Exact File Prepared For Download</h3>
       <p>Read this before downloading. The downloaded text file will match this preview.</p>
@@ -1192,18 +1203,15 @@ if __name__ == "__main__":
         <p class="pilot-share-never" id="pilotResearchNever"></p>
       </div>
       <div class="share-preview-human" id="pilotResearchHuman" hidden></div>
-      <details class="research-share-preview"><summary>Show me the actual data. For the technical: See the exact research-safe JSON that will be downloaded or submitted</summary><textarea id="pilotResearchPreview" readonly aria-label="Exact research-safe JSON preview"></textarea></details>
-      <div class="share-buttons"><button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button><button type="button" class="btn" id="shareResearchJSON">Share Reviewed JSON</button></div>
+      <details class="research-share-preview"><summary>Show me the actual data. For the technical: See the exact research-safe JSON available for download or your device share menu</summary><textarea id="pilotResearchPreview" readonly aria-label="Exact research-safe JSON preview"></textarea></details>
+      <div class="share-buttons"><button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button><button type="button" class="btn" id="shareResearchJSON">Use My Device Share Menu</button></div>
     </div>
-    <div class="share-form">
-      <h3>Optional Research Submission To Adam And Sam</h3>
-      <p><strong>Fixed recipients:</strong> Adam and Sam. Their delivery addresses are configured only on the secure server. This page cannot choose, change or add recipients.</p>
-      <p>If you submit, they will use this content-free aggregate for both approved purposes:</p>
-      <ul><li>Validate whether the analyzer measures usage accurately.</li><li>Calibrate future forecasting research. This does not make the current value illustration a verified forecast.</li></ul>
-      <p>Cloudflare processes the submission request and Resend processes the email delivery. Resend sends from Ireland when the Ireland region is selected, but stores account data, email metadata, logs and API records in the United States. Even without prompts or code, unusual usage patterns may still identify you. Adam and Sam may retain the submitted report for up to 30 days. You can ask Adam to delete their mailbox copies earlier, but Resend may still retain its processor copy for its standard 30-day period.</p>
-      <label class="share-consent"><input type="checkbox" id="researchConsent"> <span>I reviewed the exact research-safe JSON and consent to Adam and Sam receiving it for <code>analyzer_validation</code> and <code>forecast_calibration</code>. I understand that the submitted report may be retained for up to 30 days, including in Resend systems in the United States, and that an early deletion request applies to Adam and Sam's mailbox copies. My original history files, prompts, replies, code and file contents are not included.</span></label>
-      <p class="delivery-readiness" id="deliveryReadiness">Direct submission is not configured yet. Download remains available.</p>
-      <div class="share-buttons" style="margin-top:12px"><button type="button" class="btn p" id="submitResearchReport" disabled>Submit Reviewed Safe Report</button></div>
+    <div class="share-form" hidden aria-hidden="true">
+      <h3>Remote Transfer Unavailable</h3>
+      <p>This analyzer currently prepares files on this device only. No remote recipient or endpoint is configured.</p>
+      <label class="share-consent" hidden><input type="checkbox" id="researchConsent" disabled> <span>Remote transfer is unavailable.</span></label>
+      <p class="delivery-readiness" id="deliveryReadiness">Local download remains available.</p>
+      <div class="share-buttons" style="margin-top:12px"><button type="button" class="btn p" id="submitResearchReport" disabled>Unavailable</button></div>
     </div>
     <div class="share-status" id="shareStatus" role="status" aria-live="polite"></div>
   </section>
@@ -1578,15 +1586,14 @@ var MODES={
       stepstip:"A Usage CSV has usage numbers. A Cost CSV has costs Anthropic recorded. If any record has no valid cost, TOP clearly labels the dollar total as an estimate.",
       note:""},
   chat:{label:"Claude Chat", small:"conversations.json from your Claude Chat data export",
-      hint:"In the Claude desktop app, open Settings, then Privacy, then Export Data, and drop the <code>conversations.json</code> from the email export here.",
+      hint:"On <code>claude.ai</code> in a browser, open <b>Settings</b>. Choose <b>Privacy</b>, then <b>Export Data</b>. Anthropic emails a download link. Use the link to download the ZIP, extract it, and choose <code>conversations.json</code>.",
       steps:[
-        "Open Settings in the Claude desktop app.",
-        "Select Privacy.",
-        "Export Data.",
-        "You'll get an email from Anthropic to download your data.",
-        "Download the ZIP. On Windows, right-click it and choose <b>Extract All</b>.",
-        "Open the extracted folder. Choose <code>conversations.json</code>, not project, memory, user or UUID-named JSON files.",
-        "Drop <code>conversations.json</code> into the analytics box above."],
+        "In a web browser, sign in at <code>claude.ai</code> and open <b>Settings</b>.",
+        "Choose <b>Privacy</b>, then <b>Export Data</b>.",
+        "Anthropic emails you a download link when the export is ready.",
+        "Use that link to download the ZIP. On Windows, right-click it and choose <b>Extract All</b>.",
+        "Open the extracted folder and choose <code>conversations.json</code>, not project, memory, user or UUID-named JSON files.",
+        "The Claude desktop app has the same Settings, Privacy, Export Data route if you prefer it."],
       stepstip:"A Claude Chat download shows how you use Claude, not what your subscription costs.",
       note:"This download has conversation text and dates, but it does not contain a cost for each chat. TOP reads it only in this tab and estimates usage from message length. It does not invent a dollar charge."},
   openai:{label:"ChatGPT", small:"conversations.json from your OpenAI data export",
@@ -1610,10 +1617,10 @@ var MODES={
       stepstip:"The CSV records a cost for each usage event as billed by Cursor. Rows marked Included consume your plan's included allowance rather than billing extra money. TOP reads the file on this device only.",
       note:""},
   copilot:{label:"GitHub Copilot", small:"usage report CSV downloaded from github.com/settings/billing",
-      hint:"On <code>github.com/settings/billing</code>, open <b>Usage</b> and choose <b>Get usage report</b>. GitHub emails you a download link. Choose the downloaded CSV here. Copilot meters prompts and AI credits, not tokens, so this report shows credits and dollars instead of token counts.",
+      hint:"On <code>github.com/settings/billing</code>, open <b>Usage</b> and choose <b>Get usage report</b>. GitHub emails you a download link that expires after 24 hours. Personally billed users can request the usage report themselves. Organization-managed accounts require an owner or billing manager to request the usage report. Choose the downloaded CSV here.",
       steps:[
         "Sign in to GitHub and open <code>github.com/settings/billing</code>.",
-        "Open the <b>Usage</b> section and choose <b>Get usage report</b>. If GitHub asks for a report type, pick the AI usage report, which lists each AI version.",
+        "Open the <b>Usage</b> section and choose <b>Get usage report</b>. Personally billed users can request the usage report themselves. Organization-managed accounts require an owner or billing manager to request the usage report.",
         "GitHub emails you a download link. The link expires after 24 hours, so download the CSV promptly.",
         "Drop that CSV into the box above. A saved response from GitHub's AI-credit usage API is also accepted."],
       stepstip:"Copilot bills prompts and AI credits, where one credit is one cent. Only the prompts you send are metered, so the autonomous steps an agent takes between prompts are not itemized and these figures understate the real model work.",
@@ -1773,7 +1780,7 @@ document.querySelector(".routechoices").addEventListener("click",function(e){var
 // ---------- guided two-question pilot ----------
 var PILOT_MODE=false,PILOT_SOURCE="";
 var PILOT_COLLECTOR_URL="https://adamhartley7.github.io/analyze/collector/top-collector.mjs";
-var PILOT_COLLECTOR_SHA256="EB3F69B6FD6C0B9FB78E85548EB0767037CBB2F30657FA4619A85782B38403BE";
+var PILOT_COLLECTOR_SHA256="768742C0CE5C992D90F4D15CCAF799ACCF7E29D8C33FC4060D051061D085354C";
 var PILOT_COLLECTOR_VERSION="top.local-collector.2026-07-16.2";
 var PILOT_ACCEPTED_COLLECTOR_VERSION="top.local-collector.2026-07-16.1";
 var PILOT_ACCEPTED_PARSER_VERSION="top.usage-parser.2026-07-16.2";
@@ -1857,13 +1864,16 @@ function pilotPromptFor(source){
   L.push("");
   L.push("The collector is open source. Please READ IT FIRST and tell me plainly what it does, and whether anything in it concerns you:");
   L.push(PILOT_COLLECTOR_URL);
+  if(source==="codex")L.push("For Codex, read both %USERPROFILE%\\.codex\\sessions and %USERPROFILE%\\.codex\\archived_sessions. Combine both folders in the one safe aggregate.");
   L.push("");
   L.push("Steps:");
   L.push("1. Download it to a temporary folder.");
   L.push("2. Check its SHA-256 is exactly "+PILOT_COLLECTOR_SHA256+" and its version string is "+PILOT_COLLECTOR_VERSION+". That pins the exact reviewed release. If either check fails, stop and tell me.");
   L.push("3. Read the code and tell me what it will read and write before you run anything.");
-  L.push("4. If you are satisfied it is safe, run: node top-collector.mjs --source "+sourceName+" --schema v2 --output <my Downloads folder>/TOP-safe-usage.json");
-  L.push("5. Show me the full contents of the file it produced, so I can see exactly what is in it before I decide anything.");
+  L.push("4. Check that Node is available before running anything: node --version");
+  L.push("5. If Node is missing or not installed, tell the user that Node is missing and use the folder fallback. Do not attempt the collector.");
+  L.push("6. If you are satisfied it is safe, run: node top-collector.mjs --source "+sourceName+" --schema v2 --output TOP-safe-usage.json");
+  L.push("7. Show me the full contents of the file it produced, so I can see exactly what is in it before I decide anything.");
   L.push("");
   L.push("What it should do: read only token counters and date prefixes from my local "+sourceName+" history, and write ONE small JSON of aggregate numbers. It should not read or copy my prompts, replies, code, file paths, filenames or account identifiers, and it should not send anything anywhere. Whether I share that file with anyone afterwards is my decision alone, made later, by me.");
   L.push("");
@@ -1876,16 +1886,29 @@ function pilotChooseSource(source){
   document.getElementById("pilotSourceStep").hidden=true;
   var methodStep=document.getElementById("pilotMethodStep"),cursorSource=source==="cursor",copilotSource=source==="copilot",exportSource=cursorSource||copilotSource;
   methodStep.hidden=false;
+  document.getElementById("pilotMethodChoices").hidden=exportSource;
+  document.getElementById("pilotAgentPanel").hidden=exportSource;
   document.getElementById("pilotCursorPanel").hidden=!cursorSource;
   document.getElementById("pilotCopilotPanel").hidden=!copilotSource;
-  document.getElementById("pilotFolderPanel").hidden=exportSource;
+  document.getElementById("pilotFolderPanel").hidden=true;
   if(cursorSource)pilotStatus("Sign in at cursor.com/dashboard in a web browser and open Usage, then download your usage CSV from the usage events table. This is on the Cursor website, not inside the Cursor editor. Then choose that file here. Nothing is uploaded.","ok");
-  else if(copilotSource)pilotStatus("On github.com/settings/billing, open Usage and choose Get usage report, then choose the downloaded CSV here. Nothing is uploaded.","ok");
+  else if(copilotSource)pilotStatus("On github.com/settings/billing, open Usage and choose Get usage report. GitHub emails you a download link that expires after 24 hours. Then choose that CSV here. Nothing is uploaded.","ok");
   else{
     var path=source==="codex"?"%USERPROFILE%\\.codex\\sessions":"%USERPROFILE%\\.claude\\projects";document.getElementById("pilotFolderPath").textContent=path;
-    pilotStatus("The folder address is ready. Nothing will be sent.","ok");
+    document.getElementById("pilotFolderInstructions").textContent=source==="codex"?"The verified collector reads both %USERPROFILE%\\.codex\\sessions and %USERPROFILE%\\.codex\\archived_sessions and combines both folders. The browser fallback below opens one chosen folder at a time.":"Choose %USERPROFILE%\\.claude\\projects. TOP reads supported usage files in that folder on this device.";
+    document.getElementById("pilotAgentPrompt").value=pilotPromptFor(source);
+    document.querySelectorAll("[data-pilot-method]").forEach(function(button){var on=button.dataset.pilotMethod==="agent";button.classList.toggle("on",on);button.setAttribute("aria-pressed",on?"true":"false")});
+    pilotStatus("The recommended collector route is ready. It requires Node.js. Use the folder fallback if Node.js is unavailable.","ok");
   }
   methodStep.scrollIntoView({behavior:"smooth",block:"start"});setJourney(.34,cursorSource?"Step one complete. Download your Cursor usage CSV from cursor.com, then choose it here.":(copilotSource?"Step one complete. Download your Copilot usage report, then choose it here.":"Step one complete. Choose the local folder for a private report."));
+}
+function pilotChooseMethod(method){
+  if(PILOT_SOURCE!=="cc"&&PILOT_SOURCE!=="codex"){pilotStatus("Choose Claude Code or Codex first.","error");return}
+  var folder=method==="folder";
+  document.querySelectorAll("[data-pilot-method]").forEach(function(button){var on=button.dataset.pilotMethod===method;button.classList.toggle("on",on);button.setAttribute("aria-pressed",on?"true":"false")});
+  document.getElementById("pilotAgentPanel").hidden=folder;
+  document.getElementById("pilotFolderPanel").hidden=!folder;
+  pilotStatus(folder?"Copy the folder address if you need it, then open the picker with the separate Choose The Folder button.":"Copy the verified prompt into your coding agent. Node.js is required for this route.","ok");
 }
 function pilotComplete(data){
   document.getElementById("pilotSourceStep").hidden=true;document.getElementById("pilotMethodStep").hidden=true;
@@ -1910,8 +1933,9 @@ function pilotReadSafeFile(file){
   reader.onerror=function(){if(!analysisJobIsCurrent(jobId))return;var message="The file could not be opened on this device. Nothing was sent.";pilotStatus(message,"error");failAnalysisProgress(message,jobId)};reader.readAsText(file);
 }
 function initPilot(){
-  var query=new URLSearchParams(window.location.search);if(query.get("pilot")!=="1")return;
+  var query=new URLSearchParams(window.location.search),start=query.get("start");if(query.get("full")==="1"||start==="chat"||start==="openai")return;
   PILOT_MODE=true;document.documentElement.classList.add("pilot-mode");document.getElementById("pilotFlow").hidden=false;
+  document.getElementById("resonanceStep").hidden=true;
   document.querySelector("header h1").textContent="Understand how you use AI.";document.querySelector("header .sub").textContent="Your raw history stays on this computer. Start with Claude Chat, ChatGPT, Claude Code, Codex, Cursor or GitHub Copilot. Each option tells you what it needs before you begin.";
   setJourney(.12,"Step one of two: choose the AI you use.");
 }
@@ -1927,16 +1951,20 @@ function initDirectStart(){
   selectRoute("a");
 }
 document.getElementById("pilotSourceChoices").addEventListener("click",function(event){var button=event.target.closest("[data-pilot-source]");if(button)pilotChooseSource(button.dataset.pilotSource)});
-document.getElementById("pilotBackToSource").addEventListener("click",function(){PILOT_SOURCE="";var methodStep=document.getElementById("pilotMethodStep");methodStep.hidden=true;document.getElementById("pilotFolderPanel").hidden=true;document.getElementById("pilotCursorPanel").hidden=true;document.getElementById("pilotCopilotPanel").hidden=true;document.getElementById("pilotSourceStep").hidden=false;document.querySelectorAll("[data-pilot-source]").forEach(function(button){button.classList.remove("on");button.setAttribute("aria-pressed","false")});pilotStatus("Choose the AI you use: Claude Chat, ChatGPT, Claude Code, Codex, Cursor or GitHub Copilot.","ok");document.getElementById("pilotSourceStep").scrollIntoView({behavior:"smooth",block:"start"})});
+document.getElementById("pilotMethodChoices").addEventListener("click",function(event){var button=event.target.closest("[data-pilot-method]");if(button)pilotChooseMethod(button.dataset.pilotMethod)});
+document.getElementById("pilotBackToSource").addEventListener("click",function(){PILOT_SOURCE="";var methodStep=document.getElementById("pilotMethodStep");methodStep.hidden=true;document.getElementById("pilotMethodChoices").hidden=true;document.getElementById("pilotAgentPanel").hidden=true;document.getElementById("pilotFolderPanel").hidden=true;document.getElementById("pilotCursorPanel").hidden=true;document.getElementById("pilotCopilotPanel").hidden=true;document.getElementById("pilotSourceStep").hidden=false;document.querySelectorAll("[data-pilot-source]").forEach(function(button){button.classList.remove("on");button.setAttribute("aria-pressed","false")});pilotStatus("Choose the AI you use: Claude Chat, ChatGPT, Claude Code, Codex, Cursor and Cursor Composer, or GitHub Copilot.","ok");document.getElementById("pilotSourceStep").scrollIntoView({behavior:"smooth",block:"start"})});
+document.getElementById("pilotCopyAgentPrompt").addEventListener("click",function(){return copyPlainText(document.getElementById("pilotAgentPrompt").value,this,"Verified Prompt Copied")});
+document.getElementById("pilotSafeFile").addEventListener("change",function(){var files=takeChosenFiles(this);pilotReadSafeFile(files[0])});
+document.getElementById("pilotSafeFileLabel").addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();document.getElementById("pilotSafeFile").click()}});
 document.getElementById("pilotCursorFile").addEventListener("change",function(){var files=takeChosenFiles(this);if(!files.length){pilotStatus("Choose the usage CSV you downloaded from your account dashboard on cursor.com. Nothing was read or sent.","error");return}document.getElementById("routea").hidden=false;handle(files,"files")});
 document.getElementById("pilotCursorFileLabel").addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();document.getElementById("pilotCursorFile").click()}});
 document.getElementById("pilotCopilotFile").addEventListener("change",function(){var files=takeChosenFiles(this);if(!files.length){pilotStatus("Choose the usage report you downloaded from GitHub billing. Nothing was read or sent.","error");return}document.getElementById("routea").hidden=false;handle(files,"files")});
 document.getElementById("pilotCopilotFileLabel").addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();document.getElementById("pilotCopilotFile").click()}});
+document.getElementById("pilotCopyFolderPath").addEventListener("click",function(){return copyPlainText(document.getElementById("pilotFolderPath").textContent,this,"Folder Address Copied")});
 document.getElementById("pilotChooseFolder").addEventListener("click",function(){
   if(!PILOT_SOURCE){pilotStatus("Choose Claude Code or Codex first.","error");return}
   mode=PILOT_SOURCE;selectedRoute="a";providerChosen=true;document.getElementById("routea").hidden=false;
-  var path=document.getElementById("pilotFolderPath").textContent;copyPlainText(path,this,"Address Copied");
-  pilotStatus("The address is copied. In the folder window, paste it into the address bar, press Enter, then select that folder.","ok");document.getElementById("pilotHistoryFolder").click();
+  pilotStatus("The folder picker is open. If needed, paste the separately copied address into its address bar, press Enter, then select that folder.","ok");document.getElementById("pilotHistoryFolder").click();
 });
 document.getElementById("pilotHistoryFolder").addEventListener("change",function(){
   var files=takeChosenFiles(this);
@@ -4010,7 +4038,7 @@ function revealStandardPostReport(){
     document.getElementById("survey").hidden=true;
     document.getElementById("shareWithTop").hidden=true;
     document.getElementById("pilotQuickReport").hidden=false;
-    setJourney(.72,"Your report is ready. Review the short summary, then choose whether to share it.");
+    setJourney(.72,"Your report is ready. Review the short summary, then save a local copy if you want one.");
     document.getElementById("pilotQuickReport").scrollIntoView({behavior:"smooth",block:"start"});
     document.getElementById("pilotQuickHeading").focus({preventScroll:true});
     return;
@@ -4668,11 +4696,15 @@ document.getElementById("vaultCopyClaudePath").addEventListener("click",function
 });
 
 // ---------- file handling ----------
-var HISTORY_LIMITS={maxFiles:10000,maxFileBytes:350*1024*1024,maxConversationDesktopBytes:64*1024*1024,maxConversationMobileBytes:12*1024*1024,maxCodexFileBytes:4*1024*1024*1024,maxTotalBytes:128*1024*1024,maxClaudeTotalBytes:8*1024*1024*1024,maxCodexTotalBytes:12*1024*1024*1024};
+var HISTORY_LIMITS={maxFiles:10000,maxFileBytes:350*1024*1024,maxConversationDesktopBytes:64*1024*1024,maxConversationMobileBytes:12*1024*1024,maxConversationStreamDesktopBytes:768*1024*1024,maxConversationStreamMobileBytes:128*1024*1024,maxCodexFileBytes:4*1024*1024*1024,maxTotalBytes:128*1024*1024,maxClaudeTotalBytes:8*1024*1024*1024,maxCodexTotalBytes:12*1024*1024*1024};
 function showErr(msg,jobId){if(jobId!==undefined&&!analysisJobIsCurrent(jobId))return;var e=document.getElementById("err");e.textContent=msg;e.style.display="block";document.getElementById("out").style.display="none";document.getElementById("fileStatus").textContent="";failAnalysisProgress(msg,jobId);if(PILOT_MODE)pilotStatus(msg,"error");}
 function conversationLimitBytes(){
   var width=typeof window!=="undefined"?Number(window.innerWidth||0):0,touch=typeof navigator!=="undefined"?Number(navigator.maxTouchPoints||0):0;
   return (width&&width<=768)||(touch&&width&&width<=1024)?HISTORY_LIMITS.maxConversationMobileBytes:HISTORY_LIMITS.maxConversationDesktopBytes;
+}
+function conversationStreamingLimitBytes(){
+  var width=typeof window!=="undefined"?Number(window.innerWidth||0):0,touch=typeof navigator!=="undefined"?Number(navigator.maxTouchPoints||0):0;
+  return (width&&width<=768)||(touch&&width&&width<=1024)?HISTORY_LIMITS.maxConversationStreamMobileBytes:HISTORY_LIMITS.maxConversationStreamDesktopBytes;
 }
 function conversationFileName(name){return /^conversations?(?:[-_]\d+)?\.json$/i.test(String(name||""))}
 function inferModeFromFileNames(files){
@@ -4695,10 +4727,10 @@ function switchToDetectedMode(targetMode){
 function openDetectedConversationFiles(files){
   var checked=historyFilesForMode(files,"chat");
   if(!checked.files.length){showErr("Choose conversations.json from a Claude Chat or ChatGPT export. Project JSON files are not conversation or usage history.");return}
-  if(checked.files.length>HISTORY_LIMITS.maxFiles||checked.totalBytes>conversationLimitBytes()){showErr("Those conversation files are too large to open safely on this device. Choose a smaller export batch or use a computer with more memory.");return}
+  if(checked.files.length>HISTORY_LIMITS.maxFiles||checked.totalBytes>conversationStreamingLimitBytes()){showErr("Those conversation files exceed the bounded local reader for this device. Choose a smaller export batch or use a computer with more memory.");return}
   var jobId=startAnalysisProgress(checked.files);
   document.getElementById("fileStatus").textContent="Checking the conversation-export format on this device.";
-  readTextFiles(checked.files,function(texts,failed){
+  var complete=function(texts,failed){
     if(!analysisJobIsCurrent(jobId))return;
     if(failed===checked.files.length){showErr("TOP could not read the selected conversation file. Nothing was sent.",jobId);return}
     var detected=detectConversationMode(texts);
@@ -4706,7 +4738,36 @@ function openDetectedConversationFiles(files){
     if(!detected){showErr("TOP could not recognize this as a Claude Chat or ChatGPT conversation export. A project JSON file is not a usage log. Nothing was sent.",jobId);return}
     if(mode!==detected)switchToDetectedMode(detected);
     run(texts,checked.files.length-failed,jobId);
-  },jobId);
+  };
+  if(checked.totalBytes>conversationLimitBytes())return readConversationFilesBounded(checked.files,complete,jobId);
+  readTextFiles(checked.files,complete,jobId);
+}
+function readConversationChunk(blob){
+  if(blob.arrayBuffer)return blob.arrayBuffer();
+  return new Promise(function(resolve,reject){var reader=new FileReader();reader.onload=function(){resolve(reader.result)};reader.onerror=function(){reject(reader.error||new Error("read failed"))};reader.readAsArrayBuffer(blob)});
+}
+async function readConversationFileBounded(file,fileIndex,totalFiles,completedBytes,jobId){
+  var decoder=new TextDecoder("utf-8"),parts=[],offset=0,chunkSize=16*1024*1024;
+  while(offset<file.size){
+    if(!analysisJobIsCurrent(jobId))return null;
+    var end=Math.min(file.size,offset+chunkSize),buffer=await readConversationChunk(file.slice(offset,end));
+    if(!analysisJobIsCurrent(jobId))return null;
+    parts.push(decoder.decode(buffer,{stream:end<file.size}));offset=end;
+    analysisProgressSet(completedBytes+offset,fileIndex,"Reading conversation export: file "+(fileIndex+1)+" of "+totalFiles+", "+Math.round(100*offset/Math.max(file.size,1))+"% of this file.",null,jobId);
+    await new Promise(function(resolve){setTimeout(resolve,0)});
+  }
+  parts.push(decoder.decode());return parts.join("");
+}
+async function readConversationFilesBounded(files,done,jobId){
+  var texts=new Array(files.length),failed=0,completedBytes=0;
+  for(var index=0;index<files.length;index++){
+    if(!analysisJobIsCurrent(jobId))return;
+    try{var text=await readConversationFileBounded(files[index],index,files.length,completedBytes,jobId);if(text===null)return;texts[index]=text}
+    catch(error){failed++;texts[index]=""}
+    completedBytes+=Number(files[index].size||0);
+    analysisProgressSet(completedBytes,index+1,"Read "+(index+1)+" of "+files.length+" conversation files on this device.",null,jobId);
+  }
+  done(texts,failed);
 }
 function historyFilesForMode(files,targetMode,origin){
   var list=Array.prototype.slice.call(files||[]),allowed=[],markdown=0,archives=0,unsupported=0,oversized=0,total=0,codexRollouts=0,codexAggregates=0,regularJson=0,projectJson=0,contextJson=0,folderRoots=Object.create(null),unsafeClaudeHistory=false;
@@ -4715,7 +4776,7 @@ function historyFilesForMode(files,targetMode,origin){
   var claudeFolderRoots=Object.keys(folderRoots),unsafeClaudeRoot=targetMode==="cc"&&origin==="folder"&&claudeFolderRoots.indexOf(".claude")>=0;
   var invalidClaudeFolder=targetMode==="cc"&&origin==="folder"&&!unsafeClaudeRoot&&(claudeFolderRoots.length!==1||claudeFolderRoots[0]!=="projects");
   var ext=targetMode==="cc"?/\.jsonl$/i:(targetMode==="codex"?/(?:^rollout-.+\.jsonl$|^ai-events\.jsonl$)/i:(targetMode==="csv"||targetMode==="cursor"?/\.csv$/i:(targetMode==="copilot"?/\.(?:csv|json)$/i:/^conversations?(?:[-_]\d+)?\.json$/i)));
-  var fileLimit=targetMode==="codex"?HISTORY_LIMITS.maxCodexFileBytes:((targetMode==="chat"||targetMode==="openai")?conversationLimitBytes():HISTORY_LIMITS.maxFileBytes);
+  var fileLimit=targetMode==="codex"?HISTORY_LIMITS.maxCodexFileBytes:((targetMode==="chat"||targetMode==="openai")?conversationStreamingLimitBytes():HISTORY_LIMITS.maxFileBytes);
   list.forEach(function(file){
     var name=String(file.name||"");
     if(/\.md$/i.test(name)){markdown++;return}
@@ -5000,12 +5061,12 @@ function finishSurvey(skipped){
   var share=document.getElementById("shareWithTop");
   prepareResearchSafePackage(true);
   if(PILOT_MODE){
-    document.getElementById("shareWithTopHeading").textContent="Share Your Safe Report";
-    share.querySelector(".share-lead").textContent="Only the complete content-free aggregate report below can leave this page. It includes usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. Your prompts, replies, code, files, paths and original identifiers are excluded.";
-    document.getElementById("shareHold").innerHTML="<strong>Nothing has been sent.</strong> Review the exact JSON, then deliberately download it, use your device's share action, or consent and press Submit yourself. Direct submission remains off until its secure endpoint is configured.";
+    document.getElementById("shareWithTopHeading").textContent="Save Your Safe Report";
+    share.querySelector(".share-lead").textContent="The complete content-free aggregate below was prepared on this device. It includes usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. Your prompts, replies, code, files, paths and original identifiers are excluded.";
+    document.getElementById("shareHold").innerHTML="<strong>Nothing has been sent.</strong> Review the exact JSON, then download it, copy it, or deliberately open your device's share menu. This page has no configured remote recipient.";
     share.querySelector(".research-safe-box h3").textContent="Your Complete Safe Report";
     document.getElementById("downloadResearchJSON").textContent="Download My Safe Report";
-    document.getElementById("shareResearchJSON").textContent="Share My Safe Report";
+    document.getElementById("shareResearchJSON").textContent="Use My Device Share Menu";
   }
   share.hidden=false;
   share.scrollIntoView({behavior:"smooth",block:"start"});
