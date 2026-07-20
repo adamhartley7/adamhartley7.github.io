@@ -11,11 +11,11 @@ import { createInterface } from "node:readline";
 import { StringDecoder } from "node:string_decoder";
 
 export const SCHEMA_VERSION = "top.safe-usage.v1";
-export const COLLECTOR_VERSION = "top.local-collector.2026-07-20.1";
-export const PARSER_VERSION = "top.usage-parser.2026-07-20.1";
+export const COLLECTOR_VERSION = "top.local-collector.2026-07-20.2";
+export const PARSER_VERSION = "top.usage-parser.2026-07-20.2";
 export const SCHEMA_VERSION_V2 = "top.safe-usage.v2";
-export const COLLECTOR_VERSION_V2 = "top.local-collector.2026-07-20.2";
-export const PARSER_VERSION_V2 = "top.usage-parser.2026-07-20.2";
+export const COLLECTOR_VERSION_V2 = "top.local-collector.2026-07-20.3";
+export const PARSER_VERSION_V2 = "top.usage-parser.2026-07-20.3";
 export const MAX_LINE_CHARS = 2 * 1024 * 1024;
 
 const PARTITIONS = 64;
@@ -378,22 +378,312 @@ class PartitionSpool {
   }
 }
 
-function createBoundedLineCollector(onLine, onOversized, maxChars = MAX_LINE_CHARS) {
+// Codex rollout records can contain multi-megabyte prompt or tool-output strings beside a
+// handful of structural fields TOP needs. This parser walks an oversized JSON object without
+// retaining those strings. It projects only the supported timestamp, record kind, session ID,
+// active model and token counters. Unknown or malformed structures still fail closed.
+function createCodexOversizedRecordProjector() {
+  const maxDepth = 128;
+  const stack = [];
+  const values = Object.create(null);
+  const projectedPaths = [
+    ["timestamp", ["timestamp"]],
+    ["record_type", ["type"]],
+    ["payload_type", ["payload", "type"]],
+    ["session_id", ["payload", "id"]],
+    ["model", ["payload", "model"]],
+    ["to_model", ["payload", "to_model"]],
+    ...["total_token_usage", "last_token_usage"].flatMap(usageKey =>
+      ["input_tokens", "cached_input_tokens", "output_tokens", "reasoning_output_tokens", "total_tokens"]
+        .map(field => [`${usageKey}.${field}`, ["payload", "info", usageKey, field]])),
+  ];
+  let rootPhase = "value";
+  let mode = "";
+  let token = "";
+  let stringRole = "";
+  let stringTarget = "";
+  let stringTooLong = false;
+  let escaped = false;
+  let unicodeRemaining = 0;
+  let failed = false;
+  let projectionIncomplete = false;
+
+  function targetForPath(pathParts) {
+    const match = projectedPaths.find(([, candidate]) =>
+      candidate.length === pathParts.length && candidate.every((part, index) => part === pathParts[index]));
+    return match ? match[0] : "";
+  }
+
+  function valuePath() {
+    if (!stack.length) return rootPhase === "value" ? [] : null;
+    const parent = stack[stack.length - 1];
+    if (parent.kind === "object" && parent.phase === "value") return parent.path.concat(parent.key);
+    if (parent.kind === "array" && (parent.phase === "value" || parent.phase === "valueOrEnd")) return parent.path.concat("*");
+    return null;
+  }
+
+  function markChildStarted() {
+    if (!stack.length) { rootPhase = "child"; return; }
+    stack[stack.length - 1].phase = "child";
+  }
+
+  function completeValue() {
+    if (!stack.length) { rootPhase = "done"; return; }
+    const parent = stack[stack.length - 1];
+    if (parent.phase !== "value" && parent.phase !== "valueOrEnd" && parent.phase !== "child") { failed = true; return; }
+    parent.phase = "commaOrEnd";
+    if (parent.kind === "object") parent.key = null;
+  }
+
+  function clearProjection(pathParts) {
+    const path = pathParts || [];
+    for (const [target, candidate] of projectedPaths) {
+      if (candidate.length >= path.length && path.every((part, index) => part === candidate[index])) delete values[target];
+    }
+    const target = targetForPath(path);
+    return target;
+  }
+
+  function beginContainer(kind) {
+    const pathParts = valuePath();
+    if (!pathParts) { failed = true; return; }
+    if (stack.length >= maxDepth) { failed = true; return; }
+    clearProjection(pathParts);
+    markChildStarted();
+    stack.push({ kind, path: pathParts, phase: kind === "object" ? "keyOrEnd" : "valueOrEnd", key: null });
+  }
+
+  function endContainer(kind) {
+    const current = stack[stack.length - 1];
+    if (!current || current.kind !== kind) { failed = true; return; }
+    const allowed = kind === "object"
+      ? current.phase === "keyOrEnd" || current.phase === "commaOrEnd"
+      : current.phase === "valueOrEnd" || current.phase === "commaOrEnd";
+    if (!allowed) { failed = true; return; }
+    stack.pop();
+    completeValue();
+  }
+
+  function beginString() {
+    const current = stack[stack.length - 1];
+    if (current && current.kind === "object" && (current.phase === "keyOrEnd" || current.phase === "key")) {
+      stringRole = "key";
+      stringTarget = "";
+    } else {
+      const pathParts = valuePath();
+      if (!pathParts) { failed = true; return; }
+      stringRole = "value";
+      stringTarget = clearProjection(pathParts);
+    }
+    mode = "string";
+    token = "\"";
+    stringTooLong = false;
+    escaped = false;
+    unicodeRemaining = 0;
+  }
+
+  function appendStringSegment(segment) {
+    if (!segment || (stringRole === "value" && !stringTarget)) return;
+    if (token.length + segment.length > 1024) { stringTooLong = true; return; }
+    token += segment;
+  }
+
+  function finishString() {
+    let decoded = null;
+    if (!stringTooLong && (stringRole === "key" || stringTarget)) {
+      try { decoded = JSON.parse(token + "\""); } catch { failed = true; }
+    }
+    if (failed) return;
+    if (stringRole === "key") {
+      const current = stack[stack.length - 1];
+      if (!current || current.kind !== "object" || (current.phase !== "keyOrEnd" && current.phase !== "key")) { failed = true; return; }
+      current.key = typeof decoded === "string" ? decoded : "";
+      current.phase = "colon";
+    } else {
+      if (stringTarget) {
+        if (stringTooLong || typeof decoded !== "string") projectionIncomplete = true;
+        else values[stringTarget] = decoded;
+      }
+      completeValue();
+    }
+    mode = "";
+    token = "";
+    stringRole = "";
+    stringTarget = "";
+  }
+
+  function beginPrimitive(kind, character) {
+    const pathParts = valuePath();
+    if (!pathParts) { failed = true; return; }
+    mode = kind;
+    token = character;
+    stringTarget = clearProjection(pathParts);
+  }
+
+  function finishPrimitive() {
+    let valid = false;
+    let value;
+    if (mode === "number") {
+      valid = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(token);
+      if (valid) value = Number(token);
+    } else {
+      valid = token === "true" || token === "false" || token === "null";
+      if (valid) value = token === "true" ? true : token === "false" ? false : null;
+    }
+    if (!valid) { failed = true; return; }
+    if (stringTarget && mode === "number") {
+      if (!Number.isSafeInteger(value) || value < 0) projectionIncomplete = true;
+      else values[stringTarget] = value;
+    }
+    completeValue();
+    mode = "";
+    token = "";
+    stringTarget = "";
+  }
+
+  function push(chunk) {
+    const input = String(chunk || "");
+    const special = /["\\\u0000-\u001f]/g;
+    for (let index = 0; index < input.length && !failed;) {
+      if (mode === "string") {
+        if (unicodeRemaining) {
+          const character = input[index++];
+          if (!/[0-9a-f]/i.test(character)) { failed = true; break; }
+          appendStringSegment(character);
+          unicodeRemaining--;
+          continue;
+        }
+        if (escaped) {
+          const character = input[index++];
+          if (!/["\\/bfnrtu]/.test(character)) { failed = true; break; }
+          appendStringSegment(character);
+          escaped = false;
+          if (character === "u") unicodeRemaining = 4;
+          continue;
+        }
+        special.lastIndex = index;
+        const match = special.exec(input);
+        if (!match) { appendStringSegment(input.slice(index)); break; }
+        appendStringSegment(input.slice(index, match.index));
+        const character = input[match.index];
+        index = match.index + 1;
+        if (character === "\"") { finishString(); continue; }
+        if (character === "\\") { appendStringSegment("\\"); escaped = true; continue; }
+        failed = true;
+        continue;
+      }
+      if (mode === "number" || mode === "literal") {
+        const character = input[index];
+        if (/[,\]} \t\r\n]/.test(character)) { finishPrimitive(); continue; }
+        token += character;
+        if (token.length > 32) failed = true;
+        index++;
+        continue;
+      }
+
+      const character = input[index++];
+      if (/[ \t\r\n]/.test(character)) continue;
+      const current = stack[stack.length - 1];
+      if (character === "{") { beginContainer("object"); continue; }
+      if (character === "[") { beginContainer("array"); continue; }
+      if (character === "}") { endContainer("object"); continue; }
+      if (character === "]") { endContainer("array"); continue; }
+      if (character === "\"") { beginString(); continue; }
+      if (character === ":") {
+        if (!current || current.kind !== "object" || current.phase !== "colon") { failed = true; continue; }
+        current.phase = "value";
+        continue;
+      }
+      if (character === ",") {
+        if (!current || current.phase !== "commaOrEnd") { failed = true; continue; }
+        current.phase = current.kind === "object" ? "key" : "value";
+        continue;
+      }
+      if (character === "-" || /\d/.test(character)) { beginPrimitive("number", character); continue; }
+      if (/[tfn]/.test(character)) { beginPrimitive("literal", character); continue; }
+      failed = true;
+    }
+  }
+
+  function finish() {
+    if (mode === "number" || mode === "literal") finishPrimitive();
+    const classificationComplete = !mode && stack.length === 0 && rootPhase === "done" && !failed;
+    const unresolved = () => ({
+      status: "unresolved",
+      recordTypeHint: typeof values.record_type === "string" ? values.record_type : "",
+      classificationComplete,
+    });
+    if (!classificationComplete || projectionIncomplete) return unresolved();
+    const type = values.record_type;
+    if (typeof type !== "string") return unresolved();
+    const record = { type };
+    if (typeof values.timestamp === "string") record.timestamp = values.timestamp;
+    if (type === "session_meta") {
+      record.payload = {};
+      if (typeof values.session_id === "string" || typeof values.session_id === "number") record.payload.id = values.session_id;
+      return { status: "record", record };
+    }
+    if (type === "turn_context") {
+      record.payload = {};
+      if (typeof values.model === "string") record.payload.model = values.model;
+      return { status: "record", record };
+    }
+    if (type !== "event_msg") return { status: "ignored" };
+    const payloadType = values.payload_type;
+    if (payloadType === "model_reroute") {
+      record.payload = { type: payloadType };
+      if (typeof values.to_model === "string") record.payload.to_model = values.to_model;
+      return { status: "record", record };
+    }
+    if (payloadType !== "token_count") return typeof payloadType === "string" ? { status: "ignored" } : unresolved();
+    const info = {};
+    for (const usageKey of ["total_token_usage", "last_token_usage"]) {
+      const usage = {};
+      let fields = 0;
+      for (const field of ["input_tokens", "cached_input_tokens", "output_tokens", "reasoning_output_tokens", "total_tokens"]) {
+        const value = values[`${usageKey}.${field}`];
+        if (typeof value === "number") { usage[field] = value; fields++; }
+      }
+      if (fields === 5) info[usageKey] = usage;
+      else if (fields !== 0) return unresolved();
+    }
+    if (!info.total_token_usage && !info.last_token_usage) return unresolved();
+    record.payload = { type: payloadType, info };
+    return { status: "record", record };
+  }
+
+  return { push, finish };
+}
+
+function createBoundedLineCollector(onLine, onOversized, maxChars = MAX_LINE_CHARS, oversizedProjectorFactory = null) {
   let buffer = "";
   let dropping = false;
+  let projector = null;
+
+  function finishOversized() {
+    const result = projector ? projector.finish() : null;
+    if (result && result.status === "record") onLine(JSON.stringify(result.record));
+    else if (!result || result.status !== "ignored") onOversized(result);
+    dropping = false;
+    projector = null;
+  }
+
   return {
     push(chunk) {
       const pieces = String(chunk || "").split("\n");
       pieces.forEach((piece, index) => {
         const ended = index < pieces.length - 1;
         if (dropping) {
-          if (ended) dropping = false;
+          if (projector) projector.push(piece);
+          if (ended) finishOversized();
           return;
         }
         if (buffer.length + piece.length > maxChars) {
+          projector = oversizedProjectorFactory ? oversizedProjectorFactory() : null;
+          if (projector) { projector.push(buffer); projector.push(piece); }
           buffer = "";
-          if (!ended) dropping = true;
-          onOversized();
+          dropping = true;
+          if (ended) finishOversized();
           return;
         }
         buffer += piece;
@@ -404,17 +694,18 @@ function createBoundedLineCollector(onLine, onOversized, maxChars = MAX_LINE_CHA
       });
     },
     finish() {
-      if (!dropping && buffer) onLine(buffer.replace(/\r$/, ""));
+      if (dropping) finishOversized();
+      else if (buffer) onLine(buffer.replace(/\r$/, ""));
       buffer = "";
       dropping = false;
     },
   };
 }
 
-async function streamLines(filePath, onLine, onOversized, onBytes, afterChunk, onChunk) {
+async function streamLines(filePath, onLine, onOversized, onBytes, afterChunk, onChunk, oversizedProjectorFactory) {
   const input = createReadStream(filePath, { highWaterMark: 64 * 1024 });
   const decoder = new StringDecoder("utf8");
-  const collector = createBoundedLineCollector(onLine, onOversized);
+  const collector = createBoundedLineCollector(onLine, onOversized, MAX_LINE_CHARS, oversizedProjectorFactory);
   for await (const chunk of input) {
     onBytes(chunk.length);
     if (onChunk) onChunk(chunk);
@@ -702,11 +993,12 @@ async function collectClaude(roots, progress, schema) {
 
 function checkedCodexUsage(value) {
   if (!value || typeof value !== "object") return null;
-  const input = safeCount(value.input_tokens);
-  const cached = safeCount(value.cached_input_tokens);
-  const output = safeCount(value.output_tokens);
-  const reasoning = safeCount(value.reasoning_output_tokens);
-  const total = safeCount(value.total_tokens);
+  const strictCount = item => typeof item === "number" && Number.isSafeInteger(item) && item >= 0 ? item : null;
+  const input = strictCount(value.input_tokens);
+  const cached = strictCount(value.cached_input_tokens);
+  const output = strictCount(value.output_tokens);
+  const reasoning = strictCount(value.reasoning_output_tokens);
+  const total = strictCount(value.total_tokens);
   if ([input, cached, output, reasoning, total].some(item => item === null)) return null;
   if (cached > input || reasoning > output) return null;
   return { input, cached, output, reasoning, total };
@@ -754,6 +1046,7 @@ async function collectCodex(roots, progress, schema) {
           foundUsage: false,
           sessionDigest: null,
           conflictingSessionIds: false,
+          identityUncertain: false,
         };
         const fileAggregate = new Map();
         const fileDays = new Set();
@@ -765,7 +1058,13 @@ async function collectCodex(roots, progress, schema) {
             const trimmed = String(line || "").trim();
             if (!trimmed) return;
             let record;
-            try { record = JSON.parse(trimmed); } catch { coverage.malformed_lines++; coverage.complete = false; return; }
+            try { record = JSON.parse(trimmed); } catch {
+              coverage.malformed_lines++;
+              coverage.complete = false;
+              state.currentModel = SAFE_MODEL_FALLBACK;
+              state.identityUncertain = true;
+              return;
+            }
             if (!record || typeof record !== "object") return;
             if (record.type === "session_meta") {
               const sessionId = stableIdPart(record.payload && record.payload.id);
@@ -773,7 +1072,7 @@ async function collectCodex(roots, progress, schema) {
                 const digest = privateDigest(secret, ["codex-session", sessionId]);
                 if (state.sessionDigest !== null && state.sessionDigest !== digest) state.conflictingSessionIds = true;
                 else state.sessionDigest = digest;
-              }
+              } else state.conflictingSessionIds = true;
               return;
             }
             if (record.type === "turn_context") {
@@ -786,7 +1085,7 @@ async function collectCodex(roots, progress, schema) {
             }
             if (record.type !== "event_msg" || !record.payload || record.payload.type !== "token_count") return;
             const info = record.payload.info;
-            if (!info || typeof info !== "object") return;
+            if (!info || typeof info !== "object") { coverage.complete = false; return; }
             const total = checkedCodexUsage(info.total_token_usage);
             const last = checkedCodexUsage(info.last_token_usage);
             let usage = null;
@@ -830,9 +1129,23 @@ async function collectCodex(roots, progress, schema) {
               mergeUsageIntoTimeline(fileTimeline, usageRow, day);
             }
             if (day) fileDays.add(day);
-          }, () => { coverage.oversized_lines++; coverage.complete = false; }, count => progress.bytes(count, coverage.files_parsed), undefined, chunk => fileHmac.update(chunk));
-          coverage.files_parsed++;
-          if (state.foundUsage) {
+          }, projection => {
+            coverage.oversized_lines++;
+            coverage.complete = false;
+            // The unresolved record may have changed the active model. Preserve cumulative
+            // counters, but fail closed on attribution so later usage cannot inherit a stale rate.
+            state.currentModel = SAFE_MODEL_FALLBACK;
+            if (!projection || projection.classificationComplete !== true || projection.recordTypeHint === "session_meta") {
+              state.identityUncertain = true;
+            }
+          }, count => progress.bytes(count, coverage.files_parsed), undefined, chunk => fileHmac.update(chunk), createCodexOversizedRecordProjector);
+          if (state.identityUncertain) {
+            coverage.files_skipped++;
+            coverage.complete = false;
+          } else {
+            coverage.files_parsed++;
+          }
+          if (!state.identityUncertain && state.foundUsage) {
             coverage.files_with_usage++;
             const fileDigest = fileHmac.digest("hex");
             const usageRecords = [...fileAggregate.values()].reduce((total, row) => addSafe(total, row.usage_records), 0);

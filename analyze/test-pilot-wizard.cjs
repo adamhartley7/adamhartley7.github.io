@@ -45,8 +45,8 @@ assert.match(html, /href="\/analyze\/\?full=1">Open the advanced analyzer<\/a>/)
 
 // The pinned collector prompt is inspectable and locks the exact released file.
 assert.match(html, /https:\/\/adamhartley7\.github\.io\/analyze\/collector\/top-collector\.mjs/);
-assert.match(html, /0544414684C6994AF0FED2E181B25CAC37BE889B4D48A033CFC716BAABECA0BF/);
-assert.match(html, /PILOT_COLLECTOR_VERSION="top\.local-collector\.2026-07-20\.2"/);
+assert.match(html, /328209D2C41624C325D7C11B1EBA6D9CCA28479B4B4459E44B9F6B2E16E917DC/);
+assert.match(html, /PILOT_COLLECTOR_VERSION="top\.local-collector\.2026-07-20\.3"/);
 assert.match(html, /--schema v2/);
 assert.doesNotMatch(html, /COLLECTOR_(?:SHA256|VERSION)_PLACEHOLDER/);
 

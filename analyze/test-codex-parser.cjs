@@ -53,7 +53,7 @@ const fixture = [
   }),
   line("2026-07-15T09:00:02Z", "event_msg", { type: "agent_message", message: PRIVATE }),
   line("2026-07-15T09:00:03Z", "turn_context", {
-    model: "codex-model-a",
+    model: "gpt-5.6-sol",
     turn_id: PRIVATE,
     cwd: PRIVATE,
     workspace_roots: [PRIVATE],
@@ -62,7 +62,7 @@ const fixture = [
   token("2026-07-15T09:00:04Z", usage(100, 40, 20, 5)),
   token("2026-07-15T09:00:05Z", usage(100, 40, 20, 5), usage(100, 40, 20, 5)),
   token("2026-07-15T09:00:06Z", usage(150, 50, 30, 8), usage(50, 10, 10, 3)),
-  line("2026-07-16T10:00:00Z", "turn_context", { model: "codex-model-b", turn_id: PRIVATE }),
+  line("2026-07-16T10:00:00Z", "turn_context", { model: "gpt-5.6-terra", turn_id: PRIVATE }),
   token("2026-07-16T10:00:01Z", usage(170, 60, 40, 10), usage(20, 10, 10, 2)),
   token("2026-07-16T10:00:02Z", usage(10, 2, 4, 1), usage(10, 2, 4, 1)),
   line("2026-07-16T10:00:03Z", "world_state", { full: PRIVATE }),
@@ -78,11 +78,11 @@ assert.equal(result.days, 2);
 assert.equal(result.coverage.counter_resets, 1);
 assert.equal(result.coverage.complete, false);
 assert.deepEqual(
-  { ...result.by["codex-model-a"] },
+  { ...result.by["gpt-5.6-sol"] },
   { inp: 100, out: 30, cw: 0, cr: 50, reasoning: 8, turns: 2 },
 );
 assert.deepEqual(
-  { ...result.by["codex-model-b"] },
+  { ...result.by["gpt-5.6-terra"] },
   { inp: 18, out: 14, cw: 0, cr: 12, reasoning: 3, turns: 2 },
 );
 
@@ -140,12 +140,123 @@ collector.finish();
 assert.deepEqual(lines, ["one", "two", "last"]);
 assert.equal(oversized, 1);
 
+const oversizedPadding = "x".repeat(2 * 1024 * 1024);
+const oversizedProjection = context.parseCodex([[
+  line("2026-07-16T13:00:00Z", "session_meta", { id: "large-session" }),
+  JSON.stringify({ padding_before: oversizedPadding, timestamp: "2026-07-16T13:00:01Z", type: "turn_context", payload: { model: "gpt-5.6-sol" } }),
+  JSON.stringify({ timestamp: "2026-07-16T13:00:02Z", type: "response_item", payload: { content: `${PRIVATE} \\\"type\\\":\\\"token_count\\\" ${oversizedPadding}` } }),
+  JSON.stringify({ timestamp: "2026-07-16T13:00:03Z", type: "event_msg", payload: { type: "token_count", info: { total_token_usage: usage(1000, 200, 80, 20), last_token_usage: usage(1000, 200, 80, 20) } }, padding_after: oversizedPadding }),
+].join("\n")]);
+assert.equal(oversizedProjection.coverage.oversized_lines, 0, "large supported records and proven non-usage records must not be blindly dropped");
+assert.equal(oversizedProjection.turns, 1);
+assert.deepEqual({ ...oversizedProjection.by["gpt-5.6-sol"] }, { inp: 800, out: 80, cw: 0, cr: 200, reasoning: 20, turns: 1 });
+
+function projectOversized(raw) {
+  const projector = context.createCodexOversizedRecordProjector();
+  projector.push(raw);
+  return projector.finish();
+}
+
+const duplicatePayloadProjection = projectOversized('{"type":"turn_context","payload":{"model":"gpt-5.6-sol"},"payload":{}}');
+assert.equal(duplicatePayloadProjection.status, "record");
+assert.equal(Object.hasOwn(duplicatePayloadProjection.record.payload, "model"), false,
+  "a later duplicate payload must supersede projected model descendants just as JSON.parse does");
+const duplicateInfoProjection = projectOversized('{"type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":10,"cached_input_tokens":0,"output_tokens":2,"reasoning_output_tokens":0,"total_tokens":12}},"info":{}}}');
+assert.equal(duplicateInfoProjection.status, "unresolved",
+  "a later duplicate info object must not retain counters from the superseded object");
+assert.equal(projectOversized('{"type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1e309,"cached_input_tokens":0,"output_tokens":2,"reasoning_output_tokens":0,"total_tokens":2}}}}').status, "unresolved",
+  "non-finite projected counters must fail closed");
+assert.equal(projectOversized('{"type":"turn_context",\f"payload":{"model":"gpt-5.6-sol"}}').status, "unresolved",
+  "the projector must reject whitespace that JSON itself rejects");
+const numericSessionProjection = projectOversized('{"type":"session_meta","payload":{"id":12345}}');
+assert.equal(numericSessionProjection.status, "record");
+assert.equal(numericSessionProjection.record.payload.id, 12345,
+  "oversized projection must preserve the numeric session IDs accepted by the ordinary parser");
+const tooDeepProjection = projectOversized('{"padding":' + "[".repeat(129) + "0" + "]".repeat(129) + ',"type":"turn_context","payload":{"model":"gpt-5.6-sol"}}');
+assert.equal(tooDeepProjection.status, "unresolved",
+  "deeply nested oversized records must stop at the structural depth bound");
+
+const invalidCounterTypes = context.parseCodex([[
+  line("2026-07-16T13:30:00Z", "turn_context", { model: "gpt-5.6-sol" }),
+  token("2026-07-16T13:30:01Z", { ...usage(10, 0, 2, 0), cached_input_tokens: null, reasoning_output_tokens: "0" }),
+].join("\n")]);
+assert.equal(invalidCounterTypes.turns, 0,
+  "null, booleans, and numeric strings must not be coerced into trusted Codex counters");
+assert.equal(invalidCounterTypes.coverage.complete, false);
+
+const missingTokenInfo = context.parseCodex([[
+  line("2026-07-16T13:35:00Z", "turn_context", { model: "gpt-5.6-sol" }),
+  line("2026-07-16T13:35:01Z", "event_msg", { type: "token_count" }),
+].join("\n")]);
+assert.equal(missingTokenInfo.turns, 0);
+assert.equal(missingTokenInfo.coverage.complete, false,
+  "a token_count record without an info object must make browser coverage incomplete");
+
+const malformedContext = context.parseCodex([[
+  line("2026-07-16T13:40:00Z", "turn_context", { model: "gpt-5.6-sol" }),
+  token("2026-07-16T13:40:01Z", usage(10, 0, 2, 0)),
+  '{"type":"turn_context","payload":{"model":',
+  token("2026-07-16T13:40:02Z", usage(20, 0, 4, 0)),
+].join("\n")]);
+assert.equal(malformedContext.by["gpt-5.6-sol"].inp, 10);
+assert.equal(malformedContext.by["Unknown Codex model"].inp, 10,
+  "usage after a malformed possible model change must not inherit the prior model");
+assert.equal(malformedContext.coverage.malformed_lines, 1);
+
+const maximumUsage = usage(Number.MAX_SAFE_INTEGER, 0, 0, 0, Number.MAX_SAFE_INTEGER);
+assert.throws(() => context.parseCodex([
+  [line("2026-07-16T13:50:00Z", "turn_context", { model: "gpt-5.6-sol" }), token("2026-07-16T13:50:01Z", maximumUsage)].join("\n"),
+  [line("2026-07-16T13:50:02Z", "turn_context", { model: "gpt-5.6-sol" }), token("2026-07-16T13:50:03Z", maximumUsage)].join("\n"),
+]), /safe local reporting limit/i,
+"aggregating individually safe Codex counters must fail before the browser total becomes unsafe");
+
+const unresolvedAccumulator = context.createCodexAccumulator();
+const unresolvedState = unresolvedAccumulator.beginFile(0);
+const unresolvedCollector = context.createBoundedLineCollector(
+  lineValue => unresolvedAccumulator.addLine(unresolvedState, lineValue),
+  () => unresolvedAccumulator.noteOversized(unresolvedState),
+  128,
+  context.createCodexOversizedRecordProjector,
+);
+unresolvedCollector.push('{"type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1},"private":"');
+unresolvedCollector.push("x".repeat(256));
+unresolvedCollector.finish();
+unresolvedAccumulator.endFile(unresolvedState, false);
+const unresolvedOversized = unresolvedAccumulator.result();
+assert.equal(unresolvedOversized.coverage.oversized_lines, 1, "malformed or incomplete oversized usage must remain fail-closed");
+assert.equal(unresolvedOversized.coverage.complete, false);
+assert.equal(unresolvedOversized.turns, 0);
+
+const staleModelAccumulator = context.createCodexAccumulator();
+const staleModelState = staleModelAccumulator.beginFile(0);
+staleModelAccumulator.addLine(staleModelState, line("2026-07-16T14:00:00Z", "turn_context", { model: "gpt-5.6-sol" }));
+staleModelAccumulator.addLine(staleModelState, token("2026-07-16T14:00:01Z", usage(10, 0, 2, 0)));
+const staleModelCollector = context.createBoundedLineCollector(
+  lineValue => staleModelAccumulator.addLine(staleModelState, lineValue),
+  () => staleModelAccumulator.noteOversized(staleModelState),
+  128,
+  context.createCodexOversizedRecordProjector,
+);
+staleModelCollector.push(JSON.stringify({ type: "turn_context", payload: { model: "x".repeat(2048) }, padding: "x".repeat(256) }));
+staleModelCollector.finish();
+staleModelAccumulator.addLine(staleModelState, token("2026-07-16T14:00:02Z", usage(20, 0, 4, 0)));
+staleModelAccumulator.endFile(staleModelState, false);
+const staleModelResult = staleModelAccumulator.result();
+assert.equal(staleModelResult.coverage.oversized_lines, 1);
+assert.equal(staleModelResult.by["gpt-5.6-sol"].inp, 10);
+assert.equal(staleModelResult.by["Unknown Codex model"].inp, 10,
+  "usage after an unresolved model-changing record must not inherit the previous known model");
+
 const hostile = context.parseCodex([[
-  line("2026-07-16T12:00:00Z", "turn_context", { model: "<img src=x onerror=alert(1)>" }),
+  line("2026-07-16T12:00:00Z", "turn_context", { model: `<img src=x onerror=${PRIVATE}>` }),
   token("2026-07-16T12:00:01Z", usage(10, 2, 3, 1)),
 ].join("\n")]);
 const hostileMarkdown = context.buildObsidianAIHistory(hostile, "2026-07-16");
 assert.doesNotMatch(hostileMarkdown, /<img/i, "model labels must not become Markdown HTML");
+const hostileAggregate = JSON.stringify(context.buildCodexAggregateObject(hostile, "2026-07-16"));
+assert.doesNotMatch(hostileAggregate, new RegExp(PRIVATE, "i"),
+  "unexpected model labels must not leak into the content-free aggregate");
+assert.deepEqual(Object.keys(hostile.by), ["Unknown Codex model"]);
 
 const prototypeHostile = context.parseCodex([[
   line("2026-07-16T12:00:00Z", "turn_context", { model: "__proto__" }),
@@ -153,11 +264,11 @@ const prototypeHostile = context.parseCodex([[
   line("2026-07-16T12:00:02Z", "turn_context", { model: "constructor" }),
   token("2026-07-16T12:00:03Z", usage(15, 3, 5, 2), usage(5, 1, 2, 1)),
 ].join("\n")]);
-assert.deepEqual(Object.keys(prototypeHostile.by).sort(), ["__proto__", "constructor"]);
+assert.deepEqual(Object.keys(prototypeHostile.by), ["Unknown Codex model"]);
 assert.equal(context.buildCodexAggregateObject(prototypeHostile, "2026-07-16").totals.total_tokens, 20);
 
 const resetWithoutLast = context.parseCodex([[
-  line("2026-07-16T12:00:00Z", "turn_context", { model: "codex-model-a" }),
+  line("2026-07-16T12:00:00Z", "turn_context", { model: "gpt-5.6-sol" }),
   token("2026-07-16T12:00:01Z", usage(20, 4, 5, 1)),
   line("2026-07-16T12:00:02Z", "event_msg", { type: "token_count", info: { total_token_usage: usage(5, 1, 2, 1) } }),
 ].join("\n")]);

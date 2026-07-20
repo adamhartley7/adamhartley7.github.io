@@ -626,9 +626,23 @@ test("v0.2 self-reported values reject tampering, non-finite numbers and cross-v
 test("strict v2 Claude Code and Codex fixtures validate without weakening v1", () => {
   assert.equal(validateResearchSafeUsage(v2ReportFixture()), true);
   assert.equal(validateResearchSafeUsage(v2CodexReportFixture()), true);
+  const currentV2 = v2ReportFixture();
+  currentV2.collector.collector_version = "top.local-collector.2026-07-20.3";
+  currentV2.collector.parser_version = "top.usage-parser.2026-07-20.3";
+  assert.equal(validateResearchSafeUsage(currentV2), true);
   const v1WithV2Field = reportFixture();
   v1WithV2Field.timeline = v2ReportFixture().timeline;
   assert.throws(() => validateResearchSafeUsage(v1WithV2Field), /unsupported or missing fields/i);
+
+  const currentV1 = reportFixture();
+  currentV1.collector.collector_version = "top.local-collector.2026-07-20.2";
+  currentV1.collector.parser_version = "top.usage-parser.2026-07-20.2";
+  assert.equal(validateResearchSafeUsage(currentV1), true);
+
+  const crossedV1 = reportFixture();
+  crossedV1.collector.collector_version = "top.local-collector.2026-07-20.1";
+  crossedV1.collector.parser_version = "top.usage-parser.2026-07-20.2";
+  assert.throws(() => validateResearchSafeUsage(crossedV1), /collector or parser version/i);
 });
 
 test("Codex history cannot claim billed dollars or applied API pricing", () => {
