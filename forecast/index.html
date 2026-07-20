@@ -537,16 +537,13 @@ function render(){
 }
 
 // ---------- cold-start gate and honest coverage ----------
-// Replaying this engine over a real single-user history in time order, the band contained the
-// outcome 48.3% of the time at 5 completed tasks, 74.1% at 10 and 86.9% at 30. Over that same
-// range this page's own held-out score read 100%, because a split that small has two test tasks
-// in it and two hits out of two is "100%". The band is also at its narrowest at low history, so
-// the page looked most confident exactly where it was least right, in front of the people who
-// had only just started. Below this much history no band is produced at all.
+// A chronological cold-start replay showed that the page looked most confident where it had
+// the least evidence. Public product source does not carry benchmark figures; the research
+// record owns them. Below this much history no band is produced at all.
 var FORECAST_MIN_HISTORY=30;
-// A percentage computed from a handful of held-out tasks is not a rate. With two held-out tasks
-// one hit reads as 50% and two read as 100%, and neither says anything about the next task.
-// Below this many held-out tasks the page shows the raw count and states no rate at all.
+// A percentage computed from a handful of held-out tasks is not a stable rate. One extra hit
+// can swing it dramatically, without saying anything reliable about the next task. Below this
+// many held-out tasks the page shows the raw count and states no rate at all.
 var COVERAGE_MIN_TEST=20;
 function coverageRateReportable(n){ return n>=COVERAGE_MIN_TEST; }
 // Wilson score interval at 95%, so a rate that is shown always carries the width of its own

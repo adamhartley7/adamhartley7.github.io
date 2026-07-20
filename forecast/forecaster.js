@@ -1,5 +1,5 @@
 /*
- * forecaster.js — TOP v1 cost forecaster, self-contained browser port of the
+ * forecaster.js: TOP v1 cost forecaster, self-contained browser port of the
  * Python reference (top-forecaster/forecaster.py + archetype.py).
  *
  * NO dependencies. Loads as a plain <script> (sets window.Forecaster), works

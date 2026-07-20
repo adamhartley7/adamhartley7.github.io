@@ -1,10 +1,12 @@
-# TOP perimeter overnight summary
+# TOP perimeter overnight snapshot (historical)
 
 Date: 2026-07-19
 
 Branch: `codex/perimeter-first-run-2026-07-19`
 
 Base inspected: `origin/main` at `211d397`
+
+Status: this records the fail-first state before the product fixes were integrated. PR #31 resolved the listed product gaps and passed the release gates. Any failing counts below are historical measurements at the stated base, not current release status.
 
 Scope: tests, fixtures, collector and Delivery Worker boundaries, CI, and this report. Protected implementation files were inspected but not edited.
 
@@ -117,17 +119,13 @@ Required semantic states after the protected fix:
 
 The Worker suite still uses injected response fixtures even where a production endpoint string is present. Result: 102 of 102 passed without external traffic. This is an application-level process guard, not an operating-system network sandbox, and it does not claim to patch every possible low-level bypass.
 
-## Public hard-rule audit
+## Historical public hard-rule audit at base `211d397`
 
-The single public hard-rule contract fails with three verified categories in protected or out-of-scope files:
+At the inspected base, the single public hard-rule contract failed with three verified categories in protected or out-of-scope files. PR #31 subsequently resolved these categories and the current release contract passes. The old file-and-line list is omitted because it no longer describes the integrated tree.
 
-- Em-dash or mojibake-equivalent source remains in `forecast/index.html:267`, `496`, `681`, `704`, `786` and visible dashboard copy including `dashboard/index.html:82`.
-- Financial-benefit claims remain at `analyze/index.html:4035`, `4117` and `pitch/index.html:305-306`.
-- Public accuracy figures remain at `forecast/index.html:164`, `397`, `556-559`, `618`, `pilot/index.html:132-133`, and `pilot/pilot-app.js:384`.
+The historical contract reported no TOP-2 or TOP-3 shipped-label violation.
 
-The contract reported no TOP-2 or TOP-3 shipped-label violation. I did not edit any of these implementation files.
-
-## Exact verification counts
+## Historical verification counts at base `211d397`
 
 | Suite | Passed | Failed | Interpretation |
 |---|---:|---:|---|

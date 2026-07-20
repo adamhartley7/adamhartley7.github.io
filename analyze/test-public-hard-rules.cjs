@@ -12,7 +12,10 @@ function readRelative(...segments) {
 const pages = {
   homepage: readRelative("..", "index.html"),
   analyzer: readRelative("index.html"),
-  forecast: readRelative("..", "forecast", "index.html"),
+  forecast: [
+    readRelative("..", "forecast", "index.html"),
+    readRelative("..", "forecast", "forecaster.js"),
+  ].join("\n"),
   pilot: [
     readRelative("..", "pilot", "index.html"),
     readRelative("..", "pilot", "pilot-core.js"),
@@ -148,11 +151,14 @@ test("public TOP pages obey the binding copy and research boundaries", () => {
     /\d+(?:\.\d+)?\s*(?:%|percent)[^\r\n<>]{0,100}(?:accuracy|accurate|coverage|median (?:relative )?error)/i,
     /(?:forecast|prediction|mean absolute percentage|percentage|relative|median)?\s*error(?: rate)?[^\r\n<>]{0,100}\d+(?:\.\d+)?\s*(?:%|percent)/i,
     /\d+(?:\.\d+)?\s*(?:%|percent)[^\r\n<>]{0,100}(?:forecast|prediction|mean absolute percentage|percentage|relative|median)?\s*error(?: rate)?/i,
+    /(?:typical|median|average|mean)\s+(?:forecast|prediction|estimate)[^\r\n<>]{0,100}\d+(?:\.\d+)?\s+times\b/i,
   );
   assert.ok(accuracyFigurePatterns.some((pattern) => pattern.test("Forecast error: 12%.")),
     "the accuracy detector must catch a forecast error percentage");
   assert.ok(accuracyFigurePatterns.some((pattern) => pattern.test("Mean absolute percentage error: 12%.")),
     "the accuracy detector must catch a named percentage-error measure");
+  assert.ok(accuracyFigurePatterns.some((pattern) => pattern.test("The typical estimate was 3.3 times the actual cost.")),
+    "the accuracy detector must catch a benchmark multiplier");
   const accuracyFigurePages = Object.entries(pages)
     .filter(([, source]) => accuracyFigurePatterns.some((pattern) => pattern.test(source)))
     .map(([name]) => name);
