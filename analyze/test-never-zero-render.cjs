@@ -488,9 +488,18 @@ test("Codex never-zero render contract", () => {
   const result = codexResult();
   assertModelsHaveNoKnownRate(result);
   const rendered = renderResult(result);
-  assert.match(rendered.summary, /Total AI usage: 20 tokens\./);
+  assert.match(rendered.summary, /Total model token traffic: 20 tokens\./);
   assert.match(rendered.summary, /6 sent, 12 returned, 0 cache added, 2 cache reused/);
   assertNeverZeroContract(rendered, Object.keys(result.by));
+});
+
+test("Codex automatic-review usage stays visible and unpriced", () => {
+  const model = "codex-auto-review";
+  assert.equal(context.priceKeyFor(model), null);
+  const rendered = renderResult(codexResult(model));
+  assert.deepEqual(neverZeroFailures(rendered, [model]), []);
+  assert.match(rendered.table, /codex-auto-review/i);
+  assert.match(rendered.table, /Unpriced/i);
 });
 
 test("Cursor never-zero render contract", () => {

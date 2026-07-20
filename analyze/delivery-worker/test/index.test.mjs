@@ -26,8 +26,8 @@ function reportFixture() {
   return {
     schema_version: "top.research-safe-usage.v1",
     collector: {
-      collector_version: "top.local-collector.2026-07-16.1",
-      parser_version: "top.usage-parser.2026-07-16.2",
+      collector_version: "top.local-collector.2026-07-20.1",
+      parser_version: "top.usage-parser.2026-07-20.1",
     },
     generated_date: "2026-07-16",
     source: {
@@ -342,8 +342,8 @@ function v2ReportFixture() {
   const report = reportFixture();
   report.schema_version = REPORT_SCHEMA_VERSION_V2;
   report.collector = {
-    collector_version: "top.local-collector.2026-07-16.2",
-    parser_version: "top.usage-parser.2026-07-16.3",
+    collector_version: "top.local-collector.2026-07-20.2",
+    parser_version: "top.usage-parser.2026-07-20.2",
   };
   report.timeline = {
     status: "available",
@@ -408,13 +408,13 @@ function v2SubmissionFixture() {
   return submission;
 }
 
-// Exact aggregate values produced by the vetted collector test fixture in
-// commit 8d23126743e66317ef498a0329e6845c48974653.
+// Aggregate values derived from the vetted fixture in commit
+// 8d23126743e66317ef498a0329e6845c48974653 and revalidated under the current envelope.
 function vettedCollectorV2ClaudeAggregate() {
   return {
     schema_version: "top.safe-usage.v2",
-    collector_version: "top.local-collector.2026-07-16.2",
-    parser_version: "top.usage-parser.2026-07-16.3",
+    collector_version: "top.local-collector.2026-07-20.2",
+    parser_version: "top.usage-parser.2026-07-20.2",
     generated_date: "2026-07-16",
     source: { provider: "anthropic", surface: "claude_code" },
     coverage: {
@@ -662,7 +662,7 @@ test("vetted collector v2 aggregate maps to the strict research-safe v2 contract
 
 test("v2 requires the vetted collector versions, source and exact top-level shape", () => {
   const wrongCollector = v2ReportFixture();
-  wrongCollector.collector.collector_version = "top.local-collector.2026-07-16.1";
+  wrongCollector.collector.collector_version = "top.local-collector.2026-07-20.1";
   assert.throws(() => validateResearchSafeUsage(wrongCollector), /collector or parser version/i);
 
   const wrongSource = v2ReportFixture();
@@ -1007,6 +1007,11 @@ test("multi-tool coverage accepts fractional Copilot quantities and rejects unre
 });
 
 test("multi-tool labels are finite, source-specific and case-insensitive", () => {
+  const codexAutoReview = v2CodexReportFixture();
+  codexAutoReview.by_model[0].model = "codex-auto-review";
+  assert.equal(codexAutoReview.by_model[0].cost.usd, null);
+  assert.equal(validateResearchSafeUsage(codexAutoReview), true);
+
   const cursorCase = cursorReportFixture();
   cursorCase.by_model[0].model = "CLAUDE-4.5-SONNET";
   assert.equal(validateResearchSafeUsage(cursorCase), true);

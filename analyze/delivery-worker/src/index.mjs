@@ -13,14 +13,14 @@ const CONSENT_NOTICE_VERSION = "top.research-consent.2026-07-17.1";
 const PURPOSES = new Set(["analyzer_validation", "forecast_calibration"]);
 const COLLECTOR_VERSIONS = new Set([
   "top.local-analyzer.2026-07-16.1",
-  "top.local-collector.2026-07-16.1",
+  "top.local-collector.2026-07-20.1",
 ]);
 const PARSER_VERSIONS = new Set([
   "top.usage-parser.2026-07-16.1",
-  "top.usage-parser.2026-07-16.2",
+  "top.usage-parser.2026-07-20.1",
 ]);
-const V2_COLLECTOR_VERSION = "top.local-collector.2026-07-16.2";
-const V2_PARSER_VERSION = "top.usage-parser.2026-07-16.3";
+const V2_COLLECTOR_VERSION = "top.local-collector.2026-07-20.2";
+const V2_PARSER_VERSION = "top.usage-parser.2026-07-20.2";
 const COST_STATUSES = new Set([
   "unavailable",
   // A charge positively known to be nothing, which is not the same claim as "unavailable" and
@@ -285,6 +285,7 @@ function safeModelLabel(value) {
   if (/^gpt-\d{1,2}(?:[.-]\d{1,2})*(?:-(?:sol|terra|luna|mini|nano|codex(?:-mini)?|chat|pro|turbo|preview))?$/i.test(value)) return true;
   if (/^o[1-9](?:-(?:mini|pro|preview|latest))?$/i.test(value)) return true;
   if (/^deepseek-v\d{1,2}(?:[.-]\d{1,2})*(?:-(?:pro|lite|chat|coder|reasoner))?$/i.test(value)) return true;
+  if (/^codex-auto-review$/i.test(value)) return true;
   return /^codex-(?:mini|large|latest)(?:-latest)?$/i.test(value);
 }
 

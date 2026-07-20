@@ -45,8 +45,8 @@ assert.match(html, /href="\/analyze\/\?full=1">Open the advanced analyzer<\/a>/)
 
 // The pinned collector prompt is inspectable and locks the exact released file.
 assert.match(html, /https:\/\/adamhartley7\.github\.io\/analyze\/collector\/top-collector\.mjs/);
-assert.match(html, /768742C0CE5C992D90F4D15CCAF799ACCF7E29D8C33FC4060D051061D085354C/);
-assert.match(html, /PILOT_COLLECTOR_VERSION="top\.local-collector\.2026-07-16\.2"/);
+assert.match(html, /0544414684C6994AF0FED2E181B25CAC37BE889B4D48A033CFC716BAABECA0BF/);
+assert.match(html, /PILOT_COLLECTOR_VERSION="top\.local-collector\.2026-07-20\.2"/);
 assert.match(html, /--schema v2/);
 assert.doesNotMatch(html, /COLLECTOR_(?:SHA256|VERSION)_PLACEHOLDER/);
 
@@ -64,6 +64,15 @@ assert.doesNotMatch(html, /return only the generated TOP filename/);
 assert.doesNotMatch(html, /without its full path/);
 assert.match(html, /ONE small JSON of aggregate numbers/,
   "the collector prompt must describe exactly the aggregate file it creates");
+assert.match(html, /stream complete local JSONL records/);
+assert.match(html, /temporarily parse each record/);
+assert.match(html, /run-private fingerprints in memory/);
+assert.match(html, /exact timestamp metadata in encrypted temporary files only until aggregation finishes/);
+assert.match(html, /temporary material should be deleted before the run completes/);
+assert.match(html, /must not export my prompts/);
+assert.match(html, /exact timestamps/);
+assert.doesNotMatch(html, /read only token counters and date prefixes/);
+assert.doesNotMatch(html, /read usage counters only|usage counters only|never the content of a session/i);
 
 // Folder fallback exposes the exact paths. Copying an address and opening the picker
 // are separate deliberate actions, so clipboard failure cannot block the picker.
@@ -96,8 +105,8 @@ function validEnvelope(surface = "claude_code") {
   const model = isCodex ? "gpt-5.6-codex-mini" : "claude-opus-4-8";
   return {
     schema_version: "top.safe-usage.v1",
-    collector_version: "top.local-collector.2026-07-16.1",
-    parser_version: "top.usage-parser.2026-07-16.2",
+    collector_version: "top.local-collector.2026-07-20.1",
+    parser_version: "top.usage-parser.2026-07-20.1",
     generated_date: "2026-07-16",
     source: { provider: isCodex ? "openai" : "anthropic", surface },
     coverage: {
@@ -123,8 +132,8 @@ function validEnvelope(surface = "claude_code") {
 function validV2Envelope(surface = "claude_code") {
   const value = validEnvelope(surface);
   value.schema_version = "top.safe-usage.v2";
-  value.collector_version = "top.local-collector.2026-07-16.2";
-  value.parser_version = "top.usage-parser.2026-07-16.3";
+  value.collector_version = "top.local-collector.2026-07-20.2";
+  value.parser_version = "top.usage-parser.2026-07-20.2";
   value.timeline = {
     status: "available", granularity: "calendar_month",
     timestamp_basis: "source_date_prefix_not_timezone_normalized",
@@ -162,6 +171,7 @@ function rejects(mutator, code) {
 
 context.PILOT_SOURCE = "cc";
 assert.equal(context.pilotModel("gpt-5.6-codex-mini"), "gpt-5.6-codex-mini");
+assert.equal(context.pilotModel("codex-auto-review"), "codex-auto-review");
 const claude = context.pilotValidateSafeUsage(validEnvelope());
 assert.equal(claude.source.surface, "claude_code");
 const claudeResult = context.pilotResultFromSafeUsage(claude);
@@ -183,6 +193,15 @@ const earlyYearV2 = validV2Envelope();
 earlyYearV2.timeline.periods[0].period = "0000-02";
 assert.equal(context.pilotValidateSafeUsage(earlyYearV2).timeline.periods[0].period, "0000-02",
   "browser validation must match the collector's four-digit-year contract");
+
+const outdatedV2 = validV2Envelope("codex");
+outdatedV2.collector_version = "top.local-collector.2026-07-16.2";
+outdatedV2.parser_version = "top.usage-parser.2026-07-16.3";
+let outdatedError;
+try { context.pilotValidateSafeUsage(outdatedV2); } catch (error) { outdatedError = error; }
+assert.match(outdatedError?.message || "", /unsupported_safe_file_version/);
+assert.match(context.pilotSafeFileErrorMessage(outdatedError), /collector or parser version this page does not accept/);
+assert.match(context.pilotSafeFileErrorMessage(outdatedError), /Rerun the current pinned collector prompt/);
 
 for (const [mutate, code] of [
   [value => { value.timeline.periods[0].prompt = "PRIVATE"; }, /unexpected_object_fields/],
@@ -208,6 +227,9 @@ const codexV2Result = context.pilotResultFromSafeUsage(codexV2);
 assert.equal(codexV2Result.pilotSafeSchemaVersion, "top.safe-usage.v2");
 assert.equal(codexV2Result.pilotV2Aggregate.session_distributions.session_definition, "codex_rollout_file_proxy");
 assert.equal(codexV2Result.by["gpt-5.6-codex-mini"].reasoning, 10);
+const codexAutoReviewV2 = validV2Envelope("codex");
+codexAutoReviewV2.by_model[0].model = "codex-auto-review";
+assert.equal(context.pilotValidateSafeUsage(codexAutoReviewV2).by_model[0].model, "codex-auto-review");
 context.PILOT_SOURCE = "cc";
 
 rejects(value => { value.prompt = "PRIVATE PROMPT"; }, /unexpected_object_fields/);

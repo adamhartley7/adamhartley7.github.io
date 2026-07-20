@@ -114,6 +114,7 @@ async function makeCodexV2Fixture(root) {
     codexToken("2026-01-10T00:00:02Z", codexUsage(100, 40, 20, 5)),
   ].join("\n"), "utf8");
   await writeFile(path.join(root, "rollout-two.jsonl"), [
+    codexLine("2026-02-10T00:00:00Z", "session_meta", { id: "codex-v2-session-two" }),
     codexLine("2026-02-10T00:00:00Z", "turn_context", { model: "o3-preview" }),
     codexToken("2026-02-10T00:00:01Z", codexUsage(50, 10, 10, 2)),
     codexToken("2026-02-10T02:00:01Z", codexUsage(80, 20, 20, 4), codexUsage(30, 10, 10, 2)),
@@ -380,6 +381,29 @@ try {
     high_iteration: 0,
     unclassified: 0,
   });
+
+  const codexDuplicateLive = path.join(temp, "codex-v2-duplicate-live");
+  const codexDuplicateArchive = path.join(temp, "codex-v2-duplicate-archive");
+  await mkdir(codexDuplicateLive, { recursive: true });
+  await mkdir(codexDuplicateArchive, { recursive: true });
+  const duplicateCodexText = [
+    codexLine("2026-05-01T00:00:00Z", "session_meta", { id: "codex-v2-duplicate-session" }),
+    codexLine("2026-05-01T00:00:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-05-01T00:00:02Z", codexUsage(100, 0, 0, 0)),
+    codexToken("2026-05-01T00:00:03Z", codexUsage(150, 0, 0, 0)),
+  ].join("\n");
+  await writeFile(path.join(codexDuplicateLive, "live.jsonl"), duplicateCodexText, "utf8");
+  await writeFile(path.join(codexDuplicateArchive, "archive.jsonl"), duplicateCodexText, "utf8");
+  const duplicateCodex = await collectUsage({ source: "codex", roots: [codexDuplicateLive, codexDuplicateArchive], schema: "v2" });
+  assertV2Schema(duplicateCodex);
+  assert.deepEqual(duplicateCodex.activity, { sessions: 1, active_days: 1 });
+  assert.equal(duplicateCodex.totals.total_tokens, 150);
+  assert.equal(duplicateCodex.totals.usage_records, 2);
+  assert.equal(duplicateCodex.coverage.duplicate_usage_records, 2);
+  assert.equal(duplicateCodex.session_distributions.logical_sessions_analyzed, 1);
+  assert.deepEqual(duplicateCodex.timeline.periods.map(row => ({ total_tokens: row.total_tokens, logical_sessions_started: row.logical_sessions_started })), [
+    { total_tokens: 150, logical_sessions_started: 1 },
+  ]);
 
   const profile = path.join(temp, "profile");
   const profileClaude = path.join(profile, ".claude", "projects");

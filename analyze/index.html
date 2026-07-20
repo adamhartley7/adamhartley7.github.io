@@ -497,7 +497,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
         </div>
         <div class="pilot-method-panel" id="pilotAgentPanel" hidden>
           <h3>Ask your coding agent to prepare the safe file</h3>
-          <p><strong>The Node runtime is required to run the verified collector.</strong> Copy the prompt below into Claude Code or Codex. It tells the agent to inspect the exact pinned file, check its hash, and stop safely if Node is missing.</p>
+          <p><strong>The Node runtime is required to run the verified collector.</strong> Copy the prompt below into Claude Code or Codex. It tells the agent to inspect the exact pinned file, check its hash, and stop safely if Node is missing. A large local history can take several minutes and read several gigabytes; the collector reports byte and file progress in the terminal.</p>
           <textarea id="pilotAgentPrompt" readonly aria-label="Verified local collector prompt" style="width:100%;min-height:230px"></textarea>
           <button type="button" class="btn p" id="pilotCopyAgentPrompt">Copy The Verified Prompt</button>
           <label class="pilot-file" id="pilotSafeFileLabel" tabindex="0" role="button"><strong>Choose The Safe JSON It Creates</strong><span>The small aggregate file is checked locally before TOP accepts it</span><input type="file" id="pilotSafeFile" accept=".json"></label>
@@ -520,7 +520,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
         </div>
       </div>
       <div class="pilot-status" id="pilotStatus" role="status" aria-live="polite"></div>
-      <div class="pilot-privacy">Nothing is sent automatically. After the report, you can inspect the complete content-free aggregate copy, then deliberately download or share it.</div>
+      <div class="pilot-privacy">Nothing is sent automatically. After the report, you can inspect the content-free aggregate copy, then deliberately download or share it.</div>
     </section>
 
     <section class="resonance-step" id="resonanceStep" aria-labelledby="resonanceHeading">
@@ -698,7 +698,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
             <details class="pilot-patterns" id="pilotPatternDetails" hidden>
               <summary>See monthly usage and session shapes</summary>
               <div class="pilot-detail-body">
-                <p id="pilotPatternNote">These buckets describe interaction counts only. They do not reveal or guess what your prompts meant, and elapsed spans do not equal active work time. TOP did not read prompt text, code, tool output or file content to create them.</p>
+                <p id="pilotPatternNote">These buckets describe interaction counts only. They do not reveal or guess what your prompts meant, and elapsed spans do not equal active work time. Raw content is discarded locally and is not written to this report.</p>
                 <h3>Monthly usage</h3>
                 <p id="pilotTimelineWindowNote" hidden></p>
                 <div class="pilot-timeline" id="pilotTimeline"></div>
@@ -1193,7 +1193,7 @@ if __name__ == "__main__":
       <button type="button" class="btn" id="copySafePackage">Copy Exact Summary</button>
     </div>
     <div class="summbox research-safe-box">
-      <h3>Complete Research-Safe JSON</h3>
+      <h3>Research-Safe JSON</h3>
       <p>This separate file keeps every privacy-safe usage aggregate TOP calculated and the exact pricing rates applied. It includes the current value-model scenario only when the report qualifies for that illustration. Any included scenario is clearly marked as unvalidated, not a forecast result.</p>
       <p><strong>Before sharing it:</strong> inspect the exact JSON below. It contains aggregate usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. It contains no prompts, replies, code, tool output, paths, filenames, project or account identifiers, email addresses, exact times or original IDs. Nothing is sent until you deliberately use a sharing action.</p>
       <p><code>privacy.network_delivery: "none"</code> records that this analyzer did not transmit the report. If you later share the downloaded file, review the destination in your device first.</p>
@@ -1204,7 +1204,7 @@ if __name__ == "__main__":
       </div>
       <div class="share-preview-human" id="pilotResearchHuman" hidden></div>
       <details class="research-share-preview"><summary>Show me the actual data. For the technical: See the exact research-safe JSON available for download or your device share menu</summary><textarea id="pilotResearchPreview" readonly aria-label="Exact research-safe JSON preview"></textarea></details>
-      <div class="share-buttons"><button type="button" class="btn p" id="downloadResearchJSON">Download Complete Research-Safe JSON</button><button type="button" class="btn" id="shareResearchJSON">Use My Device Share Menu</button></div>
+      <div class="share-buttons"><button type="button" class="btn p" id="downloadResearchJSON">Download Research-Safe JSON</button><button type="button" class="btn" id="shareResearchJSON">Use My Device Share Menu</button></div>
     </div>
     <div class="share-form" hidden aria-hidden="true">
       <h3>Remote Transfer Unavailable</h3>
@@ -1573,7 +1573,7 @@ var MODES={
         "Click <b>Choose The Codex Sessions Folder</b> above.",
         "In the Windows picker, paste <code>%USERPROFILE%\\.codex\\sessions</code> into the address bar and press Enter, then choose <b>Select Folder</b>. Archived sessions can also be under <code>%USERPROFILE%\\.codex\\archived_sessions</code>.",
         "Do not choose <code>.codex\\history.jsonl</code>, <code>auth.json</code>, or the whole <code>.codex</code> folder.",
-        "TOP reads only recorded token counters and the active AI version. It ignores transcript text, commands, tool output, paths, IDs, account limits and Git details."],
+        "TOP parses complete records locally, retains only supported token counters, dates and the active AI version, then discards the raw record. The verified collector also uses run-private fingerprints of file content and session IDs to prevent duplicate totals. Transcript text, commands, tool output, paths, original IDs, account limits and Git details are not retained or exported."],
       stepstip:"Codex token counts measure recorded model usage. They do not reveal your included plan allowance, credits charged or actual billed dollars, so this report does not turn them into a dollar charge.",
       note:"Some older or incomplete Codex sessions contain no recorded token counters. TOP will report that honestly and will not estimate usage from transcript text."},
   csv:{label:"Console CSV", small:"usage or cost .csv exported from console.anthropic.com",
@@ -1633,7 +1633,7 @@ var ROUTE_COPY={
     a:"Choose your Claude Code history files. This tab reads the usage numbers on your device. Your prompts, replies, code and files are not uploaded.",
     b:"Use the readable privacy tool first. It creates a new file that keeps usage numbers, dates, AI version names, Claude Code access settings and new numbered sessions. It leaves out prompts, replies, code, file contents and the original internal ID numbers."},
   codex:{
-    a:"Choose Codex rollout session files. This tab streams each file on your device and retains only token counters, dates and the active AI version. Transcript text, commands, tool output, paths, IDs, account limits and Git details are ignored.",
+    a:"Choose Codex rollout session files. This tab streams and parses complete records on your device, retains only token counters, dates and the active AI version, then discards each raw record. Transcript text, commands, tool output, paths, IDs, account limits and Git details are not retained or exported.",
     b:"Choose Codex rollout session files. After the local report, TOP can create aggregate JSONL and Markdown copies for Obsidian. They contain no transcript text, paths, original session IDs or account-limit details."},
   chat:{
     a:"Choose conversations.json. This tab reads the conversation text on your device to estimate usage. The text stays in this tab. The download does not contain a cost for each chat.",
@@ -1780,12 +1780,12 @@ document.querySelector(".routechoices").addEventListener("click",function(e){var
 // ---------- guided two-question pilot ----------
 var PILOT_MODE=false,PILOT_SOURCE="";
 var PILOT_COLLECTOR_URL="https://adamhartley7.github.io/analyze/collector/top-collector.mjs";
-var PILOT_COLLECTOR_SHA256="768742C0CE5C992D90F4D15CCAF799ACCF7E29D8C33FC4060D051061D085354C";
-var PILOT_COLLECTOR_VERSION="top.local-collector.2026-07-16.2";
-var PILOT_ACCEPTED_COLLECTOR_VERSION="top.local-collector.2026-07-16.1";
-var PILOT_ACCEPTED_PARSER_VERSION="top.usage-parser.2026-07-16.2";
-var PILOT_ACCEPTED_COLLECTOR_VERSION_V2="top.local-collector.2026-07-16.2";
-var PILOT_ACCEPTED_PARSER_VERSION_V2="top.usage-parser.2026-07-16.3";
+var PILOT_COLLECTOR_SHA256="0544414684C6994AF0FED2E181B25CAC37BE889B4D48A033CFC716BAABECA0BF";
+var PILOT_COLLECTOR_VERSION="top.local-collector.2026-07-20.2";
+var PILOT_ACCEPTED_COLLECTOR_VERSION="top.local-collector.2026-07-20.1";
+var PILOT_ACCEPTED_PARSER_VERSION="top.usage-parser.2026-07-20.1";
+var PILOT_ACCEPTED_COLLECTOR_VERSION_V2="top.local-collector.2026-07-20.2";
+var PILOT_ACCEPTED_PARSER_VERSION_V2="top.usage-parser.2026-07-20.2";
 function pilotStatus(message,kind){var box=document.getElementById("pilotStatus");box.textContent=message;box.className="pilot-status show "+(kind||"");}
 function pilotExactObject(value,keys){
   if(!value||Object.prototype.toString.call(value)!=="[object Object]")throw new Error("unexpected_object_shape");
@@ -1806,6 +1806,7 @@ function pilotModel(value){
   if(/^gpt-\d{1,2}(?:[.-]\d{1,2})*(?:-(?:sol|terra|luna|mini|nano|codex(?:-mini)?|chat|pro|turbo|preview))?$/i.test(value))return value;
   if(/^o[1-9](?:-(?:mini|pro|preview|latest))?$/i.test(value))return value;
   if(/^deepseek-v\d{1,2}(?:[.-]\d{1,2})*(?:-(?:pro|lite|chat|coder|reasoner))?$/i.test(value))return value;
+  if(/^codex-auto-review$/i.test(value))return value;
   if(/^codex-(?:mini|large|latest)(?:-latest)?$/i.test(value))return value;
   throw new Error("invalid_model_label");
 }
@@ -1852,6 +1853,10 @@ function pilotCopyV2Sections(data){
   var timelineKeys=["input_tokens","cache_write_input_tokens","cache_read_input_tokens","output_tokens","reasoning_output_tokens","usage_records","total_tokens","active_days","logical_sessions_started"],timeline={status:data.timeline.status,granularity:data.timeline.granularity,timestamp_basis:data.timeline.timestamp_basis,periods:data.timeline.periods.map(function(row){var out={period:row.period};return Object.assign(out,counts(row,timelineKeys))})},d=data.session_distributions,w=data.workflow_shape;
   return {timeline:timeline,session_distributions:{status:d.status,session_definition:d.session_definition,thresholds_version:d.thresholds_version,elapsed_time_basis:d.elapsed_time_basis,logical_sessions_analyzed:d.logical_sessions_analyzed,usage_records_per_session:counts(d.usage_records_per_session,["zero","one","two_to_four","five_to_nineteen","twenty_plus"]),total_tokens_per_session:counts(d.total_tokens_per_session,["under_10k","ten_to_49k","fifty_to_199k","two_hundred_to_999k","one_million_plus"]),elapsed_time_per_session:counts(d.elapsed_time_per_session,["under_10m","ten_to_59m","one_to_3h","four_to_11h","twelve_h_plus","unknown"])},workflow_shape:{status:w.status,algorithm_version:w.algorithm_version,basis:w.basis,sessions:counts(w.sessions,["single_exchange","short_multi_exchange","sustained","high_iteration","unclassified"])}};
 }
+function pilotSafeFileErrorMessage(error){
+  if(error&&error.message==="unsupported_safe_file_version")return "That safe usage file uses a collector or parser version this page does not accept. Nothing was sent. Rerun the current pinned collector prompt above, then choose the new JSON file.";
+  return "This file was not accepted. It must be an unmodified top.safe-usage.v1 or top.safe-usage.v2 file from the pinned collector. Nothing was sent.";
+}
 function pilotResultFromSafeUsage(data){
   var by={};data.by_model.forEach(function(row){by[row.model]={inp:row.input_tokens,out:row.output_tokens,cw:row.cache_write_input_tokens,cr:row.cache_read_input_tokens,reasoning:row.reasoning_output_tokens,turns:row.usage_records}});
   var codex=data.source.surface==="codex",isV2=data.schema_version==="top.safe-usage.v2";
@@ -1875,7 +1880,7 @@ function pilotPromptFor(source){
   L.push("6. If you are satisfied it is safe, run: node top-collector.mjs --source "+sourceName+" --schema v2 --output TOP-safe-usage.json");
   L.push("7. Show me the full contents of the file it produced, so I can see exactly what is in it before I decide anything.");
   L.push("");
-  L.push("What it should do: read only token counters and date prefixes from my local "+sourceName+" history, and write ONE small JSON of aggregate numbers. It should not read or copy my prompts, replies, code, file paths, filenames or account identifiers, and it should not send anything anywhere. Whether I share that file with anyone afterwards is my decision alone, made later, by me.");
+  L.push("What it should do: stream complete local JSONL records, temporarily parse each record to extract supported token counters, AI-version context, timestamps needed for aggregate month and elapsed-time buckets, and session identity needed to prevent duplicate totals. It may keep run-private fingerprints in memory and exact timestamp metadata in encrypted temporary files only until aggregation finishes. Raw records should be discarded after parsing, temporary material should be deleted before the run completes, and only ONE small JSON of aggregate numbers should be written. It must not export my prompts, replies, code, file paths, filenames, exact timestamps, original session IDs or account identifiers, and it must not send anything anywhere. Whether I share that file with anyone afterwards is my decision alone, made later, by me.");
   L.push("");
   L.push("Please tell me everything you observe, including anything that looks wrong. If you think this is a bad idea, say so and I will not run it.");
   return L.join("\n");
@@ -1927,7 +1932,7 @@ function pilotReadSafeFile(file){
     setTimeout(function(){
       if(!analysisJobIsCurrent(jobId))return;
       try{var safe=pilotValidateSafeUsage(JSON.parse(String(reader.result||""))),result=pilotResultFromSafeUsage(safe);pilotComplete(result);finishParsedResult(result,1,jobId)}
-      catch(error){var message="This file was not accepted. It must be an unmodified top.safe-usage.v1 or top.safe-usage.v2 file from the pinned collector. Nothing was sent.";pilotStatus(message,"error");failAnalysisProgress(message,jobId)}
+      catch(error){var message=pilotSafeFileErrorMessage(error);pilotStatus(message,"error");failAnalysisProgress(message,jobId)}
     },0);
   };
   reader.onerror=function(){if(!analysisJobIsCurrent(jobId))return;var message="The file could not be opened on this device. Nothing was sent.";pilotStatus(message,"error");failAnalysisProgress(message,jobId)};reader.readAsText(file);
@@ -2144,7 +2149,12 @@ function createCodexAccumulator(){
     if(!record||typeof record!=="object") return;
     if(record.type==="turn_context"){
       state.recognized=true;
-      if(record.payload&&record.payload.model!==undefined) state.currentModel=safeCodexModel(record.payload.model);
+      state.currentModel=record.payload&&record.payload.model!==undefined?safeCodexModel(record.payload.model):"Unknown Codex model";
+      return;
+    }
+    if(record.type==="event_msg"&&record.payload&&record.payload.type==="model_reroute"){
+      state.recognized=true;
+      state.currentModel=record.payload.to_model!==undefined?safeCodexModel(record.payload.to_model):"Unknown Codex model";
       return;
     }
     if(record.type!=="event_msg"||!record.payload||record.payload.type!=="token_count") return;
@@ -2832,7 +2842,7 @@ function copilotBreakdownText(res){
 function pilotMonthLabel(value){if(value==="undated")return "Date unavailable";var parts=String(value).split("-"),months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return months[Number(parts[1])-1]+" "+parts[0]}
 function pilotCoverageWarning(c){
   if(!c||c.complete)return "";var n;
-  if((n=c.oversized_lines)>0)return (n===1?"One":fmtN(n))+" oversized history line"+(n===1?" was":"s were")+" skipped, so totals may be slightly low.";
+  if((n=c.oversized_lines)>0)return (n===1?"One":fmtN(n))+" history line"+(n===1?" exceeded":"s exceeded")+" the per-line safety limit and "+(n===1?"was":"were")+" skipped without parsing. Coverage is incomplete, their effect is unknown, and totals may be materially low.";
   if((n=c.malformed_lines)>0)return (n===1?"One unreadable history line":fmtN(n)+" unreadable history lines")+(n===1?" was":" were")+" skipped, so totals may be low.";
   if((n=c.files_skipped)>0)return (n===1?"One history file":fmtN(n)+" history files")+(n===1?" was":" were")+" skipped, so totals may be low.";
   if((n=c.counter_resets)>0)return "Some usage counters restarted during the history, so treat the totals as incomplete.";
@@ -2841,14 +2851,15 @@ function pilotCoverageWarning(c){
 function renderPilotPatterns(res){
   var details=document.getElementById("pilotPatternDetails"),aggregate=res&&res.pilotV2Aggregate;if(!details)return;
   details.hidden=!aggregate;if(!aggregate){document.getElementById("pilotTimeline").innerHTML="";document.getElementById("pilotTimelineWindowNote").hidden=true;document.getElementById("pilotShapeSummary").textContent="";document.getElementById("pilotShapeGrid").innerHTML="";return}
-  document.getElementById("pilotPatternNote").textContent="These buckets describe interaction counts only. They do not reveal or guess what your prompts meant, and elapsed spans do not equal active work time. Month labels come from source date prefixes and are not timezone-normalized. TOP did not read prompt text, code, tool output or file content. V2 deduplicates matching logical sessions across files, so this session count can be lower than an older file-level report.";
+  document.getElementById("pilotPatternNote").textContent="These buckets describe interaction counts only. They do not reveal or guess what your prompts meant, and elapsed spans do not equal active work time. Month labels come from locally parsed timestamps and are not timezone-normalized. Raw prompts, code, tool output and file content are discarded and are not written to this report. "+(res&&res.codex?"For Codex, byte-identical rollout copies are removed. If different files claim the same session, the collector stops instead of combining an ambiguous total.":"For Claude Code, V2 deduplicates matching logical sessions across files.");
   var allPeriods=aggregate.timeline.periods,datedPeriods=allPeriods.filter(function(row){return row.period!=="undated"}),shownPeriods=datedPeriods.slice(-12),undated=allPeriods.find(function(row){return row.period==="undated"});if(undated)shownPeriods.push(undated);var hiddenPeriods=allPeriods.length-shownPeriods.length,windowNote=document.getElementById("pilotTimelineWindowNote");windowNote.hidden=hiddenPeriods===0;windowNote.textContent=hiddenPeriods?"Showing the latest 12 dated months. The downloaded safe report keeps all "+fmtN(allPeriods.length)+" monthly rows.":"";
-  document.getElementById("pilotTimeline").innerHTML=shownPeriods.map(function(row){return '<div class="pilot-timeline-row"><strong>'+esc(pilotMonthLabel(row.period))+'</strong><span>'+fmtN(row.total_tokens)+' tokens</span><span>'+fmtN(row.usage_records)+' usage events</span><span>'+fmtN(row.logical_sessions_started)+' logical sessions started</span><span>'+fmtN(row.active_days)+' active days</span></div>'}).join("");
+  var sessionTerm=res&&res.codex?"rollout-file session proxies":"logical sessions";
+  document.getElementById("pilotTimeline").innerHTML=shownPeriods.map(function(row){return '<div class="pilot-timeline-row"><strong>'+esc(pilotMonthLabel(row.period))+'</strong><span>'+fmtN(row.total_tokens)+' tokens</span><span>'+fmtN(row.usage_records)+' usage events</span><span>'+fmtN(row.logical_sessions_started)+' '+sessionTerm+' started</span><span>'+fmtN(row.active_days)+' active days</span></div>'}).join("");
   var shapes=aggregate.workflow_shape.sessions,items=[
     ["single_exchange","1 usage event"],["short_multi_exchange","2 to 4 usage events"],["sustained","5 to 19 usage events"],["high_iteration","20 or more usage events"],["unclassified","No classified usage event"]
   ],largest=items.slice().sort(function(a,b){return shapes[b[0]]-shapes[a[0]]})[0],total=aggregate.session_distributions.logical_sessions_analyzed;
-  document.getElementById("pilotShapeSummary").textContent=total?("The largest structural bucket was \""+largest[1]+"\": "+fmtN(shapes[largest[0]])+" of "+fmtN(total)+" sessions."):"No logical sessions were available for structural buckets.";
-  document.getElementById("pilotShapeGrid").innerHTML=items.map(function(item){return '<div class="pilot-shape-item"><span>'+esc(item[1])+'</span><strong>'+fmtN(shapes[item[0]])+' session'+(shapes[item[0]]===1?'':'s')+'</strong></div>'}).join("");
+  document.getElementById("pilotShapeSummary").textContent=total?("The largest structural bucket was \""+largest[1]+"\": "+fmtN(shapes[largest[0]])+" of "+fmtN(total)+" "+sessionTerm+"."):("No "+sessionTerm+" were available for structural buckets.");
+  document.getElementById("pilotShapeGrid").innerHTML=items.map(function(item){return '<div class="pilot-shape-item"><span>'+esc(item[1])+'</span><strong>'+fmtN(shapes[item[0]])+' '+sessionTerm+'</strong></div>'}).join("");
 }
 // ---------- pilot report charts ----------
 // Every chart below is hand-rolled inline SVG built from the token counts already parsed on this
@@ -3553,7 +3564,7 @@ function pilotShapeChartHTML(res){
   return pilotFigure(pilotSvg(W,H,label,body),
     "Your busiest "+fmtN(k10)+" sessions, "+pilotPct(k10,n)+"% of the "+fmtN(n)+" TOP could price, carry "+Math.round(share10*100)
     +"% of your cost. Defaults are tuned for the middle of a curve like this. You are not in the middle of yours.")
-    +pilotFoot("Sessions with no priced AI version are left out rather than counted at a guessed rate. TOP read usage counters only, never the content of a session.");
+    +pilotFoot("Sessions with no priced AI version are left out rather than counted at a guessed rate. TOP parsed complete local records transiently for this calculation; raw session content is not written to the report.");
 }
 // What to draw when there is no per-session cost to concentrate. The v2 bucket chart first, because
 // that file carries real session sizes; then the per-event token curve, which needs no rate at all.
@@ -3607,7 +3618,7 @@ function pilotEventConcentrationChartHTML(res){
   return pilotFigure(pilotSvg(W,H,label,body),
     "Your biggest "+fmtN(k10)+" usage events, "+pilotPct(k10,n)+"% of the "+fmtN(n)+" in this export, carry "+Math.round(share10*100)
     +"% of your tokens. This export carries no usable rate, so the curve is drawn in tokens. It is the same question a forecast would have to answer.")
-    +pilotFoot("Counted from the token columns in your own export. TOP read usage counters only, never the content of a request.");
+    +pilotFoot("Counted from the token columns in your own export. TOP retained usage counters for this chart; request content is not written to the report.");
 }
 // The v2 safe usage file has no per-session cost, but it does carry the collector's own session
 // size buckets. Real counts, drawn as they are.
@@ -3629,14 +3640,14 @@ function pilotShapeBucketChartHTML(res){
     labels+='<text class="ax" x="'+cx.toFixed(1)+'" y="'+(B+16)+'" text-anchor="middle">'+esc(it[1])+'</text>'
       +(v>0?'<text class="val" x="'+cx.toFixed(1)+'" y="'+(y-7).toFixed(1)+'" text-anchor="middle">'+esc(fmtN(v))+'</text>':"");
   });
-  var body='<text class="axt" x="'+(L-(W<420?32:40))+'" y="14">Sessions by total tokens</text>'
+  var sessionTerm=res&&res.codex?"rollout-file session proxies":"logical sessions",axisTitle=res&&res.codex?"Rollout-file proxies by total tokens":"Logical sessions by total tokens",body='<text class="axt" x="'+(L-(W<420?32:40))+'" y="14">'+esc(axisTitle)+'</text>'
     +pilotGridY(L,R,T,B,maxY,pilotAxisTokens)
     +'<g class="pilot-rise">'+bars+'</g>'
     +'<line class="base" x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'"/>'
     +'<g class="pilot-fade">'+labels+'</g>';
-  return pilotFigure(pilotSvg(W,H,"How "+fmtN(total)+" logical sessions split by total tokens: "
-      +items.map(function(it){return it[1]+", "+fmtN(dist[it[0]]||0)+" sessions"}).join(". ")+".",body),
-    "Your "+fmtN(total)+" sessions are not one size. Your shareable file records session sizes but not per-session cost, so this counts sessions rather than dollars.");
+  return pilotFigure(pilotSvg(W,H,"How "+fmtN(total)+" "+sessionTerm+" split by total tokens: "
+      +items.map(function(it){return it[1]+", "+fmtN(dist[it[0]]||0)+" "+sessionTerm}).join(". ")+".",body),
+    "Your "+fmtN(total)+" "+sessionTerm+" are not one size. Your shareable file records their sizes but not per-session cost, so this counts "+sessionTerm+" rather than dollars.");
 }
 // Chart state is kept so a viewport width change can redraw without re-parsing anything.
 var PILOT_CHART_STATE=null,PILOT_CHART_W=0,PILOT_CHART_TIMER=null;
@@ -4094,7 +4105,7 @@ function pilotMixHeadingText(res){
   return res&&res.codex?"Which models drove your usage?":"Which models drove that estimate?";
 }
 function pilotMixLeadText(res,modelCount){
-  if(!pilotMixWithheld(res))return fmtN(modelCount)+" AI version"+(modelCount===1?"":"s")+" recorded in the files you chose"+(res&&res.codex?", shown by token share because actual Codex cost is not in the files.":".");
+  if(!pilotMixWithheld(res))return fmtN(modelCount)+" recognized AI version"+(modelCount===1?"":"s")+" recorded in the files you chose"+(res&&res.codex?", shown by token share because actual Codex cost is not in the files.":".");
   if(res.modelsUndisclosed)return "Cursor's Auto mode picked an AI version for each of these "+fmtN(res.turns)+" usage events and did not record which one, so TOP prices the same tokens against every AI version in its checked table instead of naming one it cannot see.";
   return "Cursor's Auto mode picked an AI version for "+fmtN(res.undisclosedRows)+" of these "+fmtN(res.turns)+" usage events and did not record which one. Naming only the rows that happened to carry a model would present a fraction of the work as the whole of it, so TOP prices these tokens against every AI version in its checked table instead.";
 }
@@ -4103,7 +4114,7 @@ function render(res){
   document.getElementById("codexObsidianDownloads").hidden=!res.codex;
   document.getElementById("reportScope").textContent=res.chatExport
     ?"This report covers only the conversation records and visible text inside the file you selected. It is not your full account total, subscription allowance, Claude Code usage or Codex usage."
-    :(res.codex?"This report covers only recorded token counters found in the selected Codex files. Those files do not contain your included plan allowance, credits charged or actual billed dollars.":(res.cursor?"This report covers only the rows found in the selected Cursor usage export.":(res.copilot?"This report covers only the rows found in the selected GitHub Copilot usage report.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files."))));
+    :(res.codex?"This report covers only recorded model token traffic found in the selected Codex files, including reused context. It is not billed fresh-token usage or monetary spend. Those files do not contain your included plan allowance, credits charged or actual billed dollars.":(res.cursor?"This report covers only the rows found in the selected Cursor usage export.":(res.copilot?"This report covers only the rows found in the selected GitHub Copilot usage report.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files."))));
   var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[],hasUnpriced=false;
   Object.keys(by).forEach(function(model){
     var e=by[model],resolved=resolveCostRow(model,e,res),key=resolved.key,cost=resolved.cost,complete=resolved.complete;
@@ -4156,7 +4167,7 @@ function render(res){
       ["What this would cost at API prices",cursorIncludedUsageAmount(included),"a"],
       [countLabels.card,fmtN(res.turns),""]]
     :[costCard,
-      res.copilot?["AI credits recorded",fmtQty(res.credits),"i"]:[res.chatExport?"Rough text-only estimate":"Total AI usage",tokenPrefix+fmtN(totTok)+" tokens","i"],
+      res.copilot?["AI credits recorded",fmtQty(res.credits),"i"]:[res.chatExport?"Rough text-only estimate":(res.codex?"Total model token traffic":"Total AI usage"),tokenPrefix+fmtN(totTok)+" tokens","i"],
       [countLabels.card,fmtN(res.turns),""]
     ];
   if(res.copilot) cards.push(["Premium requests recorded",fmtQty(res.requests),""]);
@@ -4207,12 +4218,12 @@ function render(res){
     document.getElementById("pilotQuickCost").textContent=costText;
     document.getElementById("pilotQuickCostLabel").textContent=res.codex?"Actual Codex cost":(included?"What this would cost at API prices":(res.cursor?"Cost recorded in Cursor's export":(res.copilot?"Cost as billed by GitHub":(res.chatExport?"Actual cost in the export":"Estimated pay-as-you-go cost"))));
     document.getElementById("pilotQuickSessions").textContent=fmtN(res.sessions||0);
-    document.getElementById("pilotQuickSessionsLabel").textContent=res.pilotSafeSchemaVersion==="top.safe-usage.v2"?"Deduplicated logical sessions":(res.cursor?"Usage events found":(res.copilot?"Usage records found":"Work sessions found"));
+    document.getElementById("pilotQuickSessionsLabel").textContent=res.pilotSafeSchemaVersion==="top.safe-usage.v2"?(res.codex?"Rollout-file session proxies":"Deduplicated logical sessions"):(res.cursor?"Usage events found":(res.copilot?"Usage records found":"Work sessions found"));
     document.getElementById("pilotQuickDays").textContent=fmtN(res.days||0);
-    var coverage=res.pilotCoverage||{},coverageWarning=pilotCoverageWarning(coverage),coverageNote=document.getElementById("pilotCoverageNote");coverageNote.hidden=!coverageWarning;coverageNote.textContent=coverageWarning;
+    var coverage=res.pilotCoverage||{},coverageWarning=pilotCoverageWarning(coverage),isUnknownModel=function(row){var label=safePublicModelLabel(row.model);return label==="Unrecognized AI version"||label==="Unknown Codex model"},unknownTokens=rows.filter(isUnknownModel).reduce(function(sum,row){return sum+row.e.inp+row.e.out+row.e.cw+row.e.cr},0),modelWarning=unknownTokens?(fmtN(unknownTokens)+" recorded tokens have no recognized AI version, so they remain unpriced and the model breakdown is incomplete."):"",coverageWarnings=[coverageWarning,modelWarning].filter(Boolean),coverageNote=document.getElementById("pilotCoverageNote");coverageNote.hidden=!coverageWarnings.length;coverageNote.textContent=coverageWarnings.join(" ");
     document.getElementById("pilotQuickPrivacy").textContent=res.pilotSafe
       ?"Your prompts, replies, code and files stayed on this computer. TOP used the content-free aggregate file you chose."
-      :"TOP read usage counters locally from the folder you chose. Your raw history was not sent.";
+      :"TOP parsed complete local records transiently and retained supported usage counters. Your raw history was not sent or written to the report.";
     document.getElementById("pilotQuickCostNote").textContent=included
       ?cursorIncludedUsageText(res,included)+" "+cursorBreakdownText(res)
       :(res.chatExport
@@ -4250,16 +4261,17 @@ function render(res){
     // helpers also carry the Codex case, where the mix is a token share and not a cost share.
     var mixHeading=document.getElementById("pilotUsageMixHeading");
     if(mixHeading)mixHeading.textContent=pilotMixHeadingText(res);
-    document.getElementById("pilotMixLead").textContent=pilotMixLeadText(res,rows.length);
-    document.getElementById("pilotCacheLead").textContent="Of "+fmtN(totTok)+" recorded tokens, "+fmtN(totInp)+" were sent fresh, "+fmtN(totOut)+" came back, "+fmtN(totCw)+" were saved for reuse and "+fmtN(totCr)+" were reused from the saved copy.";
+    var recognizedModelCount=rows.filter(function(row){return !isUnknownModel(row)&&!(res.cursor&&cursorUndisclosedModel(row.model))}).length;
+    document.getElementById("pilotMixLead").textContent=pilotMixLeadText(res,recognizedModelCount);
+    document.getElementById("pilotCacheLead").textContent="Of "+fmtN(totTok)+" recorded tokens, "+fmtN(totInp)+" were sent fresh, "+fmtN(totOut)+" came back, "+fmtN(totCw)+" were saved for reuse and "+fmtN(totCr)+" were reused from the saved copy."+(res.codex?" This is model token traffic, not billed fresh-token usage or monetary spend.":"");
     document.getElementById("pilotRoutingLead").textContent="TOP-2 asks whether some of this work could run on a cheaper model without changing the answer. That is an open research and development question. TOP has not benchmarked a customer result.";
     document.getElementById("pilotShapeLead").textContent="A personalised forecast would learn from your own history, not from an average user. Here is the history it would have to learn from.";
     // The forecast ingredients are the real counts already parsed on this machine. Nothing is invented to fill a row.
     var forecastItems=[];
     if(res.days)forecastItems.push(["Active days recorded",fmtN(res.days)]);
-    var forecastSessionsWord=res.pilotSafeSchemaVersion==="top.safe-usage.v2"?"Logical sessions recorded":(res.chatExport?"Conversations recorded":(res.cursor?"Usage events recorded":(res.copilot?"Usage records recorded":"Work sessions recorded")));
+    var forecastSessionsWord=res.pilotSafeSchemaVersion==="top.safe-usage.v2"?(res.codex?"Rollout-file session proxies recorded":"Logical sessions recorded"):(res.chatExport?"Conversations recorded":(res.cursor?"Usage events recorded":(res.copilot?"Usage records recorded":"Work sessions recorded")));
     if(res.sessions)forecastItems.push([forecastSessionsWord,fmtN(res.sessions)]);
-    forecastItems.push(["AI versions seen",fmtN(rows.length)]);
+    forecastItems.push(["Recognized AI versions seen",fmtN(recognizedModelCount)]);
     // Span is shown only when the file carries real per-day dates. It is never invented from a monthly file.
     var forecastDayKeys=res.daily?Object.keys(res.daily).filter(function(day){return /^\d{4}-\d{2}-\d{2}$/.test(day)}).sort():[];
     if(forecastDayKeys.length>=2)forecastItems.push(["Span it covers",pilotDayLabel(forecastDayKeys[0])+" to "+pilotDayLabel(forecastDayKeys[forecastDayKeys.length-1])]);
@@ -4267,7 +4279,7 @@ function render(res){
     pilotUpdateShareRail(res);
     pilotConfigureSteps({models:rows.length,cacheTokens:totCw+totCr});
     document.getElementById("pilotFullScope").textContent=document.getElementById("reportScope").textContent;
-    document.getElementById("pilotFullCoverage").textContent=res.pilotCoverage?("Coverage details: "+fmtN(coverage.files_parsed||0)+" of "+fmtN(coverage.files_discovered||0)+" files parsed, "+fmtN(coverage.files_with_usage||0)+" with usage, "+fmtN(coverage.files_skipped||0)+" files skipped, "+fmtN(coverage.malformed_lines||0)+" unreadable lines, "+fmtN(coverage.oversized_lines||0)+" oversized lines, "+fmtN(coverage.counter_resets||0)+" counter resets, and "+fmtN(coverage.duplicate_usage_records||0)+" duplicate usage records removed."):"Detailed collector coverage is not available for this report.";
+    document.getElementById("pilotFullCoverage").textContent=res.pilotCoverage?("Coverage details: "+fmtN(coverage.files_parsed||0)+" of "+fmtN(coverage.files_discovered||0)+" files parsed, "+fmtN(coverage.files_with_usage||0)+" with usage, "+fmtN(coverage.files_skipped||0)+" files skipped, "+fmtN(coverage.malformed_lines||0)+" unreadable lines, "+fmtN(coverage.oversized_lines||0)+" oversized lines, "+fmtN(coverage.counter_resets||0)+" counter resets, and "+fmtN(coverage.duplicate_usage_records||0)+" duplicate usage records removed. Coverage complete: "+(coverage.complete?"yes":"no")+"."):"Detailed collector coverage is not available for this report.";
     document.getElementById("pilotFullModelTable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
   }
   // Average cost per reply is shown only when the source contains enough cost data.
@@ -4303,7 +4315,7 @@ function render(res){
     lines.push("AI credits recorded: "+fmtQtyPlain(res.credits)+".");
     lines.push("Undercount warning: only the prompts you send are metered. The autonomous tool calls an agent makes between your prompts are not itemized, so these figures understate the real model work behind agent tasks.");
   }else{
-  lines.push((res.chatExport?"Rough text-only estimate from selected file: about ":"Total AI usage: ")+fmtInt(totTok)+" tokens.");
+  lines.push((res.chatExport?"Rough text-only estimate from selected file: about ":(res.codex?"Total model token traffic: ":"Total AI usage: "))+fmtInt(totTok)+" tokens.");
   lines.push("Tokens are small pieces of text that AI companies use to measure usage.");
   if(res.chatExport) lines.push("TOP divided visible message-text characters by four because this file contains no recorded token counts. This is not a full account total, subscription allowance, Claude Code total or Codex total.");
   lines.push((res.chatExport?"Estimated text sent to the AI: about ":"Text sent to the AI: ")+fmtInt(totInp)+" tokens.");
@@ -5062,9 +5074,9 @@ function finishSurvey(skipped){
   prepareResearchSafePackage(true);
   if(PILOT_MODE){
     document.getElementById("shareWithTopHeading").textContent="Save Your Safe Report";
-    share.querySelector(".share-lead").textContent="The complete content-free aggregate below was prepared on this device. It includes usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. Your prompts, replies, code, files, paths and original identifiers are excluded.";
+    share.querySelector(".share-lead").textContent="The content-free aggregate below was prepared on this device. It includes usage totals, model labels, source and collector metadata, pricing references, optional answer categories, and an illustrative value scenario only when eligible. Your prompts, replies, code, files, paths and original identifiers are excluded.";
     document.getElementById("shareHold").innerHTML="<strong>Nothing has been sent.</strong> Review the exact JSON, then download it, copy it, or deliberately open your device's share menu. This page has no configured remote recipient.";
-    share.querySelector(".research-safe-box h3").textContent="Your Complete Safe Report";
+    share.querySelector(".research-safe-box h3").textContent="Your Research-Safe Report";
     document.getElementById("downloadResearchJSON").textContent="Download My Safe Report";
     document.getElementById("shareResearchJSON").textContent="Use My Device Share Menu";
   }
@@ -5099,8 +5111,8 @@ var researchSafePackage="";
 var RESEARCH_VALUE_MODEL_VERSION="top.value-model.v0.1-illustrative";
 var RESEARCH_COLLECTOR_VERSION="top.local-analyzer.2026-07-16.1";
 var RESEARCH_PARSER_VERSION="top.usage-parser.2026-07-16.1";
-var RESEARCH_ACCEPTED_SAFE_V2_COLLECTOR="top.local-collector.2026-07-16.2";
-var RESEARCH_ACCEPTED_SAFE_V2_PARSER="top.usage-parser.2026-07-16.3";
+var RESEARCH_ACCEPTED_SAFE_V2_COLLECTOR="top.local-collector.2026-07-20.2";
+var RESEARCH_ACCEPTED_SAFE_V2_PARSER="top.usage-parser.2026-07-20.2";
 function researchExact(value,keys,label){if(!value||Object.prototype.toString.call(value)!=="[object Object]")throw new Error(label+"_must_be_object");var actual=Object.keys(value),allowed={};keys.forEach(function(key){allowed[key]=1});if(actual.length!==keys.length||actual.some(function(key){return !allowed[key]}))throw new Error(label+"_unsupported_field");return value}
 function researchSafeCount(value,label){if(!Number.isSafeInteger(value)||value<0)throw new Error(label+"_invalid_count");return value}
 function researchSafeAdd(total,value,label){var next=total+researchSafeCount(value,label);if(!Number.isSafeInteger(next))throw new Error(label+"_overflow");return next}
@@ -5140,6 +5152,7 @@ function strictResearchModelLabel(value){
   if(/^gpt-\d{1,2}(?:[.-]\d{1,2})*(?:-(?:sol|terra|luna|mini|nano|codex(?:-mini)?|chat|pro|turbo|preview))?$/i.test(model))return model;
   if(/^o[1-9](?:-(?:mini|pro|preview|latest))?$/i.test(model))return model;
   if(/^deepseek-v\d{1,2}(?:[.-]\d{1,2})*(?:-(?:pro|lite|chat|coder|reasoner))?$/i.test(model))return model;
+  if(/^codex-auto-review$/i.test(model))return model;
   if(/^codex-(?:mini|large|latest)(?:-latest)?$/i.test(model))return model;
   if(/^composer-\d{1,2}(?:[.-]\d{1,2}){0,2}(?:-fast)?$/i.test(model))return model;
   if(/^(?:auto|cursor-small)$/i.test(model))return model;

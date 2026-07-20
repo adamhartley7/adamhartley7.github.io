@@ -4,7 +4,8 @@ const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 
-assert.match(html, /id="downloadResearchJSON">Download Complete Research-Safe JSON/);
+assert.match(html, /id="downloadResearchJSON">Download Research-Safe JSON/);
+assert.doesNotMatch(html, /Download Complete Research-Safe JSON/);
 assert.match(html, /inspect the exact JSON below/);
 assert.match(html, /scenario only when the report qualifies/);
 assert.match(html, /Nothing is sent until you deliberately use a sharing action\./);
@@ -118,8 +119,8 @@ function v2Result() {
   Object.assign(result, {
     pilotSafe: true,
     pilotSafeSchemaVersion: "top.safe-usage.v2",
-    pilotCollectorVersion: "top.local-collector.2026-07-16.2",
-    pilotParserVersion: "top.usage-parser.2026-07-16.3",
+    pilotCollectorVersion: "top.local-collector.2026-07-20.2",
+    pilotParserVersion: "top.usage-parser.2026-07-20.2",
     pilotV2Aggregate: {
       timeline: {
         status: "available", granularity: "calendar_month",
@@ -153,7 +154,7 @@ function v2Result() {
 const exportedV2 = plain(context.buildResearchSafeObject(v2Result(), null, null, 0.4, "2026-07-16"));
 assert.equal(exportedV2.schema_version, "top.research-safe-usage.v2");
 assert.deepEqual(Object.keys(exportedV2), Object.keys(exported).concat(["timeline", "session_distributions", "workflow_shape"]));
-assert.equal(exportedV2.collector.collector_version, "top.local-collector.2026-07-16.2");
+assert.equal(exportedV2.collector.collector_version, "top.local-collector.2026-07-20.2");
 assert.equal(exportedV2.timeline.periods[0].total_tokens, exportedV2.totals.total_tokens);
 assert.equal(exportedV2.session_distributions.logical_sessions_analyzed, exportedV2.activity.sessions);
 assert.equal(exportedV2.workflow_shape.sessions.short_multi_exchange, 1);
