@@ -128,7 +128,7 @@ const CASES = [
       ["cards", /170 tokens/i],
       ["modelTable", /composer-1/i],
       ["cursorBreakdown", /Composer, Cursor's own agent model: 170 tokens/i],
-      ["summary", /Composer, Cursor's own agent model: 170 tokens, 1 usage events, recorded cost \$0\.05\./i],
+      ["summary", /Composer, Cursor's own agent model: 170 tokens, 1 usage event, recorded cost \$0\.05\./i],
     ],
   },
   {

@@ -2722,14 +2722,14 @@ function cursorBucketCostText(bucket,missingRows){
   var missing=Number(missingRows)||0,priced=Math.max(0,(Number(bucket.rows)||0)-missing);
   if(!priced)return missing?"no cost recorded by Cursor for any of them, so TOP could not price them":"no cost recorded by Cursor";
   if(missing)return fmt$(bucket.cost)+" recorded across "+fmtN(priced)+" of them, with "+fmtN(missing)+" left unpriced";
-  return Number(bucket.cost)===0?"recorded by Cursor as no charge":fmt$(bucket.cost)+" recorded";
+  return Number(bucket.cost)===0?"recorded by Cursor as no charge":"recorded cost "+fmt$(bucket.cost);
 }
 function cursorBreakdownText(res){
   // When the plan absorbed everything, "$0.00 recorded" reads as "no data". Say what actually happened.
   // Off the covered path the bucket text still separates rows Cursor never priced from a real zero.
   var covered=!!res.subscriptionCovered;
   function money(bucket,missingRows){return covered?"no charge recorded":cursorBucketCostText(bucket,missingRows)}
-  var text="Composer, Cursor's own agent model: "+fmtN(res.composer.tokens)+" tokens and "+money(res.composer,res.composerMissingCostRows)+" across "+fmtN(res.composer.rows)+" usage events. Other AI versions: "+fmtN(res.otherModels.tokens)+" tokens and "+money(res.otherModels,res.otherModelsMissingCostRows)+" across "+fmtN(res.otherModels.rows)+" usage events.";
+  var text="Composer, Cursor's own agent model: "+fmtN(res.composer.tokens)+" tokens and "+money(res.composer,res.composerMissingCostRows)+" across "+fmtN(res.composer.rows)+" usage event"+(res.composer.rows===1?"":"s")+". Other AI versions: "+fmtN(res.otherModels.tokens)+" tokens and "+money(res.otherModels,res.otherModelsMissingCostRows)+" across "+fmtN(res.otherModels.rows)+" usage event"+(res.otherModels.rows===1?"":"s")+".";
   if(res.undisclosedRows)text+=" Cursor's Auto mode chooses an AI version per request and does not record which one ran, so a per-model split is not available for "+(res.modelsUndisclosed?"this export":fmtN(res.undisclosedRows)+" of these usage events")+".";
   if(res.includedRows&&!covered)text+=" "+fmtN(res.includedRows)+" usage event"+(res.includedRows===1?"":"s")+" marked Included consume the plan's included allowance; that cost is value consumed, not extra money billed.";
   if(res.excludedRows)text+=" Excluded because the AI version was not recognized: "+cursorExcludedNames(res)+".";
@@ -4275,8 +4275,8 @@ function render(res){
     // Say "no charge recorded" instead: same fact, without implying the usage itself was nothing.
     // Off that path cursorBucketCostText still separates rows Cursor never priced from a real zero.
     var costWord=function(bucket,missingRows){return included?"no charge recorded":cursorBucketCostText(bucket,missingRows)};
-    lines.push("Composer, Cursor's own agent model: "+fmtInt(res.composer.tokens)+" tokens, "+fmtInt(res.composer.rows)+" usage events, "+costWord(res.composer,res.composerMissingCostRows)+".");
-    lines.push("Other AI versions in this export: "+fmtInt(res.otherModels.tokens)+" tokens, "+fmtInt(res.otherModels.rows)+" usage events, "+costWord(res.otherModels,res.otherModelsMissingCostRows)+".");
+    lines.push("Composer, Cursor's own agent model: "+fmtInt(res.composer.tokens)+" tokens, "+fmtInt(res.composer.rows)+" usage event"+(res.composer.rows===1?"":"s")+", "+costWord(res.composer,res.composerMissingCostRows)+".");
+    lines.push("Other AI versions in this export: "+fmtInt(res.otherModels.tokens)+" tokens, "+fmtInt(res.otherModels.rows)+" usage event"+(res.otherModels.rows===1?"":"s")+", "+costWord(res.otherModels,res.otherModelsMissingCostRows)+".");
     if(res.undisclosedRows) lines.push("AI version disclosure: Cursor's Auto mode chooses an AI version per request and does not record which one ran, so a per-model split is not available for "+(res.modelsUndisclosed?"this export":fmtInt(res.undisclosedRows)+" of these usage events")+".");
     if(res.includedRows&&!included) lines.push("Included-plan usage events: "+fmtInt(res.includedRows)+". Their cost is value consumed from the plan's included allowance, not extra money billed.");
     if(res.excludedRows) lines.push("Rows excluded because the AI version was not recognized: "+cursorExcludedNames(res)+".");
