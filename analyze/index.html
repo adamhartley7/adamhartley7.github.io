@@ -3388,7 +3388,7 @@ function pilotCompositionChartHTML(res,totals,tokTotal){
   if(totals.cr>0){
     var crPct=pilotPct(totals.cr,tokTotal);
     out+='<p class="pilot-chart-lever"><strong>'+esc(fmtN(totals.cr)+" tokens, "+crPct+"% of everything counted here, were text the AI read again from a saved copy rather than fresh.")+'</strong> '
-      +esc("Services that publish a rate card charge far less for reused text than for fresh text. This export does not say which AI version ran, so TOP has applied no rate to it and is not claiming you saved anything.")+'</p>';
+      +esc("Services that publish a rate card charge far less for reused text than for fresh text. This export does not say which AI version ran, so TOP has applied no rate to it and has stated no customer cost outcome.")+'</p>';
   }
   return out+pilotFoot("These are the counts your own export recorded. Nothing on this chart has been priced, estimated or filled in.");
 }

@@ -161,8 +161,8 @@ assert.ok(promptLines.some((line) => /given the specific tools I named/i.test(li
 // HONESTY. The prompt is TOP describing itself to an agent that will repeat it, so
 // it is exactly where an overclaim would do the most damage.
 // ---------------------------------------------------------------------------
-assert.match(prompt, /It does not promise a saving/i,
-  "the prompt must not let an agent infer a saving claim");
+assert.match(prompt, /It describes past usage only\. It does not state that any bill would have been different/i,
+  "the prompt must bound itself to observed history without introducing a saving claim");
 assert.match(prompt, /research directions, not as working features/i,
   "routing and personalisation must be described as research, never as shipped");
 assert.match(prompt, /marks the cost as unpriced, rather than showing it as zero/i,
@@ -177,7 +177,8 @@ assert.match(prompt, /say so plainly\. I would rather hear that than a sales pit
   "the prompt must invite a negative verdict");
 assert.doesNotMatch(prompt, /\b\d{1,3}(?:\.\d+)?\s?% (?:accurate|accuracy)/i,
   "no accuracy figure may be asserted");
-assert.doesNotMatch(prompt, /\bsave (?:you|me|up to)\b/i, "no saving may be promised");
+assert.doesNotMatch(prompt, /\bsavings?\b|\bsaving\b|\bsave (?:you|me|up to)\b/i,
+  "saving language must not appear, including in a negative disclaimer");
 
 // The seven supported sources must be named, or the agent cannot tell the user
 // whether their own tools are covered.

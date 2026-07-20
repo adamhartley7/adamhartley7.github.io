@@ -4,16 +4,21 @@ const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 
-// The pilot is an explicit deep link. The ordinary analyzer remains available.
+// A stranger opening plain /analyze/ gets the guided route. Explicit direct-source
+// links and ?full=1 remain deliberate escape hatches into the advanced analyzer.
 assert.match(html, /new URLSearchParams\(window\.location\.search\)/);
-assert.match(html, /query\.get\("pilot"\)!=="1"/);
+assert.match(html, /if\(query\.get\("full"\)==="1"\|\|start==="chat"\|\|start==="openai"\)return/);
+assert.match(html, /PILOT_MODE=true;document\.documentElement\.classList\.add\("pilot-mode"\);document\.getElementById\("pilotFlow"\)\.hidden=false/);
 assert.match(html, /id="pilotFlow" hidden/);
 assert.match(html, /class="resonance-step" id="resonanceStep"/);
 assert.match(html, /\.pilot-mode #resonanceStep[^}]*#providerStep[^}]*#routechooser[^}]*#obsidianPanel/);
 
-// One decision, then the per-source preparation panel for that decision.
-// Sources: Claude Code, Codex, the Cursor CSV export, and the Copilot usage report.
+// One source decision, then the preparation panel for that source. Browser-chat
+// exports have direct guided links, while local sources stay inside the two-step flow.
 assert.equal((html.match(/data-pilot-source=/g) || []).length, 4);
+assert.equal((html.match(/data-pilot-entry=/g) || []).length, 2);
+assert.match(html, /data-pilot-entry="chat" href="\/analyze\/\?start=chat"/);
+assert.match(html, /data-pilot-entry="openai" href="\/analyze\/\?start=openai"/);
 assert.match(html, /data-pilot-source="cursor"/);
 assert.match(html, /data-pilot-source="copilot"/);
 assert.match(html, /id="pilotCursorFile" accept="\.csv"/);
@@ -21,42 +26,30 @@ assert.match(html, /id="pilotCopilotFile" accept="\.csv,\.json"/);
 assert.match(html, /Step 1 of 2/);
 assert.match(html, /Step 2 of 2/);
 
-// The "let my AI prepare one safe file" route is withdrawn from the interface.
-// It was refused in the field on 2026-07-17 by the very agents it depended on, so it
-// was a guaranteed dead end rather than a broken feature worth repairing. These
-// assertions replace the ones that used to pin the route in place, and they now fail
-// if any part of it is reintroduced to the UI.
-assert.equal((html.match(/data-pilot-method=/g) || []).length, 0,
-  "the agent-versus-folder method choice must not return");
-assert.doesNotMatch(html, /id="pilotAgentPanel"/, "the agent prompt panel must not return");
-assert.doesNotMatch(html, /id="pilotAgentPrompt"/);
-assert.doesNotMatch(html, /id="pilotCopyPrompt"/);
-assert.doesNotMatch(html, /id="pilotSafeFile"/,
-  "the safe-file upload input was the only entry to the withdrawn route");
-assert.doesNotMatch(html, /Let My AI Prepare One Safe File/);
-assert.doesNotMatch(html, /function pilotChooseMethod/);
-// No listener may bind an element the markup no longer contains.
-for (const goneId of ["pilotMethodChoices", "pilotAgentPanel", "pilotAgentPrompt", "pilotCopyPrompt", "pilotSafeFile", "pilotSafeFileLabel"]) {
-  assert.ok(html.indexOf(`getElementById("${goneId}")`) < 0,
-    `${goneId} is removed from the markup, so nothing may still reference it`);
-}
+// Local Claude Code and Codex users get two explicit, separate methods. The
+// recommended collector route is pinned and inspectable, and the folder picker is a
+// fallback for machines without Node.js.
+assert.equal((html.match(/data-pilot-method=/g) || []).length, 2);
+assert.match(html, /data-pilot-method="agent"[^>]*><strong>Use my coding agent<\/strong>/);
+assert.match(html, /data-pilot-method="folder"[^>]*><strong>Use the folder fallback<\/strong>/);
+assert.match(html, /id="pilotAgentPanel" hidden/);
+assert.match(html, /id="pilotAgentPrompt" readonly/);
+assert.match(html, /id="pilotCopyAgentPrompt"/);
+assert.match(html, /id="pilotSafeFile" accept="\.json"/);
+assert.match(html, /function pilotChooseMethod\(method\)/);
+assert.match(html, /pilotCopyAgentPrompt"\)\.addEventListener\("click"/);
 assert.match(html, /id="pilotBackToSource"/);
 assert.match(html, /Complete this analysis on the computer that holds your Claude Code or Codex history/);
-assert.match(html, /Using Claude Chat, ChatGPT, Claude Console, or Obsidian\?/);
-assert.match(html, /href="\/analyze\/">Open the full analyzer<\/a>/);
+assert.match(html, /Need Claude Console, Obsidian, or the manual controls\?/);
+assert.match(html, /href="\/analyze\/\?full=1">Open the advanced analyzer<\/a>/);
 
 // The pinned collector prompt is inspectable and locks the exact released file.
 assert.match(html, /https:\/\/adamhartley7\.github\.io\/analyze\/collector\/top-collector\.mjs/);
-assert.match(html, /EB3F69B6FD6C0B9FB78E85548EB0767037CBB2F30657FA4619A85782B38403BE/);
+assert.match(html, /768742C0CE5C992D90F4D15CCAF799ACCF7E29D8C33FC4060D051061D085354C/);
 assert.match(html, /PILOT_COLLECTOR_VERSION="top\.local-collector\.2026-07-16\.2"/);
 assert.match(html, /--schema v2/);
 assert.doesNotMatch(html, /COLLECTOR_(?:SHA256|VERSION)_PLACEHOLDER/);
 
-// pilotPromptFor is retained but is no longer reachable from any UI control: the
-// route it served was withdrawn (see above), and it is kept only because the
-// collector on disk and the validator slice below are still exercised. If it is ever
-// wired to a control again, the wording below is the wording it must keep.
-//
 // The prompt must be one an aligned agent can safely accept. A prompt that gags the
 // agent, or tells it to withhold detail from its own user, reads as an injection
 // attack and gets refused. It got refused in the field on 2026-07-17. So the prompt
@@ -69,19 +62,21 @@ assert.match(html, /be skeptical/);
 assert.doesNotMatch(html, /Do not print, quote, summarize/);
 assert.doesNotMatch(html, /return only the generated TOP filename/);
 assert.doesNotMatch(html, /without its full path/);
-// The three assertions that stood here pinned UI copy belonging to the withdrawn
-// route: the safe-file input, the "small, content-free aggregate file" step lead, and
-// the agent panel's "create one content-free aggregate file" blurb. All three strings
-// are gone from the markup with the route; absence is asserted above instead.
 assert.match(html, /ONE small JSON of aggregate numbers/,
-  "the retained collector prompt must still describe a content-free aggregate");
+  "the collector prompt must describe exactly the aggregate file it creates");
 
-// Folder fallback preselects a source, exposes the exact paths, copies, then opens
-// the existing read-only folder input from the same deliberate button action.
+// Folder fallback exposes the exact paths. Copying an address and opening the picker
+// are separate deliberate actions, so clipboard failure cannot block the picker.
 assert.match(html, /%USERPROFILE%\\\.claude\\projects/);
 assert.match(html, /%USERPROFILE%\\\\\.codex\\\\sessions/);
-assert.match(html, /copyPlainText\(path,this,"Address Copied"\)/);
+assert.match(html, /pilotCopyFolderPath"\)\.addEventListener\("click",function\(\)\{return copyPlainText\(document\.getElementById\("pilotFolderPath"\)\.textContent,this,"Folder Address Copied"\)\}\)/);
 assert.match(html, /document\.getElementById\("pilotHistoryFolder"\)\.click\(\)/);
+const copyFolderHandler = html.slice(
+  html.indexOf('getElementById("pilotCopyFolderPath").addEventListener'),
+  html.indexOf('getElementById("pilotChooseFolder").addEventListener')
+);
+assert.doesNotMatch(copyFolderHandler, /pilotHistoryFolder"\)\.click\(\)/,
+  "copying the path must not also open the picker");
 assert.match(html, /id="pilotHistoryFolder" webkitdirectory/);
 assert.match(html, /Reading "\+files\.length\+" files on this device/);
 assert.match(html, /No folder was chosen, or the picker was cancelled/);

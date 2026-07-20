@@ -276,19 +276,25 @@ function hostSorted(values) {
 {
   assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/, "the delivery endpoint must stay empty");
   assert.match(html, /id="submitResearchReport" disabled/, "the submit control must stay disabled");
-  assert.match(html, /id="deliveryReadiness">Direct submission is not configured yet\. Download remains available\./);
+  assert.match(html, /class="share-form" hidden aria-hidden="true"/,
+    "remote transfer controls must not be exposed while no endpoint exists");
+  assert.match(html, /This analyzer currently prepares files on this device only\. No remote recipient or endpoint is configured\./);
+  assert.match(html, /id="researchConsent" disabled/);
+  assert.match(html, /id="deliveryReadiness">Local download remains available\./);
+  assert.match(html, /else if\(!endpoint\)readiness\.textContent="Direct submission is not configured yet\. Download remains available\."/,
+    "the state updater must remain fail-closed when the endpoint is empty");
   assert.match(html, /connect-src 'none'/, "the CSP must still forbid outbound connections");
   assert.equal((html.match(/\bfetch\s*\(/g) || []).length, 1, "no new network call may be introduced");
   for (const banned of [/XMLHttpRequest/, /sendBeacon/, /\bWebSocket\s*\(/, /EventSource/, /localStorage/, /indexedDB/]) {
     assert.doesNotMatch(html, banned, "share preview must not add a transport or storage surface");
   }
   // Consent, retention and data-processing wording is blocked on a legal decision.
-  assert.match(html, /I reviewed the exact research-safe JSON and consent to Adam and Sam receiving it for <code>analyzer_validation<\/code> and <code>forecast_calibration<\/code>/);
-  assert.match(html, /may be retained for up to 30 days, including in Resend systems in the United States/);
-  assert.match(html, /Cloudflare processes the submission request and Resend processes the email delivery\./);
+  assert.match(html, /<h3>Remote Transfer Unavailable<\/h3>/);
+  assert.match(html, /<span>Remote transfer is unavailable\.<\/span>/);
+  assert.match(html, /id="submitResearchReport" disabled>Unavailable<\/button>/);
   // The raw JSON stays available behind the toggle, unchanged.
   assert.match(html, /id="pilotResearchPreview" readonly/);
-  assert.match(html, /Show me the actual data\. For the technical: See the exact research-safe JSON that will be downloaded or submitted/);
+  assert.match(html, /Show me the actual data\. For the technical: See the exact research-safe JSON available for download or your device share menu/);
   assert.match(html, /if\(preview\)preview\.value=researchSafePackage;/, "the raw preview must still show the exact package bytes");
 }
 

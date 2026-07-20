@@ -38,16 +38,20 @@ assert.match(html, /TOP read usage counters locally from the folder you chose/);
 assert.match(html, /Partial: "\+costText\+" for models TOP could price/);
 assert.match(html, /Ready: "\+costText\+" across all models/);
 assert.match(html, /slice\(0,3\)/);
-assert.match(html, /Share Your Safe Report/);
-assert.match(html, /See the exact research-safe JSON that will be downloaded or submitted/);
+assert.match(html, /Save Your Safe Report/);
+assert.doesNotMatch(html, /Share Your Safe Report/,
+  "the final step must not imply that TOP has a configured remote recipient");
+assert.match(html, /See the exact research-safe JSON available for download or your device share menu/);
 assert.match(html, /id="pilotResearchPreview" readonly/);
-assert.match(html, /Only the complete content-free aggregate report below can leave this page/);
+assert.match(html, /The complete content-free aggregate below was prepared on this device/);
 assert.match(html, /usage totals, model labels, source and collector metadata, pricing references/);
 assert.match(html, /privacy\.network_delivery: "none"/);
 assert.match(html, /TOP had not transmitted the report when it was generated/);
 assert.match(html, /Nothing has been sent/);
 assert.match(html, /Download My Safe Report/);
-assert.match(html, /Share My Safe Report/);
+assert.match(html, /Use My Device Share Menu/);
+assert.doesNotMatch(html, />Share My Safe Report</,
+  "the available action is the device share menu, not TOP delivery");
 assert.match(html, /buildResearchSafeJSON\(LAST_RESULT,ROUTEB/);
 
 assert.match(html, /if\(PILOT_MODE\)\{/);

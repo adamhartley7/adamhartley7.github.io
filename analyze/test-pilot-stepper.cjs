@@ -25,7 +25,7 @@ assert.match(html, /\.pilot-share-details\{max-height:40vh;overflow-y:auto\}/,
   "the rail's expanded detail must be capped and scroll internally");
 
 // ---------- sharing must never gate the report ----------
-assert.match(html, /Sharing skipped\. Nothing was sent, and your full report is still here\./);
+assert.match(html, /Saving skipped\. Nothing was sent, and your full report is still here\./);
 assert.match(html, /id="pilotShareRailSkip">Not now, just show my report/);
 const skipHandler = html.slice(html.indexOf('document.getElementById("pilotShareRailSkip")'));
 const skipBody = skipHandler.slice(0, skipHandler.indexOf("});"));
@@ -39,7 +39,7 @@ const previewTag = html.slice(html.indexOf('<details class="research-share-previ
 const previewOpenTag = previewTag.slice(0, previewTag.indexOf(">") + 1);
 assert.doesNotMatch(previewOpenTag, /\sopen[\s>]/,
   "raw JSON must stay collapsed: it reads as hacker output, not as a report");
-assert.match(html, /For the technical: See the exact research-safe JSON that will be downloaded or submitted/,
+assert.match(html, /For the technical: See the exact research-safe JSON available for download or your device share menu/,
   "the raw JSON must remain reachable behind a quiet, clearly-labelled disclosure");
 assert.match(html, /id="pilotResearchPlain"/, "a plain-English summary must replace the raw JSON");
 assert.match(html, /In plain English, here is everything in that file/);
@@ -346,8 +346,10 @@ const compBody = html.slice(compStart, html.indexOf("function pilotCacheChartHTM
 assert.match(compBody, /PILOT_TYPE_ORDER\.filter\(function\(t\)\{return totals\[t\[0\]\]>0\}\)/,
   "only token types actually present may take a segment");
 assert.match(compBody, /pilotCompositionRows\(/, "the proportional bar must carry labelled rows with real counts");
-assert.match(compBody, /is not claiming you saved anything/,
-  "the cache callout must refuse the saving claim outright");
+assert.match(compBody, /has stated no customer cost outcome/,
+  "the cache callout must bound itself to token counts without introducing saving language");
+assert.doesNotMatch(compBody, /\bsavings?\b|\bsaving\b|you saved/i,
+  "the cache callout must avoid saving language even in a negative disclaimer");
 assert.doesNotMatch(compBody, /fmt\$/, "an unpriced composition must not print a dollar figure");
 assert.match(html, /if\(!\(costTotal>0\)\)return pilotCompositionChartHTML\(res,totals,tokTotal\)/,
   "with no rate to price the types, the composition becomes the chart rather than one thin strip");
