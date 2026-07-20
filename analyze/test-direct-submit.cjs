@@ -15,12 +15,14 @@ assert.match(html, /id="submitResearchReport" disabled/);
 assert.match(html, /id="researchConsent"/);
 assert.match(html, /analyzer_validation/);
 assert.match(html, /forecast_calibration/);
-assert.match(html, /retained for up to 30 days/);
-assert.match(html, /Cloudflare processes the submission request and Resend processes the email delivery/);
-assert.match(html, /usage patterns may still identify you/);
-assert.match(html, /stores account data, email metadata, logs and API records in the United States/);
-assert.match(html, /ask Adam to delete their mailbox copies earlier/);
-assert.match(html, /Resend may still retain its processor copy for its standard 30-day period/);
+assert.match(html, /<div class="share-form" hidden aria-hidden="true">[\s\S]*?<h3>Remote Transfer Unavailable<\/h3>/,
+  "the dormant delivery controls must not be exposed in the local-only terminal");
+assert.match(html, /id="researchConsent" disabled/,
+  "the dormant consent control must be non-interactive");
+assert.match(html, /id="submitResearchReport" disabled>Unavailable<\/button>/,
+  "the dormant submission control must be non-interactive and must not promise delivery");
+assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/,
+  "the repository must keep the sole user-initiated fetch unconfigured");
 assert.doesNotMatch(html, /id="shareRecipients"|mailto:|oconns89@|adam2hartley@/i);
 assert.match(html, /prepareResearchSafePackage\(true\)/,
   "the exact research-safe package must be frozen before review");
@@ -72,7 +74,7 @@ function createContext(fetchImpl) {
   const { context, nodes, handlers, calls } = success;
   assert.equal(handlers.consent.type, "change");
   assert.equal(handlers.submit.type, "click");
-  assert.equal(nodes.submitResearchReport.disabled, true, "blank endpoint must keep Submit disabled");
+  assert.equal(nodes.submitResearchReport.disabled, true, "blank endpoint must keep the dormant control disabled");
   assert.equal(calls.length, 0, "loading and report preparation must never submit");
 
   context.TOP_DELIVERY_ENDPOINT = "http://worker.example.test/submit";

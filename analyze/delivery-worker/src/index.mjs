@@ -23,6 +23,10 @@ const V2_COLLECTOR_VERSION = "top.local-collector.2026-07-16.2";
 const V2_PARSER_VERSION = "top.usage-parser.2026-07-16.3";
 const COST_STATUSES = new Set([
   "unavailable",
+  // A charge positively known to be nothing, which is not the same claim as "unavailable" and
+  // must never be collapsed into it. Only a Cursor export whose every row is marked Included
+  // can carry it, and it always carries a usd of exactly 0.
+  "subscription_covered",
   "partial",
   "recorded",
   "estimated",
@@ -340,7 +344,7 @@ function validateMeasurement(value, source) {
       fail("invalid_schema", "measurement does not match the selected source.");
     }
   } else if (source.surface === "cursor_ide") {
-    const validCost = new Set(["recorded_in_export_as_billed_by_cursor", "recorded_where_present_then_checked_rates_for_recognized_missing_rows"]);
+    const validCost = new Set(["recorded_in_export_as_billed_by_cursor", "recorded_where_present_then_checked_rates_for_recognized_missing_rows", "marked_included_by_cursor_no_charge"]);
     if (actual[0] !== "exported_columns_where_present" || actual[1] !== "exported_columns_where_present" || actual[2] !== "not_available" || !validCost.has(actual[3])) {
       fail("invalid_schema", "measurement does not match the selected source.");
     }
@@ -426,6 +430,9 @@ function validateCost(value, label) {
   nullableMoney(value.usd, `${label}.usd`);
   if (value.status === "unavailable" && value.usd !== null) fail("invalid_schema", `${label} cannot price an unavailable row.`);
   if (value.status !== "unavailable" && value.usd === null) fail("invalid_schema", `${label} is missing its priced amount.`);
+  // A known-zero charge must be exactly zero. Anything else means the status was applied to a row
+  // whose charge was not actually known to be nothing.
+  if (value.status === "subscription_covered" && value.usd !== 0) fail("invalid_schema", `${label} claims a covered zero charge but carries a non-zero amount.`);
 }
 
 function validateRate(value, index, source, modelLabels) {
@@ -730,8 +737,32 @@ function validateMultiToolContract(report, eventSum, pricing) {
     return;
   }
 
+  // Subscription-covered: every row was marked Included, so the charge is positively known to be
+  // nothing. Nothing here may be inferred from an absence: every model row must carry the covered
+  // status and an exact zero, no rate may have been applied, no dollar amount may have been read
+  // out of the file, and every usage event must be accounted for as a missing-cost row, which is
+  // what an Included cell is. Any deviation fails closed rather than accepting a claimed zero.
+  if (report.measurement.cost_basis === "marked_included_by_cursor_no_charge") {
+    if (report.cost.basis !== "subscription_covered_by_plan"
+      || report.cost.status !== "subscription_covered" || report.cost.usd !== 0
+      || modelStatuses.some((status) => status !== "subscription_covered")
+      || report.by_model.some((row) => row.cost.usd !== 0)
+      || recordedRows !== 0 || missingRows !== report.activity.usage_events
+      || rates.length !== 0 || report.pricing.status !== "not_applied_no_recognized_rate"
+      || report.pricing.unpriced_model_groups !== 0) {
+      fail("invalid_reconciliation", "Subscription-covered Cursor cost provenance does not reconcile.");
+    }
+    if (report.totals.total_tokens < 1) {
+      fail("invalid_reconciliation", "A subscription-covered Cursor report must carry the usage it covered.");
+    }
+    return;
+  }
+
   if (missingRows === 0 || report.cost.basis !== "recorded_and_or_estimated_where_possible") {
     fail("invalid_reconciliation", "Incomplete Cursor cost provenance does not reconcile with coverage.");
+  }
+  if (modelStatuses.includes("subscription_covered")) {
+    fail("invalid_reconciliation", "A covered zero charge cannot appear outside a subscription-covered Cursor report.");
   }
   const estimatedStatuses = new Set(["estimated"]);
   const incompleteStatuses = new Set(["partial", "unavailable"]);
@@ -1027,9 +1058,19 @@ export function validateResearchSafeUsage(report) {
   oneOf(report.cost.status, COST_STATUSES, "cost.status");
   nullableMoney(report.cost.usd, "cost.usd");
   if (report.cost.currency !== "USD" || report.cost.subscription_bill !== false) fail("invalid_schema", "cost contains an unsupported currency or subscription claim.");
-  oneOf(report.cost.basis, new Set(["not_available", "not_available_in_local_codex_history", "recorded_in_export", "recorded_and_or_estimated_where_possible", "recorded_where_present_never_estimated", "estimated_pay_as_you_go_comparison"]), "cost.basis");
+  oneOf(report.cost.basis, new Set(["not_available", "not_available_in_local_codex_history", "recorded_in_export", "recorded_and_or_estimated_where_possible", "recorded_where_present_never_estimated", "estimated_pay_as_you_go_comparison", "subscription_covered_by_plan"]), "cost.basis");
   if (report.cost.status === "unavailable" && report.cost.usd !== null) fail("invalid_schema", "unavailable report cost must be null.");
   if (report.cost.status !== "unavailable" && report.cost.usd === null) fail("invalid_schema", "priced report cost is missing its amount.");
+  // Only a Cursor export can know a charge was nothing, because only Cursor writes the Included
+  // marker TOP reads that fact out of. Anywhere else the status would be an assumption.
+  if ((report.cost.status === "subscription_covered" || report.cost.basis === "subscription_covered_by_plan"
+      || report.measurement.cost_basis === "marked_included_by_cursor_no_charge")
+    && report.source.surface !== "cursor_ide") {
+    fail("invalid_schema", "only a Cursor export can carry a subscription-covered zero charge.");
+  }
+  if (report.cost.status === "subscription_covered" && report.cost.usd !== 0) {
+    fail("invalid_schema", "a subscription-covered report cost must be exactly zero.");
+  }
   validatePermissionModes(report.permission_mode_counts);
   const modelLabels = new Set(report.by_model.map((row) => isObject(row) ? row.model : null).filter((model) => typeof model === "string"));
   const byModel = validateByModel(report.by_model, report.totals, report.cost, report.source);

@@ -1,0 +1,122 @@
+name: Analyzer perimeter
+
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "analyze/**"
+      - "assets/**"
+      - "dashboard/**"
+      - "forecast/index.html"
+      - "forecast/test-*.cjs"
+      - "pilot/**"
+      - "pitch/**"
+      - "test-*.cjs"
+      - ".github/workflows/analyzer-perimeter.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "index.html"
+      - "analyze/**"
+      - "assets/**"
+      - "dashboard/**"
+      - "forecast/index.html"
+      - "forecast/test-*.cjs"
+      - "pilot/**"
+      - "pitch/**"
+      - "test-*.cjs"
+      - ".github/workflows/analyzer-perimeter.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  green-regression:
+    name: Existing regressions and seven-source journey
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Check perimeter test syntax
+        shell: pwsh
+        run: |
+          $files = @(
+            "analyze/test-clean-machine-collector-prerequisite.cjs",
+            "analyze/test-copilot-parser.cjs",
+            "analyze/test-cursor-parser.cjs",
+            "analyze/test-guided-acquisition-contracts.cjs",
+            "analyze/test-never-zero-render.cjs",
+            "analyze/test-no-network-ever.cjs",
+            "analyze/test-pilot-collector-pin.cjs",
+            "analyze/test-public-hard-rules.cjs",
+            "analyze/test-stranger-first-run-browser.cjs",
+            "analyze/test-stranger-first-run-contract.cjs",
+            "analyze/test-seven-source-local-browser.cjs"
+          )
+          foreach ($file in $files) {
+            node --check $file
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Exercise all seven sources offline
+        run: node --test analyze/test-seven-source-local-browser.cjs
+      - name: Run existing CJS regressions
+        shell: pwsh
+        run: |
+          $excluded = @(
+            "test-clean-machine-collector-prerequisite.cjs",
+            "test-copilot-parser.cjs",
+            "test-cursor-parser.cjs",
+            "test-guided-acquisition-contracts.cjs",
+            "test-never-zero-render.cjs",
+            "test-no-network-ever.cjs",
+            "test-pilot-collector-pin.cjs",
+            "test-public-hard-rules.cjs",
+            "test-stranger-first-run-browser.cjs",
+            "test-stranger-first-run-contract.cjs",
+            "test-seven-source-local-browser.cjs"
+          )
+          $files = Get-ChildItem -LiteralPath . -Recurse -File -Filter "test-*.cjs" |
+            Where-Object {
+              $_.DirectoryName -notmatch "[\\/]node_modules([\\/]|$)" -and
+              $_.Name -notin $excluded
+            } |
+            Sort-Object FullName |
+            ForEach-Object FullName
+          Write-Output "Existing CJS files: $($files.Count)"
+          node --test $files
+      - name: Run delivery worker regressions
+        working-directory: analyze/delivery-worker
+        run: npm test
+      - name: Run collector suites
+        shell: pwsh
+        run: |
+          node analyze/collector/test-top-collector.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node analyze/collector/test-top-collector-v2.mjs
+
+  protected-contracts:
+    name: Protected implementation contracts
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Enforce protected perimeter contracts
+        run: >-
+          node --test
+          analyze/test-clean-machine-collector-prerequisite.cjs
+          analyze/test-copilot-parser.cjs
+          analyze/test-cursor-parser.cjs
+          analyze/test-guided-acquisition-contracts.cjs
+          analyze/test-never-zero-render.cjs
+          analyze/test-no-network-ever.cjs
+          analyze/test-pilot-collector-pin.cjs
+          analyze/test-public-hard-rules.cjs
+          analyze/test-stranger-first-run-browser.cjs
+          analyze/test-stranger-first-run-contract.cjs

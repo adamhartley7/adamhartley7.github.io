@@ -25,7 +25,7 @@ assert.match(html, /\.pilot-share-details\{max-height:40vh;overflow-y:auto\}/,
   "the rail's expanded detail must be capped and scroll internally");
 
 // ---------- sharing must never gate the report ----------
-assert.match(html, /Sharing skipped\. Nothing was sent, and your full report is still here\./);
+assert.match(html, /Saving skipped\. Nothing was sent, and your full report is still here\./);
 assert.match(html, /id="pilotShareRailSkip">Not now, just show my report/);
 const skipHandler = html.slice(html.indexOf('document.getElementById("pilotShareRailSkip")'));
 const skipBody = skipHandler.slice(0, skipHandler.indexOf("});"));
@@ -39,7 +39,7 @@ const previewTag = html.slice(html.indexOf('<details class="research-share-previ
 const previewOpenTag = previewTag.slice(0, previewTag.indexOf(">") + 1);
 assert.doesNotMatch(previewOpenTag, /\sopen[\s>]/,
   "raw JSON must stay collapsed: it reads as hacker output, not as a report");
-assert.match(html, /For the technical: See the exact research-safe JSON that will be downloaded or submitted/,
+assert.match(html, /For the technical: See the exact research-safe JSON available for download or your device share menu/,
   "the raw JSON must remain reachable behind a quiet, clearly-labelled disclosure");
 assert.match(html, /id="pilotResearchPlain"/, "a plain-English summary must replace the raw JSON");
 assert.match(html, /In plain English, here is everything in that file/);
@@ -159,8 +159,8 @@ const coveredCost = coveredPlain.contains.find((line) => /^Cost: /.test(line));
 assert.ok(coveredCost, "a cost line must still be described");
 assert.match(coveredCost, /subscription covered this usage/);
 assert.match(coveredCost, /\$2\.66 to \$49\.86/);
-assert.match(coveredCost, /not money you paid and not a saving/,
-  "the covered cost line must refuse both the bill claim and the saving claim");
+assert.match(coveredCost, /hypothetical API comparison, not your bill or a measured customer outcome/,
+  "the covered cost line must refuse both a bill claim and a measured customer outcome");
 assert.ok(!/comparison against published API rates\. It is not your subscription bill\./.test(coveredCost),
   "the uncovered wording inverts the facts on a covered export and must not be reused there");
 
@@ -346,8 +346,10 @@ const compBody = html.slice(compStart, html.indexOf("function pilotCacheChartHTM
 assert.match(compBody, /PILOT_TYPE_ORDER\.filter\(function\(t\)\{return totals\[t\[0\]\]>0\}\)/,
   "only token types actually present may take a segment");
 assert.match(compBody, /pilotCompositionRows\(/, "the proportional bar must carry labelled rows with real counts");
-assert.match(compBody, /is not claiming you saved anything/,
-  "the cache callout must refuse the saving claim outright");
+assert.match(compBody, /has stated no customer cost outcome/,
+  "the cache callout must bound itself to token counts without introducing saving language");
+assert.doesNotMatch(compBody, /\bsavings?\b|\bsaving\b|you saved/i,
+  "the cache callout must avoid saving language even in a negative disclaimer");
 assert.doesNotMatch(compBody, /fmt\$/, "an unpriced composition must not print a dollar figure");
 assert.match(html, /if\(!\(costTotal>0\)\)return pilotCompositionChartHTML\(res,totals,tokTotal\)/,
   "with no rate to price the types, the composition becomes the chart rather than one thin strip");
@@ -366,8 +368,8 @@ assert.match(mixBody, /res\.cursor&&res\.modelsUndisclosed[\s\S]{0,300}pilotRang
   "an undisclosed model must get the API-equivalent range chart, never a bar labelled auto");
 const rangeStart = html.indexOf("function pilotRangeChartHTML(");
 const rangeBody = html.slice(rangeStart, mixStart);
-assert.match(rangeBody, /not money you paid and it is not a saving/,
-  "the range chart must refuse both the bill claim and the saving claim");
+assert.match(rangeBody, /hypothetical API comparison, not your bill or a measured customer outcome/,
+  "the range chart must refuse both a bill claim and a measured customer outcome");
 assert.match(rangeBody, /PRICING_CHECKED_DATE/, "the range must name when its rates were checked");
 assert.match(rangeBody, /stacked/, "the two range labels must stack rather than collide on a narrow phone");
 
@@ -484,8 +486,10 @@ assert.match(mixBody, /pilotMixWithheld\(res\)[\s\S]{0,120}pilotRangeChartHTML\(
 // ---------- the same table must not both print a cost and say nothing was charged ----------
 // On a covered export the row cost is an API-price comparison, not a charge. Printing "~$0.0047" in the
 // Cost column above a footer reading "No charge, plan covered" made one table say two things at once.
-assert.match(html, /cursorUndisclosedModel\(r\.model\)\?"AI version not disclosed":\(included\?"No charge, plan covered"/,
-  "a covered export's per-row cost cell must agree with its own table footer");
+assert.match(html, /var shown=included\?"No charge, plan covered":costCell\(r\.cost,r\.complete,res\.estimate\?"~":""\)/,
+  "a covered export's per-row cost cell must agree with its own table footer, while every unknown cost uses the shared cost-cell rule");
+assert.doesNotMatch(html, /var shown=[^;]*"AI version not disclosed"/,
+  "an undisclosed model must not invent a second label for an unpriced cost");
 
 // ---------- the pinned rail must not count "auto" as an AI version in a mixed export ----------
 const mixedNote = { amount: "$2.66 to $49.86", isRange: true, rateCount: 10, modelsUndisclosed: false, someUndisclosed: true, undisclosedRows: 12 };

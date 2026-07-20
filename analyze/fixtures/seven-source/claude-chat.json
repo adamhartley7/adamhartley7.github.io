@@ -1,0 +1,10 @@
+[
+  {
+    "uuid": "synthetic-claude-chat-conversation",
+    "name": "Synthetic Claude Chat conversation",
+    "chat_messages": [
+      { "sender": "human", "text": "12345678" },
+      { "sender": "assistant", "text": "123456789012" }
+    ]
+  }
+]

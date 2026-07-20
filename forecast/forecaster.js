@@ -318,9 +318,277 @@
     return Math.max(1.0, Math.min(1000.0, k));
   }
 
+  // ============================================================ retrieval (ABE neighbourhood)
+  //
+  // Replaces the (project, archetype) CELL as the definition of "similar past work"
+  // with analogy-based retrieval over the user's own prior prompts:
+  //
+  //   1. EXACT REPEAT  - same normalised prompt hash -> those tasks are the neighbourhood.
+  //   2. ANALOGY       - k nearest EARLIER prompts by word 3-gram Jaccard similarity;
+  //                      neighbourhood location = median of their log costs.
+  //   3. FALLBACK      - if the best similarity is below simFloor, no trustworthy analogy
+  //                      exists: back off to a recency-weighted global median (half-life
+  //                      in days), which tracks cost-regime drift that a flat median misses.
+  //
+  // Neighbourhood DISPERSION is retained and returned, not discarded. Following
+  // Kocaguneli et al. 2012 (IEEE TSE 38(2):425-438), the stability of a neighbourhood is
+  // itself a measurable, ex-ante signal: a high-variance neighbourhood should widen the
+  // band rather than assert a confident point. That dispersion flows into the existing
+  // empirical-Bayes blend as s_group, so an unstable neighbourhood is automatically
+  // distrusted instead of being reported with false confidence.
+  //
+  // TEMPORAL SAFETY: candidate.ts < query.ts is enforced HERE, unconditionally, inside the
+  // retrieval function itself. It is not delegated to harness bookkeeping. An index that
+  // contains future tasks still cannot leak them.
+
+  // ---------------------------------------------------------------- ABE additions
+  //
+  // Three findings from the analogy-based-effort-estimation literature, each
+  // INDEPENDENTLY switchable so its contribution can be measured on its own.
+  //
+  // (1) NEIGHBOURHOOD STABILITY -- Kocaguneli et al. 2012, IEEE TSE 38(2):425-438.
+  //     ABE silently assumes a task's immediate neighbours give a STABLE conclusion
+  //     about it. Across 10 datasets that assumption often fails: the variance inside
+  //     a small neighbourhood is frequently LARGER than the variance of the region
+  //     containing it. Their remedy is to restrict analogy to low-variance regions.
+  //     Here the neighbourhood's log-cost dispersion is compared against the dispersion
+  //     of the region containing it (the archetype prior). The ratio is knowable BEFORE
+  //     the task runs, so the forecaster can narrow, widen, or REFUSE in advance rather
+  //     than being confident exactly where it is wrong.
+  //
+  // (2) FEATURE WEIGHTING -- feature weighting and subset selection dominate the ABE
+  //     literature because equal-weighted distance performs poorly, but the curse of
+  //     dimensionality means piling on features makes every point roughly equidistant
+  //     and destroys nearest-neighbour retrieval. So: FEW features, WEIGHTED. Every
+  //     feature admitted here is knowable before the task runs.
+  //
+  // (3) MINIMUM HISTORY -- a cold user's band looks reassuringly narrow while being
+  //     badly under-covered. Below a floor of completed tasks the honest output is a
+  //     refusal, not a number.
+
+  // Bounded similarity from a magnitude gap: 1 at equality, decaying in |log ratio|.
+  function gapSim(a, b) {
+    var d = Math.abs(Math.log(1 + Math.max(0, a)) - Math.log(1 + Math.max(0, b)));
+    return 1 / (1 + d);
+  }
+
+  // Weighted similarity over a SMALL admissible feature set. Weights are supplied by
+  // the caller (selected on a validation window, never on test). With W.jac = 1 and
+  // every other weight 0 this is byte-identical to plain 3-gram Jaccard.
+  function weightedSim(q, c, W, tq) {
+    var s = W.jac * jaccard(q.sh || [], c.sh || []);
+    if (W.len) s += W.len * gapSim(q.ntok, c.ntok);
+    if (W.proj) s += W.proj * (q.project != null && q.project === c.project ? 1 : 0);
+    if (W.pos) s += W.pos * gapSim(q.spos, c.spos);
+    if (W.rec) {
+      var ageD = Math.max(0, tq - c.ts) / 86400000;
+      s += W.rec * Math.pow(0.5, ageD / Math.max(1e-6, W.recHalfLife || 7));
+    }
+    return s;
+  }
+
+  function normaliseWeights(W) {
+    if (!W) return { jac: 1, len: 0, proj: 0, pos: 0, rec: 0, recHalfLife: 7 };
+    var out = {
+      jac: W.jac !== undefined ? W.jac : 1,
+      len: W.len || 0, proj: W.proj || 0, pos: W.pos || 0, rec: W.rec || 0,
+      recHalfLife: W.recHalfLife !== undefined ? W.recHalfLife : 7
+    };
+    var t = out.jac + out.len + out.proj + out.pos + out.rec;
+    if (t > 0) { out.jac /= t; out.len /= t; out.proj /= t; out.pos /= t; out.rec /= t; }
+    return out;
+  }
+
+  // Jaccard over two ASCENDING-sorted arrays of 32-bit shingle hashes.
+  function jaccard(a, b) {
+    var na = a.length, nb = b.length;
+    if (na === 0 || nb === 0) return 0;
+    var i = 0, j = 0, inter = 0;
+    while (i < na && j < nb) {
+      var x = a[i], y = b[j];
+      if (x === y) { inter++; i++; j++; }
+      else if (x < y) i++;
+      else j++;
+    }
+    var uni = na + nb - inter;
+    return uni > 0 ? inter / uni : 0;
+  }
+
+  function medianOf(xs) {
+    if (xs.length === 0) return null;
+    var s = xs.slice().sort(function (p, q) { return p - q; });
+    var m = s.length >> 1;
+    return (s.length % 2) ? s[m] : 0.5 * (s[m - 1] + s[m]);
+  }
+
+  // Recency-weighted median: weight 0.5^(age_days / halfLifeDays).
+  function recencyWeightedMedian(entries, tNow, halfLifeDays) {
+    if (entries.length === 0) return null;
+    var HL = Math.max(1e-6, halfLifeDays) * 86400000;
+    var rows = [];
+    var total = 0, i;
+    for (i = 0; i < entries.length; i++) {
+      var age = Math.max(0, tNow - entries[i].ts);
+      var w = Math.pow(0.5, age / HL);
+      if (!(w > 0)) continue;
+      rows.push([entries[i].y, w]);
+      total += w;
+    }
+    if (!rows.length || !(total > 0)) return medianOf(entries.map(function (e) { return e.y; }));
+    rows.sort(function (p, q) { return p[0] - q[0]; });
+    var half = total / 2, acc = 0;
+    for (i = 0; i < rows.length; i++) {
+      acc += rows[i][1];
+      if (acc >= half) return rows[i][0];
+    }
+    return rows[rows.length - 1][0];
+  }
+
+  // Build an index. `records` need {ts|timestamp, ph, sh} plus a cost the regime can score.
+  // Records the regime cannot score (non-positive cost) are dropped.
+  function buildRetrieval(records, regime, opts) {
+    opts = opts || {};
+    var entries = [];
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i];
+      var y = targetOf(r, regime);
+      if (y === null) continue;
+      var ts = (typeof r.ts === "number") ? r.ts : Date.parse(r.ts || r.timestamp || 0);
+      if (!isFinite(ts)) continue;
+      entries.push({
+        ts: ts, y: y, ph: r.ph, sh: r.sh || [],
+        ntok: r.ntok || 0, spos: r.spos || 0, project: r.project
+      });
+    }
+    entries.sort(function (p, q) { return p.ts - q.ts; });
+    return {
+      entries: entries,
+      k: opts.k !== undefined ? opts.k : 3,
+      simFloor: opts.simFloor !== undefined ? opts.simFloor : 0.22,
+      halfLifeDays: opts.halfLifeDays !== undefined ? opts.halfLifeDays : 5,
+      mode: opts.mode || "eb",         // "eb" = feed the EB blend, "replace" = use directly
+      // (2) feature weighting. Default {jac:1} reproduces plain 3-gram Jaccard exactly.
+      weights: normaliseWeights(opts.weights),
+      weighted: !!opts.weights,
+      // (3) minimum completed history before the forecaster is allowed to answer.
+      minHistory: opts.minHistory !== undefined ? opts.minHistory : 0
+    };
+  }
+
+  // Returns {mu, s, n, source} or null. ALWAYS strictly-earlier-only.
+  function retrieveNeighbourhood(rec, R) {
+    var tq = (typeof rec.ts === "number") ? rec.ts : Date.parse(rec.ts || rec.timestamp || 0);
+    if (!isFinite(tq)) return null;
+    var E = R.entries, i;
+
+    // --- strict temporal gate: only tasks that finished strictly before this one exists.
+    var past = [];
+    for (i = 0; i < E.length; i++) {
+      if (E[i].ts < tq) past.push(E[i]);
+      else break;                      // entries are ts-sorted, so we can stop
+    }
+    if (past.length === 0) return null;
+    var history = past.length;      // completed tasks available to learn from (pre-run knowable)
+
+    // --- 1. exact repeat
+    // An exact repeat has Jaccard 1.0, so it is simply the top of the similarity ranking and
+    // obeys the same k cap. Ties at similarity 1.0 break toward the MOST RECENT repeat: a
+    // duplicate prompt issued yesterday is a better analogy for today than the same prompt
+    // issued five weeks ago, and in a drifting cost regime the stale ones bias the median down.
+    var sh = rec.sh || [];
+    if (rec.ph !== undefined && rec.ph !== null) {
+      var exact = [];
+      for (i = past.length - 1; i >= 0 && exact.length < R.k; i--) {
+        if (past[i].ph === rec.ph) exact.push(past[i].y);   // past is ts-ascending, so walk back
+      }
+      if (exact.length > 0) {
+        return { mu: medianOf(exact), s: std(exact), n: exact.length,
+                 source: "exact", sim: 1, history: history };
+      }
+    }
+
+    // --- 2. k nearest earlier prompts by (optionally weighted) similarity
+    var W = R.weights, scored, i2, sim, top, ys;
+    if (R.weighted) {
+      // Weighted mode scores EVERY earlier task: components other than Jaccard are
+      // non-zero for unrelated prompts, so a sim>0 pre-filter would no longer be a
+      // no-op. simFloor is re-selected for this metric on the validation window.
+      var qf = { sh: sh, ntok: rec.ntok || 0, spos: rec.spos || 0, project: rec.project };
+      scored = [];
+      for (i2 = 0; i2 < past.length; i2++) {
+        sim = weightedSim(qf, past[i2], W, tq);
+        if (sim > 0) scored.push([sim, past[i2].y, past[i2].ts]);
+      }
+    } else if (sh.length > 0) {
+      scored = [];
+      for (i2 = 0; i2 < past.length; i2++) {
+        sim = jaccard(sh, past[i2].sh);
+        if (sim > 0) scored.push([sim, past[i2].y, past[i2].ts]);
+      }
+    } else {
+      scored = [];
+    }
+    if (scored.length > 0) {
+      // similarity descending, then most-recent-first so ties resolve toward the current regime
+      scored.sort(function (p, q) { return (q[0] - p[0]) || (q[2] - p[2]); });
+      if (scored[0][0] >= R.simFloor) {
+        top = scored.slice(0, R.k);
+        ys = top.map(function (t) { return t[1]; });
+        return { mu: medianOf(ys), s: std(ys), n: ys.length,
+                 source: "analogy", sim: scored[0][0], history: history };
+      }
+    }
+
+    // --- 3. no trustworthy analogy -> recency-weighted global median
+    var mu = recencyWeightedMedian(past, tq, R.halfLifeDays);
+    if (mu === null) return null;
+    var allY = [];
+    for (i = 0; i < past.length; i++) allY.push(past[i].y);
+    return { mu: mu, s: std(allY), n: 1, source: "recency",
+             sim: scored.length ? scored[0][0] : 0, history: history };
+  }
+
   // ============================================================ EB blend
 
-  // returns [mu, sigma] in target space for one record (Python _blend)
+  // Kocaguneli et al. 2012 operationalised: is this neighbourhood tight enough, RELATIVE to
+  // the region containing it, for its conclusion to be trusted? Returns a decision record.
+  // Everything it reads is knowable before the task runs.
+  function assessStability(nb, s_p, ST) {
+    var d = null;
+    // Dispersion is only estimable from >= 2 neighbours. A single analogue tells us nothing
+    // about spread, and must NOT be scored as perfectly stable just because its stdev is 0.
+    if (nb && nb.n >= 2 && nb.s > 0 && s_p > 0) d = nb.s / s_p;
+    var noAnalogy = !nb || nb.source === "recency";
+    if (!ST || !ST.enabled) return { mult: 1, abstain: false, dispRatio: d, band: "off" };
+
+    if (noAnalogy) {
+      if (ST.abstainOnRecency) return {
+        mult: 1, abstain: true, dispRatio: d, band: "no-analogy",
+        reason: "No similar past task. Nothing in your history resembles this prompt closely enough to base a forecast on."
+      };
+      return { mult: ST.mUnstable, abstain: false, dispRatio: d, band: "no-analogy" };
+    }
+    if (d === null) {
+      // Exactly one analogue: usable location, unknown spread. Treated as unresolved, never stable.
+      if (ST.abstainOnUnknown) return {
+        mult: 1, abstain: true, dispRatio: null, band: "unknown",
+        reason: "Only one comparable past task. One example cannot show how much this kind of task varies."
+      };
+      return { mult: ST.mUnstable, abstain: false, dispRatio: null, band: "unknown" };
+    }
+    if (d >= ST.tauUnstable) {
+      if (ST.abstain) return {
+        mult: 1, abstain: true, dispRatio: d, band: "unstable",
+        reason: "Similar past tasks disagreed too much about cost. Their spread was " +
+                d.toFixed(1) + "x the usual spread for this kind of work, so any band would be guesswork."
+      };
+      return { mult: ST.mUnstable, abstain: false, dispRatio: d, band: "unstable" };
+    }
+    if (d <= ST.tauStable) return { mult: ST.mStable, abstain: false, dispRatio: d, band: "stable" };
+    return { mult: 1, abstain: false, dispRatio: d, band: "mid" };
+  }
+
+  // returns [mu, sigma, info] in target space for one record (Python _blend)
   function blend(rec, P) {
     var a = rec.archetype;
     var g = rec[P.groupKey];
@@ -329,17 +597,61 @@
     if (pr) { mu_p = pr[0]; s_p = pr[1]; }
     else { mu_p = P.globalPrior[0]; s_p = P.globalPrior[1]; }   // cold archetype -> global prior
 
-    var gr = P.group.get(g + SEP + a);
-    if (!gr) return [mu_p, s_p];                                // cold start: pure archetype prior
-    var gm = gr[0], gs = gr[1], n = gr[2];
-    if (n <= 0 || gm === null) return [mu_p, s_p];
+    var gm, gs, n;
 
+    if (P.retrieval) {
+      // RETRIEVAL defines the neighbourhood; the EB machinery below still decides how much
+      // to trust it. Retrieval answers WHICH past tasks are relevant, shrinkage answers HOW
+      // MUCH a small or unstable neighbourhood should move us off the prior.
+      var nb = retrieveNeighbourhood(rec, P.retrieval);
+      var hist = nb ? nb.history : 0;
+
+      // (3) MINIMUM HISTORY. Checked before anything else: with too few completed tasks the
+      // band is narrow and badly under-covered, which is the worst possible failure to show a
+      // new user. Refuse in plain English instead.
+      if (P.retrieval.minHistory > 0 && hist < P.retrieval.minHistory) {
+        return [mu_p, s_p, {
+          abstain: true, source: nb ? nb.source : "none", history: hist,
+          dispRatio: null, band: "cold-start",
+          reason: "Not enough history yet. TOP needs " + P.retrieval.minHistory +
+                  " completed tasks before it can forecast; you have " + hist +
+                  ". Forecasts made this early look narrow but are wrong about half the time."
+        }];
+      }
+      if (!nb) return [mu_p, s_p, { abstain: false, source: "none", history: 0,
+                                    dispRatio: null, band: "none" }];
+
+      // (1) NEIGHBOURHOOD STABILITY.
+      var ST = assessStability(nb, s_p, P.stability);
+      var info = { abstain: ST.abstain, reason: ST.reason, source: nb.source,
+                   history: hist, dispRatio: ST.dispRatio, band: ST.band, sim: nb.sim };
+      if (ST.abstain) return [mu_p, s_p, info];
+
+      if (P.retrieval.mode === "replace") {
+        var sr = (nb.n >= 2 && nb.s > 0) ? nb.s : s_p;
+        sr *= ST.mult;
+        return [nb.mu, Math.sqrt(Math.max(sr * sr, 1e-9)), info];
+      }
+      gm = nb.mu; gs = nb.s; n = nb.n;
+      var eb = ebBlend(gm, gs, n, mu_p, s_p, P.k);
+      return [eb[0], eb[1] * ST.mult, info];
+    } else {
+      var gr = P.group.get(g + SEP + a);
+      if (!gr) return [mu_p, s_p];                              // cold start: pure archetype prior
+      gm = gr[0]; gs = gr[1]; n = gr[2];
+    }
+    if (n <= 0 || gm === null) return [mu_p, s_p];
+    return ebBlend(gm, gs, n, mu_p, s_p, P.k);
+  }
+
+  // Buhlmann-credibility blend in log space. Unchanged from the shipped forecaster;
+  // factored out so the retrieval path and the cell path share exactly one implementation.
+  function ebBlend(gm, gs, n, mu_p, s_p, k) {
     var s_user = (n >= 2 && gs > 0) ? gs : s_p;
-    var w = n / (n + P.k);
+    var w = n / (n + k);
     var mu = w * gm + (1 - w) * mu_p;
     var vv = w * (s_user * s_user) + (1 - w) * (s_p * s_p) + (w * w) * (s_user * s_user) / Math.max(n, 1);
-    var sigma = Math.sqrt(Math.max(vv, 1e-9));
-    return [mu, sigma];
+    return [mu, Math.sqrt(Math.max(vv, 1e-9))];
   }
 
   // map (mu, sigma) back to (p10, p50, p90) in USD using q (Python _reconstruct)
@@ -358,11 +670,16 @@
   function calibrateRegime(P, calib) {
     var scoresByArch = new Map();
     var scoresAll = [];
+    var nAbstain = 0;
     for (var i = 0; i < calib.length; i++) {
       var rec = calib[i];
       var y = targetOf(rec, P.regime);
       if (y === null) continue;
       var mus = blend(rec, P);
+      // Tasks the forecaster REFUSES must not shape the conformal quantile. Calibrating on
+      // the population it will actually answer for is what converts abstention into precision:
+      // the wide, unstable neighbourhoods stop inflating q for everyone else.
+      if (mus[2] && mus[2].abstain) { nAbstain++; continue; }
       var sigma = mus[1];
       if (sigma <= 0) continue;
       var s = Math.abs(y - mus[0]) / sigma;
@@ -371,6 +688,7 @@
       scoresByArch.get(a).push(s);
       scoresAll.push(s);
     }
+    P.calibAbstained = nAbstain;
 
     function confQ(scores) {
       var n = scores.length;
@@ -387,6 +705,25 @@
       if (scores.length >= P.minBucket) P.qByArchetype.set(a, confQ(scores));
       // thin buckets fall back to qGlobal at forecast time
     });
+
+    // SELF-MEASURED COVERAGE. Once q is fixed, re-score the calibration set and record how
+    // often the realised cost actually landed inside the band. This is the number the product
+    // shows next to every band, so a user is never given a band without being told how often
+    // bands like it have been right. It is measured, not asserted.
+    var hit = 0, tot = 0;
+    for (var j = 0; j < calib.length; j++) {
+      var r2 = calib[j];
+      var y2 = targetOf(r2, P.regime);
+      if (y2 === null) continue;
+      var m2 = blend(r2, P);
+      if (m2[2] && m2[2].abstain) continue;
+      if (!(m2[1] > 0)) continue;
+      var b2 = reconstruct(r2, m2[0], m2[1], P);
+      tot++;
+      if (r2.cost_usd >= Math.min(b2[0], b2[2]) && r2.cost_usd <= Math.max(b2[0], b2[2])) hit++;
+    }
+    P.calibN = tot;
+    P.calibCoverage = tot > 0 ? hit / tot : null;
     return P;
   }
 
@@ -404,6 +741,15 @@
     var priors = { opts: o };
     for (var i = 0; i < regimes.length; i++) {
       priors[regimes[i]] = fitRegime(trainSessions, regimes[i], o);
+      if (opts.retrieval) {
+        // Index defaults to the same records the priors were fitted on. The caller may pass
+        // `records` to index a wider history; the strictly-earlier gate makes that safe.
+        var src = opts.retrieval.records || trainSessions;
+        priors[regimes[i]].retrieval = buildRetrieval(src, regimes[i], opts.retrieval);
+      }
+      // Stability gating is independent of retrieval config so its contribution can be
+      // measured on its own. Absent => disabled => behaviour is unchanged.
+      priors[regimes[i]].stability = opts.stability || null;
     }
     return priors;
   }
@@ -419,9 +765,33 @@
     var P = priors && priors[mode];
     if (!P) throw new Error("forecast: priors missing for mode '" + mode + "'");
     var mus = blend(session, P);
+    var info = mus[2] || null;
+
+    // ABSTENTION. When TOP will not answer it emits NO band. A meaningless band is worse
+    // than a refusal, because a user cannot tell the two apart. `reason` is plain English
+    // and is meant to be shown verbatim.
+    if (info && info.abstain) {
+      return {
+        abstain: true, reason: info.reason, p10: null, p50: null, p90: null,
+        history: info.history, source: info.source, dispersionRatio: info.dispRatio,
+        stabilityBand: info.band,
+        measuredCoverage: P.calibCoverage != null ? P.calibCoverage : null,
+        measuredCoverageN: P.calibN != null ? P.calibN : null
+      };
+    }
     var band = reconstruct(session, mus[0], mus[1], P);
     band.sort(function (x, y) { return x - y; });     // guarantee P10 <= P50 <= P90
-    return { p10: band[0], p50: band[1], p90: band[2] };
+    return {
+      p10: band[0], p50: band[1], p90: band[2], abstain: false,
+      // Shown BESIDE the band, always: how much history it rests on, and how often bands
+      // from this same configuration actually contained the realised cost.
+      history: info ? info.history : null,
+      source: info ? info.source : null,
+      dispersionRatio: info ? info.dispRatio : null,
+      stabilityBand: info ? info.band : null,
+      measuredCoverage: P.calibCoverage != null ? P.calibCoverage : null,
+      measuredCoverageN: P.calibN != null ? P.calibN : null
+    };
   }
 
   return {
@@ -430,6 +800,14 @@
     classifyArchetype: classifyArchetype,
     fitPriors: fitPriors,
     calibrate: calibrate,
-    forecast: forecast
+    forecast: forecast,
+    // retrieval internals, exported for the leakage test and offline evaluation
+    buildRetrieval: buildRetrieval,
+    retrieveNeighbourhood: retrieveNeighbourhood,
+    jaccard: jaccard,
+    recencyWeightedMedian: recencyWeightedMedian,
+    weightedSim: weightedSim,
+    assessStability: assessStability,
+    blend: blend
   };
 });

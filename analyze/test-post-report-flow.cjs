@@ -6,8 +6,11 @@ const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf
 
 assert.match(html, /Show My Report First/);
 assert.match(html, /Every successful report is followed by optional questions/);
-assert.match(html, /Download Or Share My Safe Report/);
-assert.match(html, /Submit Reviewed Safe Report/);
+assert.match(html, /Download Or Copy My Safe Report/);
+assert.match(html, /id="safeDownload">Download My Own Copy/);
+assert.match(html, /id="copySafePackage">Copy Exact Summary/);
+assert.doesNotMatch(html, /Submit Reviewed Safe Report/,
+  "the local-only terminal must not advertise a remote submission action");
 
 const start = html.indexOf("function revealStandardPostReport");
 const end = html.indexOf("function render(res)", start);

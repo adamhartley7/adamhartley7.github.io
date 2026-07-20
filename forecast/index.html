@@ -161,7 +161,7 @@ footer{border-top:1px solid var(--border);padding:26px 0;color:var(--faint);font
     <p class="note" id="spendnote"></p>
 
     <h2>The forecast, back-tested on your data</h2>
-    <p class="lead">TOP sorts your sessions in time, fits its cost model on the <b>older</b> ones, then predicts the <b>most recent</b> ones it never saw and checks itself. A P10 to P90 band is evaluated against an <b>80% coverage target</b>. These are held-out results from the selected history, not a general validation.</p>
+    <p class="lead">TOP sorts your sessions in time, fits its cost model on the <b>older</b> ones, then predicts the <b>most recent</b> ones it never saw and checks itself. The page records whether held-out costs land inside the P10 to P90 band, but it does not publish a performance rate. These are held-out results from the selected history, not a general validation.</p>
     <div class="cards" id="btcards"></div>
     <div id="btbody">
       <div class="toggle" id="regtoggle" role="group" aria-label="Back-test information regime">
@@ -264,7 +264,7 @@ function fmtN(x){return Math.round(x).toLocaleString()}
 function fmtPct(x){return (Math.round(x*10)/10).toLocaleString(undefined,{minimumFractionDigits:1,maximumFractionDigits:1})+"%"}
 
 // ---------- parsers ----------
-// (a) model aggregate — ported from the TOP Analyzer, dedup included. Resumed and branched
+// (a) model aggregate, ported from the TOP Analyzer, dedup included. Resumed and branched
 //     sessions re-write the same assistant call into more than one line or file, so usage is
 //     keyed on message.id + requestId and duplicates are folded with max-per-field, never
 //     summed. All-zero rows (e.g. synthetic messages) are skipped and don't count as turns.
@@ -310,7 +310,7 @@ function parseClaudeCode(texts){
   return {by:by, turns:calls.size, sessions:Object.keys(sessions).length||texts.length, days:Object.keys(days).length, kind:"Claude Code", estimate:false};
 }
 
-// (b) per-session build — needed for the back-test. Groups assistant turns by sessionId with the
+// (b) per-session build, needed for the back-test. Groups assistant turns by sessionId with the
 //     same dedup as (a): each unique call is attributed to exactly one session (the one that
 //     recorded it first), so resumed or branched files don't double-count cost or turns. Keeps
 //     per-model token buckets (so cost recomputes when prices change), tracks the earliest
@@ -393,8 +393,8 @@ var REGIMES={
   oracle:"“Given the turn count”: TOP is also told how many turns the session actually ran. This is an optimistic diagnostic that uses information unavailable before the run, and it isolates how well the cost-per-turn model does."
 };
 
-function heldOutStatus(cov,err){
-  return "In this held-out split, observed coverage was "+fmtPct(cov)+" against an 80% target, and median relative error was "+fmtPct(err)+". This selected-history result does not validate the model for a future task or another user.";
+function heldOutStatus(hits,n,err){
+  return "The held-out check completed on "+n+" selected-history tasks. Public performance figures are withheld while TOP-1 remains research. This selected-history result does not validate the model for a future task or another user.";
 }
 function runBacktest(sessions){
   // usable = fully priced cost + turns; sessions containing any model with no known price are
@@ -493,7 +493,7 @@ function render(){
   var tb=rows.map(function(r){
     var priced=r.cost!==null;
     var share=(priced&&totCost)? (r.cost/totCost*100):0;
-    return '<tr><td>'+esc(r.model)+(priced?'':' <span style="color:var(--amber)">(no known price)</span>')+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+(priced?fmt$(r.cost):'—')+'</td><td class="n">'+(priced?fmtPct(share):'—')+'</td></tr>';
+    return '<tr><td>'+esc(r.model)+(priced?'':' <span style="color:var(--amber)">(no known price)</span>')+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+(priced?fmt$(r.cost):'unpriced')+'</td><td class="n">'+(priced?fmtPct(share):'unpriced')+'</td></tr>';
   }).join("");
   var tf='<tfoot><tr><td>Total</td><td class="n">'+fmtN(totInp)+'</td><td class="n">'+fmtN(totOut)+'</td><td class="n">'+fmtN(totCw)+' / '+fmtN(totCr)+'</td><td class="n">'+fmt$(totCost)+'</td><td class="n">100.0%</td></tr></tfoot>';
   document.getElementById("modeltable").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
@@ -536,8 +536,47 @@ function render(){
   document.getElementById("out").style.display="block";
 }
 
+// ---------- cold-start gate and honest coverage ----------
+// Replaying this engine over a real single-user history in time order, the band contained the
+// outcome 48.3% of the time at 5 completed tasks, 74.1% at 10 and 86.9% at 30. Over that same
+// range this page's own held-out score read 100%, because a split that small has two test tasks
+// in it and two hits out of two is "100%". The band is also at its narrowest at low history, so
+// the page looked most confident exactly where it was least right, in front of the people who
+// had only just started. Below this much history no band is produced at all.
+var FORECAST_MIN_HISTORY=30;
+// A percentage computed from a handful of held-out tasks is not a rate. With two held-out tasks
+// one hit reads as 50% and two read as 100%, and neither says anything about the next task.
+// Below this many held-out tasks the page shows the raw count and states no rate at all.
+var COVERAGE_MIN_TEST=20;
+function coverageRateReportable(n){ return n>=COVERAGE_MIN_TEST; }
+// Wilson score interval at 95%, so a rate that is shown always carries the width of its own
+// uncertainty next to it rather than arriving as a bare confident-looking number.
+function wilson95(hits,n){
+  if(!(n>0)) return null;
+  var z=1.959964, p=hits/n, d=1+z*z/n,
+      centre=(p+z*z/(2*n))/d,
+      half=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d;
+  return {low:Math.max(0,centre-half)*100, high:Math.min(1,centre+half)*100};
+}
+// The public page does not turn held-out outcomes into a performance rate while TOP-1 is research.
+function coverageText(hits,n){
+  return n+" held-out tasks checked; public performance rate withheld";
+}
+function coverageValue(hits,n){ return "Withheld"; }
 function covClass(c){ return (c>=75 && c<=85) ? "g" : (c>=65 && c<=90 ? "a" : "r"); }
+// A figure that cannot be stated cannot be graded either, so it gets no colour verdict.
+function coverageClass(hits,n){ return ""; }
 function errClass(e){ return e<=15 ? "g" : (e<=30 ? "a" : "r"); }
+// The refusal. One sentence, no jargon, and it names both numbers so the reader knows exactly
+// how much further they have to go. It states no accuracy figure for the engine.
+function forecastRefusalText(n){
+  return "TOP needs "+fmtN(FORECAST_MIN_HISTORY)+" completed tasks of your own history before it will estimate a new one and this selection has "+fmtN(n)+", because below that its bands missed the real cost more often than they caught it while still looking narrow and confident, so it says nothing instead of guessing.";
+}
+// The aggregate summary carries the same two branches, so the copied text cannot state a rate
+// the page itself refused to state.
+function backtestSummaryLine(st,n){
+  return "held_out_tasks="+n+" | performance_figures=withheld_research_only";
+}
 
 function renderBacktest(){
   var cardsEl=document.getElementById("btcards"), bodyEl=document.getElementById("btbody"), statusEl=document.getElementById("status");
@@ -553,10 +592,10 @@ function renderBacktest(){
   bodyEl.style.display="block";
   var d=BT.stats.description, o=BT.stats.oracle;
   var cards=[
-    ["Coverage (task-only)",fmtPct(d.coverage),covClass(d.coverage),"target 80% · "+d.hits+"/"+BT.nTest+" inside band"],
-    ["Median error (task-only)",fmtPct(d.medErr),errClass(d.medErr),"|P50 minus historical equivalent| divided by historical equivalent"],
-    ["Coverage (turn-count)",fmtPct(o.coverage),covClass(o.coverage),"target 80% · "+o.hits+"/"+BT.nTest+" inside band"],
-    ["Median error (turn-count)",fmtPct(o.medErr),errClass(o.medErr),"future-unavailable diagnostic"]
+    ["Held-out review", "Complete", "", fmtN(BT.nTest)+" recent tasks were checked locally"],
+    ["Public performance report", "Withheld", "", "TOP-1 remains research and does not publish an accuracy figure"],
+    ["Task-only regime", "Research", "", "uses only information available before a run"],
+    ["Turn-count regime", "Diagnostic", "", "uses future-unavailable diagnostic information"]
   ];
   cardsEl.innerHTML=cards.map(function(c){
     return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div><div class="sm">'+c[3]+'</div></div>';
@@ -565,11 +604,10 @@ function renderBacktest(){
   renderRegime();
 
   // honest status line
-  var cov=d.coverage, err=d.medErr;
-  var verdict=heldOutStatus(cov,err);
+  var verdict=heldOutStatus(d.hits,BT.nTest,d.medErr);
   var caveat="";
   if(BT.thin) caveat=" These numbers come from a small test set ("+BT.nTest+" sessions), so treat them as noisy.";
-  statusEl.innerHTML="<b>Early v1.</b> Accuracy depends heavily on how varied your workloads are. "+verdict+caveat+" The content-free aggregate summary below is for local inspection only while external collection is paused.";
+  statusEl.innerHTML="<b>Early v1.</b> Reliability depends heavily on how varied your workloads are. "+verdict+caveat+" The content-free aggregate summary below is for local inspection only while external collection is paused.";
 }
 
 function renderRegime(){
@@ -604,7 +642,9 @@ function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&am
 // the fit never saw. `usable` arrives already sorted by timestamp from runBacktest().
 function fitQuotePriors(usable){
   var n=usable.length;
-  if(n<8) return null;
+  // The cold-start refusal, enforced here rather than in the copy. Below the gate no priors exist
+  // at all, so no surface downstream has anything to emit even if one forgot to check.
+  if(n<FORECAST_MIN_HISTORY) return null;
   var nCal=Math.max(2,Math.round(n*0.25));
   var fit=usable.slice(0,n-nCal), cal=usable.slice(n-nCal);
   if(fit.length<2) return null;
@@ -614,11 +654,13 @@ function fitQuotePriors(usable){
     return p;
   }catch(e){ return null; }
 }
-function quoteCard(title,f,st){
-  var bt = st ? "back-test on your data: "+fmtPct(st.coverage)+" coverage (target 80%) · "+fmtPct(st.medErr)+" median error"
+// A band never travels without the amount of history behind it.
+function quoteCard(title,f,st,nTest,nHistory){
+  var basis="Based on "+fmtN(nHistory)+" completed tasks of your history";
+  var bt = st ? "held-out check completed locally; public performance figures withheld while TOP-1 remains research"
               : "no back-test numbers available";
   return '<div class="mcard"><div class="k">'+esc(title)+'</div><div class="v i">'+fmt$(f.p10)+' – '+fmt$(f.p90)+'</div>'+
-    '<div class="sm">P50 '+fmt$(f.p50)+' · P10–P90 band</div><div class="sm">'+bt+'</div></div>';
+    '<div class="sm">P50 '+fmt$(f.p50)+' · P10–P90 band</div><div class="sm">'+esc(basis)+'</div><div class="sm">'+bt+'</div></div>';
 }
 function renderQuote(){
   var box=document.getElementById("quotebox"), form=document.getElementById("quoteform"),
@@ -629,7 +671,7 @@ function renderQuote(){
   cards.innerHTML=""; note.style.display="none"; note.textContent="";
   if(!QP){
     form.style.display="none";
-    lead.textContent="Not enough history to try an experimental band yet. It uses the same model as the back-test above, fitted only on your own sessions, so it unlocks once the back-test can run: at least 8 fully priced sessions, and you have "+(BT?BT.n:0)+". Add more ~/.claude/projects logs to run the research path.";
+    lead.textContent="No estimate for a new task yet. "+forecastRefusalText(BT&&BT.ok?BT.usable.length:(BT?BT.n:0))+" Add more ~/.claude/projects logs and it unlocks on its own.";
     return;
   }
   form.style.display="block";
@@ -666,11 +708,14 @@ function buildSummary(rows,t){
   var unpricedRows=rows.filter(function(r){return r.cost===null;});
   if(unpricedRows.length) L.push("  note: unpriced models above are excluded from all cost totals and from the back-test");
   L.push("");
+  L.push("[new_task_band]");
+  L.push("minimum_history_completed_tasks: "+FORECAST_MIN_HISTORY+" | usable_history_completed_tasks: "+(BT.ok?BT.usable.length:BT.n)+" | band_emitted: "+(QP?"yes":"no"));
+  L.push("");
   L.push("[backtest]");
   if(BT.ok){
     L.push("n_fit: "+BT.nFit+" | n_calib: "+BT.nCalib+" | n_test: "+BT.nTest);
-    L.push("description_mode: coverage_pct="+BT.stats.description.coverage.toFixed(1)+" (target 80) | median_rel_err_pct="+BT.stats.description.medErr.toFixed(1));
-    L.push("oracle_mode:      coverage_pct="+BT.stats.oracle.coverage.toFixed(1)+" (target 80) | median_rel_err_pct="+BT.stats.oracle.medErr.toFixed(1));
+    L.push("description_mode: "+backtestSummaryLine(BT.stats.description,BT.nTest));
+    L.push("oracle_mode:      "+backtestSummaryLine(BT.stats.oracle,BT.nTest));
     // caveat flags travel with the numbers, never instead of them
     if(BT.thin) L.push("caveat: small_test_set (n_test="+BT.nTest+") | numbers are noisy");
     if(BT.degenerate) L.push("caveat: zero_coverage | no test session fell inside its band");
@@ -678,7 +723,7 @@ function buildSummary(rows,t){
     var dist={};
     ["description"].forEach(function(){});
     var all=BT.stats.description.recs;
-    // count archetypes across the whole usable corpus, not just test — recompute from SESSIONS
+    // count archetypes across the whole usable corpus, not just test, then recompute from SESSIONS
     var counts={};
     SESSIONS.forEach(function(s){ var sc=sessionCost(s); if(sc.priced && sc.cost>0 && s.turns>0){ var a=Forecaster.classifyArchetype(s.desc||""); counts[a]=(counts[a]||0)+1; } });
     L.push("");
@@ -701,7 +746,7 @@ function handle(files){
   document.getElementById("busy").style.display="block";
   function doneReading(){
     if(!texts.length && failed){
-      // every read failed — the classic cause is a dropped folder in a browser whose drag
+      // every read failed. The classic cause is a dropped folder in a browser whose drag
       // API can't open directories. Say that, instead of the generic "no usage found" error.
       showErr("Couldn't read what was dropped. If that was a folder, this browser can't open folders from a drag. Use the \"choose a whole folder\" link instead, or drop the .jsonl files themselves. No selected log contents were sent.");
       return;
@@ -783,7 +828,7 @@ drop.addEventListener("drop",function(e){
   var dt=e.dataTransfer; if(!dt) return;
   var entries=[];
   if(dt.items){
-    // collect entries synchronously — the item list is gone once this handler returns
+    // collect entries synchronously. The item list is gone once this handler returns
     for(var i=0;i<dt.items.length;i++){
       var it=dt.items[i];
       var en=(typeof it.webkitGetAsEntry==="function")? it.webkitGetAsEntry() : null;
@@ -833,10 +878,10 @@ document.getElementById("qbtn").addEventListener("click",function(){
   var html="";
   try{
     var fd=Forecaster.forecast({archetype:arch,project:proj},QP,"description");
-    html+=quoteCard("From the task alone",fd,BT.ok?BT.stats.description:null);
+    html+=quoteCard("From the task alone",fd,BT.ok?BT.stats.description:null,BT.nTest,BT.usable.length);
     if(hasTurns){
       var fo=Forecaster.forecast({archetype:arch,project:proj,turn_count:turns},QP,"oracle");
-      html+=quoteCard("Given "+fmtN(turns)+" expected turns",fo,BT.ok?BT.stats.oracle:null);
+      html+=quoteCard("Given "+fmtN(turns)+" expected turns",fo,BT.ok?BT.stats.oracle:null,BT.nTest,BT.usable.length);
     }
   }catch(e){
     cards.innerHTML=""; note.style.display="block";

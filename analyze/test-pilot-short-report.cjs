@@ -17,7 +17,7 @@ assert.match(html, /Active days found/);
 assert.match(html, /Which models drove your usage\?/);
 assert.match(html, /What TOP Can Measure Today/);
 assert.match(html, /Value of completed work<\/span><strong>Not measured yet/);
-assert.match(html, /Verified savings forecast<\/span><strong>Coming soon/);
+assert.match(html, /Validated customer cost outcome<\/span><strong>Coming soon/);
 assert.match(html, /TOP-2 and TOP-3 remain in research and development/);
 assert.match(html, /future opt-in can let you enter the value of completed work yourself/);
 assert.match(html, /id="pilotPatternDetails" hidden/);
@@ -38,16 +38,20 @@ assert.match(html, /TOP read usage counters locally from the folder you chose/);
 assert.match(html, /Partial: "\+costText\+" for models TOP could price/);
 assert.match(html, /Ready: "\+costText\+" across all models/);
 assert.match(html, /slice\(0,3\)/);
-assert.match(html, /Share Your Safe Report/);
-assert.match(html, /See the exact research-safe JSON that will be downloaded or submitted/);
+assert.match(html, /Save Your Safe Report/);
+assert.doesNotMatch(html, /Share Your Safe Report/,
+  "the final step must not imply that TOP has a configured remote recipient");
+assert.match(html, /See the exact research-safe JSON available for download or your device share menu/);
 assert.match(html, /id="pilotResearchPreview" readonly/);
-assert.match(html, /Only the complete content-free aggregate report below can leave this page/);
+assert.match(html, /The complete content-free aggregate below was prepared on this device/);
 assert.match(html, /usage totals, model labels, source and collector metadata, pricing references/);
 assert.match(html, /privacy\.network_delivery: "none"/);
-assert.match(html, /TOP had not transmitted the report when it was generated/);
+assert.match(html, /this analyzer did not transmit the report/);
 assert.match(html, /Nothing has been sent/);
 assert.match(html, /Download My Safe Report/);
-assert.match(html, /Share My Safe Report/);
+assert.match(html, /Use My Device Share Menu/);
+assert.doesNotMatch(html, />Share My Safe Report</,
+  "the available action is the device share menu, not TOP delivery");
 assert.match(html, /buildResearchSafeJSON\(LAST_RESULT,ROUTEB/);
 
 assert.match(html, /if\(PILOT_MODE\)\{/);
@@ -61,7 +65,7 @@ assert.match(html, /not your subscription bill/);
 // model behind Cursor's Auto mode.
 assert.match(html, /What this would cost at API prices/);
 assert.match(html, /Your Cursor subscription covered this usage, so nothing extra was charged/);
-assert.match(html, /not money you paid and not a saving/);
+assert.match(html, /hypothetical API comparison, not your bill or a measured customer outcome/);
 assert.match(html, /Cursor's Auto mode does not record which AI version ran/);
 assert.match(html, /so TOP cannot show a model mix for this export/);
 assert.match(html, /AI version not disclosed/);
@@ -69,14 +73,11 @@ assert.match(html, /No charge, plan covered/);
 assert.match(html, /id="includedUsage" hidden/);
 assert.match(html, /\.pilot-mode #out>#includedUsage/,
   "the covered-usage callout must be hidden in pilot mode, where the pilot report already carries it");
-// Every sentence that states the API-equivalent amount must carry the "not a saving" qualifier in the
-// same breath, so the hypothetical can never be read as money the subscription earned back.
-for (const claim of html.match(/[^".]*would cost (?:about|somewhere between)[^"]*?(?:saving|bill)[^"]*/g) || []) {
-  assert.match(claim, /not money you paid and not a saving/,
-    `an API-equivalent figure was stated without the not-a-saving qualifier: ${claim.slice(0, 120)}`);
-}
-assert.ok((html.match(/not money you paid and not a saving/g) || []).length >= 2,
-  "both the on-screen callout and the downloaded summary must carry the not-a-saving qualifier");
+// Every API-equivalent amount must carry the bill and customer-outcome boundary in the same breath.
+assert.ok((html.match(/hypothetical API comparison, not your bill or a measured customer outcome/g) || []).length >= 2,
+  "both the on-screen callout and downloaded summary must carry the comparison boundary");
+assert.doesNotMatch(html, /Verified savings|Possible saving|not a saving|possible saving/i,
+  "public analyzer copy must avoid saving language, including negative disclaimers");
 
 const sunRule = html.match(/\.journey-sun\{[^}]+\}/);
 assert.ok(sunRule, "sun rule missing");

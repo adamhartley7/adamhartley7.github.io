@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/*.test.mjs",
+    "test": "node --import ./test/offline-network-guard.mjs --test test/*.test.mjs",
     "smoke:production": "node scripts/production-smoke.mjs",
     "verify:attachments": "node scripts/verify-attachment-hashes.mjs",
     "record:retention": "node scripts/record-retention-event.mjs",

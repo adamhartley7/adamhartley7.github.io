@@ -26,28 +26,31 @@ const RUNS = 3;
 const PAGE_PATH = path.join(__dirname, "index.html");
 const EXPECTED_CORE = {
   layout: { inner_width: 320, no_horizontal_overflow: true },
-  sessions_seen: 13,
-  priced_sessions_used: 12,
-  split: { fit: 7, calibration: 3, test: 2 },
+  sessions_seen: 33,
+  priced_sessions_used: 32,
+  split: { fit: 19, calibration: 7, test: 6 },
+  // hits 0 of 6 held-out tasks. The page shows that count and states no coverage rate, because
+  // six held-out tasks cannot support one. coverage_pct is the internal statistic, read straight
+  // off BT.stats and never rendered as a claim.
   task_only_backtest: {
     hits: 0,
     coverage_pct: 0,
-    median_relative_error_pct: 39.387018337573
+    median_relative_error_pct: 54.439844458083
   },
   turn_count_backtest: {
     hits: 0,
     coverage_pct: 0,
-    median_relative_error_pct: 39.387018337573
+    median_relative_error_pct: 54.439844458083
   },
   task_only_quote_usd: {
-    p10: 0.004250730867,
-    p50: 0.006699828324,
-    p90: 0.010559995674
+    p10: 0.004848828292,
+    p50: 0.010110795261,
+    p90: 0.021083068868
   },
   turn_count_quote_usd: {
-    p10: 0.012752192601,
-    p50: 0.020099484971,
-    p90: 0.031679987022
+    p10: 0.014546484877,
+    p50: 0.030332385784,
+    p90: 0.063249206604
   }
 };
 
@@ -68,15 +71,17 @@ function browserPath() {
 
 function makeFixture() {
   const texts = [];
-  for (let index = 1; index <= 12; index += 1) {
+  // 32 priced sessions, deliberately above the 30-completed-task cold-start gate, so this
+  // reproducibility run still exercises the path where a band IS emitted. Below the gate the
+  // page correctly produces no priors at all, which is covered by the cold-start refusal suite.
+  for (let index = 1; index <= 32; index += 1) {
     const id = String(index).padStart(2, "0");
     const sessionId = `synthetic-session-${id}`;
     const project = index % 2 === 0 ? "/synthetic/project-b" : "/synthetic/project-a";
-    const day = String(index).padStart(2, "0");
     const base = {
       sessionId,
       cwd: project,
-      timestamp: `2026-01-${day}T12:00:00.000Z`
+      timestamp: new Date(Date.UTC(2026, 0, 1, 12) + (index - 1) * 86400000).toISOString()
     };
     const rows = [
       {
@@ -103,21 +108,21 @@ function makeFixture() {
     texts.push(rows.map((row) => JSON.stringify(row)).join("\n"));
   }
 
-  // This thirteenth session must remain visible as usage, but must be excluded
+  // This thirty-third session must remain visible as usage, but must be excluded
   // from cost fitting because its synthetic model has no configured price.
   texts.push([
     JSON.stringify({
       type: "user",
       sessionId: "synthetic-session-unpriced",
       cwd: "/synthetic/project-c",
-      timestamp: "2026-01-13T12:00:00.000Z",
+      timestamp: "2026-02-02T12:00:00.000Z",
       message: { content: "Synthetic fixture task unpriced" }
     }),
     JSON.stringify({
       type: "assistant",
       sessionId: "synthetic-session-unpriced",
       cwd: "/synthetic/project-c",
-      timestamp: "2026-01-13T12:00:00.000Z",
+      timestamp: "2026-02-02T12:00:00.000Z",
       requestId: "synthetic-request-unpriced",
       message: {
         id: "synthetic-message-unpriced",
@@ -250,7 +255,7 @@ async function waitForReady(client) {
 async function waitForFixture(client) {
   for (let attempt = 0; attempt < 100; attempt += 1) {
     const ready = await evaluate(client,
-      "typeof SESSIONS !== 'undefined' && Array.isArray(SESSIONS) && SESSIONS.length === 13 && BT && BT.ok === true");
+      "typeof SESSIONS !== 'undefined' && Array.isArray(SESSIONS) && SESSIONS.length === 33 && BT && BT.ok === true");
     if (ready) return;
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
@@ -462,11 +467,18 @@ async function runOnce(runNumber, texts) {
     assert.ok(requests.length >= 2, "the local HTML and forecaster script must both load");
     assert.ok(requests.every((url) => url.startsWith("file:")),
       `run ${runNumber} attempted a non-file request: ${requests.join(", ")}`);
-    assert.equal(browserResult.sessions_seen, 13);
-    assert.equal(browserResult.priced_sessions_used, 12,
+    assert.equal(browserResult.sessions_seen, 33);
+    assert.equal(browserResult.priced_sessions_used, 32,
       "the session with an unknown price must fail closed and stay out of fitting");
     assert.match(browserResult.unpriced_warning, /synthetic-unpriced-model/);
     assert.match(browserResult.unpriced_warning, /excluded from cost/);
+    // The band that this run emits must carry the history behind it, while public performance
+    // figures stay withheld for every held-out split size.
+    assert.match(browserResult.quote_cards, /Based on 32 completed tasks of your history/,
+      "an emitted band must show the history count it was fitted on");
+    assert.match(browserResult.quote_cards, /public performance figures withheld while TOP-1 remains research/i);
+    assert.doesNotMatch(browserResult.quote_cards, /%|inside the band|median error|coverage rate/i,
+      "no public performance figure may be stated from this split");
     for (const quote of [browserResult.task_only_quote_usd, browserResult.turn_count_quote_usd]) {
       assert.ok(Number.isFinite(quote.p10) && Number.isFinite(quote.p50) && Number.isFinite(quote.p90));
       assert.ok(quote.p10 <= quote.p50 && quote.p50 <= quote.p90,
@@ -501,14 +513,14 @@ async function runOnce(runNumber, texts) {
 
   const inputRecord = {
     fixture_sha256: crypto.createHash("sha256").update(texts.join("\u0000")).digest("hex"),
-    synthetic_sessions: 13,
-    priced_sessions: 12,
+    synthetic_sessions: 33,
+    priced_sessions: 32,
     unpriced_sessions: 1,
     priced_model: "claude-sonnet-4-5-20260101",
     unpriced_model: "synthetic-unpriced-model",
     projects: ["/synthetic/project-a", "/synthetic/project-b", "/synthetic/project-c"],
-    timestamps: ["2026-01-01T12:00:00.000Z", "2026-01-13T12:00:00.000Z"],
-    priced_token_formula_by_index_1_to_12: {
+    timestamps: ["2026-01-01T12:00:00.000Z", "2026-02-02T12:00:00.000Z"],
+    priced_token_formula_by_index_1_to_32: {
       input: "800 + index * 75",
       output: "120 + index * 13",
       cache_creation: "index * 20",

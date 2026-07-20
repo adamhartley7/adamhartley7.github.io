@@ -185,7 +185,7 @@ footer a:hover{color:var(--muted)}
           <input id="g" type="range" min="0.05" max="1" step="0.01" value="0.2">
           <span class="gval" id="gout">low</span>
         </div>
-        <p class="cap" id="cap">Cutting the bill: token cost flattens while output value keeps climbing.</p>
+        <p class="cap" id="cap">Low cost gradient: token cost rises slowly while output value keeps climbing.</p>
 
         <div class="cards">
           <div class="stat"><div class="k">value per unit cost, before</div><div class="n">0.85</div></div>
@@ -218,7 +218,7 @@ footer a:hover{color:var(--muted)}
       <div class="moment imp reveal">
         <div class="t">the second marker · implementation</div>
         <h3>TOP-2 tests whether the curve can bend</h3>
-        <p>The research hypothesis is that routing can lower cost without reducing quality. It needs controlled benchmarks before any savings claim is credible.</p>
+        <p>The research compares routing cost and quality under controlled benchmarks. TOP has not established a customer cost outcome.</p>
       </div>
     </div>
   </div>
@@ -233,7 +233,7 @@ footer a:hover{color:var(--muted)}
     <div class="jev reveal">
       <p class="lead">Jevons described a rebound effect in coal use: when an efficiency improvement lowers the cost of useful work, people may use more of it. Lower unit cost does not always produce an equally large fall in total spending.</p>
       <p>AI may show a similar rebound effect. When each task gets cheaper, some teams may run more tasks. Total spend may therefore fall less than unit cost, stay similar, or rise. TOP has not yet measured which outcome is typical.</p>
-      <p>That makes a guaranteed savings pitch unsafe. The slider shows possible scenarios, not a forecast or customer result.</p>
+      <p>That makes a guaranteed bill-reduction pitch unsafe. The slider shows possible scenarios, not a forecast or customer result.</p>
       <div class="split">
         <div class="jc risk">
           <div class="t">the risk</div>
@@ -246,7 +246,7 @@ footer a:hover{color:var(--muted)}
       </div>
       <p>The useful business question is whether lower-cost work preserves quality and creates enough value to justify the spend. TOP-2 is an unshipped routing hypothesis. It needs controlled quality and cost tests before TOP can claim that it improves value per euro.</p>
     </div>
-    <div class="note reveal"><b>Illustrative, not measured.</b> The slopes and figures model a possible mechanism. TOP-2 is not shipped or benchmarked, and no percentage shown here is a verified savings claim.</div>
+    <div class="note reveal"><b>Illustrative, not measured.</b> The slopes and figures model a possible mechanism. TOP-2 is not shipped or benchmarked, and no percentage shown here is a verified customer result.</div>
   </div>
 </section>
 
@@ -301,9 +301,9 @@ footer a:hover{color:var(--muted)}
     el('imp').textContent=imp.toFixed(1);
     el('gout').textContent = g<=0.25?'low':(g>=0.7?'high':'medium');
     var cap;
-    if(g<=0.35) cap='<b>Cutting the bill.</b> Token cost flattens while output value keeps climbing.';
-    else if(g>=0.7) cap='<b>Reinvesting the saving (Jevons).</b> A similar spend now buys far more output.';
-    else cap='<b>Balanced.</b> Part of the saving is a lower bill, part is reinvested into more output.';
+    if(g<=0.35) cap='<b>Low cost gradient.</b> Token cost rises slowly while output value keeps climbing.';
+    else if(g>=0.7) cap='<b>Reinvestment scenario (Jevons).</b> A similar spend may support far more output.';
+    else cap='<b>Mixed scenario.</b> Part of the cost headroom lowers the bill, while part is assigned to more output.';
     el('cap').innerHTML=cap;
     el('costDot').setAttribute('cx',xToPx(6)); el('costDot').setAttribute('cy',yToPx(costAt(6,g)));
     el('valDot').setAttribute('cx',xToPx(6)); el('valDot').setAttribute('cy',yToPx(valAt(6,g)));

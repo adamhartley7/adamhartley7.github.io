@@ -47,17 +47,16 @@ assert.match(app, /Pilot\.parseExport\(await this\.files\[0\]\.text\(\)\)/);
 assert.match(app, /Pilot\.coordinatorSummary\(exports\)/);
 
 assert.match(html, /This is an instrumentation check, not evidence that TOP is accurate/);
-assert.match(html, /Observed coverage is reported and may differ/i);
-assert.match(html, /intended to target 80% coverage/i);
-assert.match(html, /every forecast excluded from accuracy remain visible/i);
-assert.match(html, /coverage floor treats every excluded forecast as a miss/i);
-assert.match(html, /95% uncertainty range is a Wilson interval/i);
-assert.match(html, /Even 24 tasks cannot establish precise calibration/i);
+assert.match(html, /does not publish a performance rate/i);
+assert.match(html, /research export preserves the paired records/i);
+assert.match(html, /excluded forecast remain visible in the data-completeness counts/i);
 assert.match(html, /Forecast-version splits are descriptive/);
 assert.match(html, /cannot establish causal differences between versions/);
 assert.match(app, /24 structurally complete self-entered records/);
-assert.match(app, /\["95% uncertainty range", percentRange\(summary\.within_p10_p90_wilson_95\)/);
-assert.match(app, /\.numerator \+ " covered \/ " \+ summary\.within_p10_p90_wilson_95\.denominator/);
-assert.match(html, /No accuracy or savings claim/);
+assert.match(app, /\["Frozen forecasts", String\(summary\.forecasts_frozen\)/);
+assert.match(app, /\["Public performance report", "Withheld", "TOP-1 remains research"\]/);
+assert.doesNotMatch(app, /\["80% interval coverage"|\["95% uncertainty range"/);
+assert.doesNotMatch(app, /coverage " \+ percent|median error " \+/i);
+assert.match(html, /No public performance claim/);
 
 console.log("TOP prospective pilot UI flow tests passed");

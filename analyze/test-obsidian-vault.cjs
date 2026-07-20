@@ -153,7 +153,20 @@ assert.equal(context.inferModeFromFileNames([file("conversations.JSON")]), "conv
 assert.equal(context.inferModeFromFileNames([file("usage.CSV")]), "csv");
 
 const oversizedConversation = context.historyFilesForMode([file("conversations.json", { size: 65 * 1024 * 1024 })], "chat");
-assert.equal(oversizedConversation.files.length, 0, "large conversation JSON must fail before a phone tab tries to retain and parse it");
+assert.equal(oversizedConversation.files.length, 1,
+  "a conversation export above the one-shot limit must remain eligible for the bounded desktop reader");
+assert.ok(oversizedConversation.totalBytes > context.conversationLimitBytes(),
+  "the fixture must exercise the bounded reader rather than the one-shot path");
+assert.ok(oversizedConversation.totalBytes <= context.conversationStreamingLimitBytes(),
+  "the accepted fixture must remain inside the bounded desktop ceiling");
+
+const beyondBoundedConversation = context.historyFilesForMode([
+  file("conversations.json", { size: context.conversationStreamingLimitBytes() + 1 }),
+], "chat");
+assert.equal(beyondBoundedConversation.files.length, 0,
+  "a conversation export above the bounded local-reader ceiling must fail closed");
+assert.equal(beyondBoundedConversation.oversized, 1,
+  "the UI must be able to explain why an over-ceiling conversation export was rejected");
 
 const giantMergedClaude = context.historyFilesForMode([file("TOP-claude-export.jsonl", { size: 546 * 1024 * 1024 })], "cc");
 assert.equal(giantMergedClaude.files.length, 0, "a giant raw merged history must not be retained as one browser string");

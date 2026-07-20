@@ -32,16 +32,23 @@ assert.match(html, /id="pickfiles"/i);
 assert.match(html, /id="copyagent"/i);
 assert.match(html, /Inside<\/span>|Missed<\/span>/i);
 
-const heldOutSource = html.match(/function heldOutStatus\(cov,err\)\{[\s\S]*?\n\}/);
+// Public forecast copy never turns the held-out research diagnostics into an accuracy figure.
+// The calculations remain available to the local research harness, but the live page withholds
+// both thin and thick split rates while TOP-1 remains research.
+const coverageSource = html.match(/function coverageRateReportable\(n\)\{[\s\S]*?\nfunction coverageValue/);
+assert.ok(coverageSource, "coverage helpers must remain independently testable");
+const heldOutSource = html.match(/function heldOutStatus\(hits,n,err\)\{[\s\S]*?\n\}/);
 assert.ok(heldOutSource, "held-out status formatter must remain independently testable");
-const heldOutContext = { fmtPct: (value) => `${value}%` };
+const heldOutContext = { Math, Number, fmtPct: (value) => `${value}%`, COVERAGE_MIN_TEST: 20 };
+vm.runInNewContext(coverageSource[0].replace(/\nfunction coverageValue$/, ""), heldOutContext,
+  { filename: "forecast-coverage-helpers.js" });
 vm.runInNewContext(heldOutSource[0], heldOutContext, { filename: "forecast-held-out-status.js" });
-for (const [coverage, error] of [[100, 5], [80, 15], [65, 30], [0, 39.4]]) {
-  const message = heldOutContext.heldOutStatus(coverage, error);
-  assert.match(message, new RegExp(`observed coverage was ${coverage}% against an 80% target`, "i"));
-  assert.match(message, new RegExp(`median relative error was ${String(error).replace(".", "\\.")}%`, "i"));
+for (const [hits, split, error] of [[40, 40, 5], [32, 40, 15], [26, 40, 30], [0, 40, 39.4], [2, 2, 5], [1, 2, 39.4]]) {
+  const message = heldOutContext.heldOutStatus(hits, split, error);
+  assert.match(message, new RegExp(`${split} selected-history tasks`, "i"));
+  assert.match(message, /public performance figures are withheld/i);
   assert.match(message, /does not validate the model for a future task or another user/i);
-  assert.doesNotMatch(message, /near|promising|well-calibrated|roughly calibrated|should catch|should contain/i);
+  assert.doesNotMatch(message, /%|inside the band|median relative error|near|promising|well-calibrated|roughly calibrated|should catch|should contain/i);
 }
 
 for (const overclaim of [

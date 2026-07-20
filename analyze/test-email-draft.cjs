@@ -4,15 +4,23 @@ const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 
-// The former arbitrary-recipient mail draft is deliberately gone. Delivery
-// recipients belong only to the server configuration.
+// The former arbitrary-recipient mail draft is deliberately gone. The
+// canonical analyzer terminal is local-only and names no remote recipient.
 assert.doesNotMatch(html, /id="shareRecipients"|id="openEmailDraft"|mailto:/);
 assert.doesNotMatch(html, /parseRecipientList|buildMailDraftUrl|MAILTO_SAFE_LIMIT/);
-assert.match(html, /Optional Research Submission To Adam And Sam/);
-assert.match(html, /Fixed recipients:/);
-assert.match(html, /This page cannot choose, change or add recipients/);
 assert.doesNotMatch(html, /oconns89@|adam2hartley@/i,
   "server recipient addresses must not be published in client source");
+
+const terminalStart = html.indexOf('<section class="share-stage" id="shareWithTop"');
+const terminalEnd = html.indexOf("</section>", terminalStart);
+assert.ok(terminalStart >= 0 && terminalEnd > terminalStart, "could not locate the local report terminal");
+const terminal = html.slice(terminalStart, terminalEnd);
+assert.match(terminal, /Download Or Copy My Safe Report/);
+assert.match(terminal, /This page has no configured remote recipient/);
+assert.match(terminal, /<div class="share-form" hidden aria-hidden="true">/,
+  "the dormant remote-transfer area must remain inaccessible");
+assert.doesNotMatch(terminal, /Optional Research Submission|Submit Reviewed Safe Report|Fixed recipients:|Adam And Sam/i,
+  "the local terminal must not advertise a named remote-delivery action");
 
 // Local download and copy remain available even while the endpoint is blank.
 assert.match(html, /id="safeDownload">Download My Own Copy/);

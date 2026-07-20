@@ -1,0 +1,32 @@
+[
+  {
+    "id": "synthetic-chatgpt-conversation",
+    "title": "Synthetic ChatGPT conversation",
+    "create_time": 1784455200,
+    "default_model_slug": "gpt-5.6-sol",
+    "mapping": {
+      "root": { "id": "root", "parent": null, "children": ["user"], "message": null },
+      "user": {
+        "id": "user",
+        "parent": "root",
+        "children": ["assistant"],
+        "message": {
+          "author": { "role": "user" },
+          "create_time": 1784455200,
+          "content": { "content_type": "text", "parts": ["12345678"] }
+        }
+      },
+      "assistant": {
+        "id": "assistant",
+        "parent": "user",
+        "children": [],
+        "message": {
+          "author": { "role": "assistant" },
+          "create_time": 1784455260,
+          "content": { "content_type": "text", "parts": ["123456789012"] },
+          "metadata": { "model_slug": "gpt-5.6-sol" }
+        }
+      }
+    }
+  }
+]

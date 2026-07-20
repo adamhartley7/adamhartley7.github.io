@@ -381,20 +381,11 @@
     while (target.firstChild) target.removeChild(target.firstChild);
     [
       ["Paired usable", summary.paired_usable + " / " + summary.forecasts_frozen, "actuals / frozen forecasts"],
-      ["80% interval coverage", percent(summary.within_p10_p90_rate), summary.within_p10_p90_count + " / " + summary.paired_usable],
-      ["95% uncertainty range", percentRange(summary.within_p10_p90_wilson_95), summary.within_p10_p90_wilson_95.numerator + " covered / " + summary.within_p10_p90_wilson_95.denominator + " paired tasks"],
-      ["Below P10", percent(summary.below_p10_rate), summary.below_p10_count + " / " + summary.paired_usable],
-      ["At or below P50", percent(summary.at_or_below_p50_rate), summary.at_or_below_p50_count + " / " + summary.paired_usable],
-      ["At or below P90", percent(summary.at_or_below_p90_rate), summary.at_or_below_p90_count + " / " + summary.paired_usable],
-      ["Median multiplicative error", fixed(summary.median_multiplicative_error, 2) + (summary.median_multiplicative_error === null ? "" : "x"), "P50 against actual"],
-      ["Mean log bias", fixed(summary.mean_log_bias, 3), "positive means P50 was high"],
-      ["Relative interval width", percent(summary.median_relative_interval_width), "median (P90 minus P10) / P50"],
-      ["Absolute interval width", summary.median_absolute_interval_width_usd === null ? "Not available" : formatMoney(summary.median_absolute_interval_width_usd), "median P90 minus P10"],
-      ["Log-space interval score", fixed(summary.mean_log_space_interval_score, 3), "lower is better"],
-      ["Attrition", percent(summary.attrition_rate), summary.invalidated + " invalidated / " + summary.forecasts_frozen + " frozen"],
-      ["Missing actuals", percent(summary.missing_actual_rate), summary.actual_missing + " actuals missing / " + summary.forecasts_frozen + " frozen"],
-      ["Excluded from accuracy", percent(summary.analysis_exclusion_rate), summary.analysis_excluded + " excluded / " + summary.forecasts_frozen + " frozen"],
-      ["Coverage floor if exclusions missed", percent(summary.coverage_floor_if_excluded_miss), summary.within_p10_p90_count + " covered / " + summary.forecasts_frozen + " frozen"]
+      ["Frozen forecasts", String(summary.forecasts_frozen), "recorded before actual cost"],
+      ["Invalidated attempts", String(summary.invalidated), "fixed reasons retained"],
+      ["Missing actuals", String(summary.actual_missing), "frozen attempts without a paired actual"],
+      ["Excluded records", String(summary.analysis_excluded), "retained but excluded from research analysis"],
+      ["Public performance report", "Withheld", "TOP-1 remains research"]
     ].forEach(function (item) {
       var card = document.createElement("div");
       card.className = "metric-card";
@@ -413,8 +404,7 @@
       var label = document.createElement("strong");
       label.textContent = labels && labels[entry.group] ? labels[entry.group] : entry.group;
       var result = document.createElement("span");
-      result.textContent = "n=" + entry.summary.paired_usable + ", coverage " + percent(entry.summary.within_p10_p90_rate) + ", median error " +
-        (entry.summary.median_multiplicative_error === null ? "N/A" : entry.summary.median_multiplicative_error.toFixed(2) + "x");
+      result.textContent = "n=" + entry.summary.paired_usable + " paired usable tasks; performance figures withheld";
       row.append(label, result); target.appendChild(row);
     });
   }
@@ -424,7 +414,7 @@
     byId("denominatorNote").textContent = summary.participants_imported + " of " + summary.participant_target + " participant slots imported. " +
       summary.overall.paired_usable + " paired usable tasks, " + summary.overall.invalidated + " invalidated attempts, and " +
       summary.overall.actual_missing + " frozen attempts without an actual. " + summary.overall.analysis_excluded +
-      " frozen attempts are excluded from accuracy metrics. No excluded or missing attempt was silently removed.";
+      " frozen attempts are excluded from research analysis. No excluded or missing attempt was silently removed.";
     renderMetricCards(summary.overall);
     renderSplits("participantSplits", summary.by_participant, null);
     renderSplits("versionSplits", summary.by_forecast_version, versionLabels);
