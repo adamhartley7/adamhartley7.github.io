@@ -11,6 +11,7 @@
 "use strict";
 const F = require("./forecaster.js");
 const assert = require("assert");
+const crypto = require("node:crypto");
 
 let passed = 0;
 function ok(name, cond, detail) {
@@ -141,7 +142,6 @@ console.log("\n[6] end-to-end through forecast(): future poison cannot move a ba
 
 console.log("\n[7] REGRESSION: with no retrieval configured, behaviour is bit-identical to baseline");
 {
-  const Base = require("C:/Users/adam1/worktrees/top1-benchmark/forecast/forecaster.js");
   let seed = 99;
   const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
   const arch = ["debug_fix", "build_new", "misc", "qa_short"];
@@ -155,24 +155,26 @@ console.log("\n[7] REGRESSION: with no retrieval configured, behaviour is bit-id
   }
   const tr = data.slice(0, 300), ca = data.slice(300, 400), te = data.slice(400);
   const pN = F.calibrate(F.fitPriors(tr, {}), ca);
-  const pO = Base.calibrate(Base.fitPriors(tr, {}), ca);
-  let maxd = 0;
+  const predictions = [];
   for (const r of te) for (const m of ["oracle", "description"]) {
-    const a = F.forecast(r, pN, m), b = Base.forecast(r, pO, m);
-    maxd = Math.max(maxd, Math.abs(a.p10 - b.p10), Math.abs(a.p50 - b.p50), Math.abs(a.p90 - b.p90));
+    const prediction = F.forecast(r, pN, m);
+    predictions.push([m, prediction.p10, prediction.p50, prediction.p90]);
   }
-  ok("baseline path unchanged across " + te.length + " tasks x 2 regimes", maxd === 0, "maxdiff=" + maxd);
+  const digest = crypto.createHash("sha256").update(JSON.stringify(predictions)).digest("hex");
+  ok("baseline path unchanged across " + te.length + " tasks x 2 regimes",
+    digest === "ce3ab1116e545d0218d43063194ee41881e6dffbdd8a038a4b077363e775049f",
+    "digest=" + digest);
 }
 
 console.log("\n[8] classifier untouched (archetype labels identical to baseline)");
 {
-  const Base = require("C:/Users/adam1/worktrees/top1-benchmark/forecast/forecaster.js");
   const probes = ["fix the failing test", "refactor across the codebase", "what is this?",
     "build a new prototype from scratch", "summarise the findings", "commit and push",
     "", "add a button to index.html", "hackathon builder track entry"];
-  let bad = 0;
-  for (const p of probes) if (F.classifyArchetype(p) !== Base.classifyArchetype(p)) bad++;
-  ok("archetype classifier unchanged on " + probes.length + " probes", bad === 0);
+  const expected = ["debug_fix", "multi_file_refactor", "qa_short", "build_new", "research_summarize",
+    "ops_repo", "misc", "single_file_edit", "hackathon_build"];
+  ok("archetype classifier unchanged on " + probes.length + " probes",
+    probes.every((probe, index) => F.classifyArchetype(probe) === expected[index]));
 }
 
 console.log("\nALL " + passed + " LEAKAGE / REGRESSION CHECKS PASSED\n");

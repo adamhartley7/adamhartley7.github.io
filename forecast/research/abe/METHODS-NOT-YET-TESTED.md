@@ -1,6 +1,6 @@
 # TOP-1: ABE methods not yet tested
 
-**Thirty-second read:** Try training-only, robust-scaled Manhattan retrieval first. It is the cheapest clean test of the open similarity problem, it directly addresses the outlier-scaling weakness identified in the ABE literature, and it changes only which analogies are selected. Test kNN conformalized quantile bands second because they target width directly. Nothing here is a validation result. Tonight's only task-level corpus has 849 eligible rows. The corrected screen analyzed only the first 719, which contain just 12 unique normalized prompt excerpts, with one excerpt appearing 706 times. The chronological fit window has no robustly active prompt-vector dimensions. Colin's user-labelled export and the other small export are aggregate-only, so neither can support an ABE backtest. The old 130-row holdout is compromised because a discarded pre-fix diagnostic inspected its prompt identities. Its outcomes were not scored by the corrected harness, but a fresh future holdout is required.
+**Thirty-second read:** Try training-only, robust-scaled Manhattan retrieval first. It is the cheapest clean test of the open similarity problem, it directly addresses the outlier-scaling weakness identified in the ABE literature, and it changes only which analogies are selected. Test kNN conformalized quantile bands second because they target width directly. Nothing here is a validation result. Tonight's only task-level corpus has 849 eligible rows. The corrected screen analyzed only the first 719, which contain just 12 unique normalized prompt excerpts, with one excerpt appearing 706 times. The chronological fit window has no robustly active prompt-vector dimensions. Participant C's user-labelled export and the other small export are aggregate-only, so neither can support an ABE backtest. The old 130-row holdout is compromised because a discarded pre-fix diagnostic inspected its prompt identities. Its outcomes were not scored by the corrected harness, but a fresh future holdout is required.
 
 ## Decision
 
@@ -276,11 +276,11 @@ The new harness is [`backtest-abe-screen.cjs`](./backtest-abe-screen.cjs). It re
 
 | Source | Available material | ABE eligible? | Reason |
 |---|---|---:|---|
-| Adam | 849 eligible task rows with prompt excerpt, chronology, and realized cost | Diagnostic only | corrected screen analyzes 719 pre-holdout rows; 12 unique normalized excerpts, 707 duplicate rows, maximum multiplicity 706 |
-| Adam, first exact prompt only | 12 retained fit rows | No | frozen boundaries leave 0 retained calibration rows and 0 retained development rows; the reserved count stays 130 and those rows are not scanned by this sensitivity |
-| Colin, user-labelled attachment | aggregate of 20 sessions and 904 usage records | No | no per-task prompt features, chronology, or realized task cost |
-| Separate 17-session export | aggregate only, identity not embedded | No | no per-task analogy rows; not attributed to Sam without proof |
-| Sam | no verified task-level export found | No | a person-level ABE result cannot be constructed honestly |
+| Participant A | 849 eligible task rows with prompt excerpt, chronology, and realized cost | Diagnostic only | corrected screen analyzes 719 pre-holdout rows; 12 unique normalized excerpts, 707 duplicate rows, maximum multiplicity 706 |
+| Participant A, first exact prompt only | 12 retained fit rows | No | frozen boundaries leave 0 retained calibration rows and 0 retained development rows; the reserved count stays 130 and those rows are not scanned by this sensitivity |
+| Participant C, user-labelled attachment | aggregate of 20 sessions and 904 usage records | No | no per-task prompt features, chronology, or realized task cost |
+| Unattributed 17-session export | aggregate only, identity not embedded | No | no per-task analogy rows; not attributed to a named participant without proof |
+| Participant B | no verified task-level export found | No | a participant-level ABE result cannot be constructed honestly |
 
 No raw prompt, project, model, timestamp, session identifier, or questionnaire content was copied into Git.
 
@@ -315,7 +315,7 @@ Before collecting and opening a fresh final holdout, write and commit a candidat
 
 1. **Target:** one future run's API-equivalent cost, not a four-run mean and not a subscription price.
 2. **Split:** preserve chronology. Fit transformations and similarity features on fit only, calibrate later, select at most one candidate on development, then evaluate once on a newly collected holdout. Keep the compromised old 130-row slice diagnostic-only.
-3. **People:** report Adam, Sam, and Colin separately. Pool only after person-level results and with no person-specific tuning.
+3. **People:** report participants A, B, and C separately. Pool only after participant-level results and with no participant-specific tuning.
 4. **Independence:** one recurring episode gets total bootstrap weight one. Report an exact-prompt-capped sensitivity.
 5. **Primary width:** median `P90/P10`, plus 90th-percentile `P90/P10`. Keep the vault's `(P90-P10)/P50` metric as a secondary view.
 6. **Coverage:** report overall, upper-tail misses, lower-tail misses, and answered-task coverage if the method can abstain.

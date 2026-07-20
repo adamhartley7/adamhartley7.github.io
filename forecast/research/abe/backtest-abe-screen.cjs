@@ -13,7 +13,7 @@
  * - This is not product code.
  * - runScreen never accesses or scores the final 15 percent of prepared records.
  *   The CLI loader parses the full CSV to establish the eligible chronological
- *   corpus, so it is not a holdout-preserving import boundary. The Adam corpus's
+ *   corpus, so it is not a holdout-preserving import boundary. The primary corpus's
  *   old holdout is also marked compromised because a discarded earlier diagnostic
  *   inspected prompt identities before this guard was added.
  * - The method screen is exploratory because its hypotheses were written after the
