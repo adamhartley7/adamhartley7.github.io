@@ -46,7 +46,7 @@ assert.match(html, /id="pilotResearchPreview" readonly/);
 assert.match(html, /The complete content-free aggregate below was prepared on this device/);
 assert.match(html, /usage totals, model labels, source and collector metadata, pricing references/);
 assert.match(html, /privacy\.network_delivery: "none"/);
-assert.match(html, /TOP had not transmitted the report when it was generated/);
+assert.match(html, /this analyzer did not transmit the report/);
 assert.match(html, /Nothing has been sent/);
 assert.match(html, /Download My Safe Report/);
 assert.match(html, /Use My Device Share Menu/);
