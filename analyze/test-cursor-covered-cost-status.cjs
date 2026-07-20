@@ -57,7 +57,7 @@ function plain(data, covered) {
   return vm.runInContext("describeResearchSafePlain(__data,__covered)", context);
 }
 
-const COVERED_STATUS = "no_charge_subscription_covered";
+const COVERED_STATUS = "subscription_covered";
 
 // ---------------------------------------------------------------- 1. a fully covered export
 const covered = parse([

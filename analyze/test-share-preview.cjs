@@ -231,14 +231,14 @@ function hostSorted(values) {
 
 // ---------- 5. the preview never invents money, and never prints a bare $0.00 for unknown ----------
 {
-  assert.equal(context.shareValueText("usd", null), "No dollar figure. TOP could not price this.");
+  assert.equal(context.shareValueText("usd", null), "Unpriced");
   // Resolved in favour of main: a recorded zero is words, never the string $0.00, so that it can
   // never be confused with a price TOP could not work out.
   assert.equal(context.shareValueText("usd", 0), "No charge recorded");
   assert.doesNotMatch(context.shareValueText("usd", 0), /\$/,
     "a recorded zero must carry no dollar figure at all");
   assert.equal(context.shareValueText("usd", 18.4231), "$18.42");
-  assert.equal(context.shareValueText("input_usd_per_million", null), "No dollar figure. TOP could not price this.");
+  assert.equal(context.shareValueText("input_usd_per_million", null), "Unpriced");
   // A recorded zero and an unpriceable value must not read the same.
   assert.notEqual(context.shareValueText("usd", 0), context.shareValueText("usd", null));
   const payload = samplePayload();

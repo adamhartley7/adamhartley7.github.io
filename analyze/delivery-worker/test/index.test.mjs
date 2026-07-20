@@ -853,12 +853,12 @@ test("the live analyzer builders and strict Worker agree on Cursor and Copilot r
   const coveredReport = JSON.parse(JSON.stringify(
     context.buildResearchSafeObject(covered, null, questionnaire("cursor"), 0.4, "2026-07-19"),
   ));
-  assert.equal(coveredReport.cost.status, "no_charge_subscription_covered");
+  assert.equal(coveredReport.cost.status, "subscription_covered");
   assert.equal(coveredReport.cost.usd, 0);
-  assert.equal(coveredReport.cost.basis, "subscription_covered_no_charge_in_export");
+  assert.equal(coveredReport.cost.basis, "subscription_covered_by_plan");
   assert.equal(coveredReport.measurement.cost_basis, "marked_included_by_cursor_no_charge");
   assert.equal(coveredReport.pricing.unpriced_model_groups, 0);
-  assert.equal(coveredReport.by_model.every((row) => row.cost.status === "no_charge_subscription_covered"), true);
+  assert.equal(coveredReport.by_model.every((row) => row.cost.status === "subscription_covered"), true);
   assert.equal(validateResearchSafeUsage(coveredReport), true);
   assert.equal(coveredReport.value_model.truth_status, "not_available",
     "a covered export must not carry a routing-saving illustration");
@@ -871,9 +871,9 @@ test("a covered zero charge cannot be forged, borrowed or applied where it is no
     report.coverage.rows_with_recorded_cost = 0;
     report.coverage.rows_without_recorded_cost = 1;
     report.cost = {
-      status: "no_charge_subscription_covered",
+      status: "subscription_covered",
       usd: 0,
-      basis: "subscription_covered_no_charge_in_export",
+      basis: "subscription_covered_by_plan",
       currency: "USD",
       subscription_bill: false,
     };
@@ -884,7 +884,7 @@ test("a covered zero charge cannot be forged, borrowed or applied where it is no
       applied_rates: [],
       unpriced_model_groups: 0,
     };
-    report.by_model = report.by_model.map((row) => ({ ...row, cost: { status: "no_charge_subscription_covered", usd: 0 } }));
+    report.by_model = report.by_model.map((row) => ({ ...row, cost: { status: "subscription_covered", usd: 0 } }));
     return report;
   };
   assert.equal(validateResearchSafeUsage(coveredFixture()), true);
@@ -919,13 +919,13 @@ test("a covered zero charge cannot be forged, borrowed or applied where it is no
   ordinary.coverage.rows_with_recorded_cost = 0;
   ordinary.coverage.rows_without_recorded_cost = 1;
   ordinary.cost = {
-    status: "no_charge_subscription_covered",
+    status: "subscription_covered",
     usd: 0,
     basis: "recorded_and_or_estimated_where_possible",
     currency: "USD",
     subscription_bill: false,
   };
-  ordinary.by_model = ordinary.by_model.map((row) => ({ ...row, cost: { status: "no_charge_subscription_covered", usd: 0 } }));
+  ordinary.by_model = ordinary.by_model.map((row) => ({ ...row, cost: { status: "subscription_covered", usd: 0 } }));
   assert.throws(() => validateResearchSafeUsage(ordinary), /outside a subscription-covered Cursor report|does not reconcile/i);
 
   // And an unpriceable report is still unpriceable: the two statuses stay apart.

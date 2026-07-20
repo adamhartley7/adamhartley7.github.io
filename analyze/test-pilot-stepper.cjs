@@ -484,8 +484,10 @@ assert.match(mixBody, /pilotMixWithheld\(res\)[\s\S]{0,120}pilotRangeChartHTML\(
 // ---------- the same table must not both print a cost and say nothing was charged ----------
 // On a covered export the row cost is an API-price comparison, not a charge. Printing "~$0.0047" in the
 // Cost column above a footer reading "No charge, plan covered" made one table say two things at once.
-assert.match(html, /cursorUndisclosedModel\(r\.model\)\?"AI version not disclosed":\(included\?"No charge, plan covered"/,
-  "a covered export's per-row cost cell must agree with its own table footer");
+assert.match(html, /var shown=included\?"No charge, plan covered":costCell\(r\.cost,r\.complete,res\.estimate\?"~":""\)/,
+  "a covered export's per-row cost cell must agree with its own table footer, while every unknown cost uses the shared cost-cell rule");
+assert.doesNotMatch(html, /var shown=[^;]*"AI version not disclosed"/,
+  "an undisclosed model must not invent a second label for an unpriced cost");
 
 // ---------- the pinned rail must not count "auto" as an AI version in a mixed export ----------
 const mixedNote = { amount: "$2.66 to $49.86", isRange: true, rateCount: 10, modelsUndisclosed: false, someUndisclosed: true, undisclosedRows: 12 };

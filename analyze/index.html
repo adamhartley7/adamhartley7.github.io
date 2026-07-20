@@ -630,7 +630,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
               <p id="pilotQuickPrivacy">Your prompts, replies, code and files stayed on this computer.</p>
             </div>
             <div class="pilot-metrics">
-              <div class="pilot-metric"><strong id="pilotQuickCost">Not available</strong><span id="pilotQuickCostLabel">Actual cost in the selected files</span></div>
+              <div class="pilot-metric"><strong id="pilotQuickCost">Unpriced</strong><span id="pilotQuickCostLabel">Actual cost in the selected files</span></div>
               <div class="pilot-metric"><strong id="pilotQuickSessions">0</strong><span id="pilotQuickSessionsLabel">Work sessions found</span></div>
               <div class="pilot-metric"><strong id="pilotQuickDays">0</strong><span>Active days found</span></div>
             </div>
@@ -669,7 +669,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
             <p class="pilot-step-lead" id="pilotRoutingLead"></p>
             <div class="pilot-chart" id="pilotChartRouting"></div>
             <div class="pilot-value-list">
-              <div class="pilot-value-row"><span>Actual cost recorded</span><strong id="pilotValueCost">Not available</strong></div>
+              <div class="pilot-value-row"><span>Actual cost recorded</span><strong id="pilotValueCost">Unpriced</strong></div>
               <div class="pilot-value-row"><span>Value of completed work</span><strong>Not measured yet</strong></div>
               <div class="pilot-value-row"><span>Verified savings forecast</span><strong>Coming soon</strong></div>
             </div>
@@ -775,7 +775,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
       </div>
     </div>
     <p class="note">Pay-as-you-go means each amount of AI use is billed separately. Estimates use provider prices checked on 15 Jul 2026 and may differ from your bill. Claude Max, Claude Pro and ChatGPT subscriptions are not charged using the dollar estimate shown here.</p>
-    <details class="technical-details"><summary>Advanced Pricing Details</summary><div class="details-body"><div class="pricerow" id="prices"></div><p class="note">Prices vary by exact AI version, provider, reused input, service tier and date. AI versions we cannot match are not priced automatically.</p><p class="note">The reused-input estimate assumes Anthropic's five-minute rate at 1.25 times normal input. A one-hour reuse write is 2 times normal input. Claude Sonnet 5 uses its introductory $2 input and $10 output rate through 31 Aug 2026.</p></div></details>
+    <details class="technical-details"><summary>Advanced Pricing Details</summary><div class="details-body"><div class="pricerow" id="prices"></div><p class="note">Prices vary by exact AI version, provider, reused input, service tier and date. AI versions we cannot match remain unpriced.</p><p class="note">The reused-input estimate assumes Anthropic's five-minute rate at 1.25 times normal input. A one-hour reuse write is 2 times normal input. Claude Sonnet 5 uses its introductory $2 input and $10 output rate through 31 Aug 2026.</p></div></details>
       </div>
     </div>
 
@@ -2229,6 +2229,7 @@ function parseCSV(texts){
       var rowTokens={inp:num(ci.inp),out:num(ci.out),cw:num(ci.cw),cr:num(ci.cr)};
       var rawCost=ci.cost>=0?String(f[ci.cost]===undefined?"":f[ci.cost]).trim():"";
       var parsedCost=rawCost?strictMoney(rawCost):null;
+      var unpriceableCost=parsedCost!==null&&parsedCost<0;
       var hasTokenValues=rowTokens.inp>0||rowTokens.out>0||rowTokens.cw>0||rowTokens.cr>0;
       // A negative billed amount is a refund or credit adjustment, not this row's charge. Counting it
       // would net real money away from a sibling row, so the row stays unpriced instead.
@@ -2238,7 +2239,7 @@ function parseCSV(texts){
       var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0}});
       e.inp+=rowTokens.inp; e.out+=rowTokens.out; e.cw+=rowTokens.cw; e.cr+=rowTokens.cr;
       if(hasCostValue){e.cost+=parsedCost;e.costRows++;costRows++;}
-      else{e.missingCostRows++;missingCostRows++;e.missing.inp+=rowTokens.inp;e.missing.out+=rowTokens.out;e.missing.cw+=rowTokens.cw;e.missing.cr+=rowTokens.cr;}
+      else{e.missingCostRows++;missingCostRows++;if(unpriceableCost)e.unpriceableCostRows=(e.unpriceableCostRows||0)+1;e.missing.inp+=rowTokens.inp;e.missing.out+=rowTokens.out;e.missing.cw+=rowTokens.cw;e.missing.cr+=rowTokens.cr;}
       e.turns++; rows++;
     }
   });
@@ -2270,7 +2271,18 @@ function cursorHeaderColumns(line){
   return ci;
 }
 function cursorSafeModelLabel(value){return String(value||"").replace(/[\u0000-\u001f\u007f<>\\/]/g," ").replace(/\s+/g," ").trim().slice(0,80)}
-// Exact recognition on purpose. Rows whose model is outside these observed Cursor families are excluded and named, never guessed.
+// Unknown model names still carry real source usage. Keep a harmless, ordinary label when possible,
+// and collapse hostile or prototype-shaped text into one explicit bucket. Recognition controls
+// pricing only. It must never decide whether the source-native usage survives parsing.
+function retainedUsageModelLabel(value,recognizer){
+  var raw=String(value===undefined||value===null?"":value).trim(),safe=cursorSafeModelLabel(raw);
+  if(!safe)return "Unrecognized AI version";
+  if(recognizer(safe))return safe;
+  if(raw!==safe||/^(?:__proto__|prototype|constructor)$/i.test(safe)||/(?:onerror\s*=|onload\s*=|javascript\s*:|<\s*\/?\s*(?:img|script))/i.test(raw))return "Unrecognized AI version";
+  return safe;
+}
+// Exact recognition controls pricing only. A model outside these observed Cursor families keeps its
+// source-native usage but stays unpriced.
 function cursorRecognizedModel(model){
   var m=String(model||"").toLowerCase();
   if(/^composer-\d{1,2}(?:\.\d{1,2}){0,2}(?:-fast)?$/.test(m))return true;
@@ -2293,7 +2305,7 @@ function cursorAddTimeBucket(map,key,tok){
 // sample that would misstate the distribution.
 var CURSOR_EVENT_SAMPLE_CAP=20000;
 function parseCursor(texts){
-  var by={},days={},rows=0,costRows=0,missingCostRows=0,malformedRows=0,excludedRows=0,unrecognizedFiles=0,filesWithRows=0,includedRows=0,includedCost=0,notChargedRows=0;
+  var by=Object.create(null),days={},rows=0,costRows=0,missingCostRows=0,malformedRows=0,excludedRows=0,unrecognizedFiles=0,filesWithRows=0,includedRows=0,includedCost=0,notChargedRows=0;
   var coveredRows=0,coveredTokens=0,recordedCostTotal=0,undisclosedRows=0,undisclosedTokens=0,totalTokens=0,chargeKnownRows=0;
   var timelineDays=Object.create(null),timelineHours=Object.create(null),timelineDatedRows=0,timelineHourRows=0,timelineUndatedRows=0;
   var eventTokens=[],eventTokensCapped=false;
@@ -2318,21 +2330,23 @@ function parseCursor(texts){
       var notCharged=/^(?:errored|aborted)/.test(kind);
       var rawCost=String(f[ci.cost]===undefined?"":f[ci.cost]).trim();
       var recordedCost=null;
+      var unpriceableCost=false;
       if(notCharged||/^(?:-|free)$/i.test(rawCost))recordedCost=0;
       // A negative cost cell is a refund or adjustment TOP cannot represent. Clamping it to zero
       // would report "$0.00 recorded" for money that moved, so the row stays unpriced instead.
-      else if(rawCost){var parsedCost=strictMoney(rawCost);if(parsedCost!==null&&parsedCost>=0)recordedCost=parsedCost}
+      else if(rawCost){var parsedCost=strictMoney(rawCost);if(parsedCost!==null&&parsedCost>=0)recordedCost=parsedCost;else if(parsedCost!==null&&parsedCost<0)unpriceableCost=true}
+      var rawModel=ci.model>=0?f[ci.model]:"",safeModel=cursorSafeModelLabel(rawModel),recognizedModel=!!safeModel&&cursorRecognizedModel(safeModel);
+      var model=retainedUsageModelLabel(rawModel,cursorRecognizedModel);
+      // A billed amount attached to an unrecognized model cannot make that model priced. Preserve the
+      // tokens and event, but route its cost through the same incomplete path as a blank Cost cell.
+      if(!recognizedModel)recordedCost=null;
       var hasTokenValues=tok.inp>0||tok.out>0||tok.cw>0||tok.cr>0;
       if(!hasTokenValues&&recordedCost===null)continue;
-      var model=cursorSafeModelLabel(ci.model>=0?f[ci.model]:"");
-      if(!model||!cursorRecognizedModel(model)){
-        var excludedLabel=model||"(missing model name)";
-        excludedModels[excludedLabel]=(excludedModels[excludedLabel]||0)+1;excludedRows++;continue;
-      }
-      var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0},coveredRows:0,chargeKnownRows:0});
+      var e=by[model];
+      if(!e){e={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0}};if(recognizedModel){e.coveredRows=0;e.chargeKnownRows=0}by[model]=e}
       e.inp+=tok.inp; e.out+=tok.out; e.cw+=tok.cw; e.cr+=tok.cr;
       if(recordedCost!==null){e.cost+=recordedCost;e.costRows++;costRows++;}
-      else{e.missingCostRows++;missingCostRows++;e.missing.inp+=tok.inp;e.missing.out+=tok.out;e.missing.cw+=tok.cw;e.missing.cr+=tok.cr;}
+      else{e.missingCostRows++;missingCostRows++;if(unpriceableCost)e.unpriceableCostRows=(e.unpriceableCostRows||0)+1;e.missing.inp+=tok.inp;e.missing.out+=tok.out;e.missing.cw+=tok.cw;e.missing.cr+=tok.cr;}
       e.turns++; rows++; fileRows++;
       if(kind==="included"){includedRows++;if(recordedCost===null)includedMissingCostRows++;else includedCost+=recordedCost}
       if(notCharged)notChargedRows++;
@@ -2342,11 +2356,11 @@ function parseCursor(texts){
       totalTokens+=rowTokens;
       if(recordedCost!==null)recordedCostTotal+=recordedCost;
       var rowCovered=kind==="included"||/^included$/i.test(rawCost);
-      if(rowCovered){coveredRows++;coveredTokens+=rowTokens;e.coveredRows++}
+      if(rowCovered){coveredRows++;coveredTokens+=rowTokens;if(e.coveredRows!==undefined)e.coveredRows++}
       // A row's charge is known when Cursor either recorded a number for it or marked it Included.
       // A blank, "N/A" or "Free trial" Cost cell leaves it unknown, and an unknown charge can never be
       // reported as a zero one. This count is what lets the covered claim require every row, not one row.
-      if(rowCovered||recordedCost!==null){chargeKnownRows++;e.chargeKnownRows++}
+      if(rowCovered||recordedCost!==null){chargeKnownRows++;if(e.chargeKnownRows!==undefined)e.chargeKnownRows++}
       if(cursorUndisclosedModel(model)){undisclosedRows++;undisclosedTokens+=rowTokens}
       var rawDate=String(f[ci.date]===undefined?"":f[ci.date]).trim();
       var dayMatch=rawDate.match(/^(\d{4}-\d{2}-\d{2})/);
@@ -2383,13 +2397,10 @@ function parseCursor(texts){
     // of those known charges is above zero. A single real charge anywhere puts the report back on the
     // ordinary recorded-cost path, and so does a single row whose Cost cell TOP could not read: "nothing
     // was charged" is a claim about every row, so one unreadable row is enough to withdraw it.
-    // chargeKnownRows===rows can only ever speak for rows that reached the counters. A row dropped
-    // before rows++ is missing from BOTH sides of that comparison, so it cannot fail it: an unrecognized
-    // model name, a line too short to read, or a whole file whose header is not a Cursor export all left
-    // the equality trivially true while a real On-Demand charge sat in the file unread. Cursor ships
-    // model names outside the recognized list, so this is ordinary, not exotic. The claim is about every
-    // row in the export, not every row TOP managed to parse, so anything dropped unread withdraws it too
-    // and the report falls back to the ordinary recorded-cost path.
+    // chargeKnownRows===rows can only ever speak for rows that reached the counters. Unknown model rows
+    // now reach both counters with an unpriced charge, so they correctly withdraw a covered claim. A line
+    // too short to read or a whole file whose header is not a Cursor export is tracked separately and also
+    // withdraws it. The claim is about every row in the export, not only rows with familiar model names.
     chargeKnownRows:chargeKnownRows,
     subscriptionCovered:rows>0&&totalTokens>0&&coveredRows>0&&recordedCostTotal===0&&chargeKnownRows===rows
       &&excludedRows===0&&malformedRows===0&&unrecognizedFiles===0,
@@ -2418,7 +2429,8 @@ function detectUsageCsvKind(texts){
 // Known Copilot billing SKUs. Rows with any other SKU are excluded and named, never guessed.
 var COPILOT_KNOWN_SKUS={copilot_premium_request:1,coding_agent_premium_request:1,copilot_ai_credit:1,coding_agent_ai_credit:1,spark_ai_credit:1};
 function copilotNormalizedSku(value){return String(value||"").replace(/^\uFEFF/,"").trim().toLowerCase().replace(/[ -]+/g,"_").replace(/s$/,"")}
-// Exact recognition on purpose. Rows whose model is outside these observed Copilot families are excluded and named, never guessed.
+// Exact recognition controls pricing only. A model outside these observed Copilot families keeps its
+// source-native requests or credits but stays unpriced.
 function copilotRecognizedModel(model){
   var m=String(model||"").toLowerCase().replace(/^auto:\s*/,"").trim();
   if(m==="auto")return true;
@@ -2460,7 +2472,7 @@ function copilotUsageItems(text){
   return found?items:null;
 }
 function parseCopilot(texts){
-  var by={},days={},rows=0,costRows=0,missingCostRows=0,malformedRows=0,excludedRows=0,unrecognizedFiles=0,filesWithRows=0,credits=0,requests=0,creditRows=0,requestRows=0,apiFiles=0,negativeCostRows=0;
+  var by=Object.create(null),days={},rows=0,costRows=0,missingCostRows=0,malformedRows=0,excludedRows=0,unrecognizedFiles=0,filesWithRows=0,credits=0,requests=0,creditRows=0,requestRows=0,apiFiles=0,negativeCostRows=0;
   var excludedModels=Object.create(null),excludedSkus=Object.create(null);
   function money(value){return strictMoney(value)}
   function addRecord(record){
@@ -2485,11 +2497,11 @@ function parseCopilot(texts){
       var skuLabel=cursorSafeModelLabel(record.sku)||"(missing SKU)";
       excludedSkus[skuLabel]=(excludedSkus[skuLabel]||0)+1;excludedRows++;return;
     }
-    var model=cursorSafeModelLabel(record.model);
-    if(!model||!copilotRecognizedModel(model)){
-      var excludedLabel=model||"(missing model name)";
-      excludedModels[excludedLabel]=(excludedModels[excludedLabel]||0)+1;excludedRows++;return;
-    }
+    var safeModel=cursorSafeModelLabel(record.model),recognizedModel=!!safeModel&&copilotRecognizedModel(safeModel);
+    var model=retainedUsageModelLabel(record.model,copilotRecognizedModel);
+    // Copilot's request or credit quantity is still real when its model label is new or hostile. Keep
+    // that metering, discard the model-linked amount, and surface the row as unpriced.
+    if(!recognizedModel)amount=null;
     // GitHub's own rule: unit_type "requests" means premium-request billing; any other value means AI credits.
     var isRequests=String(record.unitType===undefined?"":record.unitType).trim().toLowerCase()==="requests";
     var e=by[model]||(by[model]={inp:0,out:0,cw:0,cr:0,turns:0,cost:0,costRows:0,missingCostRows:0,missing:{inp:0,out:0,cw:0,cr:0},credits:0,requests:0});
@@ -2688,6 +2700,9 @@ function resolveCostRow(model,e,res){
     cost=e.costRows&&recordedAmount(e.cost)?Number(e.cost):null;
     if(e.costRows&&cost===null)complete=false;
     if(e.missingCostRows){
+      // A refund or credit adjustment is not missing usage that TOP may reprice. The source recorded
+      // money moving in the opposite direction, so that grouped portion stays unpriced.
+      if(e.unpriceableCostRows){complete=false;return {model:model,e:e,key:key,cost:cost,complete:complete}}
       var missingCost=costOf(model,e.missing.inp,e.missing.out,e.missing.cw,e.missing.cr);
       if(missingCost===null) complete=false;
       else cost=(cost===null?0:cost)+missingCost;
@@ -2732,7 +2747,7 @@ function cursorBreakdownText(res){
   var text="Composer, Cursor's own agent model: "+fmtN(res.composer.tokens)+" tokens and "+money(res.composer,res.composerMissingCostRows)+" across "+fmtN(res.composer.rows)+" usage event"+(res.composer.rows===1?"":"s")+". Other AI versions: "+fmtN(res.otherModels.tokens)+" tokens and "+money(res.otherModels,res.otherModelsMissingCostRows)+" across "+fmtN(res.otherModels.rows)+" usage event"+(res.otherModels.rows===1?"":"s")+".";
   if(res.undisclosedRows)text+=" Cursor's Auto mode chooses an AI version per request and does not record which one ran, so a per-model split is not available for "+(res.modelsUndisclosed?"this export":fmtN(res.undisclosedRows)+" of these usage events")+".";
   if(res.includedRows&&!covered)text+=" "+fmtN(res.includedRows)+" usage event"+(res.includedRows===1?"":"s")+" marked Included consume the plan's included allowance; that cost is value consumed, not extra money billed.";
-  if(res.excludedRows)text+=" Excluded because the AI version was not recognized: "+cursorExcludedNames(res)+".";
+  if(res.excludedRows)text+=" Excluded unreadable rows: "+cursorExcludedNames(res)+".";
   return text;
 }
 // The included-usage view. For a subscription user the money column is $0 and therefore says nothing;
@@ -2783,7 +2798,7 @@ function copilotExcludedNames(res){
 function copilotBreakdownText(res){
   var text="GitHub Copilot meters prompts and AI credits, not tokens, so this report has no token counts. Premium requests recorded: "+fmtQty(res.requests)+". AI credits recorded: "+fmtQty(res.credits)+", where one credit is one cent as billed by GitHub. Only the prompts you send are metered; the autonomous tool calls an agent makes between your prompts are not itemized, so these figures understate the real model work behind agent tasks.";
   if(res.negativeCostRows)text+=" "+fmtN(res.negativeCostRows)+" row"+(res.negativeCostRows===1?" carried a negative billed amount, so it is":"s carried a negative billed amount, so they are")+" left unpriced rather than counted as zero.";
-  if(res.excludedRows)text+=" Excluded because the AI version or billing code was not recognized: "+copilotExcludedNames(res)+".";
+  if(res.excludedRows)text+=" Excluded because the billing code was not recognized: "+copilotExcludedNames(res)+".";
   return text;
 }
 function pilotMonthLabel(value){if(value==="undated")return "Date unavailable";var parts=String(value).split("-"),months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return months[Number(parts[1])-1]+" "+parts[0]}
@@ -3288,7 +3303,7 @@ function pilotMixChartHTML(rows,pricedTotal,res,unpriced,included){
     names+='<text class="lbl" x="'+(leftX-8)+'" y="'+(aT+hL/2+3.8).toFixed(1)+'" text-anchor="end">'+esc(pilotShortLabel(e.label,nameMax))+'</text>';
     if(hL>=13)names+='<text class="ax" x="'+(leftX+colW+6)+'" y="'+(aT+hL/2+3.6).toFixed(1)+'">'+esc(pilotPct(e.tokens,tokTotal)+"%")+'</text>';
     if(hR>=13)names+='<text class="val" x="'+(rightX+colW+7)+'" y="'+(bT+hR/2+4).toFixed(1)+'">'+esc(pilotPct(e.cost,costTotal)+"%")+'</text>';
-    else if(!e.priced)names+='<text class="ax" x="'+(rightX+colW+7)+'" y="'+(bT+4).toFixed(1)+'">'+esc("Not priced")+'</text>';
+    else if(!e.priced)names+='<text class="ax" x="'+(rightX+colW+7)+'" y="'+(bT+4).toFixed(1)+'">'+esc(UNPRICED_TEXT)+'</text>';
     yL=aB+gap;
     if(hR>0)yR=bB+gap;
   });
@@ -3298,13 +3313,13 @@ function pilotMixChartHTML(rows,pricedTotal,res,unpriced,included){
   var top=entries[0],tilde=res.estimate?"~":"";
   var label="Two columns. On the left, share of all "+fmtN(tokTotal)+" recorded tokens by AI version. On the right, share of the "
     +tilde+fmt$(costTotal)+" API-equivalent cost. "
-    +entries.map(function(e){return e.label+": "+pilotPct(e.tokens,tokTotal)+"% of tokens, "+(e.cost>0?pilotPct(e.cost,costTotal)+"% of cost":"not priced")}).join(". ")+".";
+    +entries.map(function(e){return e.label+": "+pilotPct(e.tokens,tokTotal)+"% of tokens, "+(e.cost>0?pilotPct(e.cost,costTotal)+"% of cost":"unpriced")}).join(". ")+".";
   var caption=top.cost>0
     ?top.label+" is "+pilotPct(top.tokens,tokTotal)+"% of your tokens and "+pilotPct(top.cost,costTotal)+"% of your cost. Token counts and dollars are not the same shape, which is exactly why the cheapest thing to change is often which model runs the work."
     :"Each ribbon is one AI version, crossing from its share of tokens to its share of cost.";
   return pilotFigure(pilotSvg(W,H,label,body),caption)
     +(unpriced&&unpriced.length
-      ?pilotFoot("Not priced, and therefore absent from the cost column rather than guessed: "+unpriced.join(", ")+".")
+      ?pilotFoot(UNPRICED_TEXT+", and therefore absent from the cost column rather than guessed: "+unpriced.join(", ")+".")
       :"");
 }
 // Step 3, replacement shape: where there is no rate to draw a cost bar from, one skinny 34px strip was
@@ -3735,7 +3750,7 @@ function describeResearchSafePlain(data,covered){
   // Read out of the payload itself, so these words hold even when the report body's richer
   // covered summary is not to hand. "We know it was free" and "we could not price it" are
   // different facts and the payload now carries different statuses for them.
-  var knownZero=cost.status==="no_charge_subscription_covered";
+  var knownZero=cost.status==="subscription_covered";
   var breakdown=[
     plainCount(totals.input_tokens)&&plainCount(totals.input_tokens)+" sent to the AI",
     plainCount(totals.output_tokens)&&plainCount(totals.output_tokens)+" returned by the AI",
@@ -3862,7 +3877,7 @@ function shareIsTokenKey(key){return /_tokens$/.test(key)}
 // Never-zero rule applies here too: an absent dollar figure reads as unpriced, and a real
 // recorded zero reads differently again. Neither is ever printed as a bare $0.00.
 function shareValueText(key,value){
-  if(value===null||value===undefined)return shareIsMoneyKey(key)?"No dollar figure. TOP could not price this.":"Not included";
+  if(value===null||value===undefined)return shareIsMoneyKey(key)?UNPRICED_TEXT:"Not included";
   if(typeof value==="boolean")return value?"Yes":"No";
   if(typeof value==="number"){
     if(shareIsMoneyKey(key))return costCell(value,true);
@@ -4061,7 +4076,7 @@ function render(res){
   document.getElementById("reportScope").textContent=res.chatExport
     ?"This report covers only the conversation records and visible text inside the file you selected. It is not your full account total, subscription allowance, Claude Code usage or Codex usage."
     :(res.codex?"This report covers only recorded token counters found in the selected Codex files. Those files do not contain your included plan allowance, credits charged or actual billed dollars.":(res.cursor?"This report covers only the rows found in the selected Cursor usage export.":(res.copilot?"This report covers only the rows found in the selected GitHub Copilot usage report.":(res.csv?"This report covers only the rows found in the selected Console file.":"This report covers only supported usage records found in the selected Claude Code files."))));
-  var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[];
+  var by=res.by,totInp=0,totOut=0,totCw=0,totCr=0,totCost=0,rows=[],allCostsAvailable=!res.chatExport,usedPriceKeys={},unpriced=[],hasUnpriced=false;
   Object.keys(by).forEach(function(model){
     var e=by[model],resolved=resolveCostRow(model,e,res),key=resolved.key,cost=resolved.cost,complete=resolved.complete;
     if(key) usedPriceKeys[key]=1;
@@ -4071,7 +4086,12 @@ function render(res){
     // case is stated instead by the res.undisclosedRows disclosures, which name the count and the reason.
     // Codex rows are unpriced for a third reason entirely, that the source carries no billed cost at all,
     // so listing them as models lacking a rate card would misstate why no figure is shown.
-    if(!complete){allCostsAvailable=false;if(!res.codex)if(!(res.cursor&&cursorUndisclosedModel(model)))unpriced.push(safePublicModelLabel(model));}
+    if(!complete){
+      allCostsAvailable=false;
+      // Cursor's all-Included export is a positively known covered zero. It is not an unpriced row,
+      // even though no API-rate cost belongs in this recorded-charge table.
+      if(!(res.cursor&&res.subscriptionCovered)){hasUnpriced=true;if(!(res.cursor&&cursorUndisclosedModel(model)))unpriced.push(safePublicModelLabel(model));}
+    }
     if(cost!==null) totCost+=cost;
     totInp+=e.inp;totOut+=e.out;totCw+=e.cw;totCr+=e.cr;
     rows.push({model:model,e:e,cost:cost,complete:complete});
@@ -4082,7 +4102,7 @@ function render(res){
   res.partialCost=!res.chatExport&&!allCostsAvailable&&totCost>0;
   // The Copilot routing scenario is withheld because credit metering undercounts agent work, so the mix is not a routing baseline.
   res.valueModelEligible=valueModelAllowed(rows,res.costAvailable)&&!res.copilot&&!res.codex;
-  var costCard=res.codex?["Actual Codex cost","Not in these files",""]:(res.chatExport?["Recorded dollar cost","Not included",""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):(res.cursor?"Cost as billed by Cursor":(res.copilot?"Cost as billed by GitHub":"Recorded spend")),costCell(totCost,true,res.estimate?"~":""),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost","Not available",""])));
+  var costCard=res.codex?["Actual Codex cost",UNPRICED_TEXT,""]:(res.chatExport?["Recorded dollar cost",UNPRICED_TEXT,""]:(res.costAvailable?[res.estimate?(res.costLabel||"Estimated spend"):(res.cursor?"Cost as billed by Cursor":(res.copilot?"Cost as billed by GitHub":"Recorded spend")),costCell(totCost,true,res.estimate?"~":""),"a"]:(res.partialCost?[res.estimate?"Partial estimate":"Partial recorded cost",(res.estimate?"Priced rows ":"Known rows ")+fmt$(totCost),"a"]:["Dollar cost",UNPRICED_TEXT,""])));
   var countLabels=resultCountLabels(res), tokenPrefix=res.chatExport?"about ":"";
   // Subscription-covered sources lead with tokens, not dollars. Leading with $0.00 (or "Not available")
   // buries a real nine-million-token record behind a number that only means "your plan absorbed it".
@@ -4139,8 +4159,8 @@ function render(res){
   // a footer reading "No charge, plan covered" made one table state two different things about the same
   // rows. The comparison has its own card and its own sentence; this column stays the charge column.
   // Codex history carries no billed cost on any row either, so it states that rather than a dollar figure.
-  var tb=rows.map(function(r){var shown=res.codex?"Not in files":(res.chatExport?"Not in export":(res.cursor&&cursorUndisclosedModel(r.model)?"AI version not disclosed":(included?"No charge, plan covered":costCell(r.cost,r.complete,res.estimate?"~":""))));var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
-  var totalShown=res.codex?"Not in files":(res.chatExport?"Not in export":(included?"No charge, plan covered":(res.costAvailable?costCell(totCost,true,res.estimate?"~":""):(res.partialCost?costCell(totCost,false,""):"Not available"))));
+  var tb=rows.map(function(r){var shown=included?"No charge, plan covered":costCell(r.cost,r.complete,res.estimate?"~":"");var saved=res.chatExport?"Not in export":(fmtN(r.e.cw)+' / '+fmtN(r.e.cr));return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+tokenPrefix+fmtN(r.e.inp)+'</td><td class="n">'+tokenPrefix+fmtN(r.e.out)+'</td><td class="n">'+saved+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+shown+'</td></tr>'}).join("");
+  var totalShown=included?"No charge, plan covered":(res.costAvailable?costCell(totCost,true,res.estimate?"~":""):(res.partialCost?costCell(totCost,false,""):UNPRICED_TEXT));
   var tf='<tfoot><tr><td>Total</td><td class="n">'+tokenPrefix+fmtN(totInp)+'</td><td class="n">'+tokenPrefix+fmtN(totOut)+'</td><td class="n">'+(res.chatExport?"Not in export":(fmtN(totCw)+' / '+fmtN(totCr)))+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+totalShown+'</td></tr></tfoot>';
   if(res.copilot){
     // Copilot exports contain no token counts, so the table shows what GitHub actually meters: requests, credits and billed dollars.
@@ -4155,7 +4175,7 @@ function render(res){
   });
   if(PILOT_MODE){
     var pricedRows=rows.filter(function(row){return row.cost!==null&&row.cost>0}),pricedTotal=pricedRows.reduce(function(sum,row){return sum+row.cost},0);
-    var costText=res.codex?"Not in these files":(included?cursorIncludedUsageAmount(included):(res.chatExport?"Not included":(pricedTotal>0?((res.estimate?"~":"")+fmt$(pricedTotal)):"Not available")));
+    var costText=included?cursorIncludedUsageAmount(included):(pricedTotal>0?((res.estimate?"~":"")+fmt$(pricedTotal)):UNPRICED_TEXT);
     document.getElementById("pilotQuickCost").textContent=costText;
     document.getElementById("pilotQuickCostLabel").textContent=res.codex?"Actual Codex cost":(included?"What this would cost at API prices":(res.cursor?"Cost recorded in Cursor's export":(res.copilot?"Cost as billed by GitHub":(res.chatExport?"Actual cost in the export":"Estimated pay-as-you-go cost"))));
     document.getElementById("pilotQuickSessions").textContent=fmtN(res.sessions||0);
@@ -4186,11 +4206,11 @@ function render(res){
     // A model mix needs disclosed models on every row. Cursor Auto never names one, so say that instead
     // of drawing a bar, and say it just as plainly when only some of the rows were left unnamed.
     document.getElementById("pilotUsageMix").innerHTML=pilotMixPanelHTML(res,shownRows,pricedTotal);
-    document.getElementById("pilotValueCost").textContent=res.codex?"Not available from Codex history":(included
+    document.getElementById("pilotValueCost").textContent=included
       ?(included.exact!==null?"Ready: ":"Range: ")+costText+" at API prices, nothing charged by Cursor"
       :(pricedTotal>0
       ?((unpriced.length||pricedRows.length<rows.length)?"Partial: "+costText+" for models TOP could price":"Ready: "+costText+" across all models")
-      :"Not available from this file"));
+      :UNPRICED_TEXT);
     renderPilotPatterns(res);
     // Charts are redrawn from the same token counts on every render, including the re-render a price
     // edit triggers, so a changed rate moves every dollar on every chart.
@@ -4231,8 +4251,8 @@ function render(res){
   lines.push("Where this came from: "+res.kind+".");
   if(res.estimate&&!res.chatExport&&!res.codex) lines.push("About the dollar figures: They are estimates based on the usage numbers in your file and checked pay-as-you-go prices, where each amount of AI use is billed separately. They are not your subscription bill.");
   lines.push("");
-  if(res.codex) lines.push("Cost information: The selected Codex files contain token counters, but not your plan allowance, credits charged or actual billed dollars. TOP has not converted this usage into a dollar charge.");
-  else if(res.chatExport) lines.push("Cost information: This download does not include a reliable dollar cost, so TOP has not guessed one.");
+  if(res.codex) lines.push("Cost information: Unpriced. The selected Codex files contain token counters, but not your plan allowance, credits charged or actual billed dollars. TOP has not converted this usage into a dollar charge.");
+  else if(res.chatExport) lines.push("Cost information: Unpriced. This download does not include a reliable dollar cost, so TOP has not guessed one.");
   else if(included){
     lines.push("Cost information: Your Cursor subscription covered this usage, so nothing extra was charged and the recorded charge is zero.");
     lines.push("Tokens consumed: "+fmtInt(totTok)+" across "+fmtInt(res.turns)+" usage events.");
@@ -4245,9 +4265,9 @@ function render(res){
     }
   }
   else if(res.costAvailable) lines.push("Cost information: "+(res.estimate?"Estimated pay-as-you-go cost: about ":(res.cursor?"Cost as billed by Cursor: ":(res.copilot?"Cost as billed by GitHub: ":"Cost recorded in the file: ")))+fmt$(totCost)+".");
-  else if(res.partialCost) lines.push("Cost information: TOP could price only part of the usage. The "+(res.estimate?"estimated":"recorded")+" amount for the rows it could price is "+fmt$(totCost)+".");
-  else lines.push("Cost information: TOP could not calculate a reliable dollar cost.");
-  if(unpriced.length&&!res.codex) lines.push("AI versions without a checked price: "+unpriced.join(", ")+".");
+  else if(res.partialCost) lines.push("Cost information: TOP could price only part of the usage. The "+(res.estimate?"estimated":"recorded")+" amount for the rows it could price is "+fmt$(totCost)+"; the remaining rows are unpriced.");
+  else lines.push("Cost information: Unpriced. TOP could not calculate a reliable dollar cost.");
+  if(hasUnpriced) lines.push(unpriced.length?"Unpriced AI versions: "+unpriced.join(", ")+".":"Unpriced usage remains visible, but its source did not disclose an AI version TOP could price.");
   lines.push("");
   if(res.copilot){
     lines.push("Metering: GitHub Copilot bills prompts and AI credits, not tokens, so this report has no token counts. One AI credit is one cent.");
@@ -4289,7 +4309,7 @@ function render(res){
   lines.push("");
   lines.push("Usage by AI version:");
   rows.forEach(function(r){
-    var rowCost=res.cursor&&cursorUndisclosedModel(r.model)?"AI version not disclosed, so no rate was applied":(r.cost===null?"cost not available":(!r.complete?("partial cost "+fmt$(r.cost)):((res.estimate?"estimated cost about ":"cost ")+fmt$(r.cost))));
+    var rowCost=r.cost===null?"unpriced":(!r.complete?("partial cost "+fmt$(r.cost)):((res.estimate?"estimated cost about ":"cost ")+fmt$(r.cost)));
     lines.push("  "+safePublicModelLabel(r.model)+": "+(res.copilot?(fmtQtyPlain(r.e.requests)+" premium requests, "+fmtQtyPlain(r.e.credits)+" AI credits"):(res.chatExport?("about "+fmtInt(r.e.inp)+" sent, about "+fmtInt(r.e.out)+" returned"):(fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused")))+", "+fmtInt(r.e.turns)+" "+countLabels.table.toLowerCase()+", "+rowCost+".");
   });
   lines.push("");
@@ -5183,11 +5203,11 @@ function researchCostRow(rawModel,entry,result){
   // known charge, and the recorded total must not be above zero. Any one of those failing sends
   // the row back down the ordinary recorded-or-estimated path below.
   if(result.csv&&result.subscriptionCovered&&entry.coveredRows>0&&entry.chargeKnownRows===entry.turns&&!(Number(entry.cost)>0)){
-    return {model:model,key:null,cost:0,complete:true,status:"no_charge_subscription_covered",rateApplied:false};
+    return {model:model,key:null,cost:0,complete:true,status:"subscription_covered",rateApplied:false};
   }
   if(result.csv){
     var hasRecorded=!!entry.costRows&&isPricedNumber(entry.cost),recorded=hasRecorded?Number(entry.cost):0,hasMissing=!!entry.missingCostRows,estimated=null;
-    if(hasMissing&&key)estimated=costOf(model,researchCount(entry.missing&&entry.missing.inp),researchCount(entry.missing&&entry.missing.out),researchCount(entry.missing&&entry.missing.cw),researchCount(entry.missing&&entry.missing.cr));
+    if(hasMissing&&key&&!entry.unpriceableCostRows)estimated=costOf(model,researchCount(entry.missing&&entry.missing.inp),researchCount(entry.missing&&entry.missing.out),researchCount(entry.missing&&entry.missing.cw),researchCount(entry.missing&&entry.missing.cr));
     if(hasRecorded||estimated!==null)cost=recorded+(estimated||0);
     // A row is complete only if TOP actually has a figure for it. Without one it stays unavailable.
     complete=(hasRecorded||estimated!==null)&&(!hasMissing||estimated!==null);
@@ -5200,7 +5220,7 @@ function mergeResearchCostStatus(statuses,anyCost,allComplete){
   if(!anyCost)return "unavailable";
   // A group made entirely of known-zero rows keeps the known-zero status rather than collapsing
   // into "mixed", which would lose the one fact the group is certain about.
-  if(statuses.length&&statuses.every(function(status){return status==="no_charge_subscription_covered"}))return "no_charge_subscription_covered";
+  if(statuses.length&&statuses.every(function(status){return status==="subscription_covered"}))return "subscription_covered";
   if(!allComplete)return "partial";
   var unique={};statuses.forEach(function(status){unique[status]=1});
   return Object.keys(unique).length===1?statuses[0]:"mixed";
@@ -5235,8 +5255,8 @@ function buildResearchSafeObject(result,routeB,questionnaire,scenarioValue,creat
   // On a subscription-covered export the whole-file guarantee is stronger than any per-row merge:
   // every row's charge is known and none of them is above zero, so the report states the known
   // zero outright instead of letting one oddly shaped model group turn it into "mixed".
-  var subscriptionCovered=!!(current.cursor&&current.subscriptionCovered&&anyCost&&totalCost===0&&statuses.length&&statuses.every(function(status){return status==="no_charge_subscription_covered"}));
-  var costStatus=subscriptionCovered?"no_charge_subscription_covered":mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.codex?"not_available_in_local_codex_history":(current.chatExport?"not_available":(current.copilot?(current.costComplete?"recorded_in_export":"recorded_where_present_never_estimated"):(current.csv?(subscriptionCovered?"subscription_covered_no_charge_in_export":(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible")):"estimated_pay_as_you_go_comparison"))),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&!current.codex&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
+  var subscriptionCovered=!!(current.cursor&&current.subscriptionCovered&&anyCost&&totalCost===0&&statuses.length&&statuses.every(function(status){return status==="subscription_covered"}));
+  var costStatus=subscriptionCovered?"subscription_covered":mergeResearchCostStatus(statuses,anyCost,allComplete),costBasis=current.codex?"not_available_in_local_codex_history":(current.chatExport?"not_available":(current.copilot?(current.costComplete?"recorded_in_export":"recorded_where_present_never_estimated"):(current.csv?(subscriptionCovered?"subscription_covered_by_plan":(current.costComplete?"recorded_in_export":"recorded_and_or_estimated_where_possible")):"estimated_pay_as_you_go_comparison"))),valueResult=Object.assign({},current,{valueModelEligible:!routeB&&!current.codex&&current.valueModelEligible&&allComplete}),valueModel=buildResearchValueModel(valueResult,modelRows,anyCost?totalCost:0,scenarioValue),appliedRates=Object.keys(rateMap).sort().map(function(key){return rateMap[key]}),pricingStatus,editedFields=0,referenceFields=0;
   if(routeB&&valueModel.truth_status==="not_available")valueModel.reason="scenario_control_not_shown_for_this_route";
   appliedRates.forEach(function(rate){Object.keys(rate.field_provenance).forEach(function(field){var origin=rate.field_provenance[field];if(origin==="user_edited_in_tab"||origin==="derived_from_user_edited_input")editedFields++;else referenceFields++})});
   if(current.codex)pricingStatus="not_applied_source_has_no_billed_cost";else if(current.chatExport)pricingStatus="not_applied";else if(current.csv&&current.costComplete)pricingStatus="not_needed_recorded_cost";else if(!appliedRates.length)pricingStatus="not_applied_no_recognized_rate";else if(editedFields&&referenceFields)pricingStatus=allComplete?"mixed_checked_and_user_edited_rates":"partially_applied_mixed_rate_provenance";else if(editedFields)pricingStatus=allComplete?"user_edited_in_tab":"partially_applied_user_edited_rates";else pricingStatus=allComplete?"checked_reference_rates":"partially_applied_checked_rates";
@@ -5417,20 +5437,20 @@ function renderB(res){
     totInp+=e.inp;totOut+=e.out;totCw+=e.cw;totCr+=e.cr;if(c===null)costAvailable=false;else totCost+=c;rows.push({model:m,e:e,cost:c});});
   rows.sort(function(a,b){return (b.cost===null?-1:b.cost)-(a.cost===null?-1:a.cost)});
   var totTok=totInp+totOut+totCw+totCr;
-  var cards=[[costAvailable?"Estimated pay-as-you-go cost":"Dollar cost",costAvailable?("~"+fmt$(totCost)):"Not available",costAvailable?"a":""],["Total AI usage",fmtN(totTok)+" tokens","i"],["AI replies with usage data",fmtN(res.turns),""],[res.days?"Days used":"Work sessions",fmtN(res.days||res.sessions),"g"]];
+  var cards=[[costAvailable?"Estimated pay-as-you-go cost":"Dollar cost",costAvailable?("~"+fmt$(totCost)):UNPRICED_TEXT,costAvailable?"a":""],["Total AI usage",fmtN(totTok)+" tokens","i"],["AI replies with usage data",fmtN(res.turns),""],[res.days?"Days used":"Work sessions",fmtN(res.days||res.sessions),"g"]];
   document.getElementById("cardsb").innerHTML=cards.map(function(c){return '<div class="mcard"><div class="k">'+c[0]+'</div><div class="v '+c[2]+'">'+c[1]+'</div></div>'}).join("");
   var th='<thead><tr><th>AI version</th><th>Text sent to the AI</th><th>Text returned by the AI</th><th>Previously saved text: added / reused</th><th>AI replies</th><th>Estimated cost</th></tr></thead>';
-  var tb=rows.map(function(r){return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+(r.cost===null?"Not priced":("~"+fmt$(r.cost)))+'</td></tr>'}).join("");
-  var tf='<tfoot><tr><td>Total</td><td class="n">'+fmtN(totInp)+'</td><td class="n">'+fmtN(totOut)+'</td><td class="n">'+fmtN(totCw)+' / '+fmtN(totCr)+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+(costAvailable?("~"+fmt$(totCost)):"Not available")+'</td></tr></tfoot>';
+  var tb=rows.map(function(r){return '<tr><td>'+esc(safePublicModelLabel(r.model))+'</td><td class="n">'+fmtN(r.e.inp)+'</td><td class="n">'+fmtN(r.e.out)+'</td><td class="n">'+fmtN(r.e.cw)+' / '+fmtN(r.e.cr)+'</td><td class="n">'+fmtN(r.e.turns)+'</td><td class="n">'+(r.cost===null?UNPRICED_TEXT:("~"+fmt$(r.cost)))+'</td></tr>'}).join("");
+  var tf='<tfoot><tr><td>Total</td><td class="n">'+fmtN(totInp)+'</td><td class="n">'+fmtN(totOut)+'</td><td class="n">'+fmtN(totCw)+' / '+fmtN(totCr)+'</td><td class="n">'+fmtN(res.turns)+'</td><td class="n">'+(costAvailable?("~"+fmt$(totCost)):UNPRICED_TEXT)+'</td></tr></tfoot>';
   document.getElementById("modeltableb").innerHTML=th+'<tbody>'+tb+'</tbody>'+tf;
   var pm=res.perm||{}, keys=Object.keys(pm).sort(function(a,b){return pm[b]-pm[a]});
   document.getElementById("permb").textContent = keys.length? ("Claude Code access setting, with number of AI replies: "+keys.map(function(k){return k+"="+fmtInt(pm[k])}).join("  ·  ")) : "";
   var bLines=["TOP Usage Report","","Where this came from: a cleaned Claude Code usage file.","About the dollar figures: They are estimates based on the usage numbers in the file and checked pay-as-you-go prices, where each amount of AI use is billed separately. They are not your subscription bill.",""];
-  bLines.push(costAvailable?"Cost information: Estimated pay-as-you-go cost: about "+fmt$(totCost)+".":"Cost information: TOP could not calculate a reliable dollar cost for every AI version.");
+  bLines.push(costAvailable?"Cost information: Estimated pay-as-you-go cost: about "+fmt$(totCost)+".":"Cost information: Unpriced. TOP could not calculate a reliable dollar cost for every AI version.");
   bLines.push("","Total AI usage: "+fmtInt(totTok)+" tokens.","Tokens are small pieces of text that AI companies use to measure usage.","Text sent to the AI: "+fmtInt(totInp)+" tokens.","Text returned by the AI: "+fmtInt(totOut)+" tokens.","Previously saved text: "+fmtInt(totCw)+" tokens added, "+fmtInt(totCr)+" tokens reused.","AI replies with usage data: "+fmtInt(res.turns)+".","Work sessions: "+fmtInt(res.sessions)+".");
   if(res.days) bLines.push("Days used: "+fmtInt(res.days)+".");
   bLines.push("","Usage by AI version:");
-  rows.forEach(function(r){bLines.push("  "+safePublicModelLabel(r.model)+": "+fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused, "+fmtInt(r.e.turns)+" AI replies, "+(r.cost===null?"cost not available":"estimated cost about "+fmt$(r.cost))+".");});
+  rows.forEach(function(r){bLines.push("  "+safePublicModelLabel(r.model)+": "+fmtInt(r.e.inp)+" sent, "+fmtInt(r.e.out)+" returned, "+fmtInt(r.e.cw)+" cache added, "+fmtInt(r.e.cr)+" cache reused, "+fmtInt(r.e.turns)+" AI replies, "+(r.cost===null?"unpriced":"estimated cost about "+fmt$(r.cost))+".");});
   bLines.push("","Privacy note: This summary contains no conversation text, AI reply text, code, file contents or original internal ID numbers.");
   lastSummary=bLines.join("\n");
   res.costAvailable=costAvailable&&rows.length>0;
