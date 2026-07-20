@@ -90,11 +90,11 @@ const CASES = [
     expectedKind: "Codex local session logs",
     expectedFlags: { codex: true, cursor: false, copilot: false, chatProvider: "", topSource: "" },
     evidence: [
-      ["reportScope", /recorded token counters found in the selected Codex files/i],
+      ["reportScope", /recorded model token traffic found in the selected Codex files/i],
       ["cards", /130 tokens/i],
       ["modelTable", /gpt-5\.6-sol[\s\S]*80[\s\S]*30/i],
       ["summary", /Where this came from: Codex local session logs\./i],
-      ["summary", /Total AI usage: 130 tokens\./i],
+      ["summary", /Total model token traffic: 130 tokens\./i],
     ],
   },
   {

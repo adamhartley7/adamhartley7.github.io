@@ -74,6 +74,17 @@ function codexToken(timestamp, total, last = total) {
   });
 }
 
+function codexRollout(sessionId, totals, { model = "gpt-5.6-sol-20260716", startSecond = 0 } = {}) {
+  const lines = [
+    codexLine("2026-07-15T09:00:00Z", "session_meta", { id: sessionId, cwd: PRIVATE }),
+    codexLine("2026-07-15T09:00:01Z", "turn_context", { model }),
+  ];
+  totals.forEach((total, index) => {
+    lines.push(codexToken(new Date(Date.UTC(2026, 6, 15, 9, 0, startSecond + index + 2)).toISOString(), total));
+  });
+  return lines.join("\n");
+}
+
 function model(report, label) {
   const row = report.by_model.find(item => item.model === label);
   assert.ok(row, `missing model ${label}`);
@@ -115,7 +126,20 @@ async function makeCodexFixture(root) {
     `{malformed-${PRIVATE}`,
   ].join("\n");
   await writeFile(path.join(root, "nested", "rollout-private.jsonl"), fixture, "utf8");
-  await writeFile(path.join(root, `oversized-${PRIVATE}.jsonl`), "x".repeat(MAX_LINE_CHARS + 32) + "\n", "utf8");
+  const oversizedSupportedUsage = JSON.stringify({
+    timestamp: "2026-07-16T11:00:00Z",
+    type: "event_msg",
+    payload: {
+      type: "token_count",
+      info: {
+        total_token_usage: codexUsage(1_000_000, 0, 10, 0),
+        last_token_usage: codexUsage(1_000_000, 0, 10, 0),
+      },
+    },
+    private: PRIVATE,
+    padding: "x".repeat(MAX_LINE_CHARS),
+  });
+  await writeFile(path.join(root, `oversized-${PRIVATE}.jsonl`), oversizedSupportedUsage + "\n", "utf8");
 }
 
 function assertPrivacy(report) {
@@ -249,9 +273,106 @@ try {
     total_tokens: 224,
   });
 
+  const duplicateLive = path.join(temp, "codex-duplicate-live");
+  const duplicateArchive = path.join(temp, "codex-duplicate-archive");
+  await mkdir(duplicateLive, { recursive: true });
+  await mkdir(duplicateArchive, { recursive: true });
+  const duplicateRollout = codexRollout("duplicate-session", [
+    codexUsage(100, 0, 0, 0),
+    codexUsage(150, 0, 0, 0),
+  ]);
+  await writeFile(path.join(duplicateLive, "live.jsonl"), duplicateRollout, "utf8");
+  await writeFile(path.join(duplicateArchive, "archive.jsonl"), duplicateRollout, "utf8");
+  const duplicateCodex = await collectUsage({ source: "codex", roots: [duplicateLive, duplicateArchive] });
+  assertFrozenSchema(duplicateCodex);
+  assert.deepEqual(duplicateCodex.totals, {
+    input_tokens: 150,
+    cache_write_input_tokens: 0,
+    cache_read_input_tokens: 0,
+    output_tokens: 0,
+    reasoning_output_tokens: 0,
+    usage_records: 2,
+    total_tokens: 150,
+  });
+  assert.deepEqual(duplicateCodex.activity, { sessions: 1, active_days: 1 });
+  assert.deepEqual(duplicateCodex.coverage, {
+    files_discovered: 2,
+    files_parsed: 2,
+    files_with_usage: 2,
+    files_skipped: 0,
+    malformed_lines: 0,
+    oversized_lines: 0,
+    counter_resets: 0,
+    duplicate_usage_records: 2,
+    complete: true,
+  });
+
+  const distinctSessionsRoot = path.join(temp, "codex-distinct-sessions");
+  await mkdir(distinctSessionsRoot, { recursive: true });
+  await writeFile(path.join(distinctSessionsRoot, "one.jsonl"), codexRollout("distinct-one", [codexUsage(100, 0, 0, 0), codexUsage(150, 0, 0, 0)]), "utf8");
+  await writeFile(path.join(distinctSessionsRoot, "two.jsonl"), codexRollout("distinct-two", [codexUsage(100, 0, 0, 0), codexUsage(150, 0, 0, 0)]), "utf8");
+  const distinctSessions = await collectUsage({ source: "codex", roots: [distinctSessionsRoot] });
+  assert.equal(distinctSessions.totals.total_tokens, 300);
+  assert.equal(distinctSessions.totals.usage_records, 4);
+  assert.equal(distinctSessions.activity.sessions, 2);
+  assert.equal(distinctSessions.coverage.duplicate_usage_records, 0);
+
+  const overlapOne = path.join(temp, "codex-overlap-one");
+  const overlapTwo = path.join(temp, "codex-overlap-two");
+  await mkdir(overlapOne, { recursive: true });
+  await mkdir(overlapTwo, { recursive: true });
+  await writeFile(path.join(overlapOne, "prefix.jsonl"), codexRollout("overlap-session", [codexUsage(100, 0, 0, 0), codexUsage(150, 0, 0, 0)]), "utf8");
+  await writeFile(path.join(overlapTwo, "longer.jsonl"), codexRollout("overlap-session", [codexUsage(100, 0, 0, 0), codexUsage(150, 0, 0, 0), codexUsage(200, 0, 0, 0)]), "utf8");
+  await assert.rejects(
+    collectUsage({ source: "codex", roots: [overlapOne, overlapTwo] }),
+    /Two different Codex files claim the same session/,
+  );
+
+  const invalidUtf8One = path.join(temp, "codex-invalid-utf8-one");
+  const invalidUtf8Two = path.join(temp, "codex-invalid-utf8-two");
+  await mkdir(invalidUtf8One, { recursive: true });
+  await mkdir(invalidUtf8Two, { recursive: true });
+  const invalidUtf8Rollout = `${codexRollout("invalid-utf8-session", [codexUsage(100, 0, 0, 0)])}\n`;
+  await writeFile(path.join(invalidUtf8One, "one.jsonl"), Buffer.concat([Buffer.from(invalidUtf8Rollout, "utf8"), Buffer.from([0x80, 0x0a])]));
+  await writeFile(path.join(invalidUtf8Two, "two.jsonl"), Buffer.concat([Buffer.from(invalidUtf8Rollout, "utf8"), Buffer.from([0x81, 0x0a])]));
+  await assert.rejects(
+    collectUsage({ source: "codex", roots: [invalidUtf8One, invalidUtf8Two] }),
+    /Two different Codex files claim the same session/,
+    "deduplication must fingerprint raw bytes, not decoded replacement characters",
+  );
+
+  const missingSessionRoot = path.join(temp, "codex-missing-session");
+  await mkdir(missingSessionRoot, { recursive: true });
+  await writeFile(path.join(missingSessionRoot, "missing.jsonl"), [
+    codexLine("2026-07-15T09:00:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-15T09:00:02Z", codexUsage(10, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  await assert.rejects(
+    collectUsage({ source: "codex", roots: [missingSessionRoot] }),
+    /no single stable session identity/,
+  );
+
+  const attributionRoot = path.join(temp, "codex-attribution");
+  await mkdir(attributionRoot, { recursive: true });
+  await writeFile(path.join(attributionRoot, "attribution.jsonl"), [
+    codexLine("2026-07-15T09:00:00Z", "session_meta", { id: "attribution-session" }),
+    codexLine("2026-07-15T09:00:01Z", "turn_context", { model: "codex-auto-review" }),
+    codexToken("2026-07-15T09:00:02Z", codexUsage(20, 0, 0, 0)),
+    codexLine("2026-07-15T09:00:03Z", "event_msg", { type: "model_reroute", from_model: "codex-auto-review", to_model: "gpt-5.2", reason: "high_risk_cyber_activity" }),
+    codexToken("2026-07-15T09:00:04Z", codexUsage(30, 0, 0, 0)),
+    codexLine("2026-07-15T09:00:05Z", "turn_context", {}),
+    codexToken("2026-07-15T09:00:06Z", codexUsage(40, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  const attribution = await collectUsage({ source: "codex", roots: [attributionRoot] });
+  assert.equal(model(attribution, "codex-auto-review").total_tokens, 20);
+  assert.equal(model(attribution, "gpt-5.2").total_tokens, 10);
+  assert.equal(model(attribution, "Unrecognized AI version").total_tokens, 10);
+  assert.equal(attribution.totals.total_tokens, 40);
+
   assert.equal(sanitizeModelLabel("claude-opus-4-8-12345678"), "claude-opus-4-8");
   assert.equal(sanitizeModelLabel("gpt-5.6-sol-00000000"), "gpt-5.6-sol");
   assert.equal(sanitizeModelLabel("o3-preview-12345678"), "o3-preview");
+  assert.equal(sanitizeModelLabel("codex-auto-review"), "codex-auto-review");
   assert.equal(sanitizeModelLabel(`gpt-5.6-${PRIVATE}`), "Unrecognized AI version");
   assert.equal(sanitizeModelLabel("__proto__"), "Unrecognized AI version");
 
@@ -274,6 +395,26 @@ try {
   assertFrozenSchema(cliReport);
   assertPrivacy(cliReport);
   assert.deepEqual(cliReport.totals, claude.totals);
+
+  const codexProfile = path.join(temp, "codex-cli-profile");
+  const codexLive = path.join(codexProfile, ".codex", "sessions");
+  const codexArchive = path.join(codexProfile, ".codex", "archived_sessions");
+  await mkdir(codexLive, { recursive: true });
+  await mkdir(codexArchive, { recursive: true });
+  await writeFile(path.join(codexLive, "live.jsonl"), duplicateRollout, "utf8");
+  await writeFile(path.join(codexArchive, "archive.jsonl"), duplicateRollout, "utf8");
+  const codexCliOutput = path.join(temp, "codex-cli-output.json");
+  const codexCli = spawnSync(process.execPath, [collectorPath, "--source", "codex", "--output", codexCliOutput], {
+    env: { ...process.env, USERPROFILE: codexProfile, HOME: codexProfile },
+    encoding: "utf8",
+    timeout: 30_000,
+  });
+  assert.equal(codexCli.status, 0, `Codex CLI failed: ${codexCli.stderr}`);
+  assert.doesNotMatch(codexCli.stderr, /\.codex|duplicate-session|live\.jsonl|archive\.jsonl/i);
+  const codexCliReport = JSON.parse(await readFile(codexCliOutput, "utf8"));
+  assert.equal(codexCliReport.totals.total_tokens, 150);
+  assert.equal(codexCliReport.activity.sessions, 1);
+  assert.equal(codexCliReport.coverage.duplicate_usage_records, 2);
 
   const badCli = spawnSync(process.execPath, [collectorPath, "--source", "wrong-source"], { encoding: "utf8" });
   assert.notEqual(badCli.status, 0);

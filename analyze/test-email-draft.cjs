@@ -25,7 +25,8 @@ assert.doesNotMatch(terminal, /Optional Research Submission|Submit Reviewed Safe
 // Local download and copy remain available even while the endpoint is blank.
 assert.match(html, /id="safeDownload">Download My Own Copy/);
 assert.match(html, /id="copySafePackage">Copy Exact Summary/);
-assert.match(html, /id="downloadResearchJSON">Download Complete Research-Safe JSON/);
+assert.match(html, /id="downloadResearchJSON">Download Research-Safe JSON/);
+assert.doesNotMatch(html, /Download Complete Research-Safe JSON/);
 assert.match(html, /var TOP_DELIVERY_ENDPOINT="";/);
 
 const copyStart = html.indexOf("function copyPlainText");

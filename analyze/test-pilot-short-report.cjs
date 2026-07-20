@@ -9,9 +9,11 @@ assert.match(html, /Your prompts, replies, code and files stayed on this compute
 assert.match(html, /Actual cost in the selected files/);
 assert.match(html, /Work sessions found/);
 assert.match(html, /Deduplicated logical sessions/);
+assert.match(html, /Rollout-file session proxies/);
 assert.match(html, /id="pilotCoverageNote" hidden/);
-assert.match(html, /One"\:fmtN\(n\)\)\+" oversized history line/);
-assert.match(html, /so totals may be slightly low/);
+assert.match(html, /history line"\+\(n===1\?" exceeded":"s exceeded"\)/);
+assert.match(html, /skipped without parsing/);
+assert.match(html, /totals may be materially low/);
 assert.match(html, /id="pilotFullCoverage"/);
 assert.match(html, /Active days found/);
 assert.match(html, /Which models drove your usage\?/);
@@ -26,7 +28,7 @@ assert.match(html, /interaction counts only/);
 assert.match(html, /do not reveal or guess what your prompts meant/);
 assert.match(html, /elapsed spans do not equal active work time/);
 assert.match(html, /deduplicates matching logical sessions across files/);
-assert.match(html, /Month labels come from source date prefixes and are not timezone-normalized/);
+assert.match(html, /Month labels come from locally parsed timestamps and are not timezone-normalized/);
 assert.match(html, /renderPilotPatterns\(res\)/);
 assert.match(html, /id="pilotTimelineWindowNote" hidden/);
 assert.match(html, /datedPeriods\.slice\(-12\)/);
@@ -34,7 +36,8 @@ assert.match(html, /downloaded safe report keeps all/);
 assert.match(html, /See the full usage and cost details/);
 assert.match(html, /id="pilotContinueToShare"/);
 assert.match(html, /Review Sharing Options/);
-assert.match(html, /TOP read usage counters locally from the folder you chose/);
+assert.match(html, /TOP parsed complete local records transiently and retained supported usage counters/);
+assert.doesNotMatch(html, /read usage counters only|usage counters only|never the content of a session/i);
 assert.match(html, /Partial: "\+costText\+" for models TOP could price/);
 assert.match(html, /Ready: "\+costText\+" across all models/);
 assert.match(html, /slice\(0,3\)/);
@@ -43,7 +46,8 @@ assert.doesNotMatch(html, /Share Your Safe Report/,
   "the final step must not imply that TOP has a configured remote recipient");
 assert.match(html, /See the exact research-safe JSON available for download or your device share menu/);
 assert.match(html, /id="pilotResearchPreview" readonly/);
-assert.match(html, /The complete content-free aggregate below was prepared on this device/);
+assert.match(html, /The content-free aggregate below was prepared on this device/);
+assert.doesNotMatch(html, /The complete content-free aggregate below was prepared on this device/);
 assert.match(html, /usage totals, model labels, source and collector metadata, pricing references/);
 assert.match(html, /privacy\.network_delivery: "none"/);
 assert.match(html, /this analyzer did not transmit the report/);
@@ -60,6 +64,11 @@ assert.match(html, /document\.getElementById\("pilotQuickReport"\)\.hidden=false
 assert.match(html, /pilotContinueToShare.*finishSurvey\(true\)/s);
 assert.match(html, /TOP priced "\+fmtN\(pricedRows\.length\)\+" of "\+fmtN\(rows\.length\)/);
 assert.match(html, /not your subscription bill/);
+assert.match(html, /Coverage complete: /);
+assert.match(html, /recorded tokens have no recognized AI version/);
+assert.match(html, /label==="Unrecognized AI version"\|\|label==="Unknown Codex model"/);
+assert.match(html, /Recognized AI versions seen/);
+assert.match(html, /Total model token traffic/);
 
 // Subscription-covered reports lead with tokens, never with a meaningless zero, and never guess the
 // model behind Cursor's Auto mode.

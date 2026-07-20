@@ -8,13 +8,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { once } from "node:events";
 import { createInterface } from "node:readline";
+import { StringDecoder } from "node:string_decoder";
 
 export const SCHEMA_VERSION = "top.safe-usage.v1";
-export const COLLECTOR_VERSION = "top.local-collector.2026-07-16.1";
-export const PARSER_VERSION = "top.usage-parser.2026-07-16.2";
+export const COLLECTOR_VERSION = "top.local-collector.2026-07-20.1";
+export const PARSER_VERSION = "top.usage-parser.2026-07-20.1";
 export const SCHEMA_VERSION_V2 = "top.safe-usage.v2";
-export const COLLECTOR_VERSION_V2 = "top.local-collector.2026-07-16.2";
-export const PARSER_VERSION_V2 = "top.usage-parser.2026-07-16.3";
+export const COLLECTOR_VERSION_V2 = "top.local-collector.2026-07-20.2";
+export const PARSER_VERSION_V2 = "top.usage-parser.2026-07-20.2";
 export const MAX_LINE_CHARS = 2 * 1024 * 1024;
 
 const PARTITIONS = 64;
@@ -103,6 +104,7 @@ export function sanitizeModelLabel(value) {
   if (/^gpt-\d{1,2}(?:[.-]\d{1,2})*(?:-(?:sol|terra|luna|mini|nano|codex(?:-mini)?|chat|pro|turbo|preview))?$/.test(model)) return model;
   if (/^o[1-9](?:-(?:mini|pro|preview|latest))?$/.test(model)) return model;
   if (/^deepseek-v\d{1,2}(?:[.-]\d{1,2})*(?:-(?:pro|lite|chat|coder|reasoner))?$/.test(model)) return model;
+  if (model === "codex-auto-review") return model;
   if (/^codex-(?:mini|large|latest)(?:-latest)?$/.test(model)) return model;
   return SAFE_MODEL_FALLBACK;
 }
@@ -409,14 +411,19 @@ function createBoundedLineCollector(onLine, onOversized, maxChars = MAX_LINE_CHA
   };
 }
 
-async function streamLines(filePath, onLine, onOversized, onBytes, afterChunk) {
-  const input = createReadStream(filePath, { encoding: "utf8", highWaterMark: 64 * 1024 });
+async function streamLines(filePath, onLine, onOversized, onBytes, afterChunk, onChunk) {
+  const input = createReadStream(filePath, { highWaterMark: 64 * 1024 });
+  const decoder = new StringDecoder("utf8");
   const collector = createBoundedLineCollector(onLine, onOversized);
   for await (const chunk of input) {
-    onBytes(Buffer.byteLength(chunk, "utf8"));
-    collector.push(chunk);
+    onBytes(chunk.length);
+    if (onChunk) onChunk(chunk);
+    const decoded = decoder.write(chunk);
+    if (decoded) collector.push(decoded);
     if (afterChunk) await afterChunk();
   }
+  const finalDecoded = decoder.end();
+  if (finalDecoded) collector.push(finalDecoded);
   collector.finish();
   if (afterChunk) await afterChunk();
 }
@@ -718,6 +725,8 @@ function subtractCodexUsage(current, previous) {
   return Object.values(delta).some(value => value < 0) ? null : delta;
 }
 
+class CodexSessionTrustError extends Error {}
+
 async function collectCodex(roots, progress, schema) {
   const v2 = schema === "v2";
   const coverage = emptyCoverage();
@@ -725,107 +734,151 @@ async function collectCodex(roots, progress, schema) {
   const activeDays = new Set();
   const logicalSessions = new Map();
   const timeline = new Map();
+  const secret = randomBytes(32);
+  const acceptedFileDigests = new Set();
+  const acceptedSessionDigests = new Set();
   let logicalSessionIndex = 0;
-  for (const root of roots) {
-    for await (const item of jsonlFiles(root)) {
-      coverage.files_discovered++;
-      if (item.skipped) {
-        coverage.files_skipped++;
-        coverage.complete = false;
-        continue;
-      }
-      const state = { currentModel: SAFE_MODEL_FALLBACK, previousTotal: null, lastTotalSignature: null, foundUsage: false };
-      const fileAggregate = new Map();
-      const fileDays = new Set();
-      const fileSession = emptySessionAggregate();
-      const fileTimeline = new Map();
-      try {
-        await streamLines(item.filePath, line => {
-          const trimmed = String(line || "").trim();
-          if (!trimmed) return;
-          let record;
-          try { record = JSON.parse(trimmed); } catch { coverage.malformed_lines++; coverage.complete = false; return; }
-          if (!record || typeof record !== "object") return;
-          if (record.type === "turn_context") {
-            if (record.payload && record.payload.model !== undefined) state.currentModel = sanitizeModelLabel(record.payload.model);
-            return;
-          }
-          if (record.type !== "event_msg" || !record.payload || record.payload.type !== "token_count") return;
-          const info = record.payload.info;
-          if (!info || typeof info !== "object") return;
-          const total = checkedCodexUsage(info.total_token_usage);
-          const last = checkedCodexUsage(info.last_token_usage);
-          let usage = null;
-          if (total) {
-            const signature = `${total.input}|${total.cached}|${total.output}|${total.reasoning}|${total.total}`;
-            if (state.lastTotalSignature === signature) { coverage.duplicate_usage_records++; return; }
-            state.lastTotalSignature = signature;
-            usage = subtractCodexUsage(total, state.previousTotal);
-            if (!usage) {
-              coverage.counter_resets++;
-              coverage.complete = false;
-              if (last) usage = last;
-            }
-            state.previousTotal = total;
-          } else if (last) {
-            usage = last;
-            coverage.complete = false;
-          } else {
-            coverage.complete = false;
-            return;
-          }
-          if (!usage) return;
-          if (usage.total !== usage.input + usage.output) coverage.complete = false;
-          if (!(usage.input || usage.cached || usage.output || usage.reasoning)) return;
-          const usageRow = {
-            input_tokens: usage.input - usage.cached,
-            cache_write_input_tokens: 0,
-            cache_read_input_tokens: usage.cached,
-            output_tokens: usage.output,
-            reasoning_output_tokens: usage.reasoning,
-            usage_records: 1,
-          };
-          const row = fileAggregate.get(state.currentModel) || emptyModelRow();
-          mergeModelRow(row, usageRow);
-          fileAggregate.set(state.currentModel, row);
-          state.foundUsage = true;
-          const day = v2 ? validCalendarDay(record.timestamp) : dateOnly(record.timestamp);
-          if (v2) {
-            const time = day ? timeOnlyForLocalAggregation(record.timestamp) : null;
-            mergeUsageIntoSession(fileSession, usageRow, day, time);
-            mergeUsageIntoTimeline(fileTimeline, usageRow, day);
-          }
-          if (day) fileDays.add(day);
-        }, () => { coverage.oversized_lines++; coverage.complete = false; }, count => progress.bytes(count, coverage.files_parsed));
-        coverage.files_parsed++;
-        if (state.foundUsage) {
-          coverage.files_with_usage++;
-          for (const [model, fileRow] of fileAggregate) {
-            const target = aggregate.get(model) || emptyModelRow();
-            mergeModelRow(target, fileRow);
-            aggregate.set(model, target);
-          }
-          for (const day of fileDays) activeDays.add(day);
-          if (v2) {
-            logicalSessions.set(logicalSessionIndex++, fileSession);
-            for (const [period, fileRow] of fileTimeline) {
-              const target = timeline.get(period) || emptyTimelineAggregate();
-              mergeModelRow(target, fileRow);
-              for (const day of fileRow.days) target.days.add(day);
-              timeline.set(period, target);
-            }
-          }
+  try {
+    for (const root of roots) {
+      for await (const item of jsonlFiles(root)) {
+        coverage.files_discovered++;
+        if (item.skipped) {
+          coverage.files_skipped++;
+          coverage.complete = false;
+          continue;
         }
-      } catch {
-        coverage.files_skipped++;
-        coverage.complete = false;
+        const state = {
+          currentModel: SAFE_MODEL_FALLBACK,
+          previousTotal: null,
+          lastTotalSignature: null,
+          foundUsage: false,
+          sessionDigest: null,
+          conflictingSessionIds: false,
+        };
+        const fileAggregate = new Map();
+        const fileDays = new Set();
+        const fileSession = emptySessionAggregate();
+        const fileTimeline = new Map();
+        const fileHmac = createHmac("sha256", secret);
+        try {
+          await streamLines(item.filePath, line => {
+            const trimmed = String(line || "").trim();
+            if (!trimmed) return;
+            let record;
+            try { record = JSON.parse(trimmed); } catch { coverage.malformed_lines++; coverage.complete = false; return; }
+            if (!record || typeof record !== "object") return;
+            if (record.type === "session_meta") {
+              const sessionId = stableIdPart(record.payload && record.payload.id);
+              if (sessionId !== null) {
+                const digest = privateDigest(secret, ["codex-session", sessionId]);
+                if (state.sessionDigest !== null && state.sessionDigest !== digest) state.conflictingSessionIds = true;
+                else state.sessionDigest = digest;
+              }
+              return;
+            }
+            if (record.type === "turn_context") {
+              state.currentModel = sanitizeModelLabel(record.payload && record.payload.model);
+              return;
+            }
+            if (record.type === "event_msg" && record.payload && record.payload.type === "model_reroute") {
+              state.currentModel = sanitizeModelLabel(record.payload.to_model);
+              return;
+            }
+            if (record.type !== "event_msg" || !record.payload || record.payload.type !== "token_count") return;
+            const info = record.payload.info;
+            if (!info || typeof info !== "object") return;
+            const total = checkedCodexUsage(info.total_token_usage);
+            const last = checkedCodexUsage(info.last_token_usage);
+            let usage = null;
+            if (total) {
+              const signature = `${total.input}|${total.cached}|${total.output}|${total.reasoning}|${total.total}`;
+              if (state.lastTotalSignature === signature) { coverage.duplicate_usage_records++; return; }
+              state.lastTotalSignature = signature;
+              usage = subtractCodexUsage(total, state.previousTotal);
+              if (!usage) {
+                coverage.counter_resets++;
+                coverage.complete = false;
+                if (last) usage = last;
+              }
+              state.previousTotal = total;
+            } else if (last) {
+              usage = last;
+              coverage.complete = false;
+            } else {
+              coverage.complete = false;
+              return;
+            }
+            if (!usage) return;
+            if (usage.total !== usage.input + usage.output) coverage.complete = false;
+            if (!(usage.input || usage.cached || usage.output || usage.reasoning)) return;
+            const usageRow = {
+              input_tokens: usage.input - usage.cached,
+              cache_write_input_tokens: 0,
+              cache_read_input_tokens: usage.cached,
+              output_tokens: usage.output,
+              reasoning_output_tokens: usage.reasoning,
+              usage_records: 1,
+            };
+            const row = fileAggregate.get(state.currentModel) || emptyModelRow();
+            mergeModelRow(row, usageRow);
+            fileAggregate.set(state.currentModel, row);
+            state.foundUsage = true;
+            const day = v2 ? validCalendarDay(record.timestamp) : dateOnly(record.timestamp);
+            if (v2) {
+              const time = day ? timeOnlyForLocalAggregation(record.timestamp) : null;
+              mergeUsageIntoSession(fileSession, usageRow, day, time);
+              mergeUsageIntoTimeline(fileTimeline, usageRow, day);
+            }
+            if (day) fileDays.add(day);
+          }, () => { coverage.oversized_lines++; coverage.complete = false; }, count => progress.bytes(count, coverage.files_parsed), undefined, chunk => fileHmac.update(chunk));
+          coverage.files_parsed++;
+          if (state.foundUsage) {
+            coverage.files_with_usage++;
+            const fileDigest = fileHmac.digest("hex");
+            const usageRecords = [...fileAggregate.values()].reduce((total, row) => addSafe(total, row.usage_records), 0);
+            if (acceptedFileDigests.has(fileDigest)) {
+              coverage.duplicate_usage_records = addSafe(coverage.duplicate_usage_records, usageRecords);
+            } else {
+              if (state.conflictingSessionIds || state.sessionDigest === null) {
+                throw new CodexSessionTrustError("A Codex usage file has no single stable session identity, so TOP stopped instead of risking a duplicate total.");
+              }
+              if (acceptedSessionDigests.has(state.sessionDigest)) {
+                throw new CodexSessionTrustError("Two different Codex files claim the same session, so TOP stopped instead of risking a duplicate total.");
+              }
+              acceptedFileDigests.add(fileDigest);
+              acceptedSessionDigests.add(state.sessionDigest);
+              for (const [model, fileRow] of fileAggregate) {
+                const target = aggregate.get(model) || emptyModelRow();
+                mergeModelRow(target, fileRow);
+                aggregate.set(model, target);
+              }
+              for (const day of fileDays) activeDays.add(day);
+              if (v2) {
+                logicalSessions.set(logicalSessionIndex++, fileSession);
+                for (const [period, fileRow] of fileTimeline) {
+                  const target = timeline.get(period) || emptyTimelineAggregate();
+                  mergeModelRow(target, fileRow);
+                  for (const day of fileRow.days) target.days.add(day);
+                  timeline.set(period, target);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          if (error instanceof CodexSessionTrustError) throw error;
+          coverage.files_skipped++;
+          coverage.complete = false;
+        }
+        progress.file(coverage.files_parsed + coverage.files_skipped);
       }
-      progress.file(coverage.files_parsed + coverage.files_skipped);
     }
+    if (![...aggregate.values()].some(row => row.usage_records > 0)) throw new Error("No supported usage counters were found for that source.");
+    const acceptedSessions = v2 ? logicalSessions.size : acceptedSessionDigests.size;
+    const base = reportFromAggregate("codex", coverage, aggregate, acceptedSessions, activeDays.size);
+    return v2 ? reportV2FromBase(base, "codex", logicalSessions, timeline) : base;
+  } finally {
+    secret.fill(0);
   }
-  if (![...aggregate.values()].some(row => row.usage_records > 0)) throw new Error("No supported usage counters were found for that source.");
-  const base = reportFromAggregate("codex", coverage, aggregate, coverage.files_with_usage, activeDays.size);
-  return v2 ? reportV2FromBase(base, "codex", logicalSessions, timeline) : base;
 }
 
 export async function collectUsage({ source, roots, progress = createNoopProgress(), schema = "v1" }) {
@@ -1065,6 +1118,8 @@ async function main() {
       "No supported usage counters were found for that source.",
       "A source directory could not be read.",
       "Usage counters exceed the supported safe integer range.",
+      "A Codex usage file has no single stable session identity, so TOP stopped instead of risking a duplicate total.",
+      "Two different Codex files claim the same session, so TOP stopped instead of risking a duplicate total.",
     ]);
     const message = safeMessages.has(error && error.message) ? error.message : "The collector could not create a safe summary.";
     process.stderr.write(`TOP collector: ${message}\n`);

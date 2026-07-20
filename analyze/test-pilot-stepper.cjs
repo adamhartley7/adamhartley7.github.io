@@ -462,7 +462,7 @@ assert.match(mixCtx.pilotMixLeadText(allAuto, 1), /each of these 34 usage events
 const allNamed = { cursor: true, turns: 5, undisclosedRows: 0, modelsUndisclosed: false };
 assert.equal(mixCtx.pilotMixWithheld(allNamed), false);
 assert.equal(mixCtx.pilotMixHeadingText(allNamed), "Which models drove that estimate?");
-assert.equal(mixCtx.pilotMixLeadText(allNamed, 2), "2 AI versions recorded in the files you chose.");
+assert.equal(mixCtx.pilotMixLeadText(allNamed, 2), "2 recognized AI versions recorded in the files you chose.");
 const namedPanel = mixCtx.pilotMixPanelHTML(allNamed, [{ model: "claude-4.5-sonnet", cost: 3 }, { model: "gpt-5", cost: 1 }], 4);
 assert.match(namedPanel, /claude-4\.5-sonnet/);
 assert.match(namedPanel, /75%/, "a fully disclosed export must still get its real priced shares");
@@ -479,7 +479,9 @@ assert.match(mixPanelBody, /"<p>"\+esc\(pilotMixWithheldText\(res\)\)\+"<\/p>"/,
 assert.match(html, /document\.getElementById\("pilotUsageMix"\)\.innerHTML=pilotMixPanelHTML\(res,shownRows,pricedTotal\)/,
   "the mix panel must be rendered by the gated function, never by an inline shownRows.length check");
 assert.match(html, /mixHeading\.textContent=pilotMixHeadingText\(res\)/);
-assert.match(html, /document\.getElementById\("pilotMixLead"\)\.textContent=pilotMixLeadText\(res,rows\.length\)/);
+assert.match(html, /recognizedModelCount=rows\.filter\(function\(row\)\{return !isUnknownModel\(row\)&&!\(res\.cursor&&cursorUndisclosedModel\(row\.model\)\)\}\)\.length/,
+  "unknown sentinels and Cursor Auto must not count as recognized AI versions");
+assert.match(html, /document\.getElementById\("pilotMixLead"\)\.textContent=pilotMixLeadText\(res,recognizedModelCount\)/);
 assert.match(mixBody, /pilotMixWithheld\(res\)[\s\S]{0,120}pilotRangeChartHTML\(res,included\)/,
   "the mix CHART must be withheld on the same condition as the mix panel");
 

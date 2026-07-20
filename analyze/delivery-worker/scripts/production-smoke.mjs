@@ -197,8 +197,8 @@ export function createSyntheticReport(generatedDate) {
   const report = {
     schema_version: "top.research-safe-usage.v1",
     collector: {
-      collector_version: "top.local-collector.2026-07-16.1",
-      parser_version: "top.usage-parser.2026-07-16.2",
+      collector_version: "top.local-collector.2026-07-20.1",
+      parser_version: "top.usage-parser.2026-07-20.1",
     },
     generated_date: generatedDate,
     source: {
