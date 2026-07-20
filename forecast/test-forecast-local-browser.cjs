@@ -472,16 +472,13 @@ async function runOnce(runNumber, texts) {
       "the session with an unknown price must fail closed and stay out of fitting");
     assert.match(browserResult.unpriced_warning, /synthetic-unpriced-model/);
     assert.match(browserResult.unpriced_warning, /excluded from cost/);
-    // The band that this run does emit must carry the history behind it, and neither the cards
-    // nor the note may put a coverage rate on a six-task held-out split.
+    // The band that this run emits must carry the history behind it, while public performance
+    // figures stay withheld for every held-out split size.
     assert.match(browserResult.quote_cards, /Based on 32 completed tasks of your history/,
       "an emitted band must show the history count it was fitted on");
-    assert.match(browserResult.quote_cards, /0 of 6 inside the band/,
-      "the held-out evidence must travel with the band as a raw count");
-    assert.match(browserResult.quote_cards, /too few held-out tasks to state a coverage rate/i,
-      "six held-out tasks cannot support a coverage rate and the page must say so");
-    assert.doesNotMatch(browserResult.quote_cards, /coverage rate of/i,
-      "no coverage rate may be stated from this split");
+    assert.match(browserResult.quote_cards, /public performance figures withheld while TOP-1 remains research/i);
+    assert.doesNotMatch(browserResult.quote_cards, /%|inside the band|median error|coverage rate/i,
+      "no public performance figure may be stated from this split");
     for (const quote of [browserResult.task_only_quote_usd, browserResult.turn_count_quote_usd]) {
       assert.ok(Number.isFinite(quote.p10) && Number.isFinite(quote.p50) && Number.isFinite(quote.p90));
       assert.ok(quote.p10 <= quote.p50 && quote.p50 <= quote.p90,

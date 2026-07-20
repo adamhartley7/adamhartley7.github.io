@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TOP — Command Dashboard</title>
+<title>TOP: Command Dashboard</title>
 <meta name="description" content="Private local dashboard: reports archive, money tracker, and site views for TOP. Runs entirely in your browser.">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#08080A">
@@ -79,7 +79,7 @@ footer{border-top:1px solid var(--border);padding:24px 0;color:var(--faint);font
 
 <div class="wrap">
   <h1>Command dashboard</h1>
-  <div class="lede">Your reports, your revenue, your reach — one place.</div>
+  <div class="lede">Your reports, your revenue, your reach, all in one place.</div>
   <div class="priv"><span>🔒</span> Runs 100% in your browser · data saved locally on this device · nothing uploaded</div>
 
   <div class="cards">
@@ -91,7 +91,7 @@ footer{border-top:1px solid var(--border);padding:24px 0;color:var(--faint);font
 
   <section>
     <h2>The €1,000,000 meter</h2>
-    <div class="hint">Log every real euro TOP (or anything) earns. Declared income only — this is your HAR7LEY finance cut.</div>
+    <div class="hint">Log every real euro TOP (or anything) earns. Declared income only. This is your HAR7LEY finance cut.</div>
     <div class="barlabel"><span id="mNow">€0</span><span>€1,000,000</span></div>
     <div class="bar"><div class="fill" id="mBar" style="width:0%"></div></div>
     <div class="row">
@@ -105,10 +105,10 @@ footer{border-top:1px solid var(--border);padding:24px 0;color:var(--faint);font
 
   <section>
     <h2>Reports archive</h2>
-    <div class="hint">Drop the anonymised summary files people send you (or that I pull from your Gmail) — they're parsed, archived and searchable here. Ask me anytime to sync your latest Gmail submissions into files for this.</div>
+    <div class="hint">Drop the anonymised summary files people send you (or that I pull from your Gmail). They are parsed, archived and searchable here. Ask me anytime to sync your latest Gmail submissions into files for this.</div>
     <label class="drop" id="drop">
       <div style="font-weight:600">Drop report .txt files here, or click</div>
-      <div style="color:var(--muted);font-size:13px;margin-top:4px">the "TOP Analyzer — anonymised usage summary" files</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px">the "TOP Analyzer: anonymised usage summary" files</div>
       <input type="file" id="file" multiple accept=".txt,.md,text/plain">
     </label>
     <input id="search" placeholder="search reports…" style="width:100%;margin-bottom:10px">
@@ -125,7 +125,7 @@ footer{border-top:1px solid var(--border);padding:24px 0;color:var(--faint);font
       <a href="https://github.com/adamhartley7/checkpointkm/graphs/traffic" target="_blank" rel="noopener">CheckpointKM traffic</a>
       <a href="https://ntfy.sh/top-hartley-live-9k2m" target="_blank" rel="noopener" style="border-color:var(--mint);color:var(--mint)">🔔 Subscribe to live pings</a>
     </div>
-    <p style="color:var(--faint);font-size:12.5px;margin-top:10px">Live pings arrive in the <b>ntfy app</b> — subscribe to topic <span class="mono" style="color:var(--muted)">top-hartley-live-9k2m</span> to get a buzz on every visitor + analyzer use.</p>
+    <p style="color:var(--faint);font-size:12.5px;margin-top:10px">Live pings arrive in the <b>ntfy app</b>. Subscribe to topic <span class="mono" style="color:var(--muted)">top-hartley-live-9k2m</span> to get a buzz on every visitor + analyzer use.</p>
   </section>
 </div>
 
@@ -147,13 +147,13 @@ function renderIncome(){
   $('cMoney').textContent=eur(total);
   $('mBar').style.width=Math.min(100,(total/1000000)*100)+'%';
   var t=$('incomeTable');
-  if(!income.length){t.innerHTML='<tr><td class="empty" colspan="4">No income logged yet — TOP is free right now. Log your first euro here.</td></tr>';return;}
+  if(!income.length){t.innerHTML='<tr><td class="empty" colspan="4">No income logged yet. TOP is free right now. Log your first euro here.</td></tr>';return;}
   t.innerHTML='<thead><tr><th>Date</th><th>Source</th><th style="text-align:right">Amount</th><th></th></tr></thead><tbody>'+
     income.slice().reverse().map(function(i,ri){var idx=income.length-1-ri;return '<tr><td class="mono" style="color:var(--muted)">'+(i.date||'')+'</td><td>'+esc(i.src)+'</td><td class="n">'+eur(i.amt)+'</td><td style="text-align:right"><button class="del" data-i="'+idx+'" data-t="income">delete</button></td></tr>'}).join('')+'</tbody>';
 }
 $('addIncome').addEventListener('click',function(){
   var amt=parseFloat($('iAmt').value); if(isNaN(amt)){$('iAmt').focus();return;}
-  income.push({amt:amt,src:$('iSrc').value||'—',date:$('iDate').value||''});
+  income.push({amt:amt,src:$('iSrc').value||'Not set',date:$('iDate').value||''});
   save('top_income',income); $('iAmt').value='';$('iSrc').value='';$('iDate').value='';
   renderIncome();
 });
@@ -179,10 +179,10 @@ function renderReports(){
   $('cReports').textContent=reports.length;
   $('cTokens').textContent=nfmt(reports.reduce(function(s,r){return s+(+r.tokens||0)},0));
   var el=$('reports');
-  if(!reports.length){el.innerHTML='<div class="empty">No reports yet. They land here as people run their usage through the analyzer and send it — or ask me to pull your latest from Gmail.</div>';return;}
+  if(!reports.length){el.innerHTML='<div class="empty">No reports yet. They land here as people run their usage through the analyzer and send it, or ask me to pull your latest from Gmail.</div>';return;}
   if(!list.length){el.innerHTML='<div class="empty">No reports match "'+esc(q)+'".</div>';return;}
   el.innerHTML=list.map(function(r){
-    return '<div class="rep" data-id="'+r.id+'"><div class="top"><span class="nm">'+esc(r.name)+'</span><span class="meta">'+(r.cost?('$'+r.cost):'—')+' · '+(r.tokens?nfmt(r.tokens)+' tok':'')+' · '+r.added+' <button class="del" data-id="'+r.id+'" data-t="report">✕</button></span></div><pre>'+esc(r.raw)+'</pre></div>';
+    return '<div class="rep" data-id="'+r.id+'"><div class="top"><span class="nm">'+esc(r.name)+'</span><span class="meta">'+(r.cost?('$'+r.cost):'Not available')+' · '+(r.tokens?nfmt(r.tokens)+' tok':'')+' · '+r.added+' <button class="del" data-id="'+r.id+'" data-t="report">✕</button></span></div><pre>'+esc(r.raw)+'</pre></div>';
   }).join('');
 }
 function addReports(files){

@@ -14,8 +14,7 @@
  *   1. no band is emitted below FORECAST_MIN_HISTORY completed tasks, and the refusal says why
  *      in words a non-technical reader can act on;
  *   2. a band that IS emitted carries the history count it was fitted on;
- *   3. no coverage percentage is displayed unless the held-out split can honestly support one,
- *      and a rate that is shown carries its own 95% interval.
+ *   3. held-out performance figures remain research-only and are not rendered publicly.
  */
 
 const assert = require("node:assert/strict");
@@ -108,30 +107,27 @@ assert.match(emitted, /34/, "an emitted band must show the history count it was 
 assert.match(emitted, /completed tasks/i,
   "the history count beside a band must be labelled in words, not left as a bare number");
 
-// ---------------------------------------------------------------- 5. coverage is never stated from a thin split
+// ---------------------------------------------------------------- 5. public performance figures are withheld for every split size
 assert.equal(context.coverageRateReportable(2), false);
 assert.equal(context.coverageRateReportable(19), false);
 assert.equal(context.coverageRateReportable(20), true);
 
 const thin = context.coverageText(2, 2);
-assert.match(thin, /2 of 2/, "a thin split must still show its raw count");
-assert.doesNotMatch(thin, /100(\.0)?%/,
-  "two hits out of two must never be rendered as a 100% coverage rate");
-assert.match(thin, /too few/i, "a thin split must say why no rate is shown");
+assert.match(thin, /2 held-out tasks checked/i);
+assert.match(thin, /public performance rate withheld/i);
+assert.doesNotMatch(thin, /%|inside the band/i);
 
 const thinValue = context.coverageValue(2, 2);
-assert.doesNotMatch(thinValue, /%/,
-  "the coverage card value must not carry a percent sign when no rate can be stated");
+assert.equal(thinValue, "Withheld");
 
 assert.equal(context.coverageClass(2, 2), "",
   "a coverage figure that cannot be stated must not be colour-graded as good or bad");
 
-// a rate that IS shown carries its own uncertainty
+// The Wilson calculation stays available to the research harness but is not displayed publicly.
 const reported = context.coverageText(16, 20);
-assert.match(reported, /16 of 20/);
-assert.match(reported, /80\.0%/);
-assert.match(reported, /95% interval/i,
-  "a displayed coverage rate must carry the width of its own uncertainty");
+assert.match(reported, /20 held-out tasks checked/i);
+assert.match(reported, /withheld/i);
+assert.doesNotMatch(reported, /%|inside the band/i);
 
 const interval = context.wilson95(16, 20);
 assert.ok(interval.low < 80 && interval.high > 80, "the interval must bracket the point estimate");
@@ -156,22 +152,20 @@ const heldOutContext = {
 };
 vm.runInNewContext(heldOutSource[0], heldOutContext, { filename: "forecast-held-out-status.js" });
 const thinSentence = heldOutContext.heldOutStatus(2, 2, 39.4);
-assert.doesNotMatch(thinSentence, /100(\.0)?%/, "the held-out sentence must not report 100% from two tasks");
+assert.match(thinSentence, /public performance figures are withheld/i);
+assert.doesNotMatch(thinSentence, /%|inside the band|median relative error/i);
 assert.match(thinSentence, /does not validate the model for a future task or another user/i);
 const thickSentence = heldOutContext.heldOutStatus(16, 20, 39.4);
-assert.match(thickSentence, /80\.0%/);
-assert.match(thickSentence, /95% interval/i);
+assert.match(thickSentence, /public performance figures are withheld/i);
+assert.doesNotMatch(thickSentence, /%|inside the band|median relative error/i);
 assert.match(thickSentence, /does not validate the model for a future task or another user/i);
 
 // ---------------------------------------------------------------- 7. no em dashes were introduced
-// Scoped to the cold-start work. Seven em dashes predate it elsewhere in the page (five in comments
-// and two used as empty-cell placeholders in the model table); restructuring those belongs to
-// whoever owns the page layout, not to this fix.
 assert.doesNotMatch(slice("// ---------- cold-start gate", "function renderBacktest("), /—/,
   "no em dashes in the cold-start gate block");
 assert.doesNotMatch(slice("function fitQuotePriors(", "function renderQuote("), /—/,
   "no em dashes in the quote-gate block");
-assert.equal((html.match(/—/g) || []).length, 7,
-  "this fix must not add an em dash anywhere in the page");
+assert.equal((html.match(/—/g) || []).length, 0,
+  "the public page must not contain an em dash");
 
 process.stdout.write("forecast cold-start refusal: gate, refusal copy, history count and honest coverage all hold\n");
