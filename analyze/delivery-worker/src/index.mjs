@@ -11,16 +11,15 @@ export const REPORT_SCHEMA_VERSION_V2 = "top.research-safe-usage.v2";
 const RETENTION_DAYS = 30;
 const CONSENT_NOTICE_VERSION = "top.research-consent.2026-07-17.1";
 const PURPOSES = new Set(["analyzer_validation", "forecast_calibration"]);
-const COLLECTOR_VERSIONS = new Set([
-  "top.local-analyzer.2026-07-16.1",
-  "top.local-collector.2026-07-20.1",
+const V1_VERSION_PAIRS = new Set([
+  "top.local-analyzer.2026-07-16.1|top.usage-parser.2026-07-16.1",
+  "top.local-collector.2026-07-20.1|top.usage-parser.2026-07-20.1",
+  "top.local-collector.2026-07-20.2|top.usage-parser.2026-07-20.2",
 ]);
-const PARSER_VERSIONS = new Set([
-  "top.usage-parser.2026-07-16.1",
-  "top.usage-parser.2026-07-20.1",
+const V2_VERSION_PAIRS = new Set([
+  "top.local-collector.2026-07-20.2|top.usage-parser.2026-07-20.2",
+  "top.local-collector.2026-07-20.3|top.usage-parser.2026-07-20.3",
 ]);
-const V2_COLLECTOR_VERSION = "top.local-collector.2026-07-20.2";
-const V2_PARSER_VERSION = "top.usage-parser.2026-07-20.2";
 const COST_STATUSES = new Set([
   "unavailable",
   // A charge positively known to be nothing, which is not the same claim as "unavailable" and
@@ -304,13 +303,14 @@ function safeModelLabelForSource(value, source) {
 function validateCollector(value, schemaVersion) {
   exactObject(value, ["collector_version", "parser_version"], "collector");
   if (schemaVersion === REPORT_SCHEMA_VERSION_V2) {
-    if (value.collector_version !== V2_COLLECTOR_VERSION || value.parser_version !== V2_PARSER_VERSION) {
+    if (!V2_VERSION_PAIRS.has(`${value.collector_version}|${value.parser_version}`)) {
       fail("unsupported_report_version", "The v2 collector or parser version is not supported.");
     }
     return;
   }
-  oneOf(value.collector_version, COLLECTOR_VERSIONS, "collector version");
-  oneOf(value.parser_version, PARSER_VERSIONS, "parser version");
+  if (!V1_VERSION_PAIRS.has(`${value.collector_version}|${value.parser_version}`)) {
+    fail("unsupported_report_version", "The v1 collector or parser version is not supported.");
+  }
 }
 
 function validateSource(value) {

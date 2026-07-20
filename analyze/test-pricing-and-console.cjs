@@ -13,7 +13,15 @@ const pricingStart = html.indexOf("var PRICING_CHECKED=");
 const pricingEnd = html.indexOf("function fmt$", pricingStart);
 assert.ok(pricingStart >= 0 && pricingEnd > pricingStart, "could not locate pricing logic");
 
-const context = {};
+const context = {
+  safeUsageAdd(left, right) {
+    const next = left + right;
+    if (!Number.isSafeInteger(left) || left < 0 || !Number.isSafeInteger(right) || right < 0 || !Number.isSafeInteger(next)) {
+      throw new Error("Usage counters exceed the safe local reporting limit");
+    }
+    return next;
+  },
+};
 vm.createContext(context);
 vm.runInContext(html.slice(pricingStart, pricingEnd), context);
 
@@ -79,6 +87,58 @@ assert.equal(context.costOf("gpt-5.6-sol", 0, 1e6, 0, 0), 30,
   "one million Sol output tokens must cost $30, not $30,000");
 assert.equal(context.costOf("gpt-5.6-sol", 0, 1000, 0, 0), 0.03,
   "the per-million rate must be scaled down for ordinary token counts");
+
+const exactCodexApi = context.codexApiEquivalent([
+  { model: "gpt-5.6-sol", e: { inp: 80, out: 30, cw: 0, cr: 20 } },
+], true);
+assert.ok(Math.abs(exactCodexApi.amount - 0.00131) < 1e-12);
+assert.equal(exactCodexApi.partial, false);
+assert.equal(exactCodexApi.pricedTokens, 130);
+assert.equal(exactCodexApi.unpricedTokens, 0);
+
+const originalSolInput = context.PRICES.gpt56sol.in;
+const originalSolOutput = context.PRICES.gpt56sol.out;
+context.PRICES.gpt56sol.in = 500;
+context.PRICES.gpt56sol.out = 3000;
+const stableCodexApi = context.codexApiEquivalent([
+  { model: "gpt-5.6-sol", e: { inp: 80, out: 30, cw: 0, cr: 20 } },
+], true);
+assert.ok(Math.abs(stableCodexApi.amount - 0.00131) < 1e-12,
+  "Codex must use immutable checked base rates, not values edited for a prior report in the same tab");
+context.PRICES.gpt56sol.in = originalSolInput;
+context.PRICES.gpt56sol.out = originalSolOutput;
+
+const unsupportedCodexCacheWrite = context.codexApiEquivalent([
+  { model: "gpt-5.6-sol", e: { inp: 80, out: 30, cw: 1, cr: 20 } },
+], true);
+assert.equal(unsupportedCodexCacheWrite.pricedTokens, 130);
+assert.equal(unsupportedCodexCacheWrite.unpricedTokens, 1,
+  "a Codex-only cache-write category must stay unpriced instead of inheriting Anthropic's multiplier");
+assert.equal(unsupportedCodexCacheWrite.partial, true);
+
+const partialCodexApi = context.codexApiEquivalent([
+  { model: "gpt-5.6-sol", e: { inp: 80, out: 30, cw: 0, cr: 20 } },
+  { model: "Unknown Codex model", e: { inp: 100, out: 10, cw: 0, cr: 0 } },
+  { model: "codex-auto-review", e: { inp: 20, out: 5, cw: 0, cr: 0 } },
+], true);
+assert.ok(Math.abs(partialCodexApi.amount - 0.00131) < 1e-12);
+assert.equal(partialCodexApi.partial, true);
+assert.equal(partialCodexApi.pricedTokens, 130);
+assert.equal(partialCodexApi.unpricedTokens, 135);
+assert.deepEqual([...partialCodexApi.rateKeys], ["gpt56sol"]);
+
+const unknownCodexApi = context.codexApiEquivalent([
+  { model: "Unknown Codex model", e: { inp: 100, out: 10, cw: 0, cr: 0 } },
+], true);
+assert.equal(unknownCodexApi.amount, null, "an all-unknown Codex report must remain unpriced, never zero");
+assert.equal(unknownCodexApi.partial, false);
+assert.equal(context.codexApiEquivalent([
+  { model: "gpt-5.6-sol", e: { inp: 80, out: 30, cw: 0, cr: 20 } },
+], false).partial, true, "incomplete parser coverage must make the API equivalent partial");
+assert.equal(context.coverageShareText(1, 1001), "<1%",
+  "a small nonzero unpriced share must never render as zero percent");
+assert.equal(context.coverageShareText(1000, 1001), ">99%",
+  "a partial priced share must never round up to complete coverage");
 
 // The API-equivalent range is what a subscription user gets instead of an invented model attribution.
 // It must span the whole checked table, name both ends, and never collapse to a single guessed model.

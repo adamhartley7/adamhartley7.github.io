@@ -7,6 +7,11 @@ assert.match(html, /id="pilotQuickReport" hidden/);
 assert.match(html, /Your report is ready/);
 assert.match(html, /Your prompts, replies, code and files stayed on this computer/);
 assert.match(html, /Actual cost in the selected files/);
+assert.match(html, /id="pilotQuickApiEquivalent">Unpriced/);
+assert.match(html, /Base-rate API equivalent/);
+assert.match(html, /pilot-metrics\.has-api-equivalent\{grid-template-columns:repeat\(4,1fr\)\}/);
+assert.match(html, /codexApi\.partial\?"Partial ":""/);
+assert.match(html, /not your Codex bill/i);
 assert.match(html, /Work sessions found/);
 assert.match(html, /Deduplicated logical sessions/);
 assert.match(html, /Rollout-file session proxies/);
@@ -66,9 +71,20 @@ assert.match(html, /TOP priced "\+fmtN\(pricedRows\.length\)\+" of "\+fmtN\(rows
 assert.match(html, /not your subscription bill/);
 assert.match(html, /Coverage complete: /);
 assert.match(html, /recorded tokens have no recognized AI version/);
-assert.match(html, /label==="Unrecognized AI version"\|\|label==="Unknown Codex model"/);
+assert.match(html, /could not be tied to an exact Codex model/);
+assert.match(html, /left them unpriced rather than guessing/);
+assert.match(html, /Model context was either absent before those counters/);
+assert.match(html, /a recorded label did not match TOP's safe recognized model families/);
+assert.match(html, /coverageShareText\(codexApi\.unpricedTokens,codexApi\.totalTokens\)/);
 assert.match(html, /Recognized AI versions seen/);
 assert.match(html, /Total model token traffic/);
+assert.match(html, /Could TOP-1 learn from your history\?/);
+assert.match(html, /TOP-1 is being tested, not shipped in this analyzer/);
+assert.match(html, /aggregates are not task-level training rows/);
+assert.match(html, /cannot train a pooled k-nearest-neighbour forecast/);
+const forecastSection = /<section class="pilot-step" id="pilotStepShape"[\s\S]*?<\/section>/.exec(html);
+assert.ok(forecastSection, "TOP-1 forecast section missing");
+assert.doesNotMatch(forecastSection[0], /TOP-3/, "the forecast section must not mislabel TOP-1 as TOP-3");
 
 // Subscription-covered reports lead with tokens, never with a meaningless zero, and never guess the
 // model behind Cursor's Auto mode.

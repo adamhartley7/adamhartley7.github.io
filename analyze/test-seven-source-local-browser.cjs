@@ -95,6 +95,9 @@ const CASES = [
       ["modelTable", /gpt-5\.6-sol[\s\S]*80[\s\S]*30/i],
       ["summary", /Where this came from: Codex local session logs\./i],
       ["summary", /Total model token traffic: 130 tokens\./i],
+      ["summary", /Actual Codex cost: Unpriced/i],
+      ["summary", /Base-rate API equivalent: \$0\.0013/i],
+      ["summary", /not your Codex bill/i],
     ],
   },
   {
@@ -585,6 +588,10 @@ async function captureReport(client) {
     const route = document.getElementById("routea");
     const progress = document.getElementById("analysisProgress");
     const track = document.getElementById("analysisProgressTrack");
+    const pilotMetrics = document.getElementById("pilotMetrics");
+    const visiblePilotMetrics = pilotMetrics
+      ? Array.from(pilotMetrics.children).filter((element) => !element.hidden && getComputedStyle(element).display !== "none")
+      : [];
     return {
       mode: typeof mode === "string" ? mode : "",
       kind: String(result.kind || ""),
@@ -606,6 +613,10 @@ async function captureReport(client) {
       cursorBreakdown: text("cursorBreakdown"),
       copilotBreakdown: text("copilotBreakdown"),
       summary: String(document.getElementById("summary").value || ""),
+      pilotApiEquivalent: text("pilotQuickApiEquivalent"),
+      pilotApiMetricHidden: document.getElementById("pilotQuickApiMetric")?.hidden ?? true,
+      pilotMetricsHaveApiEquivalent: pilotMetrics?.classList.contains("has-api-equivalent") ?? false,
+      pilotMetricWidths: visiblePilotMetrics.map((element) => element.getBoundingClientRect().width),
     };
   })()`);
 }
@@ -784,6 +795,16 @@ function registerSevenSourceTests() {
 
       for (const [field, pattern] of sourceCase.evidence) {
         assert.match(output.report[field], pattern, `${sourceCase.name}: missing ${field} evidence`);
+      }
+
+      if (sourceCase.mode === "codex") {
+        assert.equal(output.report.pilotApiEquivalent, "$0.0013");
+        assert.equal(output.report.pilotApiMetricHidden, false);
+        assert.equal(output.report.pilotMetricsHaveApiEquivalent, true);
+        assert.equal(output.report.pilotMetricWidths.length, 4,
+          "Codex must render four visible headline metrics");
+        assert.ok(Math.max(...output.report.pilotMetricWidths) - Math.min(...output.report.pilotMetricWidths) < 1,
+          "the four Codex headline metrics must have equal visual width");
       }
 
       assert.deepEqual(output.runtimeErrors, [], "the browser page must raise no runtime errors");

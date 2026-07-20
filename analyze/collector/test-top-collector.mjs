@@ -123,9 +123,20 @@ async function makeCodexFixture(root) {
     codexLine("2026-07-16T10:00:00Z", "turn_context", { model: "o3-preview", turn_id: PRIVATE }),
     codexToken("2026-07-16T10:00:01Z", codexUsage(170, 60, 40, 10), codexUsage(20, 10, 10, 2)),
     codexToken("2026-07-16T10:00:02Z", codexUsage(10, 2, 4, 1), codexUsage(10, 2, 4, 1)),
-    `{malformed-${PRIVATE}`,
   ].join("\n");
   await writeFile(path.join(root, "nested", "rollout-private.jsonl"), fixture, "utf8");
+  await writeFile(path.join(root, "malformed-only.jsonl"), `{malformed-${PRIVATE}`, "utf8");
+  const oversizedContext = JSON.stringify({
+    padding_before: "x".repeat(MAX_LINE_CHARS),
+    timestamp: "2026-07-16T10:59:58Z",
+    type: "turn_context",
+    payload: { model: "gpt-5.6-terra", private: PRIVATE },
+  });
+  const oversizedIrrelevant = JSON.stringify({
+    timestamp: "2026-07-16T10:59:59Z",
+    type: "response_item",
+    payload: { content: `${PRIVATE} \\\"type\\\":\\\"token_count\\\" ${"x".repeat(MAX_LINE_CHARS)}` },
+  });
   const oversizedSupportedUsage = JSON.stringify({
     timestamp: "2026-07-16T11:00:00Z",
     type: "event_msg",
@@ -139,7 +150,12 @@ async function makeCodexFixture(root) {
     private: PRIVATE,
     padding: "x".repeat(MAX_LINE_CHARS),
   });
-  await writeFile(path.join(root, `oversized-${PRIVATE}.jsonl`), oversizedSupportedUsage + "\n", "utf8");
+  await writeFile(path.join(root, `oversized-${PRIVATE}.jsonl`), [
+    JSON.stringify({ padding_before: "x".repeat(MAX_LINE_CHARS), timestamp: "2026-07-16T10:59:57Z", type: "session_meta", payload: { id: `oversized-session-${PRIVATE}` } }),
+    oversizedContext,
+    oversizedIrrelevant,
+    oversizedSupportedUsage,
+  ].join("\n") + "\n", "utf8");
 }
 
 function assertPrivacy(report) {
@@ -232,17 +248,17 @@ try {
   assertPrivacy(codex);
   assert.deepEqual(codex.source, { provider: "openai", surface: "codex" });
   assert.deepEqual(codex.coverage, {
-    files_discovered: 2,
+    files_discovered: 3,
     files_parsed: 2,
-    files_with_usage: 1,
-    files_skipped: 0,
+    files_with_usage: 2,
+    files_skipped: 1,
     malformed_lines: 1,
-    oversized_lines: 1,
+    oversized_lines: 0,
     counter_resets: 1,
     duplicate_usage_records: 1,
     complete: false,
   });
-  assert.deepEqual(codex.activity, { sessions: 1, active_days: 2 });
+  assert.deepEqual(codex.activity, { sessions: 2, active_days: 2 });
   assert.deepEqual(model(codex, "gpt-5.6-sol"), {
     model: "gpt-5.6-sol",
     input_tokens: 100,
@@ -263,15 +279,212 @@ try {
     usage_records: 2,
     total_tokens: 44,
   });
+  assert.deepEqual(model(codex, "gpt-5.6-terra"), {
+    model: "gpt-5.6-terra",
+    input_tokens: 1_000_000,
+    cache_write_input_tokens: 0,
+    cache_read_input_tokens: 0,
+    output_tokens: 10,
+    reasoning_output_tokens: 0,
+    usage_records: 1,
+    total_tokens: 1_000_010,
+  });
   assert.deepEqual(codex.totals, {
-    input_tokens: 118,
+    input_tokens: 1_000_118,
     cache_write_input_tokens: 0,
     cache_read_input_tokens: 62,
-    output_tokens: 44,
+    output_tokens: 54,
     reasoning_output_tokens: 11,
-    usage_records: 4,
-    total_tokens: 224,
+    usage_records: 5,
+    total_tokens: 1_000_234,
   });
+
+  const unresolvedOversizedRoot = path.join(temp, "codex-unresolved-oversized");
+  await mkdir(unresolvedOversizedRoot, { recursive: true });
+  await writeFile(path.join(unresolvedOversizedRoot, "truncated.jsonl"), [
+    codexLine("2026-07-16T12:00:00Z", "session_meta", { id: "truncated-session" }),
+    '{"type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1},"private":"' + "x".repeat(MAX_LINE_CHARS),
+    codexLine("2026-07-16T12:00:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T12:00:02Z", codexUsage(10, 0, 2, 0)),
+  ].join("\n"), "utf8");
+  await writeFile(path.join(unresolvedOversizedRoot, "clean.jsonl"), [
+    codexLine("2026-07-16T12:10:00Z", "session_meta", { id: "clean-after-truncated" }),
+    codexLine("2026-07-16T12:10:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T12:10:02Z", codexUsage(7, 0, 1, 0)),
+  ].join("\n"), "utf8");
+  const unresolvedOversized = await collectUsage({ source: "codex", roots: [unresolvedOversizedRoot] });
+  assert.equal(unresolvedOversized.coverage.files_discovered, 2);
+  assert.equal(unresolvedOversized.coverage.files_parsed, 1);
+  assert.equal(unresolvedOversized.coverage.files_skipped, 1);
+  assert.equal(unresolvedOversized.coverage.oversized_lines, 1);
+  assert.equal(unresolvedOversized.coverage.complete, false);
+  assert.equal(unresolvedOversized.totals.usage_records, 1);
+  assert.equal(unresolvedOversized.totals.input_tokens, 7,
+    "a file with an unclassifiable oversized record must contribute no totals");
+
+  const adversarialOversizedRoot = path.join(temp, "codex-adversarial-oversized");
+  await mkdir(adversarialOversizedRoot, { recursive: true });
+  const largePadding = "x".repeat(MAX_LINE_CHARS);
+  const duplicateInfo = '{"timestamp":"2026-07-16T14:00:02Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1000,"cached_input_tokens":0,"output_tokens":0,"reasoning_output_tokens":0,"total_tokens":1000}},"info":{}},"padding":"' + largePadding + '"}';
+  const nonFiniteCounter = '{"timestamp":"2026-07-16T14:00:05Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1e309,"cached_input_tokens":0,"output_tokens":0,"reasoning_output_tokens":0,"total_tokens":1e309}}},"padding":"' + largePadding + '"}';
+  const duplicatePayload = '{"timestamp":"2026-07-16T14:00:11Z","type":"turn_context","payload":{"model":"gpt-5.6-sol"},"padding":"' + largePadding + '","payload":{}}';
+  const unresolvedLongModel = JSON.stringify({
+    timestamp: "2026-07-16T14:00:14Z",
+    type: "turn_context",
+    payload: { model: "x".repeat(2048) },
+    padding: largePadding,
+  });
+  await writeFile(path.join(adversarialOversizedRoot, "adversarial.jsonl"), [
+    codexLine("2026-07-16T14:00:00Z", "session_meta", { id: "adversarial-session" }),
+    codexLine("2026-07-16T14:00:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T14:00:01.500Z", codexUsage(10, 0, 0, 0)),
+    duplicateInfo,
+    codexToken("2026-07-16T14:00:03Z", codexUsage(20, 0, 0, 0)),
+    codexLine("2026-07-16T14:00:04Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T14:00:04.500Z", codexUsage(30, 0, 0, 0)),
+    nonFiniteCounter,
+    codexToken("2026-07-16T14:00:06Z", codexUsage(40, 0, 0, 0)),
+    codexLine("2026-07-16T14:00:07Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T14:00:07.500Z", codexUsage(50, 0, 0, 0)),
+    codexLine("2026-07-16T14:00:10Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T14:00:10.500Z", codexUsage(50, 0, 0, 0)),
+    duplicatePayload,
+    codexToken("2026-07-16T14:00:12Z", codexUsage(60, 0, 0, 0)),
+    codexLine("2026-07-16T14:00:13Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T14:00:13.500Z", codexUsage(70, 0, 0, 0)),
+    unresolvedLongModel,
+    codexToken("2026-07-16T14:00:15Z", codexUsage(80, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  const adversarialOversized = await collectUsage({ source: "codex", roots: [adversarialOversizedRoot] });
+  assert.equal(adversarialOversized.coverage.oversized_lines, 3);
+  assert.equal(adversarialOversized.coverage.complete, false);
+  assert.equal(adversarialOversized.totals.input_tokens, 80,
+    "superseded and non-finite projected counters must never enter trusted totals");
+  assert.equal(model(adversarialOversized, "gpt-5.6-sol").input_tokens, 40);
+  assert.equal(model(adversarialOversized, "Unrecognized AI version").input_tokens, 40,
+    "usage after unresolved or superseded model context must not inherit a stale known rate");
+
+  const uncertainOversizedRoot = path.join(temp, "codex-uncertain-oversized");
+  await mkdir(uncertainOversizedRoot, { recursive: true });
+  const invalidWhitespace = '{"timestamp":"2026-07-16T14:20:02Z","type":"turn_context",\f"payload":{"model":"gpt-5.6-sol"},"padding":"' + largePadding + '"}';
+  const tooDeepSessionMeta = '{"nested":' + "[".repeat(129) + "0" + "]".repeat(129) + ',"padding":"' + largePadding + '","type":"session_meta","payload":{"id":"second-session"}}';
+  await writeFile(path.join(uncertainOversizedRoot, "clean.jsonl"), [
+    codexLine("2026-07-16T14:10:00Z", "session_meta", { id: "uncertain-clean-session" }),
+    codexLine("2026-07-16T14:10:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T14:10:02Z", codexUsage(9, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  await writeFile(path.join(uncertainOversizedRoot, "invalid-whitespace.jsonl"), [
+    codexLine("2026-07-16T14:20:00Z", "session_meta", { id: "invalid-whitespace-session" }),
+    codexLine("2026-07-16T14:20:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T14:20:01.500Z", codexUsage(10, 0, 0, 0)),
+    invalidWhitespace,
+    codexToken("2026-07-16T14:20:03Z", codexUsage(20, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  await writeFile(path.join(uncertainOversizedRoot, "deep-before-session.jsonl"), [
+    codexLine("2026-07-16T14:30:00Z", "session_meta", { id: "first-session" }),
+    codexLine("2026-07-16T14:30:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T14:30:01.500Z", codexUsage(10, 0, 0, 0)),
+    tooDeepSessionMeta,
+    codexToken("2026-07-16T14:30:03Z", codexUsage(20, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  const uncertainOversized = await collectUsage({ source: "codex", roots: [uncertainOversizedRoot] });
+  assert.equal(uncertainOversized.coverage.files_discovered, 3);
+  assert.equal(uncertainOversized.coverage.files_parsed, 1);
+  assert.equal(uncertainOversized.coverage.files_skipped, 2);
+  assert.equal(uncertainOversized.coverage.oversized_lines, 2);
+  assert.equal(uncertainOversized.coverage.complete, false);
+  assert.equal(uncertainOversized.totals.input_tokens, 9,
+    "classification-incomplete oversized records must exclude the whole file from deduplication");
+
+  const numericSessionRoot = path.join(temp, "codex-oversized-session-numeric");
+  await mkdir(numericSessionRoot, { recursive: true });
+  await writeFile(path.join(numericSessionRoot, "numeric.jsonl"), [
+    codexLine("2026-07-16T15:00:00Z", "session_meta", { id: "first-session" }),
+    '{"type":"session_meta","payload":{"id":12345},"padding":"' + largePadding + '"}',
+    codexLine("2026-07-16T15:00:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T15:00:02Z", codexUsage(10, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  await assert.rejects(
+    collectUsage({ source: "codex", roots: [numericSessionRoot] }),
+    /no single stable session identity/,
+    "a conflicting oversized numeric session ID must stop deduplication",
+  );
+
+  const longSessionRoot = path.join(temp, "codex-oversized-session-long");
+  await mkdir(longSessionRoot, { recursive: true });
+  await writeFile(path.join(longSessionRoot, "long.jsonl"), [
+    codexLine("2026-07-16T15:10:00Z", "session_meta", { id: "first-session" }),
+    JSON.stringify({ type: "session_meta", payload: { id: "x".repeat(2048) }, padding: largePadding }),
+    codexLine("2026-07-16T15:10:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T15:10:02Z", codexUsage(10, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  await writeFile(path.join(longSessionRoot, "clean.jsonl"), [
+    codexLine("2026-07-16T15:20:00Z", "session_meta", { id: "long-session-clean" }),
+    codexLine("2026-07-16T15:20:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T15:20:02Z", codexUsage(9, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  const longSessionReport = await collectUsage({ source: "codex", roots: [longSessionRoot] });
+  assert.equal(longSessionReport.coverage.files_parsed, 1);
+  assert.equal(longSessionReport.coverage.files_skipped, 1);
+  assert.equal(longSessionReport.coverage.oversized_lines, 1);
+  assert.equal(longSessionReport.totals.input_tokens, 9,
+    "an unresolved oversized session ID must exclude the whole file");
+
+  for (const [name, secondSessionMeta] of [
+    ["ordinary", codexLine("2026-07-16T15:30:01Z", "session_meta", {})],
+    ["projected", '{"type":"session_meta","payload":{"id":"superseded"},"padding":"' + largePadding + '","payload":{}}'],
+  ]) {
+    const root = path.join(temp, `codex-missing-session-${name}`);
+    await mkdir(root, { recursive: true });
+    await writeFile(path.join(root, `${name}.jsonl`), [
+      codexLine("2026-07-16T15:30:00Z", "session_meta", { id: "first-session" }),
+      secondSessionMeta,
+      codexLine("2026-07-16T15:30:02Z", "turn_context", { model: "gpt-5.6-sol" }),
+      codexToken("2026-07-16T15:30:03Z", codexUsage(10, 0, 0, 0)),
+    ].join("\n"), "utf8");
+    await assert.rejects(
+      collectUsage({ source: "codex", roots: [root] }),
+      /no single stable session identity/,
+      `a ${name} session_meta record without an ID must stop deduplication`,
+    );
+  }
+
+  const malformedContextRoot = path.join(temp, "codex-malformed-context");
+  await mkdir(malformedContextRoot, { recursive: true });
+  await writeFile(path.join(malformedContextRoot, "malformed.jsonl"), [
+    codexLine("2026-07-16T16:00:00Z", "session_meta", { id: "malformed-context-session" }),
+    codexLine("2026-07-16T16:00:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T16:00:02Z", codexUsage(10, 0, 0, 0)),
+    '{"type":"turn_context","payload":{"model":',
+    codexToken("2026-07-16T16:00:03Z", codexUsage(20, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  await writeFile(path.join(malformedContextRoot, "clean.jsonl"), [
+    codexLine("2026-07-16T16:10:00Z", "session_meta", { id: "malformed-context-clean" }),
+    codexLine("2026-07-16T16:10:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T16:10:02Z", codexUsage(9, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  const malformedContextReport = await collectUsage({ source: "codex", roots: [malformedContextRoot] });
+  assert.equal(malformedContextReport.coverage.malformed_lines, 1);
+  assert.equal(malformedContextReport.coverage.files_parsed, 1);
+  assert.equal(malformedContextReport.coverage.files_skipped, 1);
+  assert.equal(model(malformedContextReport, "gpt-5.6-sol").input_tokens, 9);
+  assert.equal(malformedContextReport.by_model.some(row => row.model === "Unrecognized AI version"), false,
+    "a file with malformed possible identity context must contribute no attribution or totals");
+
+  const invalidCounterTypeRoot = path.join(temp, "codex-invalid-counter-type");
+  await mkdir(invalidCounterTypeRoot, { recursive: true });
+  const invalidCounterUsage = { ...codexUsage(10, 0, 0, 0), cached_input_tokens: null, reasoning_output_tokens: "0" };
+  await writeFile(path.join(invalidCounterTypeRoot, "invalid.jsonl"), [
+    codexLine("2026-07-16T17:00:00Z", "session_meta", { id: "invalid-counter-session" }),
+    codexLine("2026-07-16T17:00:01Z", "turn_context", { model: "gpt-5.6-sol" }),
+    codexToken("2026-07-16T17:00:02Z", invalidCounterUsage),
+    codexToken("2026-07-16T17:00:03Z", codexUsage(10, 0, 0, 0)),
+  ].join("\n"), "utf8");
+  const invalidCounterTypeReport = await collectUsage({ source: "codex", roots: [invalidCounterTypeRoot] });
+  assert.equal(invalidCounterTypeReport.totals.usage_records, 1);
+  assert.equal(invalidCounterTypeReport.totals.input_tokens, 10);
+  assert.equal(invalidCounterTypeReport.coverage.complete, false,
+    "null and numeric-string counters must not be coerced to trusted zeroes");
 
   const duplicateLive = path.join(temp, "codex-duplicate-live");
   const duplicateArchive = path.join(temp, "codex-duplicate-archive");
@@ -332,9 +545,10 @@ try {
   const invalidUtf8Two = path.join(temp, "codex-invalid-utf8-two");
   await mkdir(invalidUtf8One, { recursive: true });
   await mkdir(invalidUtf8Two, { recursive: true });
-  const invalidUtf8Rollout = `${codexRollout("invalid-utf8-session", [codexUsage(100, 0, 0, 0)])}\n`;
-  await writeFile(path.join(invalidUtf8One, "one.jsonl"), Buffer.concat([Buffer.from(invalidUtf8Rollout, "utf8"), Buffer.from([0x80, 0x0a])]));
-  await writeFile(path.join(invalidUtf8Two, "two.jsonl"), Buffer.concat([Buffer.from(invalidUtf8Rollout, "utf8"), Buffer.from([0x81, 0x0a])]));
+  const invalidUtf8Prefix = Buffer.from(`${codexRollout("invalid-utf8-session", [codexUsage(100, 0, 0, 0)])}\n{"type":"response_item","payload":{"content":"`, "utf8");
+  const invalidUtf8Suffix = Buffer.from('"}}\n', "utf8");
+  await writeFile(path.join(invalidUtf8One, "one.jsonl"), Buffer.concat([invalidUtf8Prefix, Buffer.from([0x80]), invalidUtf8Suffix]));
+  await writeFile(path.join(invalidUtf8Two, "two.jsonl"), Buffer.concat([invalidUtf8Prefix, Buffer.from([0x81]), invalidUtf8Suffix]));
   await assert.rejects(
     collectUsage({ source: "codex", roots: [invalidUtf8One, invalidUtf8Two] }),
     /Two different Codex files claim the same session/,

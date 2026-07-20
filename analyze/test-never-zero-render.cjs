@@ -148,6 +148,10 @@ function renderResult(result) {
     copilotBreakdown: elements.copilotBreakdown.textContent,
     includedUsage: elements.includedUsage.textContent,
     tokenHelp: elements.tokenhelp.textContent,
+    pilotQuickCost: elements.pilotQuickCost.textContent,
+    pilotQuickApiEquivalent: elements.pilotQuickApiEquivalent.textContent,
+    pilotQuickCostNote: elements.pilotQuickCostNote.textContent,
+    pilotCoverageNote: elements.pilotCoverageNote.textContent,
   };
   return {
     modelCosts: renderedModelCosts(surfaces.modelTable),
@@ -500,6 +504,63 @@ test("Codex automatic-review usage stays visible and unpriced", () => {
   assert.deepEqual(neverZeroFailures(rendered, [model]), []);
   assert.match(rendered.table, /codex-auto-review/i);
   assert.match(rendered.table, /Unpriced/i);
+});
+
+test("Codex API equivalent is separate from actual cost and fails closed on unmatched traffic", () => {
+  const originalPilotMode = context.PILOT_MODE;
+  context.PILOT_MODE = true;
+  context.renderPilotPatterns = () => {};
+  context.pilotDrawCharts = () => {};
+  context.pilotUpdateShareRail = () => {};
+  context.pilotConfigureSteps = () => {};
+  try {
+    const known = renderResult(codexResult("gpt-5.6-sol"));
+    assert.equal(known.surfaces.pilotQuickCost, "Unpriced");
+    assert.match(known.surfaces.pilotQuickApiEquivalent, /^\$0\.0004$/);
+    assert.match(known.surfaces.pilotQuickCostNote, /not your Codex bill/i);
+    assert.match(known.summary, /Actual Codex cost: Unpriced/);
+    assert.match(known.summary, /Base-rate API equivalent: \$0\.0004/);
+
+    const knownResult = codexResult("gpt-5.6-sol");
+    const unknownResult = codexResult("codex-auto-review");
+    const mixed = {
+      ...knownResult,
+      by: { ...knownResult.by, ...unknownResult.by },
+      turns: knownResult.turns + unknownResult.turns,
+      sessions: knownResult.sessions + unknownResult.sessions,
+      coverage: { ...knownResult.coverage, files_selected: 2, files_parsed: 2, files_with_usage: 2, complete: true },
+    };
+    const partial = renderResult(mixed);
+    assert.equal(partial.surfaces.pilotQuickCost, "Unpriced");
+    assert.match(partial.surfaces.pilotQuickApiEquivalent, /^Partial \$0\.0004$/);
+    assert.match(partial.surfaces.pilotQuickCostNote, /50% of recorded model-token traffic/i);
+    assert.match(partial.table, /codex-auto-review[\s\S]*Unpriced/i);
+    assert.doesNotMatch(Object.values(partial.surfaces).join("\n"), /\$0\.00(?:\D|$)/);
+
+    const tinyUnknown = codexResult("gpt-5.6-sol");
+    for (const field of ["inp", "out", "cr"]) tinyUnknown.by["gpt-5.6-sol"][field] *= 1000;
+    tinyUnknown.by["codex-auto-review"] = { inp: 1, out: 0, cw: 0, cr: 0, reasoning: 0, turns: 1 };
+    tinyUnknown.turns += 1;
+    const tinyPartial = renderResult(tinyUnknown);
+    assert.match(tinyPartial.surfaces.pilotQuickCostNote, /<1% remains unpriced/i,
+      "a tiny unmatched share must not be rounded down to zero percent");
+    assert.match(tinyPartial.summary, /remaining <1% is unpriced/i);
+
+    const presentButUnrecognized = renderResult(codexResult("future-private-model"));
+    assert.match(presentButUnrecognized.surfaces.pilotCoverageNote,
+      /model context was either absent.*or a recorded label did not match/i,
+      "the warning must cover both missing context and a present but unrecognized label");
+
+    mixed.coverage.complete = false;
+    const incomplete = renderResult(mixed);
+    assert.match(incomplete.surfaces.pilotQuickApiEquivalent, /^Partial /);
+
+    const unknownOnly = renderResult(codexResult("codex-auto-review"));
+    assert.equal(unknownOnly.surfaces.pilotQuickCost, "Unpriced");
+    assert.equal(unknownOnly.surfaces.pilotQuickApiEquivalent, "Unpriced");
+  } finally {
+    context.PILOT_MODE = originalPilotMode;
+  }
 });
 
 test("Cursor never-zero render contract", () => {
