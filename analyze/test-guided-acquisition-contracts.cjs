@@ -32,6 +32,10 @@ function functionSource(name, nextName) {
   );
 }
 
+function platformFolderSource() {
+  return sourceBetween("function detectedDesktopPlatform", "var MODES={");
+}
+
 function textOnly(value) {
   return String(value)
     .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
@@ -72,6 +76,7 @@ function guidedCodexFolderCopy() {
   };
   const context = {
     document,
+    navigator: { platform: "Win32" },
     PILOT_SOURCE: "",
     mode: "",
     selectedRoute: "",
@@ -81,22 +86,23 @@ function guidedCodexFolderCopy() {
     setJourney() {},
   };
   vm.runInNewContext(
-    functionSource("pilotChooseSource", "pilotChooseMethod"),
+    `${platformFolderSource()}\n${functionSource("pilotChooseSource", "pilotChooseMethod")}`,
     context,
   );
   context.pilotChooseSource("codex");
   const panel = sourceBetween('id="pilotFolderPanel"', 'id="pilotCursorPanel"');
-  return `${textOnly(panel)} ${elements.pilotFolderPath.textContent}`.trim();
+  return `${textOnly(panel)} ${elements.pilotFolderInstructions.textContent} ${elements.pilotFolderPath.textContent}`.trim();
 }
 
 function codexCollectorPrompt() {
   const context = {
+    navigator: { platform: "Win32" },
     PILOT_COLLECTOR_URL: "https://local.invalid/top-collector.mjs",
     PILOT_COLLECTOR_SHA256: "synthetic-hash",
     PILOT_COLLECTOR_VERSION: "synthetic-version",
   };
   vm.runInNewContext(
-    functionSource("pilotPromptFor", "pilotChooseSource"),
+    `${platformFolderSource()}\n${functionSource("pilotPromptFor", "pilotChooseSource")}`,
     context,
   );
   return context.pilotPromptFor("codex");

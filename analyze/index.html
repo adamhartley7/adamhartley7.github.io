@@ -518,7 +518,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
         </div>
         <div class="pilot-method-panel" id="pilotFolderPanel" hidden>
           <h3 id="pilotFolderHeading">Choose the usage folder</h3>
-          <p id="pilotFolderInstructions">For Codex, use the verified collector to read both <code>%USERPROFILE%\.codex\sessions</code> and <code>%USERPROFILE%\.codex\archived_sessions</code>. It combines both folders. For Claude Code, use <code>%USERPROFILE%\.claude\projects</code>.</p>
+          <p id="pilotFolderInstructions">Choose the hidden Claude Code or Codex history folder shown below. TOP will give you instructions for this computer.</p>
           <code class="pilot-path" id="pilotFolderPath">%USERPROFILE%\.claude\projects</code>
           <div class="share-buttons"><button type="button" class="btn" id="pilotCopyFolderPath">Copy Folder Address</button><button type="button" class="btn p" id="pilotChooseFolder">Choose The Folder</button></div><p class="pilot-cta-note">Copying the address and opening the picker are separate actions. Reads happen on this device. Nothing is uploaded.</p><input type="file" id="pilotHistoryFolder" webkitdirectory directory multiple style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-hidden="true" tabindex="-1">
         </div>
@@ -571,7 +571,7 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
         <h3 id="claudeSourcesHeading" tabindex="-1">Which Claude history do you have?</h3>
         <p>Choose by where the history came from. These three files mean different things, so TOP keeps their reports separate.</p>
         <div class="claude-kinds">
-          <button type="button" class="claude-kind" data-mode="cc" aria-pressed="false"><strong>Claude Code</strong><span>Usage saved while coding. Choose the whole <code>.claude\projects</code> folder or its <code>.jsonl</code> files.</span></button>
+          <button type="button" class="claude-kind" data-mode="cc" aria-pressed="false"><strong>Claude Code</strong><span>Usage saved while coding. Choose the whole <code>.claude/projects</code> folder or its <code>.jsonl</code> files.</span></button>
           <button type="button" class="claude-kind" data-mode="chat" aria-pressed="false"><strong>Claude Chat</strong><span>Your cloud conversation export. Extract the ZIP, then choose <code>conversations.json</code>.</span></button>
           <button type="button" class="claude-kind" data-mode="csv" aria-pressed="false"><strong>Claude Console</strong><span>Pay-as-you-go records. Choose an Anthropic usage or cost CSV.</span></button>
         </div>
@@ -599,8 +599,9 @@ Keep it short and concrete, in ordinary language. If you have to use a technical
         <input type="file" id="historyFolder" webkitdirectory directory multiple>
       </label>
       <div class="history-path-helper" id="historyPathHelper">
-        <strong id="historyPathHeading">The folder address on Windows</strong>
-        <p><code id="historyPathValue">%USERPROFILE%\.claude\projects</code>. Copy it, click the folder button, paste it into the address bar at the top of the Windows picker, press Enter, then choose <b>Select Folder</b>. A website cannot type a private path into the picker for you.</p>
+        <strong id="historyPathHeading">The usual Claude Code folder address</strong>
+        <p><code id="historyPathValue">%USERPROFILE%\.claude\projects</code></p>
+        <p id="historyPathInstructions">TOP will show the folder-picker instructions for this computer here. A website cannot type a private path into the picker for you.</p>
         <div class="history-path-actions"><button type="button" class="btn" id="copyHistoryPath">Copy Folder Address</button><button type="button" class="btn" id="copyAgentPathPrompt">Ask My Agent For The Address</button></div>
       </div>
       <details class="file-fallback" id="fileFallback">
@@ -1094,8 +1095,8 @@ if __name__ == "__main__":
         <button type="button" class="btn" id="vaultChooseConversations">Choose conversations.json</button>
         <button type="button" class="btn" id="vaultChooseCodexFolder">Choose My Codex Sessions Folder</button>
       </div>
-      <p class="vault-paths">For Claude Code on Windows, copy this path. In the folder picker, paste it into the address bar, press Enter, then choose the folder. Do not copy raw history into a synced Obsidian vault.</p>
-      <div class="vault-path-row"><code>%USERPROFILE%\.claude\projects</code><button type="button" class="btn" id="vaultCopyClaudePath">Copy Path</button></div>
+      <p class="vault-paths" id="vaultClaudePathInstructions">Copy the Claude Code history path below. TOP will show the folder-picker instructions for this computer here. Do not copy raw history into a synced Obsidian vault.</p>
+      <div class="vault-path-row"><code id="vaultClaudePath">%USERPROFILE%\.claude\projects</code><button type="button" class="btn" id="vaultCopyClaudePath">Copy Path</button></div>
     </div>
     <div class="vault-error" id="vaultError" role="alert" aria-live="polite"></div>
     <div class="vault-report" id="vaultReport" hidden>
@@ -1621,6 +1622,63 @@ function tierOf(model){
 // value-model state, seeded from the real parse and updated on price edits
 var VM={built:false};
 
+function detectedDesktopPlatform(nav){
+  var source=nav||{},modern=source.userAgentData&&source.userAgentData.platform;
+  var value=String(modern||source.platform||source.userAgent||"");
+  if(/mac|iphone|ipad|ipod/i.test(value))return "mac";
+  if(/win/i.test(value))return "windows";
+  return "unix";
+}
+function historyLocationFor(source,nav){
+  var runtimeNav=nav||(typeof navigator!=="undefined"?navigator:{});
+  var codex=source==="codex",platform=detectedDesktopPlatform(runtimeNav),path,archivedPath,osName,pickerAction;
+  if(platform==="windows"){
+    osName="Windows";
+    path=codex?"%USERPROFILE%\\.codex\\sessions":"%USERPROFILE%\\.claude\\projects";
+    archivedPath=codex?"%USERPROFILE%\\.codex\\archived_sessions":"";
+    pickerAction="Copy "+path+", open the folder picker, paste it into the address bar, press Enter, then choose the whole "+(codex?"sessions":"projects")+" folder.";
+  }else if(platform==="mac"){
+    osName="macOS";
+    path=codex?"~/.codex/sessions":"~/.claude/projects";
+    archivedPath=codex?"~/.codex/archived_sessions":"";
+    pickerAction="Open the folder picker, press Command+Shift+G, paste "+path+", press Return, then choose the whole "+(codex?"sessions":"projects")+" folder. Chrome may label the confirmation Upload; here that only gives the files to this browser tab and does not send them to TOP.";
+  }else{
+    osName="Linux";
+    path=codex?"~/.codex/sessions":"~/.claude/projects";
+    archivedPath=codex?"~/.codex/archived_sessions":"";
+    pickerAction="Open the folder picker and use its location field (often Ctrl+L) to open "+path+", then choose the whole "+(codex?"sessions":"projects")+" folder.";
+  }
+  var purpose=codex
+    ?"This is Codex session history, not a source-code project folder. The browser option opens one folder at a time. Use the verified collector to read both "+path+" and "+archivedPath+" together."
+    :"This is Claude Code's history folder, not one of your source-code project folders.";
+  return {
+    platform:platform,osName:osName,path:path,archivedPath:archivedPath,
+    heading:"The usual "+(codex?"Codex":"Claude Code")+" folder address on "+osName,
+    pickerAction:pickerAction,
+    instructions:pickerAction+" "+purpose,
+    invalidFolder:"Choose Claude Code's whole .claude/projects history folder, not your source-code project folder, the parent .claude folder, or one individual child folder. "+pickerAction,
+    unsafeClaudeRoot:"Do not choose the whole .claude folder. It contains prompt history and settings that do not belong in a usage report. "+pickerAction,
+    contextFile:"That is Claude project, memory or user context, not usage history. For Claude Code, choose the JSONL session files under "+path+", with the L at the end."
+  };
+}
+function folderStepsFor(source){
+  var guide=historyLocationFor(source),codex=source==="codex";
+  var steps=[
+    "Click <b>Choose The "+(codex?"Codex Sessions":"Whole Claude Code")+" Folder</b> above.",
+    guide.pickerAction,
+    codex
+      ?"Do not choose <code>.codex/history.jsonl</code>, <code>auth.json</code>, or the whole <code>.codex</code> folder. To include archived sessions in the browser, run a separate report for <code>"+guide.archivedPath+"</code>."
+      :"Choose the folder named <code>projects</code>, not an actual source-code project inside it. TOP opens the supported <code>.jsonl</code> files locally."
+  ];
+  if(codex)steps.push("TOP parses complete records locally, retains only supported token counters, dates and the active AI version, then discards the raw record. Transcript text, commands, tool output, paths, IDs, account limits and Git details are not retained or exported.");
+  return steps;
+}
+function applyPlatformFolderGuidance(){
+  var claude=historyLocationFor("cc"),path=document.getElementById("vaultClaudePath"),instructions=document.getElementById("vaultClaudePathInstructions");
+  if(path)path.textContent=claude.path;
+  if(instructions)instructions.textContent=claude.instructions+" Do not copy raw history into a synced Obsidian vault.";
+}
+
 var MODES={
   cc:{label:"Claude Code", small:"Claude Code history files (.jsonl), choose one or more",
       hint:"Claude Code saves history in <code>~/.claude/projects/</code> (Windows: <code>C:\\Users\\YOU\\.claude\\projects\\</code>). Choose that whole folder once. TOP uses the usage numbers Claude Code saved there.",
@@ -1720,7 +1778,7 @@ var mode="";
 var selectedRoute="";
 var providerChosen=false;
 function renderSteps(m){
-  var s=MODES[m].steps||[], tip=MODES[m].stepstip||"";
+  var s=(m==="cc"||m==="codex")?folderStepsFor(m):(MODES[m].steps||[]), tip=MODES[m].stepstip||"";
   var html='<h4>How to export your '+MODES[m].label+' data</h4><ol>'+s.map(function(x){return "<li>"+x+"</li>"}).join("")+"</ol>";
   if(tip) html+='<div class="tip">'+tip+'</div>';
   document.getElementById("exportsteps").innerHTML=html;
@@ -1786,10 +1844,12 @@ function setMode(m,preserveAnalysisProgress){
   document.getElementById("historyPathHelper").classList.toggle("show",folderMode);
   document.getElementById("fileFallback").open=!folderMode;
   if(folderMode){
+    var guide=historyLocationFor(m);
     document.getElementById("historyFolderTitle").textContent=m==="codex"?"Choose The Codex Sessions Folder":"Choose The Whole Claude Code Folder";
     document.getElementById("historyFolderText").textContent=m==="codex"?"Choose only sessions or archived_sessions. TOP reads supported rollout files one line at a time and ignores transcript content.":"TOP opens every supported .jsonl history file inside projects. You do not need to open the project folders one by one.";
-    document.getElementById("historyPathValue").textContent=m==="codex"?"%USERPROFILE%\\.codex\\sessions":"%USERPROFILE%\\.claude\\projects";
-    document.getElementById("historyPathHeading").textContent=m==="codex"?"The usual Codex folder address on Windows":"The usual Claude Code folder address on Windows";
+    document.getElementById("historyPathValue").textContent=guide.path;
+    document.getElementById("historyPathHeading").textContent=guide.heading;
+    document.getElementById("historyPathInstructions").textContent=guide.instructions;
   }
   document.getElementById("routechooser").hidden=false;
   if(selectedRoute) selectRoute(selectedRoute);
@@ -1813,8 +1873,8 @@ function copyPlainText(text,button,doneLabel){
 }
 document.getElementById("copyHistoryPath").addEventListener("click",function(){copyPlainText(document.getElementById("historyPathValue").textContent,this,"Folder Address Copied")});
 document.getElementById("copyAgentPathPrompt").addEventListener("click",function(){
-  var product=mode==="codex"?"Codex":"Claude Code",expected=document.getElementById("historyPathValue").textContent;
-  copyPlainText("Find the local "+product+" session-history folder on this computer. Do not open, read, merge, copy or upload any history files. Return only the verified folder path. The usual Windows path is "+expected+".",this,"Agent Prompt Copied");
+  var product=mode==="codex"?"Codex":"Claude Code",guide=historyLocationFor(mode);
+  copyPlainText("Find the local "+product+" session-history folder on this computer. Do not open, read, merge, copy or upload any history files. Return only the verified folder path. The usual "+guide.osName+" path is "+guide.path+".",this,"Agent Prompt Copied");
 });
 document.getElementById("tabs").addEventListener("click",function(e){var t=e.target.closest(".tab");if(!t)return;if(t.dataset.provider==="claude")showClaudeChoices();else setMode(t.dataset.mode)});
 document.getElementById("claudeSources").addEventListener("click",function(e){var button=e.target.closest(".claude-kind");if(button)setMode(button.dataset.mode)});
@@ -1935,13 +1995,14 @@ function pilotResultFromSafeUsage(data){
   return {by:by,turns:data.totals.usage_records,sessions:data.activity.sessions,days:data.activity.active_days,kind:codex?"Codex safe usage file":"Claude Code safe usage file",codex:codex,estimate:!codex,costLabel:codex?"Actual cost unavailable":"Estimated pay-as-you-go cost",estimateReason:codex?"local Codex history records token use but not plan allowance, credits charged or billed dollars":"recorded token counts priced at editable public API rates; Claude subscription charges may differ",pilotSafe:true,pilotSafeSchemaVersion:data.schema_version,pilotV2Aggregate:isV2?pilotCopyV2Sections(data):null,pilotCollectorVersion:data.collector_version,pilotParserVersion:data.parser_version,pilotCoverage:data.coverage,coverage:codex?{files_selected:data.coverage.files_discovered,files_parsed:data.coverage.files_parsed,files_with_usage:data.coverage.files_with_usage,files_skipped:data.coverage.files_skipped,malformed_lines:data.coverage.malformed_lines,oversized_lines:data.coverage.oversized_lines,counter_resets:data.coverage.counter_resets,duplicate_usage_records:data.coverage.duplicate_usage_records,complete:data.coverage.complete}:undefined};
 }
 function pilotPromptFor(source){
-  var sourceName=source==="codex"?"codex":"claude-code";
+  var sourceName=source==="codex"?"codex":"claude-code",guide=historyLocationFor(source);
   var L=[];
   L.push("I want to understand my own "+sourceName+" usage using TOP (tokenoptimisationprotocol.org), an open-source local analyzer. Please help me run their collector on this machine. Take your time and be skeptical: I would rather you check this properly than be fast.");
   L.push("");
   L.push("The collector is open source. Please READ IT FIRST and tell me plainly what it does, and whether anything in it concerns you:");
   L.push(PILOT_COLLECTOR_URL);
-  if(source==="codex")L.push("For Codex, read both %USERPROFILE%\\.codex\\sessions and %USERPROFILE%\\.codex\\archived_sessions. Combine both folders in the one safe aggregate.");
+  if(source==="codex")L.push("For Codex on "+guide.osName+", read both "+guide.path+" and "+guide.archivedPath+". Combine both folders in the one safe aggregate.");
+  else L.push("For Claude Code on "+guide.osName+", read "+guide.path+". This is the hidden Claude Code history folder, not one of my source-code project folders.");
   L.push("");
   L.push("Steps:");
   L.push("1. Download it to a temporary folder.");
@@ -1974,8 +2035,8 @@ function pilotChooseSource(source){
   if(cursorSource)pilotStatus("Sign in at cursor.com/dashboard in a web browser and open Usage, then download your usage CSV from the usage events table. This is on the Cursor website, not inside the Cursor editor. Then choose that file here. Nothing is uploaded.","ok");
   else if(copilotSource)pilotStatus("On github.com/settings/billing, open Usage and choose Get usage report. GitHub emails you a download link that expires after 24 hours. Then choose that CSV here. Nothing is uploaded.","ok");
   else{
-    var path=source==="codex"?"%USERPROFILE%\\.codex\\sessions":"%USERPROFILE%\\.claude\\projects";document.getElementById("pilotFolderPath").textContent=path;
-    document.getElementById("pilotFolderInstructions").textContent=source==="codex"?"The verified collector reads both %USERPROFILE%\\.codex\\sessions and %USERPROFILE%\\.codex\\archived_sessions and combines both folders. The browser fallback below opens one chosen folder at a time.":"Choose %USERPROFILE%\\.claude\\projects. TOP reads supported usage files in that folder on this device.";
+    var guide=historyLocationFor(source);document.getElementById("pilotFolderPath").textContent=guide.path;
+    document.getElementById("pilotFolderInstructions").textContent=guide.instructions;
     document.getElementById("pilotAgentPrompt").value=pilotPromptFor(source);
     document.querySelectorAll("[data-pilot-method]").forEach(function(button){var on=button.dataset.pilotMethod==="folder";button.classList.toggle("on",on);button.setAttribute("aria-pressed",on?"true":"false")});
     pilotStatus("Choose your usage folder below to read your number now. No terminal and no Node.js. The verified collector route is still here if you want the more complete aggregate.","ok");
@@ -4858,7 +4919,7 @@ function renderVaultScan(scan){
   }else if(scan.looksLikeUnsafeClaudeRoot){
     correction.hidden=false;document.getElementById("vaultChecklistBox").hidden=true;
     correctionHeading.textContent="Choose a smaller, safer folder";
-    correctionCopy.textContent="Do not choose the whole .claude folder because it can include settings and private history. For usage, choose .claude\\projects. For the vault check, choose the 7Cs-Vault folder itself.";
+    correctionCopy.textContent="Do not choose the whole .claude folder because it can include settings and private history. For usage, choose .claude/projects. For the vault check, choose the 7Cs-Vault folder itself.";
   }else if(!scan.individualFiles&&starterCount===0){
     correction.hidden=false;
     correctionHeading.textContent="TOP could not confirm this is your 7C's vault";
@@ -4867,7 +4928,7 @@ function renderVaultScan(scan){
   var buttons=document.getElementById("vaultSourceButtons");buttons.textContent="";
   var candidateCount=vaultCandidateCount(scan),historyHeading=document.getElementById("vaultHistoryHeading"),historyCopy=document.getElementById("vaultHistoryCopy");
   historyHeading.textContent=scan.looksLikeClaudeProjects?(scan.candidatesIncomplete?"Claude Code history found, report not started":"Claude Code usage files found"):(candidateCount?"Files ready for a private format check":"No supported AI history files found");
-  historyCopy.textContent=scan.looksLikeClaudeProjects?(scan.candidatesIncomplete?"TOP will not open a truncated subset. Use the dedicated Claude Code folder route above.":"These are coding-session usage files, not Obsidian notes. TOP will not open them until you choose Analyze This Claude Code Folder."):(candidateCount?"TOP recognized the file names or types below. Their contents are checked only after you choose one. Markdown notes are never sent into a usage parser.":"That is normal. Obsidian notes and ordinary JSON are context, not token ledgers. Claude Code usage is normally in the separate .claude\\projects folder, even when Claude Code worked inside this vault.");
+  historyCopy.textContent=scan.looksLikeClaudeProjects?(scan.candidatesIncomplete?"TOP will not open a truncated subset. Use the dedicated Claude Code folder route above.":"These are coding-session usage files, not Obsidian notes. TOP will not open them until you choose Analyze This Claude Code Folder."):(candidateCount?"TOP recognized the file names or types below. Their contents are checked only after you choose one. Markdown notes are never sent into a usage parser.":"That is normal. Obsidian notes and ordinary JSON are context, not token ledgers. Claude Code usage is normally in the separate .claude/projects folder, even when Claude Code worked inside this vault.");
   if(scan.candidates.cc.length&&!scan.looksLikeClaudeProjects) addVaultSourceButton(buttons,"Check "+fmtN(scan.candidates.cc.length)+" Claude Code file"+(scan.candidates.cc.length===1?"":"s"),"cc",scan.candidates.cc);
   if(scan.candidates.codex.length){
     var codexAggregates=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()==="ai-events.jsonl"}),codexRollouts=scan.candidates.codex.filter(function(file){return String(file.name||"").toLowerCase()!=="ai-events.jsonl"});
@@ -4913,14 +4974,15 @@ document.getElementById("changeSourceFromVault").addEventListener("click",return
 document.getElementById("useHistoryInstead").addEventListener("click",returnToSources);
 function chooseHistoryFromVault(targetMode,pickerId){
   setMode(targetMode);selectRoute("a");
-  document.getElementById("fileStatus").textContent="Nothing has been read yet. Choose the folder or file in the Windows picker.";
+  var guide=targetMode==="cc"||targetMode==="codex"?historyLocationFor(targetMode):null;
+  document.getElementById("fileStatus").textContent=guide?"Nothing has been read yet. "+guide.pickerAction:"Nothing has been read yet. Choose the history file in the picker.";
   document.getElementById(pickerId).click();
 }
 document.getElementById("vaultChooseClaudeCodeFolder").addEventListener("click",function(){chooseHistoryFromVault("cc","historyFolder")});
 document.getElementById("vaultChooseConversations").addEventListener("click",function(){chooseHistoryFromVault("chat","file")});
 document.getElementById("vaultChooseCodexFolder").addEventListener("click",function(){chooseHistoryFromVault("codex","historyFolder")});
 document.getElementById("vaultCopyClaudePath").addEventListener("click",function(){
-  var button=this,path="%USERPROFILE%\\.claude\\projects",done=function(){button.textContent="Path Copied";setTimeout(function(){button.textContent="Copy Path"},1600)};
+  var button=this,path=document.getElementById("vaultClaudePath").textContent,done=function(){button.textContent="Path Copied";setTimeout(function(){button.textContent="Copy Path"},1600)};
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(path).then(done).catch(function(){button.textContent=path});
   else{var helper=document.createElement("textarea");helper.value=path;helper.setAttribute("readonly","");helper.style.position="fixed";helper.style.opacity="0";document.body.appendChild(helper);helper.select();try{document.execCommand("copy");done()}catch(error){button.textContent=path}document.body.removeChild(helper)}
 });
@@ -5132,18 +5194,19 @@ function handle(files,origin){
   if(inferred&&inferred!==mode&&!(inferred==="csv"&&(mode==="cursor"||mode==="copilot")))switchToDetectedMode(inferred);
   var checked=historyFilesForMode(files,mode,origin);
   if(!checked.files.length){
+    var claudeGuide=historyLocationFor("cc");
     if(checked.unsafeCodexRoot) showErr("Do not choose the whole .codex folder. It can contain account and prompt history files. Choose only .codex\\sessions, .codex\\archived_sessions, explicit rollout-*.jsonl files, or TOP's ai-events.jsonl.");
-    else if(checked.unsafeClaudeRoot) showErr("Do not choose the whole .claude folder. It contains prompt history and settings that do not belong in a usage report. Choose only C:\\Users\\YOU\\.claude\\projects.");
-    else if(checked.invalidClaudeFolder) showErr("Choose the whole .claude\\projects folder, not a parent folder or one individual project folder. Copy %USERPROFILE%\\.claude\\projects into the Windows picker address bar.");
-    else if(checked.unsafeClaudeHistory) showErr("history.jsonl contains prompt history, not Claude Code token usage. TOP did not open it. Choose the .claude\\projects folder or supported session JSONL files instead.");
+    else if(checked.unsafeClaudeRoot) showErr(claudeGuide.unsafeClaudeRoot);
+    else if(checked.invalidClaudeFolder) showErr(claudeGuide.invalidFolder);
+    else if(checked.unsafeClaudeHistory) showErr("history.jsonl contains prompt history, not Claude Code token usage. TOP did not open it. Choose the .claude/projects folder or supported session JSONL files instead.");
     else if(checked.mixedCodexSources) showErr("Choose either raw rollout-*.jsonl files or ai-events.jsonl aggregate files, not both in one report. The aggregate may already contain the raw usage, so mixing them could count the same tokens twice.");
     else if(checked.multipleCodexAggregates) showErr("Choose one ai-events.jsonl aggregate at a time. Two aggregate files may cover some of the same sessions, and TOP cannot safely detect that overlap without retaining private session IDs.");
     else if(checked.markdown) showErr("That looks like an Obsidian note, not an AI history export. No data was uploaded or sent. Choose Obsidian + 7C's to check the vault, or use a downloaded Claude, ChatGPT or Codex history for a usage report.");
     else if(checked.archives) showErr("TOP cannot open a whole ZIP yet. On Windows, right-click the ZIP and choose Extract All, open the extracted folder, then choose conversations.json, a supported JSONL file, or a Console CSV.");
     else if(checked.oversized&&mode==="cc") showErr("That combined raw-history file is too large to open safely as one file. Use Choose The Whole Claude Code Folder instead. TOP reads those session files one at a time and keeps everything on this device.");
     else if(checked.oversized) showErr("That file is too large to open safely in this browser tab. Choose a smaller supported export. Nothing was uploaded or sent.");
-    else if(mode==="codex") showErr("None of those files are supported Codex session files. Choose rollout-*.jsonl from .codex\\sessions or .codex\\archived_sessions, or choose TOP's ai-events.jsonl. Do not choose history.jsonl.");
-    else if(checked.contextJson) showErr("That is Claude project, memory or user context, not usage history. TOP will not turn it into token or cost totals. For Claude Chat choose conversations.json. For Claude Code choose the .jsonl files under C:\\Users\\YOU\\.claude\\projects\\, with the L at the end.");
+    else if(mode==="codex") showErr("None of those files are supported Codex session files. Choose rollout-*.jsonl from .codex/sessions or .codex/archived_sessions, or choose TOP's ai-events.jsonl. Do not choose history.jsonl.");
+    else if(checked.contextJson) showErr(claudeGuide.contextFile+" For Claude Chat choose conversations.json.");
     else if(checked.regularJson) showErr("Those are regular .json files, including individual UUID-named files, not Claude Code session logs or account conversation exports. Choose conversations.json for Claude Chat or ChatGPT, or choose Claude Code .jsonl session files, with the L at the end.");
     else showErr("None of those files match the source you chose. Choose JSONL for Claude Code, CSV for Claude Console, or conversations.json for Claude Chat or ChatGPT.");
     return;
@@ -5836,6 +5899,7 @@ function dlFile(name,text,type){var blob=new Blob([text],{type:type}),url=URL.cr
 document.getElementById("dlcsvb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-shareable-usage-data.csv",buildBCSV(),"text/csv"); });
 document.getElementById("dljsonb").addEventListener("click",function(){ if(ROUTEB) dlFile("top-shareable-usage-data.json",buildBJSON(),"application/json"); });
 
+applyPlatformFolderGuidance();
 renderSteps("cc");
 setJourney(.08,"Sunrise: tell us what you want to improve.");
 initPilot();

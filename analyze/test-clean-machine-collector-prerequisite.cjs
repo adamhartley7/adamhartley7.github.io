@@ -36,9 +36,10 @@ function promptContext() {
     assert.ok(match, `could not find ${name}`);
     return match[0];
   }).join("\n");
+  const platformSource = sourceBetween("function detectedDesktopPlatform", "var MODES={");
   const functionSource = sourceBetween("function pilotPromptFor(source){", "function pilotChooseSource(source){");
-  const context = {};
-  vm.runInNewContext(`${declarations}\n${functionSource}`, context);
+  const context = { navigator: { platform: "Win32" } };
+  vm.runInNewContext(`${declarations}\n${platformSource}\n${functionSource}`, context);
   assert.equal(typeof context.pilotPromptFor, "function");
   return context;
 }
