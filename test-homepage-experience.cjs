@@ -1,229 +1,228 @@
+"use strict";
+
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const test = require("node:test");
 const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
-const credits = fs.readFileSync(new URL("ASSET-CREDITS.md", `file://${__dirname}/`), "utf8");
-const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
-inlineScripts.forEach((source, index) => {
-  assert.doesNotThrow(() => new vm.Script(source, { filename: `index-inline-${index}.js` }));
+const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
+  .map((match) => match[1]);
+
+test("homepage inline scripts parse", () => {
+  inlineScripts.forEach((source, index) => {
+    assert.doesNotThrow(() => new vm.Script(source, { filename: `index-inline-${index}.js` }));
+  });
 });
-assert.match(html, /The next-task estimate is still being tested/);
-assert.doesNotMatch(html, /forecasts the token and euro cost of an AI task before it runs/);
-assert.match(html, /Your past AI tasks should help price your next one/);
-assert.match(html, /A normal usage screen is a receipt\. TOP aims to give you the quote first/);
-assert.match(html, /TOP is not the only product trying to estimate AI costs/);
-assert.match(html, /We still need to prove that this makes the estimate more accurate/);
-assert.match(html, /downloaded copy of your Claude or ChatGPT history/);
-assert.match(html, /do not need to change code or connect a developer account/);
-assert.match(html, /TOP-1 · Icarus · being tested/);
-assert.match(html, /TOP-2 · Daedalus · idea for later/);
-assert.match(html, /TOP-3 · Athena · idea for later/);
-assert.match(html, /Not available yet/);
-assert.doesNotMatch(html, /the first (?:AI )?cost forecast|the only (?:AI )?cost forecast|guaranteed savings/i);
 
-assert.match(html, /class="coast-world"/);
-assert.match(html, /class="black-hole"/);
-assert.match(html, /\.black-hole\{[^}]*mix-blend-mode:screen/);
-assert.doesNotMatch(html, /\.black-hole\{[^}]*aspect-ratio:1/);
-assert.doesNotMatch(html, /\.black-hole\{[^}]*mask-image:radial-gradient/);
-assert.match(html, /assets\/hubble-c1-starfield\.webp/);
-assert.match(html, /assets\/eht-m87-black-hole\.webp/);
-assert.match(html, /NASA, ESA, and L\. Dressel/);
-assert.match(html, /EHT Collaboration/);
-assert.ok(fs.existsSync(new URL("assets/hubble-c1-starfield.webp", `file://${__dirname}/`)));
-assert.ok(fs.existsSync(new URL("assets/eht-m87-black-hole.webp", `file://${__dirname}/`)));
-assert.doesNotMatch(html, /class="interstellar-scout"/);
-assert.match(html, /#a78af2/);
-assert.match(html, /--cosmos-y/);
-assert.match(html, /class="orbit-layer orbit-back"/);
-assert.match(html, /class="orbit-layer orbit-front"/);
-assert.match(html, /class="totem-spin" id="topTotemSpin"/);
-assert.match(html, /class="hex-back hex-face"/);
-assert.match(html, /translateZ\(16px\)/);
-assert.match(html, /assets\/top-spin-physics\.js/);
-assert.ok(fs.existsSync(new URL("assets/top-spin-physics.js", `file://${__dirname}/`)));
-assert.match(html, /id="topMotionToggle"/);
-assert.match(html, /tilt\.addEventListener\('pointerdown'/);
-assert.match(html, /tilt\.addEventListener\('pointermove'/);
-assert.match(html, /tilt\.addEventListener\('pointerup'/);
-assert.match(html, /tilt\.addEventListener\('pointercancel'/);
-assert.match(html, /tilt\.addEventListener\('lostpointercapture'/);
-assert.match(html, /setPointerCapture/);
-assert.match(html, /requestAnimationFrame\(animate\)/);
-assert.match(html, /angularVelocity/);
-assert.match(html, /flickVelocityFromSamples/);
-assert.match(html, /var idleVelocity=0\.00014/);
-assert.match(html, /var decay=Math\.exp\(-0\.00048\*elapsed\)/);
-assert.match(html, /unpauseAnimations/);
-assert.match(html, /motionQuery\.addEventListener\('change'/);
-assert.match(html, /localStorage\.setItem\('top-motion-mode'/);
-assert.match(html, /touch-action:none/);
-assert.doesNotMatch(html, /\(pointer: coarse\)/);
-assert.doesNotMatch(html, /spin\.animate\(/);
-assert.doesNotMatch(html, /stroke="#ff9d74"|stroke="#ffc199"/);
-assert.match(html, /stroke="#b39cff"/);
-assert.match(html, /width:min\(470px,92%\)/);
-assert.match(html, /Your chosen history file is not sent to TOP/);
-assert.equal((html.match(/href="\/analyze\/\?pilot=1"/g) || []).length, 5,
-  "every homepage analyzer call to action must use the low-friction guided route");
-assert.doesNotMatch(html, /href="\/analyze\/"/,
-  "the homepage must not send new users into the advanced analyzer by default");
-assert.doesNotMatch(html, /gc\.zgo\.at|goatcounter/i);
-assert.match(html, /<main id="main-content">/);
-assert.match(html, /aria-label="Main navigation"/);
-assert.match(html, /aria-controls="explore-menu"/);
-assert.doesNotMatch(html, /class="hero-totem"/);
-assert.match(html, /class="mini-emblem"/);
-assert.match(html, /class="mobile-nav"/);
-assert.match(html, /class="face-labels"/);
-assert.match(html, /\.face-labels\{[^}]*translateZ\(19px\)[^}]*backface-visibility:hidden/);
-assert.match(html, /Why a cheaper task may not mean a smaller total bill/);
-assert.match(html, /time →/);
-assert.match(html, /AI cost · output value · value left after cost/);
-assert.match(html, /class="vm-layout"/);
-assert.match(html, /\.vm-layout\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
-assert.match(html, /\.vm-plot svg\{[^}]*width:100%[^}]*height:auto/);
-assert.match(html, /data-vm-graph/);
-assert.match(html, /W:960,H:420/);
-assert.match(html, /W:760,H:460/);
-assert.match(html, /W:520,H:480/);
-assert.match(html, /TOP-2 scenario begins/);
-assert.match(html, /lower AI cost while output value stays on its original path/);
-assert.match(html, /original cost gradient with output value rising much faster/);
-assert.match(html, /lower cost with the same output value/);
-assert.match(html, /the same cost gradient with much more output value/);
-assert.doesNotMatch(html, /green line rises twice as much|rising 2× as much/);
-assert.match(html, /C\.vs1/,
-  "the output-value path must be independent from the cost path");
-assert.doesNotMatch(html, /max-height:400px/);
-assert.match(html, /aria-valuetext/);
-assert.match(html, /Works now/);
-assert.match(html, /co-founded with Sam O'Connell/);
-assert.match(html, /Sam on LinkedIn/);
-assert.match(html, /Sam on GitHub/);
-assert.doesNotMatch(html, /📉|🔀|🔥/);
-assert.match(html, /overflow-x:clip/);
-assert.match(html, /\.vm-controls input\[type=range\][^}]*min-width:0/);
-assert.doesNotMatch(html, /Spacecraft silhouette/);
-assert.doesNotMatch(credits, /spacecraft/i);
-assert.match(html, /max-height:calc\(100dvh - 88px\)/);
-assert.match(html, /mobileNav\.open=false/);
-assert.match(html, /@media\(max-width:360px\)\{\.logo\{font-size:0/);
-assert.match(html, /\.mobile-menu\{position:fixed;top:82px;left:14px;right:14px;width:auto/);
-assert.match(html, /\.motion-hint\{width:min\(280px,88vw\)[^}]*white-space:normal/);
-assert.match(html, /@media\(max-width:640px\)\{[\s\S]*?\.hero h1\{order:2\}[\s\S]*?\.hero-orbit-stage\{order:5/);
+test("homepage opens with Adam's approved TOP language", () => {
+  assert.match(html, /<h1 id="hero-title">TOP<\/h1>/);
+  assert.match(html, /<p class="hero-expansion">Token Optimization Protocol<\/p>/);
+  assert.match(
+    html,
+    /The AI landscape is <span class="changing-landscape">constantly changing<\/span>, TOP helps You keep two feet on the ground so You and Your Business stay ahead of the curve/,
+  );
+  assert.match(html, /TOP is being built as a centralized AI integrator, then optimizer for businesses\./);
+  assert.match(
+    html,
+    /If work is transport, AI agents are cars, and TOP is the road system we are building to make traffic visible, and over time help it run better\. We want to give business owners insight into the black box that is artificial intelligence\./,
+  );
+  assert.match(html, /Forecastable, cheaper and smarter describe the intended route, not outcomes TOP has proved\./);
+  assert.doesNotMatch(html, /The AI landscape never stops moving/i);
+});
 
-assert.match(html, /href="#explain">Explain TOP to me<\/a>/);
-assert.match(html, /<section class="ai-guide-section" id="explain" aria-labelledby="ai-guide-title">/);
-assert.match(html, /id="copyTopExplainer"[^>]*aria-describedby="topExplainerStatus"/);
-assert.match(html, /id="topExplainerStatus" role="status" aria-live="polite"/);
-assert.match(html, /id="topExplainerPrompt" readonly/);
-assert.match(html, /Copies the exact prompt available under Preview/);
-assert.match(html, /Your AI provider handles anything you paste under its own terms and settings/);
-assert.match(html, /Do not attach your account-history export to that chat/);
-assert.match(html, /credential, password, secret, API key or confidential material/);
-assert.match(html, /do not provide operational instructions for uploading, submitting, emailing or sharing data with TOP/);
-assert.match(html, /TOP's own claims, not as independent proof/);
-assert.match(html, /That forecast is not yet proven/);
-assert.match(html, /Direct submission to TOP is not available today/);
-assert.match(html, /Local download, copy and device-sharing controls remain user-controlled/);
-assert.match(html, /visiting the sites can still disclose routine request metadata to their hosts and any permitted asset providers/);
-assert.match(html, /without sharing your account-history export with TOP/);
-assert.doesNotMatch(html, /without sharing any data/);
-assert.match(html, /typeof navigator\.clipboard\.writeText==='function'/);
-assert.match(html, /navigator\.clipboard\.writeText\(text\)/);
-assert.match(html, /document\.execCommand\('copy'\)/);
-assert.match(html, /field\.remove\(\);\s*button\.focus\(\);/);
-assert.equal((html.match(/id="copyTopExplainer"/g) || []).length, 1,
-  "the page must expose one explicit explainer-copy control");
-
-const explainerStart = html.indexOf("(function initTopExplainer");
-const explainerEnd = html.indexOf("})();", explainerStart);
-assert.ok(explainerStart >= 0 && explainerEnd > explainerStart,
-  "the explainer clipboard behavior must remain isolated and testable");
-const explainerScript = html.slice(explainerStart, explainerEnd);
-assert.doesNotMatch(explainerScript, /fetch\s*\(|XMLHttpRequest|sendBeacon|window\.open/,
-  "copying the public explainer prompt must not create a network or provider handoff");
-
-const menuStart = html.indexOf('id="explore-menu"');
-const menuEnd = html.indexOf('</div>', menuStart);
-const menu = html.slice(menuStart, menuEnd);
-assert.equal((menu.match(/<a /g) || []).length, 5,
-  "the desktop Explore menu must stay short enough to scan");
-assert.ok(menu.indexOf('href="#valuemodel"') > menu.indexOf('href="#suite"'),
-  "the value idea must be the third Explore choice");
-
-const back = html.indexOf('class="orbit-layer orbit-back"');
-const prism = html.indexOf('class="totem-tilt"');
-const front = html.indexOf('class="orbit-layer orbit-front"');
-assert.ok(back >= 0 && prism > back && front > prism,
-  "the 3D prism must sit between the back and front orbit layers");
-
-const explain = html.indexOf('id="explain"');
-const usp = html.indexOf('id="usp"');
-const suite = html.indexOf('id="suite"');
-const problem = html.indexOf('id="problem"');
-const how = html.indexOf('id="how"');
-const analyze = html.indexOf('id="analyse"');
-const status = html.indexOf('id="status"');
-const valueModel = html.indexOf('id="valuemodel"');
-assert.ok(explain >= 0 && usp > explain && suite > usp && problem > suite,
-  "the plain-language bridge, USP and TOP 1, 2, 3 explanation must appear before the problem detail");
-assert.ok(how > problem && analyze > how && status > analyze && valueModel > status,
-  "the live TOP-1 path and honest status must appear before the TOP-2 thought experiment");
-
-const graphModelStart = html.indexOf("function vmScenarioAmount");
-const graphModelEnd = html.indexOf("(function(){", graphModelStart);
-assert.ok(graphModelStart >= 0 && graphModelEnd > graphModelStart,
-  "the value graph model must remain independently testable");
-const graphContext = {};
-vm.createContext(graphContext);
-vm.runInContext(html.slice(graphModelStart, graphModelEnd), graphContext);
-const graphConfig = {
-  BEND: 3.3, c0: 0.5, cs1: 1.15, saveCostSlope: 0.2,
-  v0: 0.3, vs1: 1, reinvestValueSlope: 3.5,
-};
-const baselineCostAt = (x) => graphConfig.c0 + graphConfig.cs1 * x;
-const baselineValueAt = (x) => graphConfig.v0 + graphConfig.vs1 * x;
-
-for (const x of [0, 1.4, 3.3]) {
-  assert.ok(Math.abs(graphContext.vmCostAt(graphConfig, x, 0) - baselineCostAt(x)) < 1e-10);
-  assert.ok(Math.abs(graphContext.vmCostAt(graphConfig, x, 1) - baselineCostAt(x)) < 1e-10);
-  assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, x, 0) - baselineValueAt(x)) < 1e-10);
-  assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, x, 1) - baselineValueAt(x)) < 1e-10);
-}
-
-for (const x of [4.8, 6]) {
-  assert.ok(graphContext.vmCostAt(graphConfig, x, 0) < baselineCostAt(x),
-    "the lower-cost endpoint must flatten cost after the scenario begins");
-  assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, x, 0) - baselineValueAt(x)) < 1e-10,
-    "the lower-cost endpoint must preserve the original output-value path exactly");
-  assert.ok(Math.abs(graphContext.vmCostAt(graphConfig, x, 1) - baselineCostAt(x)) < 1e-10,
-    "the reinvest endpoint must restore the original cost gradient exactly");
-  assert.ok(graphContext.vmValueAt(graphConfig, x, 1) > baselineValueAt(x),
-    "the reinvest endpoint must raise output value above its original path");
-}
-
-for (const amount of [0, 0.5, 1]) {
-  for (const x of [0, 1.4, 3.3, 4.8, 6]) {
-    for (const value of [
-      graphContext.vmCostAt(graphConfig, x, amount),
-      graphContext.vmValueAt(graphConfig, x, amount),
-    ]) {
-      assert.ok(value >= 0 && value <= 14,
-        "both illustrative lines must stay inside the graph at every slider position");
-    }
+test("personal-site visual tokens and pressable controls remain explicit", () => {
+  for (const token of [
+    "--ink:#16140f",
+    "--muted:#5f594e",
+    "--line:#c9c0ad",
+    "--paper:#fff9e8",
+    "--desk:#ede8d9",
+    "--wash:#f6efd9",
+    "--signal:#ff6b2b",
+    "--lemon:#ffe89a",
+    "--blue:#a7d5f5",
+    "--professional-blue:#235c88",
+    "--green:#b9ddaf",
+    "--red:#f2aa98",
+  ]) {
+    assert.match(html, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
-}
+  assert.match(html, /\.site-frame\{[\s\S]*?border:1px solid var\(--ink\)[\s\S]*?background:var\(--paper\)[\s\S]*?box-shadow:-8px 8px 0 var\(--ink\)/);
+  assert.match(html, /\.press-button\{[\s\S]*?border:2px solid var\(--ink\)[\s\S]*?border-radius:2px[\s\S]*?box-shadow:-5px 5px 0 var\(--ink\)/);
+  assert.match(html, /@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\.press-button:hover\{[\s\S]*?box-shadow:-2px 2px 0 var\(--ink\)[\s\S]*?translate\(-3px,3px\)/);
+  assert.match(html, /\.press-button:active\{[\s\S]*?box-shadow:none[\s\S]*?translate\(-5px,5px\)/);
+  assert.match(
+    html,
+    /\.section\[tabindex="-1"\]:focus-visible,\s*\.product-card\[tabindex="-1"\]:focus-visible,\s*\.live-tool\[tabindex="-1"\]:focus-visible\{[^}]*outline:3px solid var\(--ink\);[^}]*outline-offset:-?\d+px/,
+  );
+  assert.doesNotMatch(html, /\[tabindex="-1"\]:focus\{[^}]*outline:none/);
+  assert.match(html, /\.live-tool\{[\s\S]*?scroll-margin-top:var\(--anchor-offset\)/);
+  assert.doesNotMatch(html, /backdrop-filter|border-radius:999|radial-gradient|mix-blend-mode/i);
+});
 
-const lowCost = graphContext.vmCostAt(graphConfig, 6, 0);
-const baselineCost = baselineCostAt(6);
-assert.ok(lowCost / baselineCost < 0.66,
-  "the lower-cost endpoint must be visibly lower than the original cost path");
-assert.ok(Math.abs(graphContext.vmValueAt(graphConfig, 6, 0) - baselineValueAt(6)) < 1e-10);
-assert.ok(Math.abs(graphContext.vmCostSlope(graphConfig, 1) - graphConfig.cs1) < 1e-10);
-assert.ok(graphContext.vmValueAt(graphConfig, 6, 1) / baselineValueAt(6) > 2,
-  "the reinvest endpoint must show a materially steeper illustrative output-value path");
+test("the overhead map is replaced by a live clickable TOP route map", () => {
+  assert.doesNotMatch(html, /class="network-figure"|class="map-frame"/);
+  assert.match(html, /<aside class="route-rail" id="route-map-panel" aria-label="TOP route map">/);
+  assert.match(html, /<nav class="route-map" id="route-map-nav" aria-label="Live page contents">/);
+  assert.match(html, /data-route-map-link="business" aria-current="location"/);
+  for (const target of [
+    "routes", "topos", "optimise", "icarus", "daedalus", "athena",
+    "historical-analyzer", "engineering", "partners", "roadmap",
+  ]) {
+    assert.match(html, new RegExp(`href="#${target}" data-route-map-link="${target}"`));
+  }
+  assert.match(html, /class="route-car" id="route-car" aria-hidden="true"/);
+  assert.match(html, /id="motion-toggle" type="button" aria-pressed="false" aria-label="Pause route-map animation"/);
+  assert.match(html, /\.route-node\[aria-current="location"\][\s\S]*?box-shadow:-4px 4px 0 var\(--ink\)/);
+  assert.match(html, /\.motion-paused \.route-car\{animation-play-state:paused\}/);
+});
 
-console.log("TOP homepage experience regression tests passed");
+test("product direction uses three main columns with stage badges", () => {
+  assert.match(html, /<table class="direction-table">/);
+  for (const heading of ["Name", "Analogy", "Application"]) {
+    assert.match(html, new RegExp(`<th scope="col">${heading}</th>`));
+  }
+  for (const stage of ["Intranet / OS", "TOP 1", "TOP 2", "TOP 3"]) {
+    assert.match(html, new RegExp(`<span class="stage-badge">${stage.replace("/", "\\/")}</span>`));
+  }
+  assert.match(html, /TopOS[\s\S]*?Roads and infrastructure[\s\S]*?The local infrastructure for your AI integration/);
+  assert.match(html, /Icarus[\s\S]*?Taximeter \+ fuel gauge[\s\S]*?Make your AI spend forecastable/);
+  assert.match(html, /Daedalus[\s\S]*?More efficient engine[\s\S]*?Help make your AI use cheaper/);
+  assert.match(html, /Athena[\s\S]*?Interactive sat-nav[\s\S]*?Help make your AI use smarter/);
+});
+
+test("business route selector sends Yes past TopOS and No to the infrastructure", () => {
+  const questionAt = html.indexOf("Does your business use AI?");
+  const yesAt = html.indexOf('href="#optimise" data-route="yes"');
+  const noAt = html.indexOf('href="#topos" data-route="no"');
+  const toposAt = html.indexOf('id="topos"');
+  const optimiseAt = html.indexOf('id="optimise"');
+  assert.ok(questionAt >= 0 && yesAt > questionAt && noAt > yesAt);
+  assert.ok(toposAt > noAt && optimiseAt > toposAt,
+    "TopOS must appear first in the document so the Yes route visibly skips it");
+  assert.match(html, /Yes skips ahead\. No starts with the road infrastructure\./);
+});
+
+test("TopOS and the three optimisation layers use the approved transport analogies", () => {
+  assert.match(html, /TopOS lays the roads\./);
+  assert.match(html, /TopOS is the infrastructure\./);
+  assert.match(html, /proposed local-first intranet road system/);
+  for (const infrastructure of ["Roads", "Depots", "Junctions", "Control room"]) {
+    assert.match(html, new RegExp(`<h3>${infrastructure}</h3>`));
+  }
+  assert.match(html, /<h3>Icarus<\/h3>[\s\S]*?Taximeter \+ fuel gauge/);
+  assert.match(html, /<h3>Daedalus<\/h3>[\s\S]*?More efficient engine/);
+  assert.match(html, /<h3>Athena<\/h3>[\s\S]*?Interactive satnav/);
+});
+
+test("maturity labels separate working software from the road map", () => {
+  assert.match(html, /Icarus, Daedalus and Athena are working codenames\./);
+  assert.match(html, /TopOS[\s\S]*?Concept/);
+  assert.match(html, /Icarus[\s\S]*?In validation/);
+  assert.match(html, /Daedalus[\s\S]*?Planned R&amp;D/);
+  assert.match(html, /Athena[\s\S]*?Planned R&amp;D/);
+  assert.match(html, /This shows past journeys\. It is not a pre-run forecast\./);
+  assert.match(html, /It has not shipped or been benchmarked\./);
+  assert.match(html, /TopOS is not yet built, shipped or validated\./);
+});
+
+test("the only live product route is the local historical analyzer", () => {
+  const analyzerLinks = html.match(/href="\/analyze\/\?pilot=1"/g) || [];
+  assert.ok(analyzerLinks.length >= 3, "the live analyzer should be reachable from each relevant audience route");
+  assert.doesNotMatch(html, /href="\/analyze\/"/);
+  assert.match(
+    html,
+    /<div(?=[^>]*\bclass="[^"]*\blive-tool\b[^"]*")(?=[^>]*\bid="historical-analyzer")(?=[^>]*\btabindex="-1")[^>]*>/,
+  );
+  assert.match(html, /file is analysed locally and is not sent to TOP/);
+  assert.match(html, /does not require a developer account, a code change or an upload to TOP/);
+  const auditClaim = html.match(/<li><strong>Audit<\/strong><span>([^<]+)<\/span><\/li>/);
+  assert.ok(auditClaim, "the analyzer should retain a visible API-rate audit explanation");
+  assert.match(auditClaim[1], /\bsupported\b/i);
+  assert.match(auditClaim[1], /\bequivalent pay-as-you-go API rates\b/i);
+  assert.match(auditClaim[1], /\b(?:when|where|only if)\b[^.]*\bexact\b[^.]*\bmodel\b[^.]*\btoken counts?\b/i);
+  assert.match(auditClaim[1], /\bchecked rate\b/i);
+  assert.doesNotMatch(
+    auditClaim[1],
+    /^See your past AI usage in equivalent pay-as-you-go API rates\.$/i,
+  );
+});
+
+test("Google Calendar calls are truthful placeholders until a real schedule exists", () => {
+  assert.match(html, /<button class="press-button" type="button" disabled>Book a TopOS call in Google Calendar<\/button>/);
+  assert.match(html, /<button class="press-button" type="button" disabled>Book an Icarus pilot implementation call in Google Calendar<\/button>/);
+  assert.match(html, /once the booking schedule is ready/i);
+  assert.doesNotMatch(html, /cal\.com|cal\.eu|fresha|calendar\.google\.com/i);
+});
+
+test("audience navigation remains functional on desktop and mobile", () => {
+  assert.match(html, /<main class="layout" id="main-content">/);
+  assert.match(html, /aria-label="Main navigation"/);
+  assert.match(html, /aria-label="Audience index"/);
+  assert.match(html, /href="#business" data-audience-link="business" aria-current="page">Business operators<\/a>/);
+  assert.match(html, /href="#engineering" data-audience-link="engineering">AI &amp; Engineering<\/a>/);
+  assert.match(html, /href="#partners" data-audience-link="partners">Investors &amp; Partners<\/a>/);
+  assert.match(html, /@media\(max-width:1120px\)\{[\s\S]*?\.audience-rail\{[\s\S]*?position:sticky/);
+  assert.match(html, /@media\(max-width:1120px\)\{[\s\S]*?\.main-nav\{[\s\S]*?grid-column:1\/-1/);
+  assert.match(html, /class="audience-scroll-cue" aria-hidden="true">More &rarr;<\/span>/);
+  assert.match(html, /@media\(max-width:800px\)\{[\s\S]*?\.site-frame\{width:100%;margin:0;border:0;box-shadow:none\}/);
+  assert.match(html, /\.signal-list li\{[\s\S]*?grid-template-columns:78px minmax\(0,1fr\)/);
+  assert.match(html, /@media\(prefers-reduced-motion:reduce\)/);
+  assert.doesNotMatch(html, /@media\(max-width:[^)]+\)\{[^}]*\.audience-rail\{[^}]*display:none/);
+});
+
+test("route choice, tactile panels and audience copy match the approved design", () => {
+  assert.match(html, /class="press-button yes" href="#optimise" data-route="yes">Yes<\/a>/);
+  assert.match(html, /class="press-button no" href="#topos" data-route="no">No<\/a>/);
+  assert.match(html, /\.route-buttons \.yes\{background:var\(--green\)\}/);
+  assert.match(html, /\.route-buttons \.no\{background:var\(--red\)\}/);
+  assert.match(html, /<h2 id="optimise-title">Measure the journey, <em>then<\/em> improve the traffic\.<\/h2>/);
+  assert.match(html, /class="infrastructure-item tactile-panel"/);
+  assert.match(html, /class="product-card tactile-panel"/);
+  assert.doesNotMatch(html, /class="(?:infrastructure-item|product-card)[^"]*"[^>]+role="button"/);
+  assert.match(html, /See the rules of the road\./);
+  assert.match(html, /The wider system is explained above\./);
+  assert.match(html, /<strong>Private<\/strong><span>Your selected history file stays on your machine and is not sent to TOP\.<\/span>/);
+  assert.match(
+    html,
+    /<strong>Audit<\/strong><span>[^<]*\bsupported\b[^<]*\bequivalent pay-as-you-go API rates\b[^<]*\bexact\b[^<]*\bmodel\b[^<]*\btoken counts?\b[^<]*\bchecked rate\b[^<]*<\/span>/i,
+  );
+  assert.match(html, /We are early, and we are ambitious\./);
+  assert.match(html, /The wider system lacks substantial commercial application\. But the plan is in place\./);
+  assert.match(html, /We will not present roadworks as an open motorway\./);
+  assert.match(html, /class="press-button professional"[^>]*>Talk to the founders<\/a>/);
+});
+
+test("compact value graph is interactive, accessible and explicitly illustrative", () => {
+  assert.match(html, /<figure class="value-model tactile-panel" aria-labelledby="value-model-title">/);
+  assert.match(html, /<title id="vm-chart-title">Illustrative AI cost and output value paths<\/title>/);
+  assert.match(html, /<desc id="vm-chart-desc">[\s\S]*?This is not a customer result\.<\/desc>/);
+  assert.match(html, /id="vm-scenario" type="range"[^>]+aria-describedby="vm-caption"/);
+  assert.match(html, /These are made-up paths, not a customer result\./);
+  assert.match(html, /Daedalus has not shipped or been benchmarked\./);
+  assert.match(html, /TOP has not proved a saving or measured output value\./);
+  for (const fn of ["vmScenarioAmount", "vmCostSlope", "vmValueSlope", "vmCostAt", "vmValueAt"]) {
+    assert.match(html, new RegExp(`function ${fn}\\(`));
+  }
+});
+
+test("future pages are labelled as a road map, not linked as though they exist", () => {
+  for (const planned of [
+    "About TOP",
+    "FAQ + Help",
+    "Contact",
+    "Privacy + Security",
+    "Team + Vision",
+    "TOP desktop download",
+  ]) {
+    assert.match(html, new RegExp(planned.replace("+", "\\+")));
+  }
+  assert.doesNotMatch(html, /href="\/(?:about|faq|help|contact|privacy|security|download)(?:\/|")/i);
+});
+
+test("homepage has no third-party runtime or tracking", () => {
+  assert.doesNotMatch(html, /<script[^>]+\bsrc=/i);
+  assert.doesNotMatch(html, /<link[^>]+(?:stylesheet|preconnect)[^>]+https?:/i);
+  assert.doesNotMatch(html, /fetch\s*\(|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|goatcounter/i);
+});

@@ -34,33 +34,20 @@ for (const rule of pilotHideRule) {
 assert.match(html, /<summary>Too much technical jargon\? Not sure how this helps you\?<\/summary>/,
   "the visible invitation must name the problem in plain words");
 
-// The landing page already carried a jargon-buster, but its only route in was a
-// button labelled "Explain TOP to me", which does not tell a confused visitor that
-// it is for them. A plain-language signpost now sits in the hero. It must not add a
-// second copy control or a sixth analyzer deep link, both of which are count-pinned
-// by test-homepage-experience.cjs.
+// The landing page now routes visitors according to whether their business already
+// uses AI. Keep that entry question in plain language and keep the live analyzer
+// reachable without copying the analyzer's separate jargon-buster onto the homepage.
 const home = fs.readFileSync(new URL("../index.html", `file://${__dirname}/`), "utf8");
-assert.match(home, /class="hero-jargon"><a href="#explain">Too much technical jargon\? Not sure how this helps you\?<\/a>/,
-  "the landing hero must signpost the explainer in the visitor's own words");
-// Placement is pinned tightly on purpose. "Somewhere in the hero" is not good
-// enough: a visitor who is already lost will not scroll past the emblem to find
-// the thing that would have unconfused them. It must sit immediately under the
-// two call-to-action buttons.
-const ctaEndAt = home.indexOf('href="#explain">Explain TOP to me</a>');
-const heroJargonAt = home.indexOf('<p class="hero-jargon">');
-const stageAt = home.indexOf('<div class="stage reveal">');
-assert.ok(ctaEndAt >= 0 && heroJargonAt > ctaEndAt && heroJargonAt < stageAt,
-  "the signpost must sit between the hero buttons and the product stage");
-const betweenCtaAndSignpost = home.slice(home.indexOf("</a>", ctaEndAt) + 4, heroJargonAt);
-assert.match(betweenCtaAndSignpost, /^\s*<\/div>\s*$/,
-  "nothing may be inserted between the call-to-action buttons and the signpost, or it stops being the next thing a lost visitor reads");
-assert.equal((home.match(/id="copyTopExplainer"/g) || []).length, 1,
-  "the landing page must still expose exactly one explainer-copy control");
-assert.equal((home.match(/href="\/analyze\/\?pilot=1"/g) || []).length, 5,
-  "the signpost must not add or remove an analyzer deep link");
-// A hero child with no flex order jumps to the top of the mobile stack, above the h1.
-assert.match(home, /@media\(max-width:640px\)\{[\s\S]*?\.hero-jargon\{order:4/,
-  "the signpost must be ordered in the mobile hero stack, not left to default to the top");
+assert.match(home, /Does your business use AI\?/,
+  "the landing page must ask the business-routing question in plain language");
+assert.match(home, /href="#optimise" data-route="yes">Yes<\/a>/,
+  "the Yes route must skip to the products for businesses already using AI");
+assert.match(home, /href="#topos" data-route="no">No<\/a>/,
+  "the No route must begin with the TopOS infrastructure explanation");
+assert.equal((home.match(/id="copyTopExplainer"/g) || []).length, 0,
+  "the analyzer's prompt control must not be duplicated on the landing page");
+assert.ok((home.match(/href="\/analyze\/\?pilot=1"/g) || []).length >= 3,
+  "the live analyzer must remain reachable from the landing page");
 
 // ---------------------------------------------------------------------------
 // Extract the exact prompt text that the copy button puts on the clipboard.
