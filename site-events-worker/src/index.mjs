@@ -20,17 +20,16 @@ function emptyResponse(status, origin) {
 }
 
 function validTopic(value) {
-  return typeof value === "string" && /^[A-Za-z0-9_-]{16,128}$/.test(value);
+  return typeof value === "string" && /^[A-Za-z0-9_-]{32,128}$/.test(value);
 }
 
 async function sendNotification(fetchImpl, env) {
-  if (!validTopic(env.NTFY_TOPIC) || typeof env.NTFY_ACCESS_TOKEN !== "string" || !env.NTFY_ACCESS_TOKEN) {
+  if (!validTopic(env.NTFY_TOPIC)) {
     throw new Error("notification destination is not configured");
   }
   const response = await fetchImpl(NTFY_ENDPOINT, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${env.NTFY_ACCESS_TOKEN}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -62,9 +61,7 @@ export function createHandler(fetchImpl = globalThis.fetch) {
       if (!env || !env.VIEW_RATE_LIMITER || typeof env.VIEW_RATE_LIMITER.limit !== "function") {
         return emptyResponse(503, origin);
       }
-      if (!validTopic(env.NTFY_TOPIC)
-        || typeof env.NTFY_ACCESS_TOKEN !== "string"
-        || !env.NTFY_ACCESS_TOKEN) return emptyResponse(503, origin);
+      if (!validTopic(env.NTFY_TOPIC)) return emptyResponse(503, origin);
       if (!context || typeof context.waitUntil !== "function") return emptyResponse(503, origin);
 
       const rate = await env.VIEW_RATE_LIMITER.limit({ key: "homepage-view" });

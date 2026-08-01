@@ -29,8 +29,7 @@ function request({
 
 function environment(overrides = {}) {
   return {
-    NTFY_TOPIC: "private_topic_123456789",
-    NTFY_ACCESS_TOKEN: "test-token",
+    NTFY_TOPIC: "private_topic_1234567890_abcdefghij",
     VIEW_RATE_LIMITER: {
       async limit() { return { success: true }; },
     },
@@ -77,14 +76,13 @@ test("a valid homepage load returns immediately and sends one generic ntfy alert
     url: "https://ntfy.sh",
     method: "POST",
     body: JSON.stringify({
-      topic: "private_topic_123456789",
+      topic: "private_topic_1234567890_abcdefghij",
       title: "TOP site activity",
       message: "TOP homepage opened",
       tags: ["eyes"],
       priority: 3,
     }),
     headers: {
-      authorization: "Bearer test-token",
       "content-type": "application/json",
     },
   }]);
@@ -145,7 +143,6 @@ test("missing bindings and invalid notification destinations fail closed", async
     environment({ NTFY_TOPIC: undefined }),
     environment({ NTFY_TOPIC: "short" }),
     environment({ NTFY_TOPIC: "invalid topic with spaces" }),
-    environment({ NTFY_ACCESS_TOKEN: undefined }),
   ];
   for (const env of cases) {
     const ctx = context();
@@ -163,10 +160,10 @@ test("ntfy failure is contained after the browser receives its response", async 
   await assert.doesNotReject(() => Promise.all(ctx.pending));
 });
 
-test("tracked source contains no destination, token or logging call", () => {
+test("tracked source contains no topic value, account token or logging call", () => {
   const source = fs.readFileSync(new URL("../src/index.mjs", import.meta.url), "utf8");
   assert.doesNotMatch(source, /ntfy\.sh\/[a-z0-9_-]+/i);
   assert.doesNotMatch(source, /console\.(?:log|info|warn|error)|CF-Ray|User-Agent|Referer/i);
   assert.match(source, /NTFY_TOPIC/);
-  assert.match(source, /NTFY_ACCESS_TOKEN/);
+  assert.doesNotMatch(source, /NTFY_ACCESS_TOKEN|Authorization/i);
 });
