@@ -195,7 +195,7 @@ Adam Hartley, Sam O'Connell, Chullain Lyons, Fionn Gavin et al.
   const letter = elementMarkupById("founders-letter");
   const letterText = visibleText(letter);
   assert.ok(letterText.includes(expected), "the letter must contain the approved revised text");
-  assert.match(letter, /so you can\s*<strong>understand<\/strong>\s*and\s*<strong>leverage<\/strong>\s*the inner workings of the black box of AI\./i);
+  assert.match(letter, /so you can\s*<strong>understand<\/strong>\s*<em>and<\/em>\s*<strong>leverage<\/strong>\s*the inner workings of the black box of AI\./i);
   assert.match(letter, /<ul\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bletter-solutions\b)[^>]*>[\s\S]*?<li>Make your AI agents work forecastable<\/li>[\s\S]*?<li>Your spend trackable<\/li>[\s\S]*?<li>Your workflow far more efficient<\/li>[\s\S]*?<li>Your AI use understandable, auditable and far smarter\.<\/li>[\s\S]*?<\/ul>/i);
   assert.doesNotMatch(letterText, /\bTop is like the slingshot/);
   assert.doesNotMatch(letterText, /eating you’re dust/);
