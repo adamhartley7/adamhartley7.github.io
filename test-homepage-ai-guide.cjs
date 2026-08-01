@@ -263,10 +263,13 @@ test("time spent in a hidden tab cannot bypass the five-second opening", () => {
   const harness = makeOpeningScreenHarness();
   harness.advance(2000);
   harness.setHidden(true);
+  assert.equal(harness.rootClasses.contains("opening-paused"), true,
+    "the visual progress bar must pause with the visible-time gate");
   harness.advance(10000);
   assert.equal(harness.isReleased(), false, "background-tab time must not count toward the opening");
 
   harness.setHidden(false);
+  assert.equal(harness.rootClasses.contains("opening-paused"), false);
   assert.equal(harness.timers.at(-1).delay, 3000);
   harness.advance(2999);
   assert.equal(harness.isReleased(), false);
