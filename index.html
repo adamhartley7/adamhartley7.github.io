@@ -18,10 +18,19 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://adamhartley7.goatcounter.com; font-src 'self' data:; connect-src https://adamhartley7.goatcounter.com https://events.tokenoptimisationprotocol.org; media-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'self'">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ff6b2b'/%3E%3Cpath d='M5 6h22v6h-7v15h-8V12H5z' fill='%2316140f'/%3E%3C/svg%3E">
 <script>
-(function markTechnicalReturn(){
+(function markOpeningState(){
+  var root=document.documentElement;
   if(window.location&&window.location.hash==='#from-how-top-works'){
-    document.documentElement.classList.add('opening-return');
+    root.classList.add('opening-return');
   }
+  var navigationPerformance=window.performance;
+  var navigationEntries=navigationPerformance&&typeof navigationPerformance.getEntriesByType==='function'
+    ? navigationPerformance.getEntriesByType('navigation')
+    : [];
+  var isReload=navigationEntries&&navigationEntries[0]
+    ? navigationEntries[0].type==='reload'
+    : !!(navigationPerformance&&navigationPerformance.navigation&&navigationPerformance.navigation.type===1);
+  if(isReload)root.classList.add('opening-reload');
 })();
 </script>
 <style>
@@ -54,7 +63,9 @@
   --max:1700px;
   --anchor-offset:0px;
   --letter-calligraphy:"Grenze Gotisch",Georgia,"Times New Roman",serif;
+  --opening-duration:5s;
 }
+html.opening-reload{--opening-duration:3s}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;background:var(--desk);color:var(--ink)}
 body{
@@ -98,7 +109,7 @@ button{font:inherit}
   backface-visibility:hidden;
   transform:translate3d(-100%,0,0);
   will-change:transform;
-  animation:opening-progress 5s linear both;
+  animation:opening-progress var(--opening-duration,5s) linear both;
 }
 .opening-paused .opening-progress::after{animation-play-state:paused}
 .opening-label{
@@ -1960,7 +1971,7 @@ h3{
     animation-delay:5s!important;
   }
   .opening-progress::after{
-    animation:opening-progress 5s linear both!important;
+    animation:opening-progress var(--opening-duration,5s) linear both!important;
   }
   .manuscript-top.is-spinning .manuscript-top-icon,
   .brand-mark.is-popping,
@@ -2186,6 +2197,7 @@ h3{
     root.classList.remove('opening-active');
     root.classList.remove('opening-paused');
     root.classList.remove('opening-return');
+    root.classList.remove('opening-reload');
     if(window.history&&typeof window.history.replaceState==='function'){
       window.history.replaceState(null,'',window.location.pathname+window.location.search);
     }
@@ -2194,11 +2206,6 @@ h3{
   }
   root.classList.remove('opening-return');
 
-  var requiredWait=5000;
-  var visibleElapsed=0;
-  var visibleStarted=null;
-  var timerId=null;
-  var scheduledFor=requiredWait;
   var navigationPerformance=window.performance;
   var navigationEntries=navigationPerformance&&typeof navigationPerformance.getEntriesByType==='function'
     ? navigationPerformance.getEntriesByType('navigation')
@@ -2206,7 +2213,15 @@ h3{
   var isReload=navigationEntries&&navigationEntries[0]
     ? navigationEntries[0].type==='reload'
     : !!(navigationPerformance&&navigationPerformance.navigation&&navigationPerformance.navigation.type===1);
+  var requiredWait=isReload?3000:5000;
+  var visibleElapsed=0;
+  var visibleStarted=null;
+  var timerId=null;
+  var scheduledFor=requiredWait;
   var previousScrollRestoration;
+
+  if(isReload)root.classList.add('opening-reload');
+  else root.classList.remove('opening-reload');
 
   function pinReloadToTop(){
     if(isReload&&typeof window.scrollTo==='function')window.scrollTo(0,0);
@@ -2241,6 +2256,7 @@ h3{
     shell.removeAttribute('aria-hidden');
     root.classList.remove('opening-active');
     root.classList.remove('opening-paused');
+    root.classList.remove('opening-reload');
     pinReloadToTop();
     if(isReload&&window.history&&typeof previousScrollRestoration==='string'){
       window.history.scrollRestoration=previousScrollRestoration;
