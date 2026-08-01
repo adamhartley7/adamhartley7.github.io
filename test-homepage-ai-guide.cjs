@@ -72,6 +72,208 @@ function click(link) {
   return prevented;
 }
 
+const openingStart = html.indexOf("(function initOpeningScreen");
+const openingEnd = html.indexOf("})();", openingStart);
+const openingSource = openingStart >= 0 && openingEnd > openingStart
+  ? html.slice(openingStart, openingEnd + 5)
+  : "";
+
+function makeOpeningScreenHarness() {
+  const timers = [];
+  const activeTimers = new Map();
+  const documentEvents = {};
+  const windowEvents = {};
+  const rootClasses = makeClassList();
+  rootClasses.add("no-js");
+  const bodyClasses = makeClassList();
+  let now = 0;
+  let timerId = 0;
+  let removed = false;
+
+  function makeElement() {
+    const attrs = {};
+    return {
+      attrs,
+      classList: makeClassList(),
+      hidden: false,
+      inert: false,
+      style: {},
+      getAttribute(name) {
+        return Object.prototype.hasOwnProperty.call(attrs, name) ? attrs[name] : null;
+      },
+      hasAttribute(name) { return Object.prototype.hasOwnProperty.call(attrs, name); },
+      setAttribute(name, value) {
+        attrs[name] = String(value);
+        if (name === "inert") this.inert = true;
+      },
+      removeAttribute(name) {
+        delete attrs[name];
+        if (name === "inert") this.inert = false;
+      },
+      toggleAttribute(name, force) {
+        const enabled = force === undefined ? !this.hasAttribute(name) : force;
+        if (enabled) this.setAttribute(name, "");
+        else this.removeAttribute(name);
+        return enabled;
+      },
+    };
+  }
+  const screen = makeElement();
+  const pageShell = makeElement();
+  screen.remove = () => { removed = true; };
+  screen.parentNode = {
+    removeChild(child) {
+      assert.equal(child, screen);
+      removed = true;
+    },
+  };
+
+  function schedule(callback, delay) {
+    timerId += 1;
+    const timer = { id: timerId, callback, delay: Number(delay), due: now + Number(delay) };
+    timers.push(timer);
+    activeTimers.set(timer.id, timer);
+    return timer.id;
+  }
+
+  function clear(timer) {
+    activeTimers.delete(timer);
+  }
+
+  function advance(milliseconds) {
+    const target = now + milliseconds;
+    let turns = 0;
+    while (true) {
+      const due = [...activeTimers.values()]
+        .filter((timer) => timer.due <= target)
+        .sort((left, right) => left.due - right.due || left.id - right.id)[0];
+      if (!due) break;
+      assert.ok(turns++ < 100, "opening timer must settle without an immediate loop");
+      now = due.due;
+      activeTimers.delete(due.id);
+      due.callback();
+    }
+    now = target;
+  }
+
+  function emit(events, type) {
+    (events[type] || []).forEach((handler) => handler());
+  }
+
+  const document = {
+    readyState: "loading",
+    hidden: false,
+    visibilityState: "visible",
+    documentElement: { classList: rootClasses },
+    body: { classList: bodyClasses },
+    getElementById(id) {
+      if (id === "opening-screen") return screen;
+      if (id === "page-shell") return pageShell;
+      return null;
+    },
+    querySelector(selector) {
+      if (selector === "#opening-screen") return screen;
+      if (selector === "#page-shell") return pageShell;
+      return null;
+    },
+    addEventListener(type, handler) {
+      if (!documentEvents[type]) documentEvents[type] = [];
+      documentEvents[type].push(handler);
+    },
+  };
+  const performance = { now() { return now; } };
+  const window = {
+    setTimeout: schedule,
+    clearTimeout: clear,
+    performance,
+    requestAnimationFrame(callback) { callback(now); return 1; },
+    addEventListener(type, handler) {
+      if (!windowEvents[type]) windowEvents[type] = [];
+      windowEvents[type].push(handler);
+    },
+  };
+
+  vm.runInNewContext(openingSource, {
+    document,
+    window,
+    performance,
+    setTimeout: schedule,
+    clearTimeout: clear,
+    requestAnimationFrame: window.requestAnimationFrame,
+  }, { filename: "opening-screen-inline.js" });
+
+  emit(documentEvents, "DOMContentLoaded");
+  if (!timers.length) emit(windowEvents, "load");
+
+  function isReleased() {
+    const releaseClass = [...screen.classList.values]
+      .some((name) => /(?:complete|dismiss|finish|hidden|leav|ready)/i.test(name));
+    return removed
+      || screen.hidden
+      || screen.attrs["aria-hidden"] === "true"
+      || screen.style.display === "none"
+      || screen.style.visibility === "hidden"
+      || releaseClass;
+  }
+
+  function setHidden(hidden) {
+    document.hidden = hidden;
+    document.visibilityState = hidden ? "hidden" : "visible";
+    emit(documentEvents, "visibilitychange");
+  }
+
+  return {
+    activeTimers,
+    advance,
+    bodyClasses,
+    isReleased,
+    pageShell,
+    rootClasses,
+    screen,
+    setHidden,
+    timers,
+    get removed() { return removed; },
+  };
+}
+
+test("opening screen cannot be skipped and releases only after 5000ms", () => {
+  assert.ok(openingSource, "opening-screen script must exist");
+  assert.doesNotMatch(
+    openingSource,
+    /addEventListener\s*\(\s*["'](?:click|dblclick|keydown|keyup|pointerdown|pointerup|touchstart|touchend)["']/i,
+  );
+  assert.doesNotMatch(openingSource, /localStorage|sessionStorage|matchMedia/i);
+
+  const harness = makeOpeningScreenHarness();
+  assert.equal(harness.isReleased(), false, "the page must remain covered before the timer runs");
+  assert.equal(harness.timers[0].delay, 5000);
+  assert.equal(harness.pageShell.inert, true, "covered page content must not remain interactive");
+  assert.equal(harness.pageShell.getAttribute("aria-hidden"), "true");
+
+  harness.advance(4999);
+  assert.equal(harness.isReleased(), false, "4999ms is not the full opening interval");
+  harness.advance(1);
+  assert.equal(harness.isReleased(), true, "the page must be released when the five seconds finish");
+  assert.equal(harness.pageShell.inert, false);
+  assert.notEqual(harness.pageShell.getAttribute("aria-hidden"), "true");
+});
+
+test("time spent in a hidden tab cannot bypass the five-second opening", () => {
+  assert.ok(openingSource, "opening-screen script must exist");
+  const harness = makeOpeningScreenHarness();
+  harness.advance(2000);
+  harness.setHidden(true);
+  harness.advance(10000);
+  assert.equal(harness.isReleased(), false, "background-tab time must not count toward the opening");
+
+  harness.setHidden(false);
+  assert.equal(harness.timers.at(-1).delay, 3000);
+  harness.advance(2999);
+  assert.equal(harness.isReleased(), false);
+  harness.advance(1);
+  assert.equal(harness.isReleased(), true);
+});
+
 test("Yes jumps directly to Icarus, Daedalus and Athena", () => {
   const harness = makeHarness();
   assert.equal(click(harness.yes), true);
@@ -305,6 +507,7 @@ function makeRouteMapHarness({
   compact = false,
   initialHash = "#business",
   observeParent = false,
+  observeProducts = false,
 } = {}) {
   const business = makeMapLink("business", "TOP Introduction");
   const daedalus = makeMapLink("daedalus", "Daedalus More efficient engine");
@@ -361,7 +564,17 @@ function makeRouteMapHarness({
       return "optimise";
     },
   };
-  const sections = observeParent ? [optimiseSection] : [];
+  const daedalusSection = {
+    id: "daedalus",
+    getAttribute(name) {
+      assert.equal(name, "data-route-map-section");
+      return "daedalus";
+    },
+  };
+  const sections = [
+    ...(observeParent ? [optimiseSection] : []),
+    ...(observeProducts ? [daedalusSection] : []),
+  ];
   const events = {};
   const document = {
     documentElement: { classList: classes },
@@ -395,7 +608,7 @@ function makeRouteMapHarness({
     addEventListener(type, handler) { events[type] = handler; },
     history: { replaceState(...args) { calls.history.push(args); } },
   };
-  if (observeParent) {
+  if (observeParent || observeProducts) {
     window.IntersectionObserver = function IntersectionObserver(callback, options) {
       observer = { callback, options };
       this.observe = (section) => calls.observed.push(section);
@@ -416,6 +629,7 @@ function makeRouteMapHarness({
     compactQuery,
     observer,
     optimiseSection,
+    daedalusSection,
   };
 }
 
@@ -496,6 +710,32 @@ test("a direct product hash survives intersection from its parent product sectio
   }]);
   assert.equal(harness.daedalus.getAttribute("aria-current"), "location");
   assert.equal(harness.business.getAttribute("aria-current"), null);
+});
+
+test("ordinary product scrolling updates the live route map", () => {
+  const harness = makeRouteMapHarness({
+    observeParent: true,
+    observeProducts: true,
+  });
+  assert.deepEqual(harness.calls.observed, [
+    harness.optimiseSection,
+    harness.daedalusSection,
+  ]);
+
+  harness.observer.callback([{
+    isIntersecting: true,
+    boundingClientRect: { top: 0 },
+    target: harness.daedalusSection,
+  }]);
+  assert.equal(harness.daedalus.getAttribute("aria-current"), "location");
+  assert.equal(harness.business.getAttribute("aria-current"), null);
+
+  harness.observer.callback([{
+    isIntersecting: true,
+    boundingClientRect: { top: 0 },
+    target: harness.optimiseSection,
+  }]);
+  assert.equal(harness.daedalus.getAttribute("aria-current"), "location");
 });
 
 test("Escape resets the desktop expanded control state", () => {

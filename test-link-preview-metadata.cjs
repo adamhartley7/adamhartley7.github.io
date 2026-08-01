@@ -34,6 +34,11 @@ const surfaces = [
   { label: "analyzer", head: headOf(analyzer, "analyzer"), url: "https://tokenoptimisationprotocol.org/analyze/" },
 ];
 
+assert.equal(titleOf(surfaces[0].head), "TOP | Token Optimisation Protocol",
+  "the homepage preview must use TOP's British-English name");
+assert.doesNotMatch(surfaces[0].head, /Optimization|centralized|optimizer|analyzer/i,
+  "homepage preview metadata must use British-English spelling");
+
 for (const { label, head, url } of surfaces) {
   const title = titleOf(head);
   const description = metaByName(head, "description");
