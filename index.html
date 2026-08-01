@@ -273,7 +273,7 @@ html.opening-active body{overflow:hidden}
 }
 .opening-hero-heading{
   display:inline-grid;
-  width:min(100%,2.12em);
+  width:min(100%,2.75em);
   max-width:100%;
   justify-items:stretch;
   font-size:clamp(116px,25vw,420px);
@@ -288,7 +288,11 @@ html.opening-active body{overflow:hidden}
   line-height:.78;
   letter-spacing:0;
 }
-.opening-hero h1 span{text-align:center}
+.opening-hero h1 span{
+  width:max-content;
+  justify-self:center;
+  text-align:center;
+}
 .opening-hero .hero-expansion{
   position:relative;
   display:grid;
@@ -1759,7 +1763,7 @@ h3{
   .brand-copy small{display:none}
   .masthead>.press-button{padding:10px 11px;font-size:10px}
   .opening-hero{min-height:max(360px,calc(100svh - 106px));padding:70px 20px}
-  .opening-hero-heading{font-size:clamp(112px,38vw,230px)}
+  .opening-hero-heading{font-size:clamp(102px,33.5vw,230px)}
   .founders-letter-section{padding:42px 18px 54px}
   .manuscript-letter{
     padding:78px clamp(24px,8vw,54px) 80px;

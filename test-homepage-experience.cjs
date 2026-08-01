@@ -305,14 +305,18 @@ test("the full-width opening is TOP-only, centred, and precedes the summary", ()
   const rules = cssDeclarations(".opening-hero");
   assert.match(rules, /text-align\s*:\s*center/i);
   assert.match(rules, /(?:width\s*:\s*100%|grid-column\s*:\s*1\s*\/\s*-1)/i);
-  assert.match(cssDeclarations(".opening-hero-heading"), /width\s*:\s*min\(100%,\s*2\.12em\)/i);
+  assert.match(cssDeclarations(".opening-hero-heading"), /width\s*:\s*min\(100%,\s*2\.75em\)/i);
   assert.match(cssDeclarations(".opening-hero h1"), /grid-template-columns\s*:\s*repeat\(3,\s*minmax\(0,1fr\)\)/i);
+  assert.match(cssDeclarations(".opening-hero h1 span"), /width\s*:\s*max-content/i);
+  assert.match(cssDeclarations(".opening-hero h1 span"), /justify-self\s*:\s*center/i);
+  assert.match(cssDeclarations(".opening-hero h1 span"), /text-align\s*:\s*center/i);
   assert.match(cssDeclarations(".opening-hero .hero-expansion"), /width\s*:\s*100%/i);
   assert.match(cssDeclarations(".opening-hero .hero-expansion"), /grid-template-columns\s*:\s*repeat\(3,\s*minmax\(0,1fr\)\)/i);
   assert.match(html, /span:nth-child\(2\)\{left:calc\(33\.333%\s*-\s*1\.205em\)\}/i);
   assert.match(html, /span:nth-child\(4\)\{left:calc\(66\.667%\s*\+\s*\.605em\)\}/i);
   assert.match(html, /@media\(max-width:480px\)[\s\S]*?span:nth-child\(2\)\{left:calc\(33\.333%\s*-\s*1\.11em\)\}/i);
   assert.match(html, /@media\(max-width:480px\)[\s\S]*?span:nth-child\(4\)\{left:calc\(66\.667%\s*\+\s*\.55em\)\}/i);
+  assert.match(html, /@media\(max-width:800px\)[\s\S]*?\.opening-hero-heading\{font-size:clamp\(102px,33\.5vw,230px\)\}/i);
 });
 
 test("the founders' letter contains Adam's approved revised copy", () => {
