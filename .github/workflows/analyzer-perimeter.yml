@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "index.html"
+      - "how-top-works/**"
       - "analyze/**"
       - "assets/**"
       - "dashboard/**"
@@ -19,6 +20,7 @@ on:
       - main
     paths:
       - "index.html"
+      - "how-top-works/**"
       - "analyze/**"
       - "assets/**"
       - "dashboard/**"

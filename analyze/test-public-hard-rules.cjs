@@ -11,6 +11,7 @@ function readRelative(...segments) {
 
 const pages = {
   homepage: readRelative("..", "index.html"),
+  technical: readRelative("..", "how-top-works", "index.html"),
   analyzer: readRelative("index.html"),
   forecast: [
     readRelative("..", "forecast", "index.html"),

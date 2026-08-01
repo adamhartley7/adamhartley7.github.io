@@ -6,6 +6,7 @@ const test = require("node:test");
 const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
+const technicalHtml = fs.readFileSync(new URL("how-top-works/index.html", `file://${__dirname}/`), "utf8");
 const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1]);
 const homepageEnhancementScript = inlineScripts.find((source) => source.includes("initHomepageEasterEggs"));
@@ -287,7 +288,7 @@ test("every visit begins with an unskippable five-second memento screen", () => 
   assert.match(cssDeclarations(".opening-translation"), /white-space\s*:\s*nowrap/i);
 });
 
-test("the full-width opening is TOP-only, centred, and precedes both sidebars", () => {
+test("the full-width opening is TOP-only, centred, and precedes the summary", () => {
   const opening = elementMarkupById("opening-hero");
   assert.equal(visibleText(opening).replace(/^T O P\b/, "TOP"), "TOP Token • Optimisation • Protocol");
   assert.match(opening, /<h1\b(?=[^>]*\baria-label=["']TOP["'])[^>]*>\s*<span[^>]*>T<\/span><span[^>]*>O<\/span><span[^>]*>P<\/span>\s*<\/h1>/i);
@@ -297,11 +298,9 @@ test("the full-width opening is TOP-only, centred, and precedes both sidebars", 
   const mastheadAt = html.search(/<header\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bmasthead\b)/i);
   const openingAt = openingTagById("opening-hero").index;
   const letterAt = openingTagById("founders-letter").index;
-  const audienceAt = html.search(/<aside\b(?=[^>]*\bclass\s*=\s*["'][^"']*\baudience-rail\b)/i);
-  const routeMapAt = openingTagById("route-map-panel").index;
+  const glanceAt = openingTagById("top-at-a-glance").index;
   assert.ok(mastheadAt >= 0 && openingAt > mastheadAt && letterAt > openingAt);
-  assert.ok(audienceAt > letterAt && routeMapAt > letterAt,
-    "neither explanatory sidebar may begin alongside the opening TOP or letter");
+  assert.ok(glanceAt > letterAt, "TOP at a glance must follow the founders' letter");
 
   const rules = cssDeclarations(".opening-hero");
   assert.match(rules, /text-align\s*:\s*center/i);
@@ -310,8 +309,10 @@ test("the full-width opening is TOP-only, centred, and precedes both sidebars", 
   assert.match(cssDeclarations(".opening-hero h1"), /grid-template-columns\s*:\s*repeat\(3,\s*minmax\(0,1fr\)\)/i);
   assert.match(cssDeclarations(".opening-hero .hero-expansion"), /width\s*:\s*100%/i);
   assert.match(cssDeclarations(".opening-hero .hero-expansion"), /grid-template-columns\s*:\s*repeat\(3,\s*minmax\(0,1fr\)\)/i);
-  assert.match(html, /span:nth-child\(2\)\{left:33\.333%\}/i);
-  assert.match(html, /span:nth-child\(4\)\{left:66\.667%\}/i);
+  assert.match(html, /span:nth-child\(2\)\{left:calc\(33\.333%\s*-\s*1\.205em\)\}/i);
+  assert.match(html, /span:nth-child\(4\)\{left:calc\(66\.667%\s*\+\s*\.605em\)\}/i);
+  assert.match(html, /@media\(max-width:480px\)[\s\S]*?span:nth-child\(2\)\{left:calc\(33\.333%\s*-\s*1\.11em\)\}/i);
+  assert.match(html, /@media\(max-width:480px\)[\s\S]*?span:nth-child\(4\)\{left:calc\(66\.667%\s*\+\s*\.55em\)\}/i);
 });
 
 test("the founders' letter contains Adam's approved revised copy", () => {
@@ -388,15 +389,7 @@ test("shadowed flourishes are real, accessible, tactile controls", () => {
   assert.doesNotMatch(letter, /<article\b[^>]*(?:role="button"|data-playful-press)/i,
     "the letter sheet itself must remain still and non-interactive");
 
-  assert.match(html, /<button class="changing-landscape"[^>]*data-playful-press[^>]*>constantly changing<\/button>/i);
-  assert.match(html, /<button class="micro-label"(?=[^>]*\bid="product-direction-label")(?=[^>]*\baria-controls="product-direction-table")[^>]*>00 - Product Direction \/ The Proposed Route<\/button>/i);
-  assert.match(html, /<table class="direction-table"(?=[^>]*\bid="product-direction-table")(?=[^>]*\bdata-tactile-table\b)(?=[^>]*\baria-labelledby="product-direction-label")[^>]*>/i);
-  assert.doesNotMatch(html, /<table\b[^>]*\btabindex=/i,
-    "the title button is the keyboard control; the native table must retain unambiguous semantics");
-  assert.match(html, /<caption class="visually-hidden">TOP's proposed product route, transport analogy and intended application<\/caption>/i);
-  assert.doesNotMatch(html, /<table\b[^>]*\brole="button"/i);
-  assert.doesNotMatch(html, /class="direction-table-button"/i,
-    "the table must not be covered by a button overlay");
+  assert.match(html, /<button class="brand-mark"[^>]*data-playful-press[^>]*aria-label="Press the TOP mark"[^>]*>T<\/button>/i);
 
   assert.match(html, /addEventListener\('pointercancel',release\)/);
   assert.match(html, /addEventListener\('lostpointercapture',release\)/);
@@ -413,7 +406,11 @@ test("shadowed flourishes are real, accessible, tactile controls", () => {
   assert.match(html, /closest\('\.visually-hidden'\)/,
     "the accessible salutation must not be split into decorative glyphs");
   assert.doesNotMatch(html, /setInterval\s*\(/);
-  assert.match(cssDeclarations(".calligraphy-glyph.is-calligraphic"), /"Old English Text MT","Lucida Calligraphy","Apple Chancery","URW Chancery L",cursive/i);
+  assert.match(html, /@font-face\{[\s\S]*?font-family:"Grenze Gotisch"[\s\S]*?GrenzeGotisch-Variable\.ttf[\s\S]*?font-weight:100 900[\s\S]*?font-display:swap/i);
+  assert.match(cssDeclarations(".calligraphy-glyph.is-calligraphic"), /font-family\s*:\s*var\(--letter-calligraphy\)/i);
+  assert.match(cssDeclarations(".manuscript-letter.is-calligraphic .calligraphy-source"), /position\s*:\s*static!important/i);
+  assert.match(cssDeclarations(".manuscript-letter.is-calligraphic .calligraphy-source"), /font-family\s*:\s*var\(--letter-calligraphy\)/i);
+  assert.match(cssDeclarations(".manuscript-letter.is-calligraphic .calligraphy-visual"), /display\s*:\s*none/i);
   assert.match(cssDeclarations(".calligraphy-glyph::before"), /content\s*:\s*attr\(data-glyph\)/i);
   assert.match(html, /glyph\.setAttribute\('data-glyph',character\)/);
   assert.doesNotMatch(html, /glyph\.textContent=character/,
@@ -506,13 +503,10 @@ test("calligraphy pauses while hidden and reduced motion applies the final state
   assert.equal(reduced.copy.attrs["aria-busy"], "false");
 });
 
-test("only the opening business card receives the added desktop breathing room", () => {
-  assert.match(cssDeclarations("#business .hero-lead"), /margin-top\s*:\s*64px/i);
-  assert.match(cssDeclarations("#business .hero-analogy"), /margin-top\s*:\s*48px/i);
-  assert.match(cssDeclarations("#business .hero-statement"), /margin-top\s*:\s*72px/i);
-  assert.match(cssDeclarations("#business .direction-board"), /margin-top\s*:\s*96px/i);
-  assert.match(cssDeclarations(".direction-board>.micro-label"), /margin-bottom\s*:\s*28px/i);
-  assert.match(html, /#business \.direction-table th,\s*#business \.direction-table td\{padding:20px 18px\}/i);
+test("the chosen calligraphy font is self-hosted with its licence", () => {
+  assert.equal(fs.existsSync(new URL("assets/fonts/grenze-gotisch/GrenzeGotisch-Variable.ttf", `file://${__dirname}/`)), true);
+  assert.equal(fs.existsSync(new URL("assets/fonts/grenze-gotisch/OFL.txt", `file://${__dirname}/`)), true);
+  assert.match(fs.readFileSync(new URL("ASSET-CREDITS.md", `file://${__dirname}/`), "utf8"), /Grenze Gotisch typeface[\s\S]*?SIL Open Font License 1\.1/i);
 });
 
 test("TOP at a glance preserves Adam's supplied wording and keeps the full route visible", () => {
@@ -550,305 +544,74 @@ test("TOP at a glance preserves Adam's supplied wording and keeps the full route
   assert.match(cssDeclarations(".glance-road"), /position\s*:\s*relative/i);
 });
 
-test("the sidebar explanation is the threshold between the letter and prior homepage", () => {
-  const letter = openingTagById("founders-letter");
+test("TOP at a glance now leads directly to the explicit technical gateway", () => {
+  const main = elementMarkupById("main-content");
   const glanceAt = openingTagById("top-at-a-glance").index;
-  const introduction = elementMarkupById("sidebar-introduction");
-  const introductionAt = openingTagById("sidebar-introduction").index;
-  const introductionText = visibleText(introduction);
-  const layoutAt = openingTagById("main-content").index;
-  const audienceAt = html.search(/<aside\b(?=[^>]*\bclass\s*=\s*["'][^"']*\baudience-rail\b)/i);
-  const routeMapAt = openingTagById("route-map-panel").index;
+  const gatewayAt = openingTagById("next-step").index;
 
-  assert.match(introduction, /<div\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bsidebar-cue-left\b)[^>]*>/i);
-  assert.match(introduction, /<div\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bsidebar-cue-right\b)[^>]*>/i);
-  assert.match(introductionText, /You are/);
-  assert.match(introductionText, /(?:←|⟵|⇠|⬅)/);
-  assert.match(introductionText, /Site Roadmap/);
-  assert.match(introductionText, /(?:→|⟶|⇢|➡)/);
-  assert.ok(layoutAt < letter.index && glanceAt > letter.index && introductionAt > glanceAt,
-    "the full-width overview must bridge the letter and the sidebar handoff");
-  assert.match(html, /<a href="#top-at-a-glance">What is TOP<\/a>/);
-  assert.ok(audienceAt > introductionAt && routeMapAt > introductionAt,
-    "the left and right rails must start at the explained threshold");
+  assert.ok(gatewayAt > glanceAt, "the gateway must follow TOP at a glance");
+  assert.match(main, /<section\b(?=[^>]*\bclass="technical-gateway")(?=[^>]*\bid="next-step")[^>]*>/i);
+  assert.match(main, /<h2 id="next-step-title">Where would you like to go next\?<\/h2>/);
+  assert.doesNotMatch(main, /Each route says what is on the other side|Nothing technical is hidden inside a vague dropdown/i);
+  assert.doesNotMatch(main, /<select\b|<details\b/i,
+    "the primary onward routes must remain visible");
 
-  for (const id of ["business", "product-direction", "routes", "topos", "optimise",
-    "historical-analyzer", "engineering", "partners", "roadmap"]) {
-    assert.ok(openingTagById(id).index > introductionAt, `existing #${id} content must remain below the handoff`);
+  const gateway = elementMarkupById("next-step");
+  assert.match(gateway, /href="\/how-top-works\/"[\s\S]*?>\s*<strong>Explore how TOP works<\/strong>/i);
+  assert.match(gateway, /href="\/how-top-works\/#privacy-security"[\s\S]*?>\s*<strong>Privacy and security<\/strong>/i);
+  assert.match(gateway, /href="mailto:adam1hartley@gmail\.com\?subject=TOP%20enquiry"[\s\S]*?>\s*<strong>Talk to the TOP team<\/strong>/i);
+  assert.equal((gateway.match(/class="technical-gateway-link"/g) || []).length, 3);
+
+  for (const legacyId of [
+    "sidebar-introduction", "business", "product-direction", "routes", "topos",
+    "optimise", "historical-analyzer", "engineering", "partners", "roadmap",
+    "route-map-panel",
+  ]) {
+    assert.doesNotMatch(main, new RegExp(`\\bid=["']${legacyId}["']`, "i"),
+      `homepage main must not retain the old #${legacyId} section`);
   }
 });
 
-test("homepage opens with Adam's approved TOP language", () => {
-  const business = elementMarkupById("business");
-  assert.doesNotMatch(business, /<h1\b|\bhero-expansion\b/i,
-    "the TOP lockup belongs to the opening and must not be duplicated below the handoff");
-  assert.match(
-    html,
-    /The AI landscape is <button class="changing-landscape"[^>]*>constantly changing<\/button>, TOP helps You keep two feet on the ground so You and Your Business stay ahead of the curve/,
-  );
-  assert.match(html, /TOP is being built as a centralised AI integrator, then optimiser for businesses\./);
-  assert.match(
-    html,
-    /If work is transport, AI agents are cars, and TOP is the road system we are building to make traffic visible, and over time help it run better\. We want to give business owners insight into the black box that is artificial intelligence\./,
-  );
-  assert.match(html, /Forecastable, cheaper and smarter describe the intended route, not outcomes TOP has proved\./);
-  assert.doesNotMatch(html, /The AI landscape never stops moving/i);
+test("the public homepage stops after the gateway rather than continuing into dense technical copy", () => {
+  const main = elementMarkupById("main-content");
+  const sectionIds = [...main.matchAll(/<section\b[^>]*\bid=["']([^"']+)["']/gi)]
+    .map((match) => match[1]);
+  assert.deepEqual(sectionIds, ["opening-hero", "founders-letter", "top-at-a-glance", "next-step"]);
+  assert.doesNotMatch(main, /Does your business use AI\?|made-up paths|Illustrative AI cost and output value paths/i);
+  assert.match(html, /<a href="\/how-top-works\/">How TOP works<\/a>/i);
+  assert.match(html, /<a href="\/how-top-works\/#privacy-security">Privacy &amp; security<\/a>/i);
 });
 
-test("the transport analogy is centred without changing Adam's wording", () => {
-  const business = elementMarkupById("business");
-  assert.match(
-    business,
-    /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bhero-analogy\b)[^>]*>[\s\S]*?If work is transport, AI agents are cars, and TOP is the road system we are building to make traffic visible, and over time help it run better\. We want to give business owners insight into the black box that is artificial intelligence\.[\s\S]*?<\/p>/,
-  );
-  assert.match(cssDeclarations(".hero-analogy"), /text-align\s*:\s*center/i);
+test("the gateway remains tactile, direct and responsive", () => {
+  assert.match(cssDeclarations(".technical-gateway"), /grid-column\s*:\s*1\s*\/\s*-1/i);
+  assert.match(cssDeclarations(".technical-gateway"), /background\s*:\s*var\(--lemon\)/i);
+  assert.match(cssDeclarations(".technical-gateway-links"), /grid-template-columns\s*:\s*repeat\(3,minmax\(0,1fr\)\)/i);
+  assert.match(cssDeclarations(".technical-gateway-link"), /border\s*:\s*2px solid var\(--ink\)/i);
+  assert.match(cssDeclarations(".technical-gateway-link"), /box-shadow\s*:\s*-7px 7px 0 var\(--ink\)/i);
+  assert.match(html, /@media\(max-width:800px\)[\s\S]*?\.technical-gateway-links\{grid-template-columns:1fr/i);
+  assert.match(html, /@media\(max-width:480px\)[\s\S]*?\.technical-gateway-link\{min-height:118px/i);
 });
 
-test("the route-selector title is explicit and its panel uses the yellow signal", () => {
-  const routes = elementMarkupById("routes");
-  assert.match(
-    routes,
-    /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\beyebrow\b)[^>]*>\s*01 - Route Selector\s*<\/p>/,
-  );
-  assert.doesNotMatch(routes, />\s*Route selector\s*\/\s*01\s*</i);
-
-  const rules = cssDeclarations(".decision");
-  assert.match(rules, /background\s*:\s*var\(--lemon\)/i);
-  assert.doesNotMatch(rules, /background\s*:\s*var\(--signal\)/i);
-});
-
-test("British spelling is used in visible homepage language and metadata", () => {
-  const pageText = visibleText(html);
-  const metadata = [...html.matchAll(/<(?:title|meta)\b[^>]*>/gi)]
+test("British spelling remains consistent across the homepage and technical layer", () => {
+  const publicText = visibleText(html) + " " + visibleText(technicalHtml);
+  const metadata = [...(html + technicalHtml).matchAll(/<(?:title|meta)\b[^>]*>/gi)]
     .map((match) => decodeEntities(match[0]))
     .join(" ");
   const americanSpellings = /\b(?:optimization|optimizer|centralized|analyz(?:e|ed|er|ers|es|ing))\b/i;
 
-  assert.doesNotMatch(pageText, americanSpellings);
+  assert.doesNotMatch(publicText, americanSpellings);
   assert.doesNotMatch(metadata, americanSpellings);
-  assert.match(pageText, /Token Optimisation Protocol/);
-  assert.match(pageText, /centralised AI integrator, then optimiser/);
-  assert.match(pageText, /historical analyser/i);
-  assert.match(pageText, /Analyse past journeys/);
+  assert.match(publicText, /Token Optimisation Protocol/);
+  assert.match(publicText, /centralised data hub/);
+  assert.match(publicText, /historical analyser/i);
 });
 
-test("personal-site visual tokens and pressable controls remain explicit", () => {
-  for (const token of [
-    "--ink:#16140f",
-    "--muted:#5f594e",
-    "--line:#c9c0ad",
-    "--paper:#fff9e8",
-    "--desk:#ede8d9",
-    "--wash:#f6efd9",
-    "--signal:#ff6b2b",
-    "--lemon:#ffe89a",
-    "--blue:#a7d5f5",
-    "--professional-blue:#235c88",
-    "--green:#b9ddaf",
-    "--red:#f2aa98",
-    "--candle-green:#00b300",
-    "--candle-red:#ed1b24",
-  ]) {
-    assert.match(html, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  }
-  assert.match(html, /\.site-frame\{[\s\S]*?border:1px solid var\(--ink\)[\s\S]*?background:var\(--paper\)[\s\S]*?box-shadow:-8px 8px 0 var\(--ink\)/);
-  assert.match(html, /\.press-button\{[\s\S]*?border:2px solid var\(--ink\)[\s\S]*?border-radius:2px[\s\S]*?box-shadow:-5px 5px 0 var\(--ink\)/);
-  assert.match(html, /@media\(hover:hover\) and \(pointer:fine\)\{[\s\S]*?\.press-button:hover\{[\s\S]*?box-shadow:-2px 2px 0 var\(--ink\)[\s\S]*?translate\(-3px,3px\)/);
-  assert.match(html, /\.press-button:active\{[\s\S]*?box-shadow:none[\s\S]*?translate\(-5px,5px\)/);
-  assert.match(
-    html,
-    /\.section\[tabindex="-1"\]:focus-visible,\s*\.product-card\[tabindex="-1"\]:focus-visible,\s*\.live-tool\[tabindex="-1"\]:focus-visible\{[^}]*outline:3px solid var\(--ink\);[^}]*outline-offset:-?\d+px/,
-  );
-  assert.doesNotMatch(html, /\[tabindex="-1"\]:focus\{[^}]*outline:none/);
-  assert.match(html, /\.live-tool\{[\s\S]*?scroll-margin-top:var\(--anchor-offset\)/);
-  assert.doesNotMatch(html, /backdrop-filter|border-radius:999|radial-gradient|mix-blend-mode/i);
-});
-
-test("the overhead map is replaced by a live clickable TOP route map", () => {
-  assert.doesNotMatch(html, /class="network-figure"|class="map-frame"/);
-  assert.match(
-    html,
-    /<aside\b(?=[^>]*\bclass\s*=\s*["'][^"']*\broute-rail\b)(?=[^>]*\bid\s*=\s*["']route-map-panel["'])(?=[^>]*\baria-label\s*=\s*["']Site roadmap["'])[^>]*>/i,
-  );
-  assert.match(
-    html,
-    /<nav\b(?=[^>]*\bclass\s*=\s*["'][^"']*\broute-map\b)(?=[^>]*\bid\s*=\s*["']route-map-nav["'])(?=[^>]*\baria-label\s*=\s*["']Live site roadmap["'])[^>]*>/i,
-  );
-  assert.match(
-    html,
-    /<a\b(?=[^>]*\bdata-route-map-link\s*=\s*["']business["'])(?=[^>]*\baria-current\s*=\s*["']location["'])[^>]*>/i,
-  );
-  for (const target of [
-    "routes", "topos", "optimise", "icarus", "daedalus", "athena",
-    "historical-analyzer", "engineering", "partners", "roadmap",
-  ]) {
-    assert.match(
-      html,
-      new RegExp(`<a\\b(?=[^>]*\\bhref\\s*=\\s*["']#${target}["'])(?=[^>]*\\bdata-route-map-link\\s*=\\s*["']${target}["'])[^>]*>`, "i"),
-    );
-  }
-  for (const product of ["icarus", "daedalus", "athena"]) {
-    assert.match(
-      html,
-      new RegExp(`<article\\b(?=[^>]*\\bid\\s*=\\s*["']${product}["'])(?=[^>]*\\bdata-route-map-section\\s*=\\s*["']${product}["'])[^>]*>`, "i"),
-    );
-  }
-  assert.match(html, /<span\b(?=[^>]*\bclass\s*=\s*["'][^"']*\broute-car\b)(?=[^>]*\bid\s*=\s*["']route-car["'])(?=[^>]*\baria-hidden\s*=\s*["']true["'])[^>]*>/i);
-  assert.match(html, /<button\b(?=[^>]*\bid\s*=\s*["']motion-toggle["'])(?=[^>]*\btype\s*=\s*["']button["'])(?=[^>]*\baria-pressed\s*=\s*["']false["'])(?=[^>]*\baria-label\s*=\s*["']Pause route-map animation["'])[^>]*>/i);
-  assert.match(html, /\.route-node\[aria-current="location"\][\s\S]*?box-shadow:-4px 4px 0 var\(--ink\)/);
-  assert.match(html, /\.motion-paused \.route-car\{animation-play-state:paused\}/);
-});
-
-test("product direction uses three main columns with stage badges", () => {
-  assert.match(html, /<table\b(?=[^>]*\bclass="direction-table")(?=[^>]*\bid="product-direction-table")[^>]*>/);
-  for (const heading of ["Name", "Analogy", "Application"]) {
-    assert.match(html, new RegExp(`<th scope="col">${heading}</th>`));
-  }
-  assert.doesNotMatch(html, /\.direction-table thead\s*\{\s*display\s*:\s*none/i);
-  assert.match(
-    html,
-    /\.direction-table thead\s*\{[^}]*position:absolute[^}]*clip:rect\(0,0,0,0\)[^}]*\}/,
-  );
-  for (const stage of ["Intranet / OS", "TOP 1", "TOP 2", "TOP 3"]) {
-    assert.match(html, new RegExp(`<span class="stage-badge">${stage.replace("/", "\\/")}</span>`));
-  }
-  assert.match(html, /TopOS[\s\S]*?Roads and infrastructure[\s\S]*?The local infrastructure for your AI integration/);
-  assert.match(html, /Icarus[\s\S]*?Taximeter \+ fuel gauge[\s\S]*?Make your AI spend forecastable/);
-  assert.match(html, /Daedalus[\s\S]*?More efficient engine[\s\S]*?Make your AI use cheaper/);
-  assert.match(html, /Athena[\s\S]*?Interactive sat-nav[\s\S]*?Make your AI use smarter/);
-  assert.doesNotMatch(html, /Help make your AI use (?:cheaper|smarter)/);
-});
-
-test("business route selector sends Yes past TopOS and No to the infrastructure", () => {
-  const questionAt = html.indexOf("Does your business use AI?");
-  const yesAt = html.indexOf('href="#optimise" data-route="yes"');
-  const noAt = html.indexOf('href="#topos" data-route="no"');
-  const toposAt = html.indexOf('id="topos"');
-  const optimiseAt = html.indexOf('id="optimise"');
-  assert.ok(questionAt >= 0 && yesAt > questionAt && noAt > yesAt);
-  assert.ok(toposAt > noAt && optimiseAt > toposAt,
-    "TopOS must appear first in the document so the Yes route visibly skips it");
-  assert.match(html, /Yes skips ahead\. No starts with the road infrastructure\./);
-});
-
-test("TopOS and the three optimisation layers use the approved transport analogies", () => {
-  assert.match(html, /TopOS lays the roads\./);
-  assert.match(html, /TopOS is the infrastructure\./);
-  assert.match(html, /proposed local-first intranet road system/);
-  for (const infrastructure of ["Roads", "Depots", "Junctions", "Control room"]) {
-    assert.match(html, new RegExp(`<h3>${infrastructure}</h3>`));
-  }
-  assert.match(html, /<h3>Icarus<\/h3>[\s\S]*?Taximeter \+ fuel gauge/);
-  assert.match(html, /<h3>Daedalus<\/h3>[\s\S]*?More efficient engine/);
-  assert.match(html, /<h3>Athena<\/h3>[\s\S]*?Interactive satnav/);
-});
-
-test("maturity labels separate working software from the road map", () => {
-  assert.match(html, /Icarus, Daedalus and Athena are working codenames\./);
-  assert.match(html, /TopOS[\s\S]*?Concept/);
-  assert.match(html, /Icarus[\s\S]*?In validation/);
-  assert.match(html, /Daedalus[\s\S]*?Planned R&amp;D/);
-  assert.match(html, /Athena[\s\S]*?Planned R&amp;D/);
-  assert.match(html, /This shows past journeys\. It is not a pre-run forecast\./);
-  assert.match(html, /It has not shipped or been benchmarked\./);
-  assert.match(html, /TopOS is not yet built, shipped or validated\./);
-});
-
-test("the only live product route is the local historical analyzer", () => {
-  const analyzerLinks = html.match(/href="\/analyze\/\?pilot=1"/g) || [];
-  assert.ok(analyzerLinks.length >= 3, "the live analyzer should be reachable from each relevant audience route");
+test("the separate technical layer exists and the homepage keeps the live analyser reachable", () => {
+  assert.match(technicalHtml, /<title>How TOP works \| Token Optimisation Protocol<\/title>/);
+  assert.match(technicalHtml, /<link rel="canonical" href="https:\/\/tokenoptimisationprotocol\.org\/how-top-works\/">/);
+  assert.ok((html.match(/href="\/analyze\/\?pilot=1"/g) || []).length >= 2);
   assert.doesNotMatch(html, /href="\/analyze\/"/);
-  assert.match(
-    html,
-    /<div(?=[^>]*\bclass="[^"]*\blive-tool\b[^"]*")(?=[^>]*\bid="historical-analyzer")(?=[^>]*\btabindex="-1")[^>]*>/,
-  );
-  assert.match(html, /file is analysed locally and is not sent to TOP/);
-  assert.match(html, /does not require a developer account, a code change or an upload to TOP/);
-  const auditClaim = html.match(/<li><strong>Audit<\/strong><span>([^<]+)<\/span><\/li>/);
-  assert.ok(auditClaim, "the analyzer should retain a visible API-rate audit explanation");
-  assert.match(auditClaim[1], /\bsupported\b/i);
-  assert.match(auditClaim[1], /\bequivalent pay-as-you-go API rates\b/i);
-  assert.match(auditClaim[1], /\b(?:when|where|only if)\b[^.]*\bexact\b[^.]*\bmodel\b[^.]*\btoken counts?\b/i);
-  assert.match(auditClaim[1], /\bchecked rate\b/i);
-  assert.doesNotMatch(
-    auditClaim[1],
-    /^See your past AI usage in equivalent pay-as-you-go API rates\.$/i,
-  );
 });
-
-test("Google Calendar calls are truthful placeholders until a real schedule exists", () => {
-  assert.match(html, /<button class="press-button" type="button" disabled>Book a TopOS call in Google Calendar<\/button>/);
-  assert.match(html, /<button class="press-button" type="button" disabled>Book an Icarus pilot implementation call in Google Calendar<\/button>/);
-  assert.match(html, /once the booking schedule is ready/i);
-  assert.doesNotMatch(html, /cal\.com|cal\.eu|fresha|calendar\.google\.com/i);
-});
-
-test("audience navigation remains functional on desktop and mobile", () => {
-  assert.match(html, /<main class="layout" id="main-content">/);
-  assert.match(html, /aria-label="Main navigation"/);
-  assert.match(html, /aria-label="Audience index"/);
-  assert.match(html, /href="#business" data-audience-link="business" aria-current="page">Business operators<\/a>/);
-  assert.match(html, /href="#engineering" data-audience-link="engineering">AI &amp; Engineering<\/a>/);
-  assert.match(html, /href="#partners" data-audience-link="partners">Investors &amp; Partners<\/a>/);
-  assert.match(html, /@media\(max-width:1120px\)\{[\s\S]*?\.audience-rail\{[\s\S]*?position:sticky/);
-  assert.match(html, /@media\(max-width:1120px\)\{[\s\S]*?\.main-nav\{[\s\S]*?grid-column:1\/-1/);
-  assert.match(html, /class="audience-scroll-cue" aria-hidden="true">More &rarr;<\/span>/);
-  assert.match(html, /@media\(max-width:800px\)\{[\s\S]*?\.site-frame\{width:100%;margin:0;border:0;box-shadow:none\}/);
-  assert.match(html, /\.signal-list li\{[\s\S]*?grid-template-columns:78px minmax\(0,1fr\)/);
-  assert.match(html, /@media\(prefers-reduced-motion:reduce\)/);
-  assert.doesNotMatch(html, /@media\(max-width:[^)]+\)\{[^}]*\.audience-rail\{[^}]*display:none/);
-});
-
-test("route choice, tactile panels and audience copy match the approved design", () => {
-  assert.match(html, /class="press-button yes" href="#optimise" data-route="yes">Yes<\/a>/);
-  assert.match(html, /class="press-button no" href="#topos" data-route="no">No<\/a>/);
-  assert.match(html, /\.route-buttons \.yes\{background:var\(--candle-green\)\}/);
-  assert.match(html, /\.route-buttons \.no\{background:var\(--candle-red\)\}/);
-  assert.match(cssDeclarations("#partners"), /background\s*:\s*var\(--green\)/i);
-  assert.match(html, /<h2 id="optimise-title">Measure the journey, <em>then<\/em> improve the traffic\.<\/h2>/);
-  assert.match(html, /class="infrastructure-item tactile-panel"/);
-  assert.match(html, /class="product-card tactile-panel"/);
-  assert.doesNotMatch(html, /class="(?:infrastructure-item|product-card)[^"]*"[^>]+role="button"/);
-  assert.match(html, /See the rules of the road\./);
-  assert.match(html, /The wider system is explained above\./);
-  assert.match(html, /<strong>Private<\/strong><span>Your selected history file stays on your machine and is not sent to TOP\.<\/span>/);
-  assert.match(
-    html,
-    /<strong>Audit<\/strong><span>[^<]*\bsupported\b[^<]*\bequivalent pay-as-you-go API rates\b[^<]*\bexact\b[^<]*\bmodel\b[^<]*\btoken counts?\b[^<]*\bchecked rate\b[^<]*<\/span>/i,
-  );
-  assert.match(html, /We are early, and we are ambitious\./);
-  assert.match(html, /The wider system lacks substantial commercial application\. But the plan is in place\./);
-  assert.match(html, /We will not present roadworks as an open motorway\./);
-  assert.match(html, /class="press-button professional"[^>]*>Talk to the founders<\/a>/);
-});
-
-test("compact value graph is interactive, accessible and explicitly illustrative", () => {
-  assert.match(html, /<figure class="value-model tactile-panel" aria-labelledby="value-model-title">/);
-  assert.match(html, /<title id="vm-chart-title">Illustrative AI cost and output value paths<\/title>/);
-  assert.match(html, /<desc id="vm-chart-desc">[\s\S]*?This is not a customer result\.<\/desc>/);
-  assert.match(html, /id="vm-scenario" type="range"[^>]+aria-describedby="vm-caption"/);
-  assert.match(html, /These are made-up paths, not a customer result\./);
-  assert.match(html, /Daedalus has not shipped or been benchmarked\./);
-  assert.match(html, /TOP has not proved a saving or measured output value\./);
-  for (const fn of ["vmScenarioAmount", "vmCostSlope", "vmValueSlope", "vmCostAt", "vmValueAt"]) {
-    assert.match(html, new RegExp(`function ${fn}\\(`));
-  }
-});
-
-test("future pages are labelled as a road map, not linked as though they exist", () => {
-  for (const planned of [
-    "About TOP",
-    "FAQ + Help",
-    "Contact",
-    "Privacy + Security",
-    "Team + Vision",
-    "TOP desktop download",
-  ]) {
-    assert.match(html, new RegExp(planned.replace("+", "\\+")));
-  }
-  assert.doesNotMatch(html, /href="\/(?:about|faq|help|contact|privacy|security|download)(?:\/|")/i);
-});
-
 test("homepage tracking is limited to approved reload counting and a generic load signal", () => {
   const externalScripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)];
   assert.equal(externalScripts.length, 1);
