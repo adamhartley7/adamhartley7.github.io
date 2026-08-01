@@ -11,6 +11,7 @@ on:
       - "forecast/test-*.cjs"
       - "pilot/**"
       - "pitch/**"
+      - "site-events-worker/**"
       - "test-*.cjs"
       - ".github/workflows/analyzer-perimeter.yml"
   push:
@@ -25,6 +26,7 @@ on:
       - "forecast/test-*.cjs"
       - "pilot/**"
       - "pitch/**"
+      - "site-events-worker/**"
       - "test-*.cjs"
       - ".github/workflows/analyzer-perimeter.yml"
 
@@ -90,6 +92,9 @@ jobs:
           node --test $files
       - name: Run delivery worker regressions
         working-directory: analyze/delivery-worker
+        run: npm test
+      - name: Run site-events worker regressions
+        working-directory: site-events-worker
         run: npm test
       - name: Run collector suites
         shell: pwsh

@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "top-site-events",
+  "main": "src/index.mjs",
+  "compatibility_date": "2026-08-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "events.tokenoptimisationprotocol.org",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": false
+  },
+  "ratelimits": [
+    {
+      "name": "VIEW_RATE_LIMITER",
+      "namespace_id": "2171602",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
+    }
+  ]
+}

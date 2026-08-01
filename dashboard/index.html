@@ -65,6 +65,7 @@ td.n{text-align:right;font-family:"JetBrains Mono",monospace;font-variant-numeri
 .qlinks{display:flex;gap:10px;flex-wrap:wrap}
 .qlinks a{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:9px 14px;font-size:13.5px;color:var(--text)}
 .qlinks a:hover{border-color:var(--border2)}
+.notification-status{background:var(--panel2);border:1px solid var(--mint);border-radius:9px;padding:9px 14px;font-size:13.5px;color:var(--mint)}
 footer{border-top:1px solid var(--border);padding:24px 0;color:var(--faint);font-size:12.5px;text-align:center;margin-top:20px}
 </style>
 </head>
@@ -83,7 +84,7 @@ footer{border-top:1px solid var(--border);padding:24px 0;color:var(--faint);font
     <div class="card"><div class="k">Reports collected</div><div class="v i" id="cReports">0</div><div class="sub">anonymised usage summaries</div></div>
     <div class="card"><div class="k">Money made</div><div class="v g" id="cMoney">€0</div><div class="sub" id="cMoneySub">toward €1,000,000</div></div>
     <div class="card"><div class="k">Data points</div><div class="v a" id="cTokens">0</div><div class="sub">total tokens across reports</div></div>
-    <div class="card"><div class="k">Site views</div><div class="v" style="font-size:16px;font-weight:600"><a href="https://adamhartley7.goatcounter.com" target="_blank" rel="noopener">open GoatCounter ↗</a></div><div class="sub">landing + analyzer, live</div></div>
+    <div class="card"><div class="k">Site views</div><div class="v" style="font-size:16px;font-weight:600"><a href="https://adamhartley7.goatcounter.com" target="_blank" rel="noopener">open GoatCounter ↗</a></div><div class="sub">homepage loads, including reloads; analyzer excluded</div></div>
   </div>
 
   <section>
@@ -120,9 +121,9 @@ footer{border-top:1px solid var(--border);padding:24px 0;color:var(--faint);font
       <a href="https://adamhartley7.goatcounter.com" target="_blank" rel="noopener">GoatCounter (views)</a>
       <a href="https://github.com/adamhartley7/checkpointkm" target="_blank" rel="noopener">CheckpointKM repo (hackathon)</a>
       <a href="https://github.com/adamhartley7/checkpointkm/graphs/traffic" target="_blank" rel="noopener">CheckpointKM traffic</a>
-      <a href="https://ntfy.sh/top-hartley-live-9k2m" target="_blank" rel="noopener" style="border-color:var(--mint);color:var(--mint)">🔔 Subscribe to live pings</a>
+      <span class="notification-status">🔔 Homepage alerts use private ntfy routing</span>
     </div>
-    <p style="color:var(--faint);font-size:12.5px;margin-top:10px">Live pings arrive in the <b>ntfy app</b>. Subscribe to topic <span class="mono" style="color:var(--muted)">top-hartley-live-9k2m</span> to get a buzz on every visitor + analyzer use.</p>
+    <p style="color:var(--faint);font-size:12.5px;margin-top:10px">The ntfy destination is intentionally kept out of this public dashboard. Alerts contain no visitor details.</p>
   </section>
 </div>
 

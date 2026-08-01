@@ -15,6 +15,7 @@
 <meta name="twitter:title" content="TOP | Token Optimisation Protocol">
 <meta name="twitter:description" content="TOP is being built as a centralised AI integrator, then optimiser for businesses. Its live analyser turns selected Claude or ChatGPT history into a private usage report in your browser, and the file is not sent to TOP.">
 <meta name="theme-color" content="#fff9e8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://adamhartley7.goatcounter.com; font-src 'self' data:; connect-src https://adamhartley7.goatcounter.com https://events.tokenoptimisationprotocol.org; media-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'self'">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ff6b2b'/%3E%3Cpath d='M5 6h22v6h-7v15h-8V12H5z' fill='%2316140f'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -463,6 +464,165 @@ html.opening-active body{overflow:hidden}
 .letter-names{
   color:var(--muted);
   font-size:.82em;
+}
+.top-at-a-glance{
+  grid-column:1/-1;
+  padding:clamp(72px,7vw,112px) clamp(22px,6vw,96px) clamp(88px,8vw,128px);
+  border-bottom:1px solid var(--ink);
+  background:var(--paper);
+}
+.glance-inner{
+  width:min(1180px,100%);
+  margin:0 auto;
+}
+.glance-header{
+  margin:0 0 clamp(48px,6vw,76px);
+}
+.glance-header h2{
+  max-width:none;
+  margin:0;
+  font:900 clamp(46px,6.5vw,88px)/.94 Arial,Helvetica,sans-serif;
+  letter-spacing:-.055em;
+}
+.glance-primer{
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);
+  border-top:2px solid var(--ink);
+  border-bottom:2px solid var(--ink);
+}
+.glance-primer-main,
+.glance-mission{
+  padding:clamp(28px,4vw,48px);
+}
+.glance-primer-main{
+  border-right:1px solid var(--ink);
+}
+.glance-mission{
+  background:var(--lemon);
+}
+.glance-primer p,
+.glance-analogy p,
+.glance-card p,
+.glance-junction p{
+  margin:0 0 1.15em;
+}
+.glance-primer p:last-child,
+.glance-analogy p:last-child,
+.glance-card p:last-child,
+.glance-junction p:last-child{
+  margin-bottom:0;
+}
+.glance-primer-main p,
+.glance-mission p{
+  font-size:clamp(17px,1.35vw,20px);
+  line-height:1.62;
+}
+.glance-control-question{
+  margin-top:1.65em!important;
+  padding:18px 20px;
+  border-left:6px solid var(--signal);
+  background:var(--wash);
+  font-size:clamp(20px,2vw,29px)!important;
+  line-height:1.28!important;
+}
+.glance-analogy{
+  width:min(920px,100%);
+  margin:clamp(54px,7vw,88px) auto clamp(64px,8vw,104px);
+  padding:clamp(28px,4vw,46px);
+  border:2px solid var(--ink);
+  background:var(--wash);
+}
+.glance-analogy p{
+  font-size:clamp(18px,1.55vw,22px);
+  line-height:1.58;
+}
+.glance-analogy p:first-child{
+  padding-bottom:22px;
+  border-bottom:1px solid var(--line);
+  font-style:italic;
+}
+.glance-road{
+  position:relative;
+  display:grid;
+  row-gap:clamp(46px,5.5vw,78px);
+}
+.glance-road::before{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:50%;
+  width:14px;
+  border:2px solid var(--road-edge);
+  background:var(--road);
+  content:"";
+  transform:translateX(-50%);
+}
+.glance-road::after{
+  position:absolute;
+  z-index:0;
+  top:14px;
+  bottom:14px;
+  left:50%;
+  border-left:2px dashed var(--lemon);
+  content:"";
+  transform:translateX(-50%);
+}
+.glance-stop{
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 86px minmax(0,1fr);
+  align-items:start;
+}
+.glance-card{
+  width:min(100%,520px);
+  padding:clamp(24px,3vw,34px);
+  border:1px solid var(--ink);
+  border-left:7px solid var(--stop-colour,var(--lemon));
+  background:var(--paper);
+}
+.glance-stop--left .glance-card{
+  grid-column:1;
+  justify-self:end;
+}
+.glance-stop--right .glance-card{
+  grid-column:3;
+  justify-self:start;
+}
+.glance-card p{
+  font-size:clamp(17px,1.3vw,19.5px);
+  line-height:1.64;
+}
+.glance-node{
+  z-index:2;
+  grid-column:2;
+  grid-row:1;
+  display:grid;
+  width:48px;
+  height:48px;
+  place-self:start center;
+  place-items:center;
+  border:2px solid var(--ink);
+  background:var(--stop-colour,var(--lemon));
+  font:900 11px/1 Consolas,"Courier New",monospace;
+}
+.glance-stop--topos{--stop-colour:var(--blue)}
+.glance-stop--icarus{--stop-colour:var(--lemon)}
+.glance-stop--daedalus{--stop-colour:var(--signal)}
+.glance-stop--athena{--stop-colour:var(--blue)}
+.glance-junction{
+  position:relative;
+  z-index:2;
+  width:min(700px,calc(100% - 132px));
+  margin:0 auto;
+  padding:22px 26px;
+  border:2px solid var(--ink);
+  background:var(--blue);
+  text-align:center;
+}
+.glance-junction p{
+  font-size:clamp(18px,1.55vw,22px);
+  line-height:1.5;
 }
 .sidebar-introduction{
   display:grid;
@@ -1336,6 +1496,12 @@ h3{
   text-transform:uppercase;
 }
 .footer p{max-width:62ch;margin:10px 0 0;color:var(--line);font-size:14px}
+.footer .footer-privacy{
+  max-width:78ch;
+  color:#a9a393;
+  font-size:11px;
+  line-height:1.5;
+}
 .footer-links{
   display:flex;
   flex-wrap:wrap;
@@ -1500,6 +1666,31 @@ h3{
   }
   .manuscript-top-left{top:16px;left:16px}
   .manuscript-top-right{right:16px;bottom:16px}
+  .top-at-a-glance{padding:58px 20px 76px}
+  .glance-header{margin-bottom:44px}
+  .glance-header h2{font-size:clamp(42px,12vw,68px)}
+  .glance-primer{grid-template-columns:1fr}
+  .glance-primer-main{border-right:0;border-bottom:1px solid var(--ink)}
+  .glance-primer-main,.glance-mission{padding:28px 24px}
+  .glance-analogy{margin:54px auto 66px;padding:26px 24px}
+  .glance-road{row-gap:38px;padding-left:48px}
+  .glance-road::before{left:14px;width:11px;transform:none}
+  .glance-road::after{left:20px;transform:none}
+  .glance-stop{display:block}
+  .glance-card{width:100%;max-width:none;padding:24px 22px}
+  .glance-node{
+    position:absolute;
+    top:18px;
+    left:-48px;
+    width:38px;
+    height:38px;
+  }
+  .glance-junction{
+    width:100%;
+    margin:0;
+    padding:20px 22px;
+    text-align:left;
+  }
   .sidebar-introduction-core{
     min-height:130px;
     padding:24px 20px;
@@ -1595,6 +1786,18 @@ h3{
   .letter-salutation{min-height:4.6em}
   .letter-outcry{font-size:27px}
   .letter-driving{padding:15px 14px;font-size:21px}
+  .top-at-a-glance{padding:48px 16px 64px}
+  .glance-header h2{font-size:39px}
+  .glance-primer-main,.glance-mission{padding:24px 18px}
+  .glance-control-question{padding:15px 14px}
+  .glance-analogy{padding:22px 18px}
+  .glance-road{padding-left:37px}
+  .glance-road::before{left:7px;width:9px}
+  .glance-road::after{left:12px}
+  .glance-node{left:-38px;width:30px;height:30px;font-size:9px}
+  .glance-card{padding:20px 17px}
+  .glance-card p{font-size:16px;line-height:1.58}
+  .glance-junction{padding:18px 17px}
   .sidebar-introduction-core{align-items:flex-start;gap:14px}
   .sidebar-cue{align-items:flex-start}
   .sidebar-cue strong{font-size:14px}
@@ -1666,7 +1869,7 @@ h3{
       <span class="visually-hidden" id="motion-status" role="status" aria-live="polite">Route-map animation is playing.</span>
     </div>
     <nav class="main-nav" aria-label="Main navigation">
-      <a href="#business">What is TOP</a>
+      <a href="#top-at-a-glance">What is TOP</a>
       <a href="#routes">Choose a route</a>
       <a href="#optimise">The products</a>
     </nav>
@@ -1738,6 +1941,67 @@ h3{
         </div>
         <span class="visually-hidden" id="letter-style-status" role="status" aria-live="polite"></span>
       </article>
+    </section>
+
+    <section class="top-at-a-glance" id="top-at-a-glance" aria-labelledby="top-at-a-glance-title">
+      <div class="glance-inner">
+        <header class="glance-header">
+          <h2 id="top-at-a-glance-title">TOP at a glance:</h2>
+        </header>
+
+        <div class="glance-primer">
+          <div class="glance-primer-main">
+            <p>TOP is trying to help companies use AI without creating an expensive, confusing mess.</p>
+            <p>Powerful models are already easy to access. The harder questions are practical: what work should an agent do, what information may it see, who checks the result, and what will the work cost?</p>
+            <p class="glance-control-question">Arguably most importantly: <strong>who is in control of my data?</strong></p>
+          </div>
+          <div class="glance-mission">
+            <p>TOP aims to answer these questions clearly and concisely.</p>
+            <p>Our #1 long term goal is to hand back control of data to the people. We are working night and day to achieve this goal.</p>
+            <p>Privacy and security are our two core tenets.</p>
+          </div>
+        </div>
+
+        <div class="glance-analogy">
+          <p>For ease of understanding, we like to break these complex concepts down using digestible analogies. The analogy we found most fitting is Transport.</p>
+          <p><strong>AI agents</strong> are cars. Some companies are still “travelling" (<strong>working</strong>) by horseback and even by foot. We don’t make the cars, the multi-billion dollar AI companies do (Anthropic, OpenAI etc.).</p>
+          <p>However, a company and its cars still needs roads, maps, keys, traffic rules, a depot (<strong>TopOS</strong>) and a way to forecast and measure fuel (<strong>token</strong>) consumption (<strong>Icarus</strong>). TOP is being built as that surrounding system.</p>
+        </div>
+
+        <div class="glance-road" aria-label="The TOP route">
+          <article class="glance-stop glance-stop--left glance-stop--topos" aria-label="TopOS">
+            <span class="glance-node" aria-hidden="true">OS</span>
+            <div class="glance-card">
+              <p>Our immediate focus is <strong>TopOS</strong>: the infrastructure the cars need to be far more effective at travelling (doing work). The desktop app is in development and aims to be the centralised data hub for your business, utilising cutting edge inter-agentic communication to reduce operational friction. We aim for it to be the most private and secure option on the market, and understand there is a lot of ground to cover before we reach this goal.</p>
+            </div>
+          </article>
+
+          <div class="glance-junction">
+            <p>In parallel, our main and more unique focus' are <strong>TOP</strong> <strong>1</strong>, <strong>2</strong> and <strong>3</strong>.</p>
+          </div>
+
+          <article class="glance-stop glance-stop--right glance-stop--icarus" aria-label="Icarus">
+            <span class="glance-node" aria-hidden="true">1</span>
+            <div class="glance-card">
+              <p><strong>TOP 1 = Icarus</strong>, unique algorithmic models (like a taxi-meter) that predict how much fuel (tokens) a trip (AI job) will cost (in dollars, as this is how current API billing works). Using AI at an enterprise level today is like getting into a taxi with no metre. You get slapped with the bill only once you reach the destination.</p>
+            </div>
+          </article>
+
+          <article class="glance-stop glance-stop--left glance-stop--daedalus" aria-label="Daedalus">
+            <span class="glance-node" aria-hidden="true">2</span>
+            <div class="glance-card">
+              <p><strong>TOP 2 = Daedalus</strong>, a far more efficient engine which will get you to your destination (complete the job) at a significantly lower cost (hybrid, multimodal engine that utilises more cost effective AI models which will still complete the task without a significant reduction in output quality). You don't need to take out your Ferrari on the school run, but you might want it for a client meeting. We help you make an informed decision, to save you <em>a lot</em> of money. Commercial efficacy is yet to be quantified and is user specific. Current estimates sit at 20% - 50% conservatively.</p>
+            </div>
+          </article>
+
+          <article class="glance-stop glance-stop--right glance-stop--athena" aria-label="Athena">
+            <span class="glance-node" aria-hidden="true">3</span>
+            <div class="glance-card">
+              <p><strong>TOP 3 = Athena</strong>, essentially a smarter, interactive SatNav which helps you create a smart, bulletproof route (plan for the work you want to do) which will get you to your destination (fulfil your goal / the job) smarter, using less fuel (tokens and thus dollars). Crucially, Athena also ensures you actually reach your destination (complete the job you outlined), because the cars (AI agents) are great, but still need a driver at the wheel so they don’t waste your money looping around roundabouts or deviating from the optimal route to the destination which you’ve set out for them).</p>
+            </div>
+          </article>
+        </div>
+      </div>
     </section>
 
     <section class="sidebar-introduction" id="sidebar-introduction" aria-label="How to use the two site rails">
@@ -2089,6 +2353,7 @@ h3{
     <div>
       <strong>TOP / Token Optimisation Protocol</strong>
       <p>Built by Adam Hartley, co-founded with Sam O'Connell. The historical analyser is live. Icarus is in validation, TopOS is a concept, and Daedalus plus Athena are planned R&amp;D.</p>
+      <p class="footer-privacy">Traffic note: this public homepage counts every load, including reloads, with GoatCounter and uses no visitor cookies or browser storage. It also sends a generic load signal through Cloudflare for an ntfy alert. That signal contains no page contents, referrer, query string or file data.</p>
     </div>
     <nav class="footer-links" aria-label="Footer navigation">
       <a href="/analyze/?pilot=1">Analyser</a>
@@ -2582,6 +2847,7 @@ function vmValueAt(config,x,amount){
     document.querySelector('.masthead'),
     document.querySelector('.opening-hero'),
     document.querySelector('.founders-letter-section'),
+    document.querySelector('.top-at-a-glance'),
     document.querySelector('.sidebar-introduction'),
     document.querySelector('.audience-rail'),
     document.querySelector('.content'),
@@ -2812,5 +3078,37 @@ function vmValueAt(config,x,amount){
   render();
 })();
 </script>
+
+<script>
+(function initHomepageLoadSignal(){
+  if(!window.location||window.location.origin!=='https://tokenoptimisationprotocol.org')return;
+  try{
+    var request=window.fetch('https://events.tokenoptimisationprotocol.org/v1/homepage-view',{
+      method:'POST',
+      mode:'cors',
+      credentials:'omit',
+      cache:'no-store',
+      redirect:'error',
+      referrerPolicy:'no-referrer',
+      keepalive:true
+    });
+    if(request&&typeof request.catch==='function')request.catch(function(){});
+  }catch(_error){}
+}());
+</script>
+<script>
+(function initGoatCounterReloadTracking(){
+  window.goatcounter={no_onload:true,no_events:true};
+  window.addEventListener('DOMContentLoaded',function(){
+    if(!window.goatcounter||typeof window.goatcounter.count!=='function')return;
+    window.goatcounter.count({
+      path:'/',
+      title:'TOP | Token Optimisation Protocol',
+      no_session:true
+    });
+  },{once:true});
+}());
+</script>
+<script data-goatcounter="https://adamhartley7.goatcounter.com/count" data-goatcounter-settings='{"no_onload":true,"no_events":true}' defer src="https://gc.zgo.at/count.v5.js" crossorigin="anonymous" integrity="sha384-atnOLvQb9t+jTSipvd75X2yginT4PjVbqDdlJAmxMm+wYElFmeR6EmLP5bYeoRVQ"></script>
 </body>
 </html>

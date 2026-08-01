@@ -14,6 +14,7 @@ const forbiddenPatterns = [
   [/web3forms/i, "Web3Forms relay"],
   [/\baccess_key\b/i, "relay access key field"],
   [/ntfy\.sh/i, "visitor notification endpoint"],
+  [/goatcounter/i, "traffic analytics runtime"],
   [/fonts\.googleapis|fonts\.gstatic/i, "remote font request"],
   [/id=["']sendbtn["']/, "remote send button"],
   [/mailto:adam1hartley/i, "email collection action"],

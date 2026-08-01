@@ -515,8 +515,44 @@ test("only the opening business card receives the added desktop breathing room",
   assert.match(html, /#business \.direction-table th,\s*#business \.direction-table td\{padding:20px 18px\}/i);
 });
 
+test("TOP at a glance preserves Adam's supplied wording and keeps the full route visible", () => {
+  const glance = elementMarkupById("top-at-a-glance");
+  const visibleBlocks = [...glance.matchAll(/<(?:h2|p)\b[^>]*>([\s\S]*?)<\/(?:h2|p)>/gi)]
+    .map((match) => normaliseText(match[1].replace(/<[^>]+>/g, "")));
+
+  assert.deepEqual(visibleBlocks, [
+    `TOP at a glance:`,
+    `TOP is trying to help companies use AI without creating an expensive, confusing mess.`,
+    `Powerful models are already easy to access. The harder questions are practical: what work should an agent do, what information may it see, who checks the result, and what will the work cost?`,
+    `Arguably most importantly: who is in control of my data?`,
+    `TOP aims to answer these questions clearly and concisely.`,
+    `Our #1 long term goal is to hand back control of data to the people. We are working night and day to achieve this goal.`,
+    `Privacy and security are our two core tenets.`,
+    `For ease of understanding, we like to break these complex concepts down using digestible analogies. The analogy we found most fitting is Transport.`,
+    `AI agents are cars. Some companies are still “travelling" (working) by horseback and even by foot. We don’t make the cars, the multi-billion dollar AI companies do (Anthropic, OpenAI etc.).`,
+    `However, a company and its cars still needs roads, maps, keys, traffic rules, a depot (TopOS) and a way to forecast and measure fuel (token) consumption (Icarus). TOP is being built as that surrounding system.`,
+    `Our immediate focus is TopOS: the infrastructure the cars need to be far more effective at travelling (doing work). The desktop app is in development and aims to be the centralised data hub for your business, utilising cutting edge inter-agentic communication to reduce operational friction. We aim for it to be the most private and secure option on the market, and understand there is a lot of ground to cover before we reach this goal.`,
+    `In parallel, our main and more unique focus' are TOP 1, 2 and 3.`,
+    `TOP 1 = Icarus, unique algorithmic models (like a taxi-meter) that predict how much fuel (tokens) a trip (AI job) will cost (in dollars, as this is how current API billing works). Using AI at an enterprise level today is like getting into a taxi with no metre. You get slapped with the bill only once you reach the destination.`,
+    `TOP 2 = Daedalus, a far more efficient engine which will get you to your destination (complete the job) at a significantly lower cost (hybrid, multimodal engine that utilises more cost effective AI models which will still complete the task without a significant reduction in output quality). You don't need to take out your Ferrari on the school run, but you might want it for a client meeting. We help you make an informed decision, to save you a lot of money. Commercial efficacy is yet to be quantified and is user specific. Current estimates sit at 20% - 50% conservatively.`,
+    `TOP 3 = Athena, essentially a smarter, interactive SatNav which helps you create a smart, bulletproof route (plan for the work you want to do) which will get you to your destination (fulfil your goal / the job) smarter, using less fuel (tokens and thus dollars). Crucially, Athena also ensures you actually reach your destination (complete the job you outlined), because the cars (AI agents) are great, but still need a driver at the wheel so they don’t waste your money looping around roundabouts or deviating from the optimal route to the destination which you’ve set out for them).`,
+  ]);
+
+  assert.match(glance, /<strong>who is in control of my data\?<\/strong>/);
+  assert.match(glance, /<strong>AI agents<\/strong>/);
+  assert.match(glance, /<strong>TOP 1 = Icarus<\/strong>/);
+  assert.match(glance, /<strong>TOP 2 = Daedalus<\/strong>/);
+  assert.match(glance, /<strong>TOP 3 = Athena<\/strong>/);
+  assert.match(glance, /<em>a lot<\/em>/);
+  assert.doesNotMatch(glance, /<details\b|\saria-expanded\s*=|\shidden(?:\s|=|>)/i,
+    "the all-visible route must not hide Adam's copy behind disclosure controls");
+  assert.match(cssDeclarations(".top-at-a-glance"), /grid-column\s*:\s*1\s*\/\s*-1/i);
+  assert.match(cssDeclarations(".glance-road"), /position\s*:\s*relative/i);
+});
+
 test("the sidebar explanation is the threshold between the letter and prior homepage", () => {
   const letter = openingTagById("founders-letter");
+  const glanceAt = openingTagById("top-at-a-glance").index;
   const introduction = elementMarkupById("sidebar-introduction");
   const introductionAt = openingTagById("sidebar-introduction").index;
   const introductionText = visibleText(introduction);
@@ -530,8 +566,9 @@ test("the sidebar explanation is the threshold between the letter and prior home
   assert.match(introductionText, /(?:←|⟵|⇠|⬅)/);
   assert.match(introductionText, /Site Roadmap/);
   assert.match(introductionText, /(?:→|⟶|⇢|➡)/);
-  assert.ok(layoutAt < letter.index && introductionAt > letter.index,
-    "the handoff must sit inside the main grid immediately after the full-width letter");
+  assert.ok(layoutAt < letter.index && glanceAt > letter.index && introductionAt > glanceAt,
+    "the full-width overview must bridge the letter and the sidebar handoff");
+  assert.match(html, /<a href="#top-at-a-glance">What is TOP<\/a>/);
   assert.ok(audienceAt > introductionAt && routeMapAt > introductionAt,
     "the left and right rails must start at the explained threshold");
 
@@ -812,8 +849,15 @@ test("future pages are labelled as a road map, not linked as though they exist",
   assert.doesNotMatch(html, /href="\/(?:about|faq|help|contact|privacy|security|download)(?:\/|")/i);
 });
 
-test("homepage has no third-party runtime or tracking", () => {
-  assert.doesNotMatch(html, /<script[^>]+\bsrc=/i);
+test("homepage tracking is limited to approved reload counting and a generic load signal", () => {
+  const externalScripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)];
+  assert.equal(externalScripts.length, 1);
+  assert.equal(externalScripts[0][1], "https://gc.zgo.at/count.v5.js");
+  assert.match(externalScripts[0][0], /data-goatcounter="https:\/\/adamhartley7\.goatcounter\.com\/count"/i);
+  assert.match(externalScripts[0][0], /data-goatcounter-settings='\{"no_onload":true,"no_events":true\}'/i);
+  assert.match(html, /window\.goatcounter\.count\(\{[\s\S]*?path:'\/'[\s\S]*?no_session:true/);
   assert.doesNotMatch(html, /<link[^>]+(?:stylesheet|preconnect)[^>]+https?:/i);
-  assert.doesNotMatch(html, /fetch\s*\(|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|goatcounter/i);
+  assert.equal((html.match(/window\.fetch\s*\(/g) || []).length, 1);
+  assert.doesNotMatch(html, /XMLHttpRequest|sendBeacon|localStorage|sessionStorage/i);
+  assert.match(html, /generic load signal through Cloudflare for an ntfy alert/i);
 });
