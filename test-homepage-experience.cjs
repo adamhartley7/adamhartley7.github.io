@@ -9,8 +9,11 @@ const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf
 const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1]);
 const homepageEnhancementScript = inlineScripts.find((source) => source.includes("initHomepageEasterEggs"));
+assert.ok(homepageEnhancementScript, "homepage enhancement script should exist");
 const easterEggStart = homepageEnhancementScript.indexOf("(function initHomepageEasterEggs(){");
-const easterEggEnd = homepageEnhancementScript.indexOf("\n\n(function initRouteMap(){", easterEggStart);
+const easterEggEnd = homepageEnhancementScript.indexOf("(function initRouteMap(){", easterEggStart);
+assert.ok(easterEggStart >= 0, "homepage easter-egg script boundary should exist");
+assert.ok(easterEggEnd > easterEggStart, "route-map script boundary should follow the easter eggs");
 const easterEggSource = homepageEnhancementScript.slice(easterEggStart, easterEggEnd);
 
 function escapeRegExp(value) {
