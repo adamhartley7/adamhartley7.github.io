@@ -78,11 +78,12 @@ const openingSource = openingStart >= 0 && openingEnd > openingStart
   ? html.slice(openingStart, openingEnd + 5)
   : "";
 
-function makeOpeningScreenHarness() {
+function makeOpeningScreenHarness({ navigationType = "navigate" } = {}) {
   const timers = [];
   const activeTimers = new Map();
   const documentEvents = {};
   const windowEvents = {};
+  const scrollCalls = [];
   const rootClasses = makeClassList();
   rootClasses.add("no-js");
   const bodyClasses = makeClassList();
@@ -156,8 +157,8 @@ function makeOpeningScreenHarness() {
     now = target;
   }
 
-  function emit(events, type) {
-    (events[type] || []).forEach((handler) => handler());
+  function emit(events, type, event) {
+    (events[type] || []).forEach((handler) => handler(event));
   }
 
   const document = {
@@ -181,11 +182,19 @@ function makeOpeningScreenHarness() {
       documentEvents[type].push(handler);
     },
   };
-  const performance = { now() { return now; } };
+  const performance = {
+    now() { return now; },
+    getEntriesByType(type) {
+      return type === "navigation" ? [{ type: navigationType }] : [];
+    },
+  };
+  const history = { scrollRestoration: "auto" };
   const window = {
     setTimeout: schedule,
     clearTimeout: clear,
     performance,
+    history,
+    scrollTo(left, top) { scrollCalls.push([left, top]); },
     requestAnimationFrame(callback) { callback(now); return 1; },
     addEventListener(type, handler) {
       if (!windowEvents[type]) windowEvents[type] = [];
@@ -226,10 +235,13 @@ function makeOpeningScreenHarness() {
     activeTimers,
     advance,
     bodyClasses,
+    emitPageShow(event = { persisted: false }) { emit(windowEvents, "pageshow", event); },
+    history,
     isReleased,
     pageShell,
     rootClasses,
     screen,
+    scrollCalls,
     setHidden,
     timers,
     get removed() { return removed; },
@@ -275,6 +287,30 @@ test("time spent in a hidden tab cannot bypass the five-second opening", () => {
   assert.equal(harness.isReleased(), false);
   harness.advance(1);
   assert.equal(harness.isReleased(), true);
+});
+
+test("a reload is pinned to the top before and after the opening screen", () => {
+  const reloadHarness = makeOpeningScreenHarness({ navigationType: "reload" });
+  assert.deepEqual(reloadHarness.scrollCalls, [[0, 0]],
+    "reload setup must immediately override the browser's restored scroll position");
+  assert.equal(reloadHarness.history.scrollRestoration, "manual");
+
+  reloadHarness.emitPageShow();
+  assert.deepEqual(reloadHarness.scrollCalls.at(-1), [0, 0],
+    "pageshow must defeat any late native scroll restoration");
+
+  const callsBeforeRelease = reloadHarness.scrollCalls.length;
+  reloadHarness.advance(5000);
+  assert.equal(reloadHarness.scrollCalls.length, callsBeforeRelease + 1);
+  assert.deepEqual(reloadHarness.scrollCalls.at(-1), [0, 0],
+    "the revealed page must still begin at the top");
+  assert.equal(reloadHarness.history.scrollRestoration, "auto",
+    "ordinary history navigation must regain the browser's prior restoration setting");
+
+  const ordinaryHarness = makeOpeningScreenHarness();
+  assert.deepEqual(ordinaryHarness.scrollCalls, [],
+    "ordinary visits and in-page routes must not be forcibly repositioned");
+  assert.equal(ordinaryHarness.history.scrollRestoration, "auto");
 });
 
 test("Yes jumps directly to Icarus, Daedalus and Athena", () => {

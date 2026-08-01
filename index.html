@@ -1946,6 +1946,31 @@ h3{
   var visibleStarted=null;
   var timerId=null;
   var scheduledFor=requiredWait;
+  var navigationPerformance=window.performance;
+  var navigationEntries=navigationPerformance&&typeof navigationPerformance.getEntriesByType==='function'
+    ? navigationPerformance.getEntriesByType('navigation')
+    : [];
+  var isReload=navigationEntries&&navigationEntries[0]
+    ? navigationEntries[0].type==='reload'
+    : !!(navigationPerformance&&navigationPerformance.navigation&&navigationPerformance.navigation.type===1);
+  var previousScrollRestoration;
+
+  function pinReloadToTop(){
+    if(isReload&&typeof window.scrollTo==='function')window.scrollTo(0,0);
+  }
+
+  if(isReload){
+    if(window.history&&'scrollRestoration' in window.history){
+      previousScrollRestoration=window.history.scrollRestoration;
+      window.history.scrollRestoration='manual';
+    }
+    pinReloadToTop();
+    if(typeof window.addEventListener==='function'){
+      window.addEventListener('pageshow',function(event){
+        if(!event||event.persisted!==true)pinReloadToTop();
+      });
+    }
+  }
 
   function now(){
     return window.performance&&typeof window.performance.now==='function'
@@ -1963,6 +1988,10 @@ h3{
     shell.removeAttribute('aria-hidden');
     root.classList.remove('opening-active');
     root.classList.remove('opening-paused');
+    pinReloadToTop();
+    if(isReload&&window.history&&typeof previousScrollRestoration==='string'){
+      window.history.scrollRestoration=previousScrollRestoration;
+    }
   }
 
   function schedule(){
