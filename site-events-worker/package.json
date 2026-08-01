@@ -1,0 +1,13 @@
+{
+  "name": "top-site-events-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import ./test/offline-network-guard.mjs --test test/*.test.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.36.0"
+  }
+}

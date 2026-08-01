@@ -34,19 +34,17 @@ for (const rule of pilotHideRule) {
 assert.match(html, /<summary>Too much technical jargon\? Not sure how this helps you\?<\/summary>/,
   "the visible invitation must name the problem in plain words");
 
-// The landing page now routes visitors according to whether their business already
-// uses AI. Keep that entry question in plain language and keep the live analyzer
+// The landing page now stops after the founder-written overview and offers a
+// descriptive route to the separate technical layer. Keep the live analyzer
 // reachable without copying the analyzer's separate jargon-buster onto the homepage.
 const home = fs.readFileSync(new URL("../index.html", `file://${__dirname}/`), "utf8");
-assert.match(home, /Does your business use AI\?/,
-  "the landing page must ask the business-routing question in plain language");
-assert.match(home, /href="#optimise" data-route="yes">Yes<\/a>/,
-  "the Yes route must skip to the products for businesses already using AI");
-assert.match(home, /href="#topos" data-route="no">No<\/a>/,
-  "the No route must begin with the TopOS infrastructure explanation");
+assert.match(home, /<h2 id="next-step-title">Where would you like to go next\?<\/h2>/,
+  "the landing page must make the onward decision explicit");
+assert.match(home, /href="\/how-top-works\/"[\s\S]*?>\s*<strong>Explore how TOP works<\/strong>/,
+  "the landing page must link directly to the technical explanation");
 assert.equal((home.match(/id="copyTopExplainer"/g) || []).length, 0,
   "the analyzer's prompt control must not be duplicated on the landing page");
-assert.ok((home.match(/href="\/analyze\/\?pilot=1"/g) || []).length >= 3,
+assert.ok((home.match(/href="\/analyze\/\?pilot=1"/g) || []).length >= 2,
   "the live analyzer must remain reachable from the landing page");
 
 // ---------------------------------------------------------------------------

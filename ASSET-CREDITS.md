@@ -1,4 +1,4 @@
-# Image credits
+# Asset credits
 
 TOP serves these compressed image files locally. They are genuine photographs or telescope observations, not AI-generated images.
 
@@ -43,3 +43,10 @@ TOP serves these compressed image files locally. They are genuine photographs or
 - Credit: NASA's Scientific Visualization Studio
 - Source: https://svs.gsfc.nasa.gov/4538/
 - Usage guidance: https://www.nasa.gov/nasa-brand-center/images-and-media/
+
+## Grenze Gotisch typeface
+
+- Files: `assets/fonts/grenze-gotisch/GrenzeGotisch-Variable.ttf` and `assets/fonts/grenze-gotisch/OFL.txt`
+- Designer: Renata Polastri and Omnibus-Type
+- Source: https://github.com/google/fonts/tree/main/ofl/grenzegotisch
+- License: SIL Open Font License 1.1

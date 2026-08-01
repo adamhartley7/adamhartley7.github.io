@@ -6,6 +6,7 @@ const test = require("node:test");
 const vm = require("node:vm");
 
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
+const technicalHtml = fs.readFileSync(new URL("how-top-works/index.html", `file://${__dirname}/`), "utf8");
 const scriptStart = html.indexOf("(function initTopRoutes");
 const scriptEnd = html.indexOf("})();", scriptStart);
 assert.ok(scriptStart >= 0 && scriptEnd > scriptStart, "route-selector script must exist");
@@ -789,11 +790,9 @@ test("Escape resets the desktop expanded control state", () => {
   assert.equal(harness.control.getAttribute("aria-label"), "Expand route map");
 });
 
-test("historical analyzer is a focusable route-map destination", () => {
-  assert.match(
-    html,
-    /<div(?=[^>]*\bid="historical-analyzer")(?=[^>]*\btabindex="-1")[^>]*>/,
-  );
+test("historical analyser remains a direct technical-page destination", () => {
+  assert.match(technicalHtml, /<section\b(?=[^>]*\bid="icarus")(?=[^>]*\bdata-content-section="icarus")[^>]*>/);
+  assert.match(technicalHtml, /<div class="live-evidence">[\s\S]*?href="\/analyze\/\?pilot=1">Analyse past usage<\/a>/);
 });
 
 test("route-map enhancement performs no network or storage work", () => {
