@@ -21,7 +21,7 @@ The test command loads an offline network guard before every test.
 
 ## First deployment
 
-1. Create a new random ntfy topic of at least 32 letters, numbers, underscores or hyphens. ntfy treats an unguessable topic as the password for its free anonymous route. Do not reuse any topic previously committed to the public dashboard or repository history.
+1. Create a private ntfy topic of 28-64 letters, numbers, underscores or hyphens. ntfy treats an unguessable topic as the password for its free anonymous route, so a longer random value is safer. Do not reuse any topic previously committed to the public dashboard or repository history.
 2. Subscribe to the new topic in the ntfy app. Keep it out of chat, source files and screenshots.
 3. Store the same topic name as a Worker secret:
 

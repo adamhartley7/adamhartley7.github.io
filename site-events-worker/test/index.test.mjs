@@ -142,6 +142,8 @@ test("missing bindings and invalid notification destinations fail closed", async
     environment({ VIEW_RATE_LIMITER: undefined }),
     environment({ NTFY_TOPIC: undefined }),
     environment({ NTFY_TOPIC: "short" }),
+    environment({ NTFY_TOPIC: "a".repeat(27) }),
+    environment({ NTFY_TOPIC: "a".repeat(65) }),
     environment({ NTFY_TOPIC: "invalid topic with spaces" }),
   ];
   for (const env of cases) {
@@ -149,6 +151,17 @@ test("missing bindings and invalid notification destinations fail closed", async
     const response = await handler.fetch(request(), env, ctx);
     assert.equal(response.status, 503);
     assert.equal(ctx.pending.length, 0);
+  }
+});
+
+test("notification destinations follow the enforced ntfy length boundary", async () => {
+  const handler = createHandler(async () => ({ ok: true }));
+  for (const topic of ["a".repeat(28), "a".repeat(64)]) {
+    const ctx = context();
+    const response = await handler.fetch(request(), environment({ NTFY_TOPIC: topic }), ctx);
+    assert.equal(response.status, 204);
+    assert.equal(ctx.pending.length, 1);
+    await Promise.all(ctx.pending);
   }
 });
 

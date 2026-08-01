@@ -20,7 +20,7 @@ function emptyResponse(status, origin) {
 }
 
 function validTopic(value) {
-  return typeof value === "string" && /^[A-Za-z0-9_-]{32,128}$/.test(value);
+  return typeof value === "string" && /^[A-Za-z0-9_-]{28,64}$/.test(value);
 }
 
 async function sendNotification(fetchImpl, env) {
