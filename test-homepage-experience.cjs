@@ -83,7 +83,12 @@ test("homepage inline scripts parse", () => {
 
 test("every visit begins with an unskippable five-second memento screen", () => {
   const screen = elementMarkupById("opening-screen");
-  assert.equal(visibleText(screen), "Memento mori, ergo carpe diem.");
+  assert.equal(
+    visibleText(screen),
+    "Memento mori, ergo carpe diem. (Remember you must die, therefore seize the day)",
+  );
+  assert.match(screen, /<span\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bopening-progress\b)[^>]*\baria-hidden\s*=\s*["']true["'][^>]*>/i);
+  assert.match(screen, /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bopening-translation\b)[^>]*>\s*\(Remember you must die, therefore seize the day\)\s*<\/p>/i);
   assert.doesNotMatch(screen, /<(?:a|button|input|select|textarea)\b|\brole\s*=\s*["']button["']/i);
 
   const screenAt = openingTagById("opening-screen").index;
@@ -97,13 +102,25 @@ test("every visit begins with an unskippable five-second memento screen", () => 
   assert.match(rules, /z-index\s*:\s*\d+/i);
   assert.doesNotMatch(rules, /animation\s*:/i,
     "CSS animation timing can be shortened by reduced-motion rules; release must use the 5000ms script");
+
+  const progressRules = cssDeclarations(".opening-progress");
+  assert.match(progressRules, /position\s*:\s*absolute/i);
+  assert.match(progressRules, /top\s*:\s*0/i);
+  assert.match(progressRules, /height\s*:\s*4px/i);
+  const progressFillRules = cssDeclarations(".opening-progress::after");
+  assert.match(progressFillRules, /animation\s*:\s*opening-progress\s+5s\s+linear\s+both/i);
+  assert.match(progressFillRules, /transform-origin\s*:\s*left\s+center/i);
+  assert.match(cssDeclarations(".opening-paused .opening-progress::after"), /animation-play-state\s*:\s*paused/i);
+  assert.match(html, /animation\s*:\s*opening-progress\s+5s\s+steps\(5,end\)\s+both!important/i,
+    "reduced-motion visitors still need truthful five-second progress without continuous movement");
+  assert.match(cssDeclarations(".opening-translation"), /max-width\s*:\s*38ch/i);
 });
 
 test("the full-width opening is TOP-only, centred, and precedes both sidebars", () => {
   const opening = elementMarkupById("opening-hero");
-  assert.equal(visibleText(opening), "TOP Token Optimisation Protocol");
+  assert.equal(visibleText(opening), "TOP Token • Optimisation • Protocol");
   assert.match(opening, /<h1\b[^>]*>\s*TOP\s*<\/h1>/i);
-  assert.match(opening, /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bhero-expansion\b)[^>]*>\s*Token Optimisation Protocol\s*<\/p>/i);
+  assert.match(opening, /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bhero-expansion\b)(?=[^>]*\baria-label\s*=\s*["']Token Optimisation Protocol["'])[^>]*>[\s\S]*?<span>Token<\/span>[\s\S]*?<span\b[^>]*>•<\/span>[\s\S]*?<span>Optimisation<\/span>[\s\S]*?<span\b[^>]*>•<\/span>[\s\S]*?<span>Protocol<\/span>[\s\S]*?<\/p>/i);
   assert.doesNotMatch(opening, /\b(?:audience-rail|route-rail)\b/i);
 
   const mastheadAt = html.search(/<header\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bmasthead\b)/i);
@@ -118,9 +135,12 @@ test("the full-width opening is TOP-only, centred, and precedes both sidebars", 
   const rules = cssDeclarations(".opening-hero");
   assert.match(rules, /text-align\s*:\s*center/i);
   assert.match(rules, /(?:width\s*:\s*100%|grid-column\s*:\s*1\s*\/\s*-1)/i);
+  assert.match(cssDeclarations(".opening-hero-heading"), /width\s*:\s*fit-content/i);
+  assert.match(cssDeclarations(".opening-hero .hero-expansion"), /width\s*:\s*100%/i);
+  assert.match(cssDeclarations(".opening-hero .hero-expansion"), /justify-content\s*:\s*space-between/i);
 });
 
-test("the founders' letter reproduces Adam's supplied copy verbatim", () => {
+test("the founders' letter contains Adam's approved revised copy", () => {
   const expected = normaliseText(`
 Dear reader,
 
@@ -135,7 +155,7 @@ especially if you’re not,
 
 You’re probably behind the curve.
 
-Top is like the slingshot in David’s hand, helping you go toe to toe with Goliath.
+TOP is like the slingshot in David’s hand, helping you go toe to toe with Goliath.
 
 AI is a massively powerful tool which can be used to accelerate your business:
 
@@ -144,24 +164,51 @@ so you can understand and leverage the inner workings of the black box of AI.
 
 But we won’t stop there…
 
-Once you’re up to speed, we will help implement cutting edge solutions to make your AI agents work forecastable, your spend trackable, your workflow far more efficient and your AI use understandable, auditable and far smarter.
+Once you’re up to speed, we will help implement cutting edge solutions to:
+
+Make your AI agents work forecastable
+Your spend trackable
+Your workflow far more efficient
+Your AI use understandable, auditable and far smarter.
 
 If AI is compared to a car,
 We make sure you’re not only at the wheel,
 You’ve got a flashier whip than anyone on the block.
 
 You won’t just be ahead of the curve…
-They’ll be eating you’re dust.
+They’ll be eating your dust.
 
 Sincerely,
 The TOP team.
 
 Adam Hartley, Sam O'Connell, Chullain Lyons, Fionn Gavin et al.
   `);
-  const letterText = visibleText(elementMarkupById("founders-letter"));
-  assert.ok(letterText.includes(expected), "the letter must contain the supplied text without edits");
-  assert.doesNotMatch(letterText, /They’ll be eating your dust\./,
-    "the supplied wording must not be silently corrected");
+  const letter = elementMarkupById("founders-letter");
+  const letterText = visibleText(letter);
+  assert.ok(letterText.includes(expected), "the letter must contain the approved revised text");
+  assert.match(letter, /<ul\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bletter-solutions\b)[^>]*>[\s\S]*?<li>Make your AI agents work forecastable<\/li>[\s\S]*?<li>Your spend trackable<\/li>[\s\S]*?<li>Your workflow far more efficient<\/li>[\s\S]*?<li>Your AI use understandable, auditable and far smarter\.<\/li>[\s\S]*?<\/ul>/i);
+  assert.doesNotMatch(letterText, /\bTop is like the slingshot/);
+  assert.doesNotMatch(letterText, /eating you’re dust/);
+});
+
+test("the desktop letter is restrained and uses two-dimensional spinning-top ornaments", () => {
+  const letter = elementMarkupById("founders-letter");
+  const tops = letter.match(/<svg\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bmanuscript-top\b)[^>]*>/gi) || [];
+  assert.equal(tops.length, 2);
+  assert.match(letter, /\bmanuscript-top-left\b/);
+  assert.match(letter, /\bmanuscript-top-right\b/);
+  assert.match(cssDeclarations(".manuscript-letter"), /max-width\s*:\s*784px/i);
+  assert.match(cssDeclarations(".letter-copy"), /max-width\s*:\s*576px/i);
+  assert.match(cssDeclarations(".manuscript-top"), /height\s*:\s*54px/i);
+  assert.match(html, /\.manuscript-letter\s*\{\s*padding\s*:\s*78px\s+clamp\(24px,8vw,54px\)\s+80px/i,
+    "compact layouts must keep the ornament clear of the illuminated drop cap");
+});
+
+test("only the opening business card receives the added desktop breathing room", () => {
+  assert.match(cssDeclarations("#business .hero-lead"), /margin-top\s*:\s*48px/i);
+  assert.match(cssDeclarations("#business .hero-analogy"), /margin-top\s*:\s*36px/i);
+  assert.match(cssDeclarations("#business .hero-statement"), /margin-top\s*:\s*58px/i);
+  assert.match(cssDeclarations("#business .direction-board"), /margin-top\s*:\s*70px/i);
 });
 
 test("the sidebar explanation is the threshold between the letter and prior homepage", () => {
