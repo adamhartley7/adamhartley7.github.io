@@ -8,6 +8,13 @@ const vm = require("node:vm");
 const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf8");
 const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1]);
+const homepageEnhancementScript = inlineScripts.find((source) => source.includes("initHomepageEasterEggs"));
+assert.ok(homepageEnhancementScript, "homepage enhancement script should exist");
+const easterEggStart = homepageEnhancementScript.indexOf("(function initHomepageEasterEggs(){");
+const easterEggEnd = homepageEnhancementScript.indexOf("(function initRouteMap(){", easterEggStart);
+assert.ok(easterEggStart >= 0, "homepage easter-egg script boundary should exist");
+assert.ok(easterEggEnd > easterEggStart, "route-map script boundary should follow the easter eggs");
+const easterEggSource = homepageEnhancementScript.slice(easterEggStart, easterEggEnd);
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -75,6 +82,161 @@ function cssDeclarations(selector) {
   return match[1];
 }
 
+function makeClassList(initial = []) {
+  const values = new Set(initial);
+  return {
+    add(...names) { names.forEach((name) => values.add(name)); },
+    remove(...names) { names.forEach((name) => values.delete(name)); },
+    contains(name) { return values.has(name); },
+    toggle(name, force) {
+      const active = force === undefined ? !values.has(name) : Boolean(force);
+      if (active) values.add(name);
+      else values.delete(name);
+      return active;
+    },
+  };
+}
+
+function runEasterEggHarness({ reducedMotion = false, text = "ABCDE" } = {}) {
+  const timers = new Map();
+  const frames = new Map();
+  const clearedTimers = new Set();
+  const documentEvents = {};
+  const created = [];
+  let nextTimerId = 0;
+  let nextFrameId = 0;
+  let capturedPointer = null;
+
+  function makeElement(attrs = {}) {
+    const listeners = {};
+    const element = {
+      attrs: { ...attrs },
+      children: [],
+      className: "",
+      classList: makeClassList(),
+      offsetWidth: 100,
+      textContent: "",
+      addEventListener(type, listener) {
+        if (!listeners[type]) listeners[type] = [];
+        listeners[type].push(listener);
+      },
+      appendChild(child) { this.children.push(child); return child; },
+      getAttribute(name) {
+        return Object.prototype.hasOwnProperty.call(this.attrs, name) ? this.attrs[name] : null;
+      },
+      hasAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attrs, name); },
+      setAttribute(name, value) { this.attrs[name] = String(value); },
+      setPointerCapture(pointerId) { capturedPointer = pointerId; },
+      dispatch(type, event = {}) {
+        for (const listener of listeners[type] || []) listener(event);
+      },
+      listeners,
+    };
+    created.push(element);
+    return element;
+  }
+
+  const table = makeElement({ "data-tactile-table": "" });
+  const playful = makeElement({ "aria-controls": "product-direction-table" });
+  const top = makeElement();
+  const letter = makeElement();
+  const copy = makeElement();
+  const toggle = makeElement();
+  const status = makeElement();
+  const textParent = {
+    closest() { return null; },
+    replaceChild(fragment) { copy.children = [...fragment.children]; },
+  };
+  const textNode = { nodeValue: text, parentElement: textParent, parentNode: textParent };
+  let textVisited = false;
+
+  const document = {
+    hidden: false,
+    NodeFilter: { SHOW_TEXT: 4 },
+    querySelectorAll(selector) {
+      if (selector === "[data-playful-press]") return [playful];
+      if (selector === "[data-spin-top]") return [top];
+      if (selector === "[data-tactile-table]") return [table];
+      throw new Error(`unexpected selector: ${selector}`);
+    },
+    querySelector(selector) {
+      if (selector === ".manuscript-letter") return letter;
+      throw new Error(`unexpected selector: ${selector}`);
+    },
+    getElementById(id) {
+      if (id === "product-direction-table") return table;
+      if (id === "letter-copy") return copy;
+      if (id === "letter-style-toggle") return toggle;
+      if (id === "letter-style-status") return status;
+      return null;
+    },
+    createTreeWalker() {
+      textVisited = false;
+      return { nextNode() { if (textVisited) return null; textVisited = true; return textNode; } };
+    },
+    createDocumentFragment() {
+      return { children: [], appendChild(child) { this.children.push(child); return child; } };
+    },
+    createTextNode(nodeValue) { return { nodeValue }; },
+    createElement() { return makeElement(); },
+    addEventListener(type, listener) { documentEvents[type] = listener; },
+  };
+
+  const window = {
+    matchMedia(query) {
+      assert.equal(query, "(prefers-reduced-motion: reduce)");
+      return { matches: reducedMotion };
+    },
+    requestAnimationFrame(callback) {
+      const id = ++nextFrameId;
+      frames.set(id, callback);
+      return id;
+    },
+    cancelAnimationFrame(id) { frames.delete(id); },
+    setTimeout(callback, delay) {
+      const id = ++nextTimerId;
+      timers.set(id, { callback, delay });
+      return id;
+    },
+    clearTimeout(id) { clearedTimers.add(id); timers.delete(id); },
+  };
+
+  vm.runInNewContext(easterEggSource, { document, window, Array, Date, WeakMap },
+    { filename: "homepage-easter-eggs-inline.js" });
+
+  function runFrame(timestamp) {
+    const pending = [...frames.entries()];
+    frames.clear();
+    pending.forEach(([, callback]) => callback(timestamp));
+  }
+
+  function runTimer(id) {
+    const timer = timers.get(id);
+    if (!timer) return;
+    timers.delete(id);
+    timer.callback();
+  }
+
+  return {
+    clearedTimers,
+    copy,
+    document,
+    documentEvents,
+    frames,
+    glyphs: () => created.filter((element) => element.className === "calligraphy-glyph"),
+    letter,
+    playful,
+    runFrame,
+    runTimer,
+    status,
+    table,
+    timers,
+    toggle,
+    top,
+    get capturedPointer() { return capturedPointer; },
+  };
+}
+
 test("homepage inline scripts parse", () => {
   inlineScripts.forEach((source, index) => {
     assert.doesNotThrow(() => new vm.Script(source, { filename: `index-inline-${index}.js` }));
@@ -127,8 +289,8 @@ test("every visit begins with an unskippable five-second memento screen", () => 
 
 test("the full-width opening is TOP-only, centred, and precedes both sidebars", () => {
   const opening = elementMarkupById("opening-hero");
-  assert.equal(visibleText(opening), "TOP Token • Optimisation • Protocol");
-  assert.match(opening, /<h1\b[^>]*>\s*TOP\s*<\/h1>/i);
+  assert.equal(visibleText(opening).replace(/^T O P\b/, "TOP"), "TOP Token • Optimisation • Protocol");
+  assert.match(opening, /<h1\b(?=[^>]*\baria-label=["']TOP["'])[^>]*>\s*<span[^>]*>T<\/span><span[^>]*>O<\/span><span[^>]*>P<\/span>\s*<\/h1>/i);
   assert.match(opening, /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bhero-expansion\b)(?=[^>]*\baria-label\s*=\s*["']Token Optimisation Protocol["'])[^>]*>[\s\S]*?<span>Token<\/span>[\s\S]*?<span\b[^>]*>•<\/span>[\s\S]*?<span>Optimisation<\/span>[\s\S]*?<span\b[^>]*>•<\/span>[\s\S]*?<span>Protocol<\/span>[\s\S]*?<\/p>/i);
   assert.doesNotMatch(opening, /\b(?:audience-rail|route-rail)\b/i);
 
@@ -144,9 +306,12 @@ test("the full-width opening is TOP-only, centred, and precedes both sidebars", 
   const rules = cssDeclarations(".opening-hero");
   assert.match(rules, /text-align\s*:\s*center/i);
   assert.match(rules, /(?:width\s*:\s*100%|grid-column\s*:\s*1\s*\/\s*-1)/i);
-  assert.match(cssDeclarations(".opening-hero-heading"), /width\s*:\s*fit-content/i);
+  assert.match(cssDeclarations(".opening-hero-heading"), /width\s*:\s*min\(100%,\s*2\.12em\)/i);
+  assert.match(cssDeclarations(".opening-hero h1"), /grid-template-columns\s*:\s*repeat\(3,\s*minmax\(0,1fr\)\)/i);
   assert.match(cssDeclarations(".opening-hero .hero-expansion"), /width\s*:\s*100%/i);
-  assert.match(cssDeclarations(".opening-hero .hero-expansion"), /justify-content\s*:\s*space-between/i);
+  assert.match(cssDeclarations(".opening-hero .hero-expansion"), /grid-template-columns\s*:\s*repeat\(3,\s*minmax\(0,1fr\)\)/i);
+  assert.match(html, /span:nth-child\(2\)\{left:33\.333%\}/i);
+  assert.match(html, /span:nth-child\(4\)\{left:66\.667%\}/i);
 });
 
 test("the founders' letter contains Adam's approved revised copy", () => {
@@ -193,7 +358,7 @@ The TOP team.
 Adam Hartley, Sam O'Connell, Chullain Lyons, Fionn Gavin et al.
   `);
   const letter = elementMarkupById("founders-letter");
-  const letterText = visibleText(letter);
+  const letterText = visibleText(letter).replace(/\bD\s+ear reader,/, "Dear reader,");
   assert.ok(letterText.includes(expected), "the letter must contain the approved revised text");
   assert.match(letter, /so you can\s*<strong>understand<\/strong>\s*<em>and<\/em>\s*<strong>leverage<\/strong>\s*the inner workings of the black box of AI\./i);
   assert.match(letter, /<ul\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bletter-solutions\b)[^>]*>[\s\S]*?<li>Make your AI agents work forecastable<\/li>[\s\S]*?<li>Your spend trackable<\/li>[\s\S]*?<li>Your workflow far more efficient<\/li>[\s\S]*?<li>Your AI use understandable, auditable and far smarter\.<\/li>[\s\S]*?<\/ul>/i);
@@ -203,8 +368,9 @@ Adam Hartley, Sam O'Connell, Chullain Lyons, Fionn Gavin et al.
 
 test("the desktop letter is restrained and uses two-dimensional spinning-top ornaments", () => {
   const letter = elementMarkupById("founders-letter");
-  const tops = letter.match(/<svg\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bmanuscript-top\b)[^>]*>/gi) || [];
+  const tops = letter.match(/<button\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bmanuscript-top\b)(?=[^>]*\bdata-spin-top\b)[^>]*>/gi) || [];
   assert.equal(tops.length, 2);
+  assert.match(letter, /<svg\b(?=[^>]*\bclass=["']manuscript-top-icon["'])[^>]*>/i);
   assert.match(letter, /\bmanuscript-top-left\b/);
   assert.match(letter, /\bmanuscript-top-right\b/);
   assert.match(cssDeclarations(".manuscript-letter"), /max-width\s*:\s*784px/i);
@@ -214,11 +380,139 @@ test("the desktop letter is restrained and uses two-dimensional spinning-top orn
     "compact layouts must keep the ornament clear of the illuminated drop cap");
 });
 
+test("shadowed flourishes are real, accessible, tactile controls", () => {
+  const letter = elementMarkupById("founders-letter");
+  assert.match(letter, /<button\b(?=[^>]*\bdata-spin-top\b)(?=[^>]*\baria-label="Spin the upper-left top ornament")[^>]*>[\s\S]*?<svg\b[^>]*class="manuscript-top-icon"/i);
+  assert.match(letter, /<button\b(?=[^>]*\bdata-spin-top\b)(?=[^>]*\baria-label="Spin the lower-right top ornament")[^>]*>[\s\S]*?<svg\b[^>]*class="manuscript-top-icon"/i);
+  assert.match(letter, /<button\b(?=[^>]*\bid="letter-style-toggle")(?=[^>]*\baria-controls="letter-copy")(?=[^>]*\baria-pressed="false")(?=[^>]*\baria-label="Dear reader\. Transform the letter into calligraphy")[^>]*><span aria-hidden="true">D<\/span><\/button><span aria-hidden="true">ear reader,<\/span>/i);
+  assert.doesNotMatch(letter, /<article\b[^>]*(?:role="button"|data-playful-press)/i,
+    "the letter sheet itself must remain still and non-interactive");
+
+  assert.match(html, /<button class="changing-landscape"[^>]*data-playful-press[^>]*>constantly changing<\/button>/i);
+  assert.match(html, /<button class="micro-label"(?=[^>]*\bid="product-direction-label")(?=[^>]*\baria-controls="product-direction-table")[^>]*>00 - Product Direction \/ The Proposed Route<\/button>/i);
+  assert.match(html, /<table class="direction-table"(?=[^>]*\bid="product-direction-table")(?=[^>]*\bdata-tactile-table\b)(?=[^>]*\baria-labelledby="product-direction-label")[^>]*>/i);
+  assert.doesNotMatch(html, /<table\b[^>]*\btabindex=/i,
+    "the title button is the keyboard control; the native table must retain unambiguous semantics");
+  assert.match(html, /<caption class="visually-hidden">TOP's proposed product route, transport analogy and intended application<\/caption>/i);
+  assert.doesNotMatch(html, /<table\b[^>]*\brole="button"/i);
+  assert.doesNotMatch(html, /class="direction-table-button"/i,
+    "the table must not be covered by a button overlay");
+
+  assert.match(html, /addEventListener\('pointercancel',release\)/);
+  assert.match(html, /addEventListener\('lostpointercapture',release\)/);
+  assert.match(html, /setPointerCapture\(event\.pointerId\)/,
+    "capturing the pointer ensures an outside release cannot leave the table depressed");
+  assert.doesNotMatch(html, /table\.addEventListener\('key(?:down|up)'/,
+    "button keyboard behavior must not be grafted onto an element announced as a table");
+  assert.match(html, /replayTimers\?replayTimers\.get\(element\):element\.__topReplayTimer/);
+  assert.match(html, /window\.clearTimeout\(previousTimer\)/,
+    "a repeated easter-egg click must replace the older cleanup timer");
+  assert.match(html, /Math\.floor\(\(\(timestamp-startedAt\)\*50\)\/1000\)/,
+    "calligraphy must advance at 50 non-space characters per second");
+  assert.match(html, /document\.addEventListener\('visibilitychange'/);
+  assert.match(html, /closest\('\.visually-hidden'\)/,
+    "the accessible salutation must not be split into decorative glyphs");
+  assert.doesNotMatch(html, /setInterval\s*\(/);
+  assert.match(cssDeclarations(".calligraphy-glyph.is-calligraphic"), /"Old English Text MT","Lucida Calligraphy","Apple Chancery","URW Chancery L",cursive/i);
+  assert.match(cssDeclarations(".calligraphy-glyph::before"), /content\s*:\s*attr\(data-glyph\)/i);
+  assert.match(html, /glyph\.setAttribute\('data-glyph',character\)/);
+  assert.doesNotMatch(html, /glyph\.textContent=character/,
+    "generated decorative glyphs must not duplicate the selectable letter text");
+  assert.match(html, /@media\(prefers-reduced-motion:reduce\)[\s\S]*?\.calligraphy-glyph\.is-calligraphic\{animation:none!important\}/i);
+  assert.match(html, /@media\(max-width:480px\)[\s\S]*?\.manuscript-top\{width:44px;height:50px/i,
+    "the interactive tops must keep a 44px minimum target on mobile");
+});
+
+test("tactile controls release captured pointers and replace stale replay timers", () => {
+  const harness = runEasterEggHarness();
+
+  harness.table.dispatch("pointerdown", { pointerId: 17 });
+  assert.equal(harness.capturedPointer, 17);
+  assert.equal(harness.table.classList.contains("is-pressed"), true);
+  harness.table.dispatch("lostpointercapture");
+  assert.equal(harness.table.classList.contains("is-pressed"), false);
+  assert.equal(harness.table.listeners.keydown, undefined,
+    "the semantic table must not impersonate a keyboard button");
+
+  harness.playful.dispatch("click");
+  const firstTimers = [...harness.timers.keys()];
+  assert.equal(firstTimers.length, 2, "the control and its table each receive one replay timer");
+  harness.playful.dispatch("click");
+  firstTimers.forEach((id) => assert.equal(harness.clearedTimers.has(id), true));
+  firstTimers.forEach((id) => harness.runTimer(id));
+  assert.equal(harness.playful.classList.contains("is-popping"), true,
+    "a stale timer must not truncate the newer replay");
+  assert.equal(harness.table.classList.contains("is-popping"), true);
+  [...harness.timers.keys()].forEach((id) => harness.runTimer(id));
+  assert.equal(harness.playful.classList.contains("is-popping"), false);
+  assert.equal(harness.table.classList.contains("is-popping"), false);
+});
+
+test("calligraphy advances at 50 glyphs per second and reverses cleanly mid-run", () => {
+  const harness = runEasterEggHarness({ text: "ABCDE" });
+  harness.toggle.dispatch("click");
+  assert.equal(harness.glyphs().length, 5);
+  assert.equal(harness.toggle.attrs["aria-pressed"], "mixed");
+  assert.equal(harness.copy.attrs["aria-busy"], "true");
+
+  harness.runFrame(0);
+  harness.runFrame(19);
+  assert.equal(harness.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 0);
+  harness.runFrame(20);
+  assert.equal(harness.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 1);
+  harness.runFrame(40);
+  assert.equal(harness.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 2);
+
+  harness.toggle.dispatch("click");
+  harness.runFrame(1000);
+  harness.runFrame(1020);
+  assert.equal(harness.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 1);
+  harness.runFrame(1040);
+  assert.equal(harness.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 0);
+  assert.equal(harness.toggle.attrs["aria-pressed"], "false");
+  assert.equal(harness.copy.attrs["aria-busy"], "false");
+  assert.equal(harness.letter.classList.contains("is-calligraphic"), false);
+});
+
+test("calligraphy pauses while hidden and reduced motion applies the final state immediately", () => {
+  const harness = runEasterEggHarness({ text: "ABCDE" });
+  harness.toggle.dispatch("click");
+  harness.runFrame(0);
+  harness.runFrame(40);
+  assert.equal(harness.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 2);
+
+  harness.document.hidden = true;
+  harness.documentEvents.visibilitychange();
+  assert.equal(harness.frames.size, 0);
+  harness.runFrame(10000);
+  assert.equal(harness.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 2);
+
+  harness.document.hidden = false;
+  harness.documentEvents.visibilitychange();
+  harness.runFrame(10000);
+  harness.runFrame(10020);
+  assert.equal(harness.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 3,
+    "resuming must continue from the visible count rather than catch up hidden time");
+  harness.runFrame(10060);
+  assert.equal(harness.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 5);
+  assert.equal(harness.toggle.attrs["aria-pressed"], "true");
+  assert.equal(harness.copy.attrs["aria-busy"], "false");
+
+  const reduced = runEasterEggHarness({ reducedMotion: true, text: "ABCDE" });
+  reduced.toggle.dispatch("click");
+  assert.equal(reduced.frames.size, 0);
+  assert.equal(reduced.glyphs().filter((glyph) => glyph.classList.contains("is-calligraphic")).length, 5);
+  assert.equal(reduced.toggle.attrs["aria-pressed"], "true");
+  assert.equal(reduced.copy.attrs["aria-busy"], "false");
+});
+
 test("only the opening business card receives the added desktop breathing room", () => {
-  assert.match(cssDeclarations("#business .hero-lead"), /margin-top\s*:\s*48px/i);
-  assert.match(cssDeclarations("#business .hero-analogy"), /margin-top\s*:\s*36px/i);
-  assert.match(cssDeclarations("#business .hero-statement"), /margin-top\s*:\s*58px/i);
-  assert.match(cssDeclarations("#business .direction-board"), /margin-top\s*:\s*70px/i);
+  assert.match(cssDeclarations("#business .hero-lead"), /margin-top\s*:\s*64px/i);
+  assert.match(cssDeclarations("#business .hero-analogy"), /margin-top\s*:\s*48px/i);
+  assert.match(cssDeclarations("#business .hero-statement"), /margin-top\s*:\s*72px/i);
+  assert.match(cssDeclarations("#business .direction-board"), /margin-top\s*:\s*96px/i);
+  assert.match(cssDeclarations(".direction-board>.micro-label"), /margin-bottom\s*:\s*28px/i);
+  assert.match(html, /#business \.direction-table th,\s*#business \.direction-table td\{padding:20px 18px\}/i);
 });
 
 test("the sidebar explanation is the threshold between the letter and prior homepage", () => {
@@ -253,7 +547,7 @@ test("homepage opens with Adam's approved TOP language", () => {
     "the TOP lockup belongs to the opening and must not be duplicated below the handoff");
   assert.match(
     html,
-    /The AI landscape is <span class="changing-landscape">constantly changing<\/span>, TOP helps You keep two feet on the ground so You and Your Business stay ahead of the curve/,
+    /The AI landscape is <button class="changing-landscape"[^>]*>constantly changing<\/button>, TOP helps You keep two feet on the ground so You and Your Business stay ahead of the curve/,
   );
   assert.match(html, /TOP is being built as a centralised AI integrator, then optimiser for businesses\./);
   assert.match(
@@ -315,6 +609,8 @@ test("personal-site visual tokens and pressable controls remain explicit", () =>
     "--professional-blue:#235c88",
     "--green:#b9ddaf",
     "--red:#f2aa98",
+    "--candle-green:#00b300",
+    "--candle-red:#ed1b24",
   ]) {
     assert.match(html, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
@@ -367,7 +663,7 @@ test("the overhead map is replaced by a live clickable TOP route map", () => {
 });
 
 test("product direction uses three main columns with stage badges", () => {
-  assert.match(html, /<table class="direction-table">/);
+  assert.match(html, /<table\b(?=[^>]*\bclass="direction-table")(?=[^>]*\bid="product-direction-table")[^>]*>/);
   for (const heading of ["Name", "Analogy", "Application"]) {
     assert.match(html, new RegExp(`<th scope="col">${heading}</th>`));
   }
@@ -381,8 +677,9 @@ test("product direction uses three main columns with stage badges", () => {
   }
   assert.match(html, /TopOS[\s\S]*?Roads and infrastructure[\s\S]*?The local infrastructure for your AI integration/);
   assert.match(html, /Icarus[\s\S]*?Taximeter \+ fuel gauge[\s\S]*?Make your AI spend forecastable/);
-  assert.match(html, /Daedalus[\s\S]*?More efficient engine[\s\S]*?Help make your AI use cheaper/);
-  assert.match(html, /Athena[\s\S]*?Interactive sat-nav[\s\S]*?Help make your AI use smarter/);
+  assert.match(html, /Daedalus[\s\S]*?More efficient engine[\s\S]*?Make your AI use cheaper/);
+  assert.match(html, /Athena[\s\S]*?Interactive sat-nav[\s\S]*?Make your AI use smarter/);
+  assert.doesNotMatch(html, /Help make your AI use (?:cheaper|smarter)/);
 });
 
 test("business route selector sends Yes past TopOS and No to the infrastructure", () => {
@@ -468,8 +765,9 @@ test("audience navigation remains functional on desktop and mobile", () => {
 test("route choice, tactile panels and audience copy match the approved design", () => {
   assert.match(html, /class="press-button yes" href="#optimise" data-route="yes">Yes<\/a>/);
   assert.match(html, /class="press-button no" href="#topos" data-route="no">No<\/a>/);
-  assert.match(html, /\.route-buttons \.yes\{background:var\(--green\)\}/);
-  assert.match(html, /\.route-buttons \.no\{background:var\(--red\)\}/);
+  assert.match(html, /\.route-buttons \.yes\{background:var\(--candle-green\)\}/);
+  assert.match(html, /\.route-buttons \.no\{background:var\(--candle-red\)\}/);
+  assert.match(cssDeclarations("#partners"), /background\s*:\s*var\(--green\)/i);
   assert.match(html, /<h2 id="optimise-title">Measure the journey, <em>then<\/em> improve the traffic\.<\/h2>/);
   assert.match(html, /class="infrastructure-item tactile-panel"/);
   assert.match(html, /class="product-card tactile-panel"/);
