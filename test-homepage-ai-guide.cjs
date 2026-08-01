@@ -79,12 +79,13 @@ const openingSource = openingStart >= 0 && openingEnd > openingStart
   ? html.slice(openingStart, openingEnd + 5)
   : "";
 
-function makeOpeningScreenHarness({ navigationType = "navigate" } = {}) {
+function makeOpeningScreenHarness({ navigationType = "navigate", hash = "" } = {}) {
   const timers = [];
   const activeTimers = new Map();
   const documentEvents = {};
   const windowEvents = {};
   const scrollCalls = [];
+  const historyCalls = [];
   const rootClasses = makeClassList();
   rootClasses.add("no-js");
   const bodyClasses = makeClassList();
@@ -189,12 +190,16 @@ function makeOpeningScreenHarness({ navigationType = "navigate" } = {}) {
       return type === "navigation" ? [{ type: navigationType }] : [];
     },
   };
-  const history = { scrollRestoration: "auto" };
+  const history = {
+    scrollRestoration: "auto",
+    replaceState(...args) { historyCalls.push(args); },
+  };
   const window = {
     setTimeout: schedule,
     clearTimeout: clear,
     performance,
     history,
+    location: { hash, pathname: "/", search: "" },
     scrollTo(left, top) { scrollCalls.push([left, top]); },
     requestAnimationFrame(callback) { callback(now); return 1; },
     addEventListener(type, handler) {
@@ -238,6 +243,7 @@ function makeOpeningScreenHarness({ navigationType = "navigate" } = {}) {
     bodyClasses,
     emitPageShow(event = { persisted: false }) { emit(windowEvents, "pageshow", event); },
     history,
+    historyCalls,
     isReleased,
     pageShell,
     rootClasses,
@@ -793,6 +799,19 @@ test("Escape resets the desktop expanded control state", () => {
 test("historical analyser remains a direct technical-page destination", () => {
   assert.match(technicalHtml, /<section\b(?=[^>]*\bid="icarus")(?=[^>]*\bdata-content-section="icarus")[^>]*>/);
   assert.match(technicalHtml, /<div class="live-evidence">[\s\S]*?href="\/analyze\/\?pilot=1">Analyse past usage<\/a>/);
+});
+
+test("returning from How TOP works skips the opening once without persistent browser state", () => {
+  const harness = makeOpeningScreenHarness({ hash: "#from-how-top-works" });
+  assert.equal(harness.isReleased(), true,
+    "the explicit technical-page return route must reveal the homepage immediately");
+  assert.equal(harness.timers.length, 0, "the five-second timer must not start on that return route");
+  assert.equal(harness.pageShell.inert, false);
+  assert.notEqual(harness.pageShell.getAttribute("aria-hidden"), "true");
+  assert.deepEqual(harness.historyCalls, [[null, "", "/"]],
+    "the one-use return marker must be removed so a later reload plays the opening again");
+  assert.deepEqual(harness.scrollCalls, [[0, 0]]);
+  assert.equal(harness.rootClasses.contains("opening-return"), false);
 });
 
 test("route-map enhancement performs no network or storage work", () => {
