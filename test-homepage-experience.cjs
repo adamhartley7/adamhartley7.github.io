@@ -286,6 +286,9 @@ test("every visit begins with an unskippable five-second memento screen", () => 
     "the loading bar must never jump between discrete progress steps");
   assert.match(cssDeclarations(".opening-motto"), /white-space\s*:\s*nowrap/i);
   assert.match(cssDeclarations(".opening-translation"), /white-space\s*:\s*nowrap/i);
+  assert.match(html, /window\.location\.hash===['"]#from-how-top-works['"]/i);
+  assert.match(cssDeclarations("html.opening-return .opening-screen"), /visibility\s*:\s*hidden/i);
+  assert.match(cssDeclarations("html.opening-return .opening-screen"), /pointer-events\s*:\s*none/i);
 });
 
 test("the full-width opening is TOP-only, centred, and precedes the summary", () => {

@@ -50,6 +50,13 @@ test("technical page metadata and inline scripts are valid", () => {
   });
 });
 
+test("every technical-page homepage route uses the one-use opening bypass", () => {
+  const homepageLinks = [...html.matchAll(/<a\b[^>]*href="(\/?(?:#from-how-top-works)?)"[^>]*>/g)]
+    .map((match) => match[1]);
+  assert.equal(homepageLinks.length, 3, "header, navigation and footer must all expose a homepage route");
+  assert.deepEqual(homepageLinks, Array(3).fill("/#from-how-top-works"));
+});
+
 test("one compact glossary is the only transport analogy after the homepage", () => {
   const glossary = elementMarkupById("glossary");
   assert.match(glossary, /<table class="glossary-table">/);

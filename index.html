@@ -17,6 +17,13 @@
 <meta name="theme-color" content="#fff9e8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://adamhartley7.goatcounter.com; font-src 'self' data:; connect-src https://adamhartley7.goatcounter.com https://events.tokenoptimisationprotocol.org; media-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'self'">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ff6b2b'/%3E%3Cpath d='M5 6h22v6h-7v15h-8V12H5z' fill='%2316140f'/%3E%3C/svg%3E">
+<script>
+(function markTechnicalReturn(){
+  if(window.location&&window.location.hash==='#from-how-top-works'){
+    document.documentElement.classList.add('opening-return');
+  }
+})();
+</script>
 <style>
 @font-face{
   font-family:"Grenze Gotisch";
@@ -111,6 +118,10 @@ button{font:inherit}
 }
 .no-js .opening-screen{animation:opening-screen-release 1ms step-end 5s forwards}
 .opening-screen.is-complete{
+  visibility:hidden;
+  pointer-events:none;
+}
+html.opening-return .opening-screen{
   visibility:hidden;
   pointer-events:none;
 }
@@ -2164,6 +2175,24 @@ h3{
   var shell=document.getElementById('page-shell');
   root.classList.remove('no-js');
   if(!screen||!shell)return;
+
+  var technicalReturnHash='#from-how-top-works';
+  var isTechnicalReturn=window.location&&window.location.hash===technicalReturnHash;
+  if(isTechnicalReturn){
+    screen.classList.add('is-complete');
+    screen.setAttribute('aria-hidden','true');
+    shell.removeAttribute('inert');
+    shell.removeAttribute('aria-hidden');
+    root.classList.remove('opening-active');
+    root.classList.remove('opening-paused');
+    root.classList.remove('opening-return');
+    if(window.history&&typeof window.history.replaceState==='function'){
+      window.history.replaceState(null,'',window.location.pathname+window.location.search);
+    }
+    if(typeof window.scrollTo==='function')window.scrollTo(0,0);
+    return;
+  }
+  root.classList.remove('opening-return');
 
   var requiredWait=5000;
   var visibleElapsed=0;
