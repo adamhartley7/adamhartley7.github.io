@@ -296,18 +296,25 @@ test("time spent in a hidden tab cannot bypass the five-second opening", () => {
   assert.equal(harness.isReleased(), true);
 });
 
-test("a reload is pinned to the top before and after the opening screen", () => {
+test("a reload uses three visible seconds and remains pinned to the top", () => {
   const reloadHarness = makeOpeningScreenHarness({ navigationType: "reload" });
   assert.deepEqual(reloadHarness.scrollCalls, [[0, 0]],
     "reload setup must immediately override the browser's restored scroll position");
   assert.equal(reloadHarness.history.scrollRestoration, "manual");
+  assert.equal(reloadHarness.timers[0].delay, 3000);
+  assert.ok(reloadHarness.rootClasses.contains("opening-reload"));
 
   reloadHarness.emitPageShow();
   assert.deepEqual(reloadHarness.scrollCalls.at(-1), [0, 0],
     "pageshow must defeat any late native scroll restoration");
 
   const callsBeforeRelease = reloadHarness.scrollCalls.length;
-  reloadHarness.advance(5000);
+  reloadHarness.advance(2999);
+  assert.equal(reloadHarness.screen.classList.contains("is-complete"), false);
+  assert.equal(reloadHarness.scrollCalls.length, callsBeforeRelease);
+  reloadHarness.advance(1);
+  assert.equal(reloadHarness.screen.classList.contains("is-complete"), true);
+  assert.equal(reloadHarness.rootClasses.contains("opening-reload"), false);
   assert.equal(reloadHarness.scrollCalls.length, callsBeforeRelease + 1);
   assert.deepEqual(reloadHarness.scrollCalls.at(-1), [0, 0],
     "the revealed page must still begin at the top");

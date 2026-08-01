@@ -244,7 +244,7 @@ test("homepage inline scripts parse", () => {
   });
 });
 
-test("every visit begins with an unskippable five-second memento screen", () => {
+test("a direct visit begins with an unskippable five-second memento screen", () => {
   const screen = elementMarkupById("opening-screen");
   assert.equal(
     visibleText(screen),
@@ -265,7 +265,7 @@ test("every visit begins with an unskippable five-second memento screen", () => 
   assert.match(rules, /inset\s*:\s*0/i);
   assert.match(rules, /z-index\s*:\s*\d+/i);
   assert.doesNotMatch(rules, /animation\s*:/i,
-    "CSS animation timing can be shortened by reduced-motion rules; release must use the 5000ms script");
+    "release timing must remain controlled by the opening script");
 
   const progressRules = cssDeclarations(".opening-progress");
   assert.match(progressRules, /position\s*:\s*absolute/i);
@@ -276,14 +276,20 @@ test("every visit begins with an unskippable five-second memento screen", () => 
   assert.match(labelRules, /top\s*:\s*20px/i);
   assert.match(labelRules, /left\s*:\s*22px/i);
   const progressFillRules = cssDeclarations(".opening-progress::after");
-  assert.match(progressFillRules, /animation\s*:\s*opening-progress\s+5s\s+linear\s+both/i);
+  assert.match(cssDeclarations(":root"), /--opening-duration\s*:\s*5s/i);
+  assert.match(cssDeclarations("html.opening-reload"), /--opening-duration\s*:\s*3s/i);
+  assert.match(progressFillRules, /animation\s*:\s*opening-progress\s+var\(--opening-duration,\s*5s\)\s+linear\s+both/i);
   assert.match(progressFillRules, /transform\s*:\s*translate3d\(-100%,\s*0,\s*0\)/i);
   assert.match(progressFillRules, /will-change\s*:\s*transform/i);
   assert.match(cssDeclarations(".opening-paused .opening-progress::after"), /animation-play-state\s*:\s*paused/i);
-  assert.match(html, /animation\s*:\s*opening-progress\s+5s\s+linear\s+both!important/i,
+  assert.match(html, /animation\s*:\s*opening-progress\s+var\(--opening-duration,\s*5s\)\s+linear\s+both!important/i,
     "the functional progress cue must remain smooth under reduced-motion settings");
-  assert.doesNotMatch(html, /opening-progress\s+5s\s+steps/i,
+  assert.doesNotMatch(html, /opening-progress\s+var\(--opening-duration,\s*5s\)\s+steps/i,
     "the loading bar must never jump between discrete progress steps");
+  assert.match(html, /requiredWait\s*=\s*isReload\s*\?\s*3000\s*:\s*5000/i,
+    "reloads should use three seconds while direct visits retain five");
+  assert.match(html, /classList\.add\(['"]opening-reload['"]\)/i,
+    "reloads should be marked before paint so the progress duration matches");
   assert.match(cssDeclarations(".opening-motto"), /white-space\s*:\s*nowrap/i);
   assert.match(cssDeclarations(".opening-translation"), /white-space\s*:\s*nowrap/i);
   assert.match(html, /window\.location\.hash===['"]#from-how-top-works['"]/i);
