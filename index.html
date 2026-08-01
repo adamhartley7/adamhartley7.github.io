@@ -67,6 +67,7 @@ button{font:inherit}
   width:100%;
   height:4px;
   overflow:hidden;
+  contain:paint;
   border-bottom:1px solid var(--line);
   background:var(--wash);
 }
@@ -76,11 +77,21 @@ button{font:inherit}
   width:100%;
   height:100%;
   background:var(--signal);
-  transform:scaleX(0);
-  transform-origin:left center;
+  backface-visibility:hidden;
+  transform:translate3d(-100%,0,0);
+  will-change:transform;
   animation:opening-progress 5s linear both;
 }
 .opening-paused .opening-progress::after{animation-play-state:paused}
+.opening-label{
+  position:absolute;
+  top:20px;
+  left:22px;
+  margin:0;
+  color:var(--muted);
+  font:700 10px/1.2 Consolas,"Courier New",monospace;
+  letter-spacing:.055em;
+}
 .opening-copy{
   display:grid;
   width:min(100%,1100px);
@@ -94,24 +105,23 @@ button{font:inherit}
 }
 .opening-motto{
   margin:0;
-  font:400 clamp(36px,7vw,96px)/1.08 "Old English Text MT","Lucida Calligraphy","Apple Chancery","URW Chancery L",cursive;
+  font:400 clamp(19px,5.5vw,92px)/1.08 "Old English Text MT","Lucida Calligraphy","Apple Chancery","URW Chancery L",cursive;
   text-align:center;
-  text-wrap:balance;
+  white-space:nowrap;
   letter-spacing:.015em;
 }
 .opening-translation{
-  max-width:38ch;
   margin:0;
   color:var(--muted);
   font:700 clamp(13px,1.2vw,18px)/1.45 Arial,Helvetica,sans-serif;
   text-align:center;
-  text-wrap:balance;
+  white-space:nowrap;
   letter-spacing:.015em;
 }
 html.opening-active,
 html.opening-active body{overflow:hidden}
 @keyframes opening-progress{
-  to{transform:scaleX(1)}
+  to{transform:translate3d(0,0,0)}
 }
 @keyframes opening-screen-release{
   to{visibility:hidden;pointer-events:none}
@@ -1336,6 +1346,7 @@ h3{
 }
 @media(max-width:800px){
   body{font-size:16px}
+  .opening-screen{padding:16px}
   .site-frame{width:100%;margin:0;border:0;box-shadow:none}
   .masthead{min-height:70px;padding:11px 14px;gap:12px}
   .brand-copy small{display:none}
@@ -1427,8 +1438,11 @@ h3{
   .footer-links{justify-content:flex-start}
 }
 @media(max-width:480px){
-  .opening-motto{font-size:clamp(34px,13vw,58px)}
-  .opening-translation{max-width:31ch;font-size:12px}
+  .opening-screen{padding:12px}
+  .opening-label{top:18px;left:14px;font-size:9px}
+  .opening-copy{gap:12px}
+  .opening-motto{font-size:clamp(17px,5.5vw,27px)}
+  .opening-translation{font-size:10px;letter-spacing:0}
   .opening-hero{min-height:max(320px,calc(100svh - 104px))}
   .brand-mark{width:40px;height:40px;font-size:19px}
   .brand-copy strong{font-size:14px}
@@ -1477,7 +1491,7 @@ h3{
     animation-delay:5s!important;
   }
   .opening-progress::after{
-    animation:opening-progress 5s steps(5,end) both!important;
+    animation:opening-progress 5s linear both!important;
   }
   .opening-paused .opening-progress::after{animation-play-state:paused!important}
   .motion-user-enabled .route-car{
@@ -1489,6 +1503,7 @@ h3{
 <body>
 <div class="opening-screen" id="opening-screen" role="status" aria-live="polite" aria-atomic="true">
   <span class="opening-progress" aria-hidden="true"></span>
+  <p class="opening-label">Loading TOP website</p>
   <div class="opening-copy">
     <p class="opening-motto" lang="la">Memento mori, ergo carpe diem.</p>
     <p class="opening-translation">(Remember you must die, therefore seize the day)</p>

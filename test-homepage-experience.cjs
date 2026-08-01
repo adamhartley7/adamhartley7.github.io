@@ -85,9 +85,10 @@ test("every visit begins with an unskippable five-second memento screen", () => 
   const screen = elementMarkupById("opening-screen");
   assert.equal(
     visibleText(screen),
-    "Memento mori, ergo carpe diem. (Remember you must die, therefore seize the day)",
+    "Loading TOP website Memento mori, ergo carpe diem. (Remember you must die, therefore seize the day)",
   );
   assert.match(screen, /<span\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bopening-progress\b)[^>]*\baria-hidden\s*=\s*["']true["'][^>]*>/i);
+  assert.match(screen, /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bopening-label\b)[^>]*>\s*Loading TOP website\s*<\/p>/i);
   assert.match(screen, /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bopening-translation\b)[^>]*>\s*\(Remember you must die, therefore seize the day\)\s*<\/p>/i);
   assert.doesNotMatch(screen, /<(?:a|button|input|select|textarea)\b|\brole\s*=\s*["']button["']/i);
 
@@ -107,13 +108,21 @@ test("every visit begins with an unskippable five-second memento screen", () => 
   assert.match(progressRules, /position\s*:\s*absolute/i);
   assert.match(progressRules, /top\s*:\s*0/i);
   assert.match(progressRules, /height\s*:\s*4px/i);
+  const labelRules = cssDeclarations(".opening-label");
+  assert.match(labelRules, /position\s*:\s*absolute/i);
+  assert.match(labelRules, /top\s*:\s*20px/i);
+  assert.match(labelRules, /left\s*:\s*22px/i);
   const progressFillRules = cssDeclarations(".opening-progress::after");
   assert.match(progressFillRules, /animation\s*:\s*opening-progress\s+5s\s+linear\s+both/i);
-  assert.match(progressFillRules, /transform-origin\s*:\s*left\s+center/i);
+  assert.match(progressFillRules, /transform\s*:\s*translate3d\(-100%,\s*0,\s*0\)/i);
+  assert.match(progressFillRules, /will-change\s*:\s*transform/i);
   assert.match(cssDeclarations(".opening-paused .opening-progress::after"), /animation-play-state\s*:\s*paused/i);
-  assert.match(html, /animation\s*:\s*opening-progress\s+5s\s+steps\(5,end\)\s+both!important/i,
-    "reduced-motion visitors still need truthful five-second progress without continuous movement");
-  assert.match(cssDeclarations(".opening-translation"), /max-width\s*:\s*38ch/i);
+  assert.match(html, /animation\s*:\s*opening-progress\s+5s\s+linear\s+both!important/i,
+    "the functional progress cue must remain smooth under reduced-motion settings");
+  assert.doesNotMatch(html, /opening-progress\s+5s\s+steps/i,
+    "the loading bar must never jump between discrete progress steps");
+  assert.match(cssDeclarations(".opening-motto"), /white-space\s*:\s*nowrap/i);
+  assert.match(cssDeclarations(".opening-translation"), /white-space\s*:\s*nowrap/i);
 });
 
 test("the full-width opening is TOP-only, centred, and precedes both sidebars", () => {
