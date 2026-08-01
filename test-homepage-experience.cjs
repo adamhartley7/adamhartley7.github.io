@@ -9,26 +9,239 @@ const html = fs.readFileSync(new URL("index.html", `file://${__dirname}/`), "utf
 const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1]);
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function decodeEntities(value) {
+  const named = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    larr: "←",
+    lt: "<",
+    nbsp: " ",
+    quot: '"',
+    rarr: "→",
+  };
+  return value
+    .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([\da-f]+);/gi, (_match, code) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&([a-z]+);/gi, (match, name) => named[name.toLowerCase()] || match);
+}
+
+function normaliseText(value) {
+  return decodeEntities(value).replace(/\s+/g, " ").trim();
+}
+
+function visibleText(markup) {
+  return normaliseText(markup
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]+>/g, " "));
+}
+
+function openingTagById(id) {
+  const pattern = new RegExp(
+    `<([a-z][\\w:-]*)\\b(?=[^>]*\\bid\\s*=\\s*(["'])${escapeRegExp(id)}\\2)[^>]*>`,
+    "i",
+  );
+  const match = pattern.exec(html);
+  assert.ok(match, `#${id} must exist`);
+  return { index: match.index, markup: match[0], tag: match[1] };
+}
+
+function elementMarkupById(id) {
+  const opening = openingTagById(id);
+  const tokens = new RegExp(`<\\/?${escapeRegExp(opening.tag)}\\b[^>]*>`, "gi");
+  tokens.lastIndex = opening.index + opening.markup.length;
+  let depth = 1;
+  let token;
+  while ((token = tokens.exec(html))) {
+    if (/^<\s*\//.test(token[0])) depth -= 1;
+    else if (!/\/\s*>$/.test(token[0])) depth += 1;
+    if (depth === 0) return html.slice(opening.index, token.index + token[0].length);
+  }
+  assert.fail(`#${id} must have a closing </${opening.tag}> tag`);
+}
+
+function cssDeclarations(selector) {
+  const styles = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
+    .map((match) => match[1])
+    .join("\n");
+  const match = new RegExp(`${escapeRegExp(selector)}\\s*\\{([^}]*)\\}`, "i").exec(styles);
+  assert.ok(match, `${selector} must have an explicit CSS rule`);
+  return match[1];
+}
+
 test("homepage inline scripts parse", () => {
   inlineScripts.forEach((source, index) => {
     assert.doesNotThrow(() => new vm.Script(source, { filename: `index-inline-${index}.js` }));
   });
 });
 
+test("every visit begins with an unskippable five-second memento screen", () => {
+  const screen = elementMarkupById("opening-screen");
+  assert.equal(visibleText(screen), "Memento mori, ergo carpe diem.");
+  assert.doesNotMatch(screen, /<(?:a|button|input|select|textarea)\b|\brole\s*=\s*["']button["']/i);
+
+  const screenAt = openingTagById("opening-screen").index;
+  const skipLinkAt = html.search(/<a\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bskip-link\b)/i);
+  assert.ok(screenAt >= 0 && skipLinkAt > screenAt,
+    "the loading screen must precede every interactive page control");
+
+  const rules = cssDeclarations(".opening-screen");
+  assert.match(rules, /position\s*:\s*fixed/i);
+  assert.match(rules, /inset\s*:\s*0/i);
+  assert.match(rules, /z-index\s*:\s*\d+/i);
+  assert.doesNotMatch(rules, /animation\s*:/i,
+    "CSS animation timing can be shortened by reduced-motion rules; release must use the 5000ms script");
+});
+
+test("the full-width opening is TOP-only, centred, and precedes both sidebars", () => {
+  const opening = elementMarkupById("opening-hero");
+  assert.equal(visibleText(opening), "TOP Token Optimisation Protocol");
+  assert.match(opening, /<h1\b[^>]*>\s*TOP\s*<\/h1>/i);
+  assert.match(opening, /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bhero-expansion\b)[^>]*>\s*Token Optimisation Protocol\s*<\/p>/i);
+  assert.doesNotMatch(opening, /\b(?:audience-rail|route-rail)\b/i);
+
+  const mastheadAt = html.search(/<header\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bmasthead\b)/i);
+  const openingAt = openingTagById("opening-hero").index;
+  const letterAt = openingTagById("founders-letter").index;
+  const audienceAt = html.search(/<aside\b(?=[^>]*\bclass\s*=\s*["'][^"']*\baudience-rail\b)/i);
+  const routeMapAt = openingTagById("route-map-panel").index;
+  assert.ok(mastheadAt >= 0 && openingAt > mastheadAt && letterAt > openingAt);
+  assert.ok(audienceAt > letterAt && routeMapAt > letterAt,
+    "neither explanatory sidebar may begin alongside the opening TOP or letter");
+
+  const rules = cssDeclarations(".opening-hero");
+  assert.match(rules, /text-align\s*:\s*center/i);
+  assert.match(rules, /(?:width\s*:\s*100%|grid-column\s*:\s*1\s*\/\s*-1)/i);
+});
+
+test("the founders' letter reproduces Adam's supplied copy verbatim", () => {
+  const expected = normaliseText(`
+Dear reader,
+
+We would like to open with a letter from the TOP team to illustrate our vision.
+
+AI this AI that,
+
+What the F*** is going on?!
+
+If you’re using AI for your business,
+especially if you’re not,
+
+You’re probably behind the curve.
+
+Top is like the slingshot in David’s hand, helping you go toe to toe with Goliath.
+
+AI is a massively powerful tool which can be used to accelerate your business:
+
+We want to minimise the asymmetric information available to people like you,
+so you can understand and leverage the inner workings of the black box of AI.
+
+But we won’t stop there…
+
+Once you’re up to speed, we will help implement cutting edge solutions to make your AI agents work forecastable, your spend trackable, your workflow far more efficient and your AI use understandable, auditable and far smarter.
+
+If AI is compared to a car,
+We make sure you’re not only at the wheel,
+You’ve got a flashier whip than anyone on the block.
+
+You won’t just be ahead of the curve…
+They’ll be eating you’re dust.
+
+Sincerely,
+The TOP team.
+
+Adam Hartley, Sam O'Connell, Chullain Lyons, Fionn Gavin et al.
+  `);
+  const letterText = visibleText(elementMarkupById("founders-letter"));
+  assert.ok(letterText.includes(expected), "the letter must contain the supplied text without edits");
+  assert.doesNotMatch(letterText, /They’ll be eating your dust\./,
+    "the supplied wording must not be silently corrected");
+});
+
+test("the sidebar explanation is the threshold between the letter and prior homepage", () => {
+  const letter = openingTagById("founders-letter");
+  const introduction = elementMarkupById("sidebar-introduction");
+  const introductionAt = openingTagById("sidebar-introduction").index;
+  const introductionText = visibleText(introduction);
+  const layoutAt = openingTagById("main-content").index;
+  const audienceAt = html.search(/<aside\b(?=[^>]*\bclass\s*=\s*["'][^"']*\baudience-rail\b)/i);
+  const routeMapAt = openingTagById("route-map-panel").index;
+
+  assert.match(introduction, /<div\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bsidebar-cue-left\b)[^>]*>/i);
+  assert.match(introduction, /<div\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bsidebar-cue-right\b)[^>]*>/i);
+  assert.match(introductionText, /You are/);
+  assert.match(introductionText, /(?:←|⟵|⇠|⬅)/);
+  assert.match(introductionText, /Site Roadmap/);
+  assert.match(introductionText, /(?:→|⟶|⇢|➡)/);
+  assert.ok(layoutAt < letter.index && introductionAt > letter.index,
+    "the handoff must sit inside the main grid immediately after the full-width letter");
+  assert.ok(audienceAt > introductionAt && routeMapAt > introductionAt,
+    "the left and right rails must start at the explained threshold");
+
+  for (const id of ["business", "product-direction", "routes", "topos", "optimise",
+    "historical-analyzer", "engineering", "partners", "roadmap"]) {
+    assert.ok(openingTagById(id).index > introductionAt, `existing #${id} content must remain below the handoff`);
+  }
+});
+
 test("homepage opens with Adam's approved TOP language", () => {
-  assert.match(html, /<h1 id="hero-title">TOP<\/h1>/);
-  assert.match(html, /<p class="hero-expansion">Token Optimization Protocol<\/p>/);
+  const business = elementMarkupById("business");
+  assert.doesNotMatch(business, /<h1\b|\bhero-expansion\b/i,
+    "the TOP lockup belongs to the opening and must not be duplicated below the handoff");
   assert.match(
     html,
     /The AI landscape is <span class="changing-landscape">constantly changing<\/span>, TOP helps You keep two feet on the ground so You and Your Business stay ahead of the curve/,
   );
-  assert.match(html, /TOP is being built as a centralized AI integrator, then optimizer for businesses\./);
+  assert.match(html, /TOP is being built as a centralised AI integrator, then optimiser for businesses\./);
   assert.match(
     html,
     /If work is transport, AI agents are cars, and TOP is the road system we are building to make traffic visible, and over time help it run better\. We want to give business owners insight into the black box that is artificial intelligence\./,
   );
   assert.match(html, /Forecastable, cheaper and smarter describe the intended route, not outcomes TOP has proved\./);
   assert.doesNotMatch(html, /The AI landscape never stops moving/i);
+});
+
+test("the transport analogy is centred without changing Adam's wording", () => {
+  const business = elementMarkupById("business");
+  assert.match(
+    business,
+    /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bhero-analogy\b)[^>]*>[\s\S]*?If work is transport, AI agents are cars, and TOP is the road system we are building to make traffic visible, and over time help it run better\. We want to give business owners insight into the black box that is artificial intelligence\.[\s\S]*?<\/p>/,
+  );
+  assert.match(cssDeclarations(".hero-analogy"), /text-align\s*:\s*center/i);
+});
+
+test("the route-selector title is explicit and its panel uses the yellow signal", () => {
+  const routes = elementMarkupById("routes");
+  assert.match(
+    routes,
+    /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\beyebrow\b)[^>]*>\s*01 - Route Selector\s*<\/p>/,
+  );
+  assert.doesNotMatch(routes, />\s*Route selector\s*\/\s*01\s*</i);
+
+  const rules = cssDeclarations(".decision");
+  assert.match(rules, /background\s*:\s*var\(--lemon\)/i);
+  assert.doesNotMatch(rules, /background\s*:\s*var\(--signal\)/i);
+});
+
+test("British spelling is used in visible homepage language and metadata", () => {
+  const pageText = visibleText(html);
+  const metadata = [...html.matchAll(/<(?:title|meta)\b[^>]*>/gi)]
+    .map((match) => decodeEntities(match[0]))
+    .join(" ");
+  const americanSpellings = /\b(?:optimization|optimizer|centralized|analyz(?:e|ed|er|ers|es|ing))\b/i;
+
+  assert.doesNotMatch(pageText, americanSpellings);
+  assert.doesNotMatch(metadata, americanSpellings);
+  assert.match(pageText, /Token Optimisation Protocol/);
+  assert.match(pageText, /centralised AI integrator, then optimiser/);
+  assert.match(pageText, /historical analyser/i);
+  assert.match(pageText, /Analyse past journeys/);
 });
 
 test("personal-site visual tokens and pressable controls remain explicit", () => {
@@ -63,17 +276,35 @@ test("personal-site visual tokens and pressable controls remain explicit", () =>
 
 test("the overhead map is replaced by a live clickable TOP route map", () => {
   assert.doesNotMatch(html, /class="network-figure"|class="map-frame"/);
-  assert.match(html, /<aside class="route-rail" id="route-map-panel" aria-label="TOP route map">/);
-  assert.match(html, /<nav class="route-map" id="route-map-nav" aria-label="Live page contents">/);
-  assert.match(html, /data-route-map-link="business" aria-current="location"/);
+  assert.match(
+    html,
+    /<aside\b(?=[^>]*\bclass\s*=\s*["'][^"']*\broute-rail\b)(?=[^>]*\bid\s*=\s*["']route-map-panel["'])(?=[^>]*\baria-label\s*=\s*["']Site roadmap["'])[^>]*>/i,
+  );
+  assert.match(
+    html,
+    /<nav\b(?=[^>]*\bclass\s*=\s*["'][^"']*\broute-map\b)(?=[^>]*\bid\s*=\s*["']route-map-nav["'])(?=[^>]*\baria-label\s*=\s*["']Live site roadmap["'])[^>]*>/i,
+  );
+  assert.match(
+    html,
+    /<a\b(?=[^>]*\bdata-route-map-link\s*=\s*["']business["'])(?=[^>]*\baria-current\s*=\s*["']location["'])[^>]*>/i,
+  );
   for (const target of [
     "routes", "topos", "optimise", "icarus", "daedalus", "athena",
     "historical-analyzer", "engineering", "partners", "roadmap",
   ]) {
-    assert.match(html, new RegExp(`href="#${target}" data-route-map-link="${target}"`));
+    assert.match(
+      html,
+      new RegExp(`<a\\b(?=[^>]*\\bhref\\s*=\\s*["']#${target}["'])(?=[^>]*\\bdata-route-map-link\\s*=\\s*["']${target}["'])[^>]*>`, "i"),
+    );
   }
-  assert.match(html, /class="route-car" id="route-car" aria-hidden="true"/);
-  assert.match(html, /id="motion-toggle" type="button" aria-pressed="false" aria-label="Pause route-map animation"/);
+  for (const product of ["icarus", "daedalus", "athena"]) {
+    assert.match(
+      html,
+      new RegExp(`<article\\b(?=[^>]*\\bid\\s*=\\s*["']${product}["'])(?=[^>]*\\bdata-route-map-section\\s*=\\s*["']${product}["'])[^>]*>`, "i"),
+    );
+  }
+  assert.match(html, /<span\b(?=[^>]*\bclass\s*=\s*["'][^"']*\broute-car\b)(?=[^>]*\bid\s*=\s*["']route-car["'])(?=[^>]*\baria-hidden\s*=\s*["']true["'])[^>]*>/i);
+  assert.match(html, /<button\b(?=[^>]*\bid\s*=\s*["']motion-toggle["'])(?=[^>]*\btype\s*=\s*["']button["'])(?=[^>]*\baria-pressed\s*=\s*["']false["'])(?=[^>]*\baria-label\s*=\s*["']Pause route-map animation["'])[^>]*>/i);
   assert.match(html, /\.route-node\[aria-current="location"\][\s\S]*?box-shadow:-4px 4px 0 var\(--ink\)/);
   assert.match(html, /\.motion-paused \.route-car\{animation-play-state:paused\}/);
 });
@@ -83,6 +314,11 @@ test("product direction uses three main columns with stage badges", () => {
   for (const heading of ["Name", "Analogy", "Application"]) {
     assert.match(html, new RegExp(`<th scope="col">${heading}</th>`));
   }
+  assert.doesNotMatch(html, /\.direction-table thead\s*\{\s*display\s*:\s*none/i);
+  assert.match(
+    html,
+    /\.direction-table thead\s*\{[^}]*position:absolute[^}]*clip:rect\(0,0,0,0\)[^}]*\}/,
+  );
   for (const stage of ["Intranet / OS", "TOP 1", "TOP 2", "TOP 3"]) {
     assert.match(html, new RegExp(`<span class="stage-badge">${stage.replace("/", "\\/")}</span>`));
   }
