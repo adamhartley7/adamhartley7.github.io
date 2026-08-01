@@ -34,6 +34,8 @@
   --road-edge:#292720;
   --green:#b9ddaf;
   --red:#f2aa98;
+  --candle-green:#00b300;
+  --candle-red:#ed1b24;
   --max:1700px;
   --anchor-offset:0px;
 }
@@ -261,27 +263,45 @@ html.opening-active body{overflow:hidden}
 }
 .opening-hero-heading{
   display:inline-grid;
-  width:fit-content;
+  width:min(100%,2.12em);
   max-width:100%;
   justify-items:stretch;
+  font-size:clamp(116px,25vw,420px);
 }
 .opening-hero h1{
-  justify-self:center;
-  font-size:clamp(116px,25vw,420px);
-  line-height:.78;
-  letter-spacing:-.085em;
-}
-.opening-hero .hero-expansion{
-  display:flex;
+  display:grid;
   width:100%;
+  grid-template-columns:repeat(3,minmax(0,1fr));
   align-items:center;
-  justify-content:space-between;
-  gap:clamp(8px,1.2vw,24px);
+  justify-self:stretch;
+  font-size:1em;
+  line-height:.78;
+  letter-spacing:0;
+}
+.opening-hero h1 span{text-align:center}
+.opening-hero .hero-expansion{
+  position:relative;
+  display:grid;
+  width:100%;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:center;
+  gap:0;
   margin:clamp(18px,3vw,34px) 0 0;
   font-size:clamp(14px,1.8vw,26px);
-  letter-spacing:.1em;
+  letter-spacing:.075em;
   white-space:nowrap;
 }
+.opening-hero .hero-expansion span:nth-child(1),
+.opening-hero .hero-expansion span:nth-child(3),
+.opening-hero .hero-expansion span:nth-child(5){justify-self:center}
+.opening-hero .hero-expansion span:nth-child(2),
+.opening-hero .hero-expansion span:nth-child(4){
+  position:absolute;
+  top:50%;
+  transform:translate(-50%,-50%);
+}
+.opening-hero .hero-expansion span:nth-child(2){left:33.333%}
+.opening-hero .hero-expansion span:nth-child(4){left:66.667%}
 .founders-letter-section{
   grid-column:1/-1;
   padding:clamp(52px,7vw,96px) clamp(22px,7vw,110px);
@@ -302,13 +322,36 @@ html.opening-active body{overflow:hidden}
 .manuscript-top{
   position:absolute;
   z-index:1;
+  display:grid;
+  place-items:center;
   width:46px;
   height:54px;
   padding:5px;
   border:1px solid var(--ink);
+  border-radius:0;
   background:var(--paper);
   color:var(--ink);
-  pointer-events:none;
+  box-shadow:-3px 3px 0 var(--top-shadow);
+  cursor:pointer;
+  transition:transform 90ms ease,box-shadow 90ms ease,background 90ms ease;
+}
+.manuscript-top:hover{
+  background:var(--wash);
+  box-shadow:-1px 1px 0 var(--top-shadow);
+  transform:translate(-2px,2px);
+}
+.manuscript-top:active{
+  box-shadow:none;
+  transform:translate(-3px,3px);
+}
+.manuscript-top-icon{
+  display:block;
+  width:100%;
+  height:100%;
+  transform-origin:50% 51%;
+}
+.manuscript-top.is-spinning .manuscript-top-icon{
+  animation:manuscript-top-spin 720ms cubic-bezier(.2,.75,.25,1);
 }
 .manuscript-top-rim{
   fill:none;
@@ -319,12 +362,12 @@ html.opening-active body{overflow:hidden}
 .manuscript-top-left{
   top:20px;
   left:20px;
-  box-shadow:-3px 3px 0 var(--blue);
+  --top-shadow:var(--blue);
 }
 .manuscript-top-right{
   right:20px;
   bottom:20px;
-  box-shadow:-3px 3px 0 var(--signal);
+  --top-shadow:var(--signal);
 }
 .letter-copy{
   max-width:576px;
@@ -339,15 +382,55 @@ html.opening-active body{overflow:hidden}
   min-height:4.2em;
   font-weight:700;
 }
-.letter-salutation::first-letter{
+.letter-initial{
   float:left;
+  min-width:44px;
+  min-height:44px;
   margin:.04em .12em 0 0;
   padding:.08em .12em .04em;
   border:2px solid var(--ink);
+  border-radius:0;
   background:var(--blue);
   color:var(--signal-dark);
   box-shadow:-4px 4px 0 var(--ink);
   font:400 3.8em/.72 "Old English Text MT","Lucida Calligraphy","Apple Chancery",cursive;
+  cursor:pointer;
+  transition:transform 90ms ease,box-shadow 90ms ease,background 90ms ease;
+}
+.letter-initial:hover{
+  background:#c6e6ff;
+  box-shadow:-2px 2px 0 var(--ink);
+  transform:translate(-2px,2px);
+}
+.letter-initial:active{
+  box-shadow:none;
+  transform:translate(-4px,4px);
+}
+.calligraphy-word{
+  position:relative;
+  display:inline-block;
+  white-space:nowrap;
+}
+.calligraphy-source{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+.calligraphy-visual{display:inline-block}
+.calligraphy-glyph{
+  display:inline-block;
+  transform-origin:50% 78%;
+}
+.calligraphy-glyph::before{content:attr(data-glyph)}
+.calligraphy-glyph.is-calligraphic{
+  font-family:"Old English Text MT","Lucida Calligraphy","Apple Chancery","URW Chancery L",cursive;
+  animation:letter-glyph-change 320ms cubic-bezier(.2,.75,.25,1) both;
 }
 .letter-outcry{
   font-size:clamp(22px,2.4vw,34px);
@@ -792,35 +875,54 @@ h3{
 }
 .changing-landscape{
   display:inline-block;
+  min-height:44px;
   padding:0 .12em .04em;
+  border:0;
   border-bottom:3px solid var(--ink);
+  border-radius:0;
   background:var(--lemon);
+  color:inherit;
   box-shadow:-4px 4px 0 var(--ink);
+  font:inherit;
   transform:translate(2px,-2px);
+  cursor:pointer;
+  transition:transform 90ms ease,box-shadow 90ms ease,background 90ms ease;
 }
+.changing-landscape:hover{background:#fff0b8;box-shadow:-2px 2px 0 var(--ink);transform:translate(0,0)}
+.changing-landscape:active{box-shadow:none;transform:translate(-2px,2px)}
+.changing-landscape.is-popping{animation:landscape-change 460ms steps(4,end)}
 .direction-board{
   max-width:1080px;
   margin:52px auto 0;
   text-align:left;
 }
-#business .hero-lead{margin-top:48px}
-#business .hero-analogy{margin-top:36px}
-#business .hero-statement{margin-top:58px}
-#business .direction-board{margin-top:70px}
+#business .hero-lead{margin-top:64px}
+#business .hero-analogy{margin-top:48px}
+#business .hero-statement{margin-top:72px}
+#business .direction-board{margin-top:96px}
 .direction-board>.micro-label{
   display:inline-flex;
-  margin-bottom:12px;
-  padding:8px 10px;
+  min-height:44px;
+  align-items:center;
+  margin-bottom:28px;
+  padding:10px 12px;
   border:1px solid var(--ink);
+  border-radius:0;
   background:var(--lemon);
   box-shadow:-3px 3px 0 var(--ink);
   color:var(--ink);
   font:900 13px/1 Arial,Helvetica,sans-serif;
   letter-spacing:.055em;
+  cursor:pointer;
+  transition:transform 90ms ease,box-shadow 90ms ease,background 90ms ease;
 }
+.direction-board>.micro-label:hover{background:#fff0b8;box-shadow:-1px 1px 0 var(--ink);transform:translate(-2px,2px)}
+.direction-board>.micro-label:active{box-shadow:none;transform:translate(-3px,3px)}
+.direction-board>.micro-label.is-popping{animation:paper-button-pop 360ms cubic-bezier(.2,.75,.25,1)}
 .direction-table-wrap{
   padding-left:75px;
 }
+.direction-table-shell{position:relative}
 .direction-table{
   width:100%;
   table-layout:fixed;
@@ -829,6 +931,18 @@ h3{
   border:2px solid var(--ink);
   background:var(--paper);
   box-shadow:-7px 7px 0 var(--ink);
+  cursor:pointer;
+  transition:transform 90ms ease,box-shadow 90ms ease;
+}
+.direction-table-shell:hover .direction-table{
+  box-shadow:-3px 3px 0 var(--ink);
+  transform:translate(-4px,4px);
+}
+.direction-table:active,
+.direction-table.is-pressed,
+.direction-table.is-popping{
+  box-shadow:none;
+  transform:translate(-7px,7px);
 }
 .direction-table th,.direction-table td{
   position:relative;
@@ -837,6 +951,8 @@ h3{
   border-bottom:1px solid var(--ink);
   vertical-align:top;
 }
+#business .direction-table th,
+#business .direction-table td{padding:20px 18px}
 .direction-table tr:last-child>*{border-bottom:0}
 .direction-table tr>*:last-child{border-right:0}
 .direction-table thead th{
@@ -876,6 +992,7 @@ h3{
   text-transform:uppercase;
   letter-spacing:.06em;
 }
+#business .direction-board small{margin-top:22px}
 .decision{
   background:var(--lemon);
   text-align:center;
@@ -898,10 +1015,10 @@ h3{
   min-height:74px;
   font-size:17px;
 }
-.route-buttons .yes{background:var(--green)}
-.route-buttons .no{background:var(--red)}
-.route-buttons .yes:hover{background:#cce9c4}
-.route-buttons .no:hover{background:#f7bbaa}
+.route-buttons .yes{background:var(--candle-green)}
+.route-buttons .no{background:var(--candle-red)}
+.route-buttons .yes:hover{background:var(--candle-green)}
+.route-buttons .no:hover{background:var(--candle-red)}
 .route-status{
   grid-column:1/-1;
   min-height:1.4em;
@@ -1136,6 +1253,7 @@ h3{
 .live-tool p{max-width:62ch;margin:11px 0 0}
 .audience-section{background:var(--lemon)}
 .audience-section + .audience-section{background:var(--paper)}
+#partners{background:var(--green)}
 .audience-block{
   display:grid;
   grid-template-columns:minmax(0,.75fr) minmax(0,1fr);
@@ -1240,6 +1358,27 @@ h3{
 .tactile-panel:active{
   box-shadow:none;
   transform:translate(-5px,5px);
+}
+@keyframes manuscript-top-spin{
+  0%{transform:rotate(0deg) scale(1)}
+  42%{transform:rotate(390deg) scale(.88,1.05)}
+  72%{transform:rotate(690deg) scale(1.04,.96)}
+  100%{transform:rotate(720deg) scale(1)}
+}
+@keyframes letter-glyph-change{
+  0%{opacity:.45;transform:translateY(.16em) scale(.94);background:var(--lemon)}
+  55%{opacity:1;transform:translateY(-.06em) scale(1.05);background:var(--lemon)}
+  100%{opacity:1;transform:none;background:transparent}
+}
+@keyframes landscape-change{
+  0%,100%{transform:translate(2px,-2px)}
+  25%{transform:translate(-1px,1px) rotate(-.6deg)}
+  50%{transform:translate(1px,-1px) rotate(.6deg)}
+  75%{transform:translate(-2px,2px) rotate(-.35deg)}
+}
+@keyframes paper-button-pop{
+  0%,100%{transform:none}
+  45%{box-shadow:none;transform:translate(-3px,3px)}
 }
 @media(max-width:1120px){
   :root{--anchor-offset:64px}
@@ -1352,7 +1491,7 @@ h3{
   .brand-copy small{display:none}
   .masthead>.press-button{padding:10px 11px;font-size:10px}
   .opening-hero{min-height:max(360px,calc(100svh - 106px));padding:70px 20px}
-  .opening-hero h1{font-size:clamp(112px,38vw,230px)}
+  .opening-hero-heading{font-size:clamp(112px,38vw,230px)}
   .founders-letter-section{padding:42px 18px 54px}
   .manuscript-letter{
     padding:78px clamp(24px,8vw,54px) 80px;
@@ -1380,9 +1519,10 @@ h3{
   .hero-analogy{text-align:center;text-align-last:center}
   .hero-statement{max-width:25ch}
   #business .hero-lead{margin-top:40px}
-  #business .hero-analogy{margin-top:26px}
-  #business .hero-statement{margin-top:42px}
-  #business .direction-board{margin-top:52px}
+  #business .hero-analogy{margin-top:32px}
+  #business .hero-statement{margin-top:48px}
+  #business .direction-board{margin-top:64px}
+  .direction-board>.micro-label{margin-bottom:22px}
   .direction-table-wrap{padding-left:0}
   .direction-table{box-shadow:-5px 5px 0 var(--ink)}
   .direction-table thead{
@@ -1448,9 +1588,9 @@ h3{
   .brand-copy strong{font-size:14px}
   .brand-copy{display:none}
   .masthead>.press-button{max-width:130px;line-height:1.15}
-  .opening-hero .hero-expansion{gap:clamp(4px,1.6vw,8px);font-size:clamp(10px,3.25vw,12px);line-height:1.35;letter-spacing:.055em}
+  .opening-hero .hero-expansion{font-size:clamp(8.5px,2.75vw,10.5px);line-height:1.35;letter-spacing:.02em}
   .manuscript-letter{padding:78px 24px 80px}
-  .manuscript-top{width:42px;height:50px;padding:5px}
+  .manuscript-top{width:44px;height:50px;padding:5px}
   .letter-copy{font-size:17px;line-height:1.55}
   .letter-salutation{min-height:4.6em}
   .letter-outcry{font-size:27px}
@@ -1493,6 +1633,10 @@ h3{
   .opening-progress::after{
     animation:opening-progress 5s linear both!important;
   }
+  .manuscript-top.is-spinning .manuscript-top-icon,
+  .changing-landscape.is-popping,
+  .direction-board>.micro-label.is-popping,
+  .calligraphy-glyph.is-calligraphic{animation:none!important}
   .opening-paused .opening-progress::after{animation-play-state:paused!important}
   .motion-user-enabled .route-car{
     animation:route-car-idle 1.1s steps(2,end) infinite!important;
@@ -1532,7 +1676,7 @@ h3{
   <main class="layout" id="main-content">
     <section class="opening-hero" id="opening-hero" aria-labelledby="hero-title">
       <div class="opening-hero-heading">
-        <h1 id="hero-title">TOP</h1>
+        <h1 id="hero-title" aria-label="TOP"><span aria-hidden="true">T</span><span aria-hidden="true">O</span><span aria-hidden="true">P</span></h1>
         <p class="hero-expansion" aria-label="Token Optimisation Protocol">
           <span>Token</span><span aria-hidden="true">•</span><span>Optimisation</span><span aria-hidden="true">•</span><span>Protocol</span>
         </p>
@@ -1541,20 +1685,24 @@ h3{
 
     <section class="founders-letter-section" id="founders-letter" aria-label="A letter from the TOP team">
       <article class="manuscript-letter">
-        <svg class="manuscript-top manuscript-top-left" viewBox="0 0 72 82" aria-hidden="true" focusable="false">
-          <path fill="currentColor" d="M36 2c-2.5 8-3.1 22.2-3.3 34h6.6C39.1 24.2 38.5 10 36 2Z"/>
-          <path fill="currentColor" d="M4.2 37.2c11.6-.6 22.3-4.1 28-8.3 1 2.8 2.2 4.1 3.8 4.1s2.8-1.3 3.8-4.1c5.7 4.2 16.4 7.7 28 8.3 4.4.2 5 3.1 1.2 5.3-9.8 5.8-21.5 8.1-33 8.1S12.8 48.3 3 42.5c-3.8-2.2-3.2-5.1 1.2-5.3Z"/>
-          <path fill="currentColor" d="M14.8 46.1c6.5 10.8 13.8 25.9 21.2 33.3 7.4-7.4 14.7-22.5 21.2-33.3-6.1 3.7-13.8 5.6-21.2 5.6s-15.1-1.9-21.2-5.6Z"/>
-          <path class="manuscript-top-rim" d="M6.5 42.2c14 6.3 45 6.3 59 0"/>
-        </svg>
-        <svg class="manuscript-top manuscript-top-right" viewBox="0 0 72 82" aria-hidden="true" focusable="false">
-          <path fill="currentColor" d="M36 2c-2.5 8-3.1 22.2-3.3 34h6.6C39.1 24.2 38.5 10 36 2Z"/>
-          <path fill="currentColor" d="M4.2 37.2c11.6-.6 22.3-4.1 28-8.3 1 2.8 2.2 4.1 3.8 4.1s2.8-1.3 3.8-4.1c5.7 4.2 16.4 7.7 28 8.3 4.4.2 5 3.1 1.2 5.3-9.8 5.8-21.5 8.1-33 8.1S12.8 48.3 3 42.5c-3.8-2.2-3.2-5.1 1.2-5.3Z"/>
-          <path fill="currentColor" d="M14.8 46.1c6.5 10.8 13.8 25.9 21.2 33.3 7.4-7.4 14.7-22.5 21.2-33.3-6.1 3.7-13.8 5.6-21.2 5.6s-15.1-1.9-21.2-5.6Z"/>
-          <path class="manuscript-top-rim" d="M6.5 42.2c14 6.3 45 6.3 59 0"/>
-        </svg>
-        <div class="letter-copy">
-          <p class="letter-salutation">Dear reader,</p>
+        <button class="manuscript-top manuscript-top-left" type="button" data-spin-top aria-label="Spin the upper-left top ornament">
+          <svg class="manuscript-top-icon" viewBox="0 0 72 82" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M36 2c-2.5 8-3.1 22.2-3.3 34h6.6C39.1 24.2 38.5 10 36 2Z"/>
+            <path fill="currentColor" d="M4.2 37.2c11.6-.6 22.3-4.1 28-8.3 1 2.8 2.2 4.1 3.8 4.1s2.8-1.3 3.8-4.1c5.7 4.2 16.4 7.7 28 8.3 4.4.2 5 3.1 1.2 5.3-9.8 5.8-21.5 8.1-33 8.1S12.8 48.3 3 42.5c-3.8-2.2-3.2-5.1 1.2-5.3Z"/>
+            <path fill="currentColor" d="M14.8 46.1c6.5 10.8 13.8 25.9 21.2 33.3 7.4-7.4 14.7-22.5 21.2-33.3-6.1 3.7-13.8 5.6-21.2 5.6s-15.1-1.9-21.2-5.6Z"/>
+            <path class="manuscript-top-rim" d="M6.5 42.2c14 6.3 45 6.3 59 0"/>
+          </svg>
+        </button>
+        <button class="manuscript-top manuscript-top-right" type="button" data-spin-top aria-label="Spin the lower-right top ornament">
+          <svg class="manuscript-top-icon" viewBox="0 0 72 82" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M36 2c-2.5 8-3.1 22.2-3.3 34h6.6C39.1 24.2 38.5 10 36 2Z"/>
+            <path fill="currentColor" d="M4.2 37.2c11.6-.6 22.3-4.1 28-8.3 1 2.8 2.2 4.1 3.8 4.1s2.8-1.3 3.8-4.1c5.7 4.2 16.4 7.7 28 8.3 4.4.2 5 3.1 1.2 5.3-9.8 5.8-21.5 8.1-33 8.1S12.8 48.3 3 42.5c-3.8-2.2-3.2-5.1 1.2-5.3Z"/>
+            <path fill="currentColor" d="M14.8 46.1c6.5 10.8 13.8 25.9 21.2 33.3 7.4-7.4 14.7-22.5 21.2-33.3-6.1 3.7-13.8 5.6-21.2 5.6s-15.1-1.9-21.2-5.6Z"/>
+            <path class="manuscript-top-rim" d="M6.5 42.2c14 6.3 45 6.3 59 0"/>
+          </svg>
+        </button>
+        <div class="letter-copy" id="letter-copy">
+          <p class="letter-salutation"><button class="letter-initial" id="letter-style-toggle" type="button" aria-controls="letter-copy" aria-pressed="false" aria-label="Dear reader. Transform the letter into calligraphy"><span aria-hidden="true">D</span></button><span aria-hidden="true">ear reader,</span></p>
 
           <p>We would like to open with a letter from the TOP team to illustrate our vision.</p>
 
@@ -1588,6 +1736,7 @@ h3{
 
           <p class="letter-names">Adam Hartley, Sam O'Connell, Chullain Lyons, Fionn Gavin et al.</p>
         </div>
+        <span class="visually-hidden" id="letter-style-status" role="status" aria-live="polite"></span>
       </article>
     </section>
 
@@ -1622,12 +1771,14 @@ h3{
       <section class="section hero" id="business" data-audience-section="business" data-route-map-section="business" tabindex="-1" aria-label="What TOP is building">
         <p class="hero-lead">TOP is being built as a centralised AI integrator, then optimiser for businesses.</p>
         <p class="hero-analogy">If work is transport, AI agents are cars, and TOP is the road system we are building to make traffic visible, and over time help it run better. We want to give business owners insight into the black box that is artificial intelligence.</p>
-        <p class="hero-statement">The AI landscape is <span class="changing-landscape">constantly changing</span>, TOP helps You keep two feet on the ground so You and Your Business stay ahead of the curve</p>
+        <p class="hero-statement">The AI landscape is <button class="changing-landscape" type="button" data-playful-press aria-label="Animate the words constantly changing">constantly changing</button>, TOP helps You keep two feet on the ground so You and Your Business stay ahead of the curve</p>
 
         <div class="direction-board" id="product-direction">
-          <span class="micro-label">00 - Product Direction / The Proposed Route</span>
+          <button class="micro-label" id="product-direction-label" type="button" data-playful-press aria-controls="product-direction-table">00 - Product Direction / The Proposed Route</button>
           <div class="direction-table-wrap">
-            <table class="direction-table">
+            <div class="direction-table-shell">
+              <table class="direction-table" id="product-direction-table" data-tactile-table aria-labelledby="product-direction-label">
+                <caption class="visually-hidden">TOP's proposed product route, transport analogy and intended application</caption>
               <thead>
                 <tr>
                   <th scope="col">Name</th>
@@ -1649,15 +1800,16 @@ h3{
                 <tr>
                   <th scope="row"><span class="stage-badge">TOP 2</span>Daedalus</th>
                   <td data-label="Analogy">More efficient engine</td>
-                  <td data-label="Application">Help make your AI use cheaper</td>
+                  <td data-label="Application">Make your AI use cheaper</td>
                 </tr>
                 <tr>
                   <th scope="row"><span class="stage-badge">TOP 3</span>Athena</th>
                   <td data-label="Analogy">Interactive sat-nav</td>
-                  <td data-label="Application">Help make your AI use smarter</td>
+                  <td data-label="Application">Make your AI use smarter</td>
                 </tr>
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
           <small>Icarus, Daedalus and Athena are working codenames. Icarus is in validation. TopOS is a concept. Daedalus and Athena are planned R&amp;D. Forecastable, cheaper and smarter describe the intended route, not outcomes TOP has proved.</small>
         </div>
@@ -2196,6 +2348,218 @@ function vmValueAt(config,x,amount){
   }
   input.addEventListener('input',update);
   update();
+})();
+
+(function initHomepageEasterEggs(){
+  var reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var playful=document.querySelectorAll('[data-playful-press]');
+  var tops=document.querySelectorAll('[data-spin-top]');
+  var tactileTables=document.querySelectorAll('[data-tactile-table]');
+  var letter=document.querySelector('.manuscript-letter');
+  var copy=document.getElementById('letter-copy');
+  var toggle=document.getElementById('letter-style-toggle');
+  var status=document.getElementById('letter-style-status');
+  var requestFrame=window.requestAnimationFrame||function(callback){
+    return window.setTimeout(function(){callback(Date.now());},16);
+  };
+  var cancelFrame=window.cancelAnimationFrame||window.clearTimeout;
+  var frameId=0;
+  var runToken=0;
+  var glyphs=[];
+  var currentCount=0;
+  var targetCalligraphic=false;
+  var transitioning=false;
+  var replayTimers=typeof WeakMap==='function'?new WeakMap():null;
+
+  function replayClass(element,className,duration){
+    var previousTimer=replayTimers?replayTimers.get(element):element.__topReplayTimer;
+    if(previousTimer!==undefined&&previousTimer!==null)window.clearTimeout(previousTimer);
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+    var timer=window.setTimeout(function(){
+      element.classList.remove(className);
+      if(replayTimers)replayTimers.delete(element);
+      else element.__topReplayTimer=null;
+    },duration);
+    if(replayTimers)replayTimers.set(element,timer);
+    else element.__topReplayTimer=timer;
+  }
+
+  Array.prototype.forEach.call(playful,function(element){
+    element.addEventListener('click',function(){
+      if(!reduceMotion){
+        replayClass(element,'is-popping',480);
+        var controlledId=element.getAttribute&&element.getAttribute('aria-controls');
+        var controlled=controlledId&&document.getElementById(controlledId);
+        if(controlled&&controlled.hasAttribute('data-tactile-table'))replayClass(controlled,'is-popping',480);
+      }
+    });
+  });
+
+  Array.prototype.forEach.call(tactileTables,function(table){
+    function release(){table.classList.remove('is-pressed');}
+    table.addEventListener('pointerdown',function(event){
+      table.classList.add('is-pressed');
+      if(table.setPointerCapture&&event.pointerId!==undefined){
+        try{table.setPointerCapture(event.pointerId);}catch(error){}
+      }
+    });
+    table.addEventListener('pointerup',release);
+    table.addEventListener('pointercancel',release);
+    table.addEventListener('lostpointercapture',release);
+    table.addEventListener('blur',release);
+    table.addEventListener('click',function(){
+      release();
+      if(!reduceMotion)replayClass(table,'is-popping',480);
+    });
+  });
+
+  Array.prototype.forEach.call(tops,function(top){
+    top.addEventListener('click',function(){
+      if(!reduceMotion)replayClass(top,'is-spinning',760);
+    });
+  });
+
+  function prepareGlyphs(){
+    if(glyphs.length||!copy||!document.createTreeWalker)return;
+    var showText=window.NodeFilter?window.NodeFilter.SHOW_TEXT:4;
+    var walker=document.createTreeWalker(copy,showText);
+    var textNodes=[];
+    var node;
+    while((node=walker.nextNode())){
+      var parent=node.parentElement;
+      if(!node.nodeValue||!node.nodeValue.trim())continue;
+      if(parent&&parent.closest&&parent.closest('#letter-style-toggle'))continue;
+      if(parent&&parent.closest&&parent.closest('.visually-hidden'))continue;
+      textNodes.push(node);
+    }
+    textNodes.forEach(function(textNode){
+      var fragment=document.createDocumentFragment();
+      var parts=textNode.nodeValue.match(/\s+|[^\s]+/g)||[];
+      parts.forEach(function(part){
+        if(/^\s+$/.test(part)){
+          fragment.appendChild(document.createTextNode(part));
+          return;
+        }
+        var word=document.createElement('span');
+        word.className='calligraphy-word';
+        var source=document.createElement('span');
+        source.className='calligraphy-source';
+        source.textContent=part;
+        var visual=document.createElement('span');
+        visual.className='calligraphy-visual';
+        visual.setAttribute('aria-hidden','true');
+        Array.from(part).forEach(function(character){
+          var glyph=document.createElement('span');
+          glyph.className='calligraphy-glyph';
+          glyph.setAttribute('data-glyph',character);
+          visual.appendChild(glyph);
+          glyphs.push(glyph);
+        });
+        word.appendChild(source);
+        word.appendChild(visual);
+        fragment.appendChild(word);
+      });
+      textNode.parentNode.replaceChild(fragment,textNode);
+    });
+  }
+
+  function updateToggle(active,busy){
+    if(!toggle)return;
+    toggle.setAttribute('aria-pressed',busy?'mixed':(active?'true':'false'));
+    toggle.setAttribute('aria-label',active?'Dear reader. Restore the letter\'s original type':'Dear reader. Transform the letter into calligraphy');
+    if(copy)copy.setAttribute('aria-busy',busy?'true':'false');
+  }
+
+  function setGlyphCount(desired){
+    while(currentCount<desired){
+      glyphs[currentCount].classList.add('is-calligraphic');
+      currentCount+=1;
+    }
+    while(currentCount>desired){
+      currentCount-=1;
+      glyphs[currentCount].classList.remove('is-calligraphic');
+    }
+  }
+
+  function finishTransformation(token,toCalligraphy){
+    if(token!==runToken||!letter)return;
+    transitioning=false;
+    frameId=0;
+    letter.classList.remove('is-transforming');
+    letter.classList.toggle('is-calligraphic',toCalligraphy);
+    updateToggle(toCalligraphy,false);
+    if(status)status.textContent=toCalligraphy
+      ?'The letter is now set in calligraphy.'
+      :'The original letter type has been restored.';
+  }
+
+  function transitionLetter(toCalligraphy,resuming){
+    prepareGlyphs();
+    if(!letter||!glyphs.length)return;
+    targetCalligraphic=toCalligraphy;
+    runToken+=1;
+    var token=runToken;
+    if(frameId)cancelFrame.call(window,frameId);
+    frameId=0;
+    var target=toCalligraphy?glyphs.length:0;
+    if(currentCount===target){
+      finishTransformation(token,toCalligraphy);
+      return;
+    }
+    transitioning=true;
+    letter.classList.remove('is-calligraphic');
+    letter.classList.add('is-transforming');
+    updateToggle(toCalligraphy,true);
+    if(status&&!resuming){
+      status.textContent=toCalligraphy
+        ?(currentCount?'Calligraphic transformation resumed.':'Calligraphic transformation started.')
+        :'The calligraphic transformation is reversing.';
+    }
+
+    if(reduceMotion){
+      setGlyphCount(target);
+      finishTransformation(token,toCalligraphy);
+      return;
+    }
+
+    var startedAt=null;
+    var startCount=currentCount;
+    var direction=target>startCount?1:-1;
+    var distance=Math.abs(target-startCount);
+    function reveal(timestamp){
+      if(token!==runToken)return;
+      if(startedAt===null)startedAt=timestamp;
+      var travelled=Math.min(distance,Math.floor(((timestamp-startedAt)*50)/1000));
+      var desired=startCount+(direction*travelled);
+      setGlyphCount(desired);
+      if(currentCount!==target){
+        frameId=requestFrame.call(window,reveal);
+      }else{
+        finishTransformation(token,toCalligraphy);
+      }
+    }
+    frameId=requestFrame.call(window,reveal);
+  }
+
+  if(toggle){
+    toggle.addEventListener('click',function(){
+      transitionLetter(!targetCalligraphic,false);
+    });
+  }
+  if(document.addEventListener){
+    document.addEventListener('visibilitychange',function(){
+      if(!transitioning)return;
+      if(document.hidden){
+        runToken+=1;
+        if(frameId)cancelFrame.call(window,frameId);
+        frameId=0;
+      }else{
+        transitionLetter(targetCalligraphic,true);
+      }
+    });
+  }
 })();
 
 (function initRouteMap(){
