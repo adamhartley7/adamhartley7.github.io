@@ -297,11 +297,14 @@ test("a direct visit begins with an unskippable five-second memento screen", () 
   assert.match(cssDeclarations("html.opening-return .opening-screen"), /pointer-events\s*:\s*none/i);
 });
 
-test("the full-width opening is TOP-only, centred, and precedes the summary", () => {
+test("the calm opening is symmetrical, centred, and precedes the summary", () => {
   const opening = elementMarkupById("opening-hero");
-  assert.equal(visibleText(opening).replace(/^T O P\b/, "TOP"), "TOP Token • Optimisation • Protocol");
-  assert.match(opening, /<h1\b(?=[^>]*\baria-label=["']TOP["'])[^>]*>\s*<span[^>]*>T<\/span><span[^>]*>O<\/span><span[^>]*>P<\/span>\s*<\/h1>/i);
+  assert.match(opening, /<h1\b(?=[^>]*\bclass=["']visually-hidden["'])(?=[^>]*\bid=["']hero-title["'])[^>]*>TOP<\/h1>/i);
+  assert.match(opening, /<div\b(?=[^>]*\bclass=["']hero-wordmark["'])(?=[^>]*\baria-hidden=["']true["'])[^>]*>\s*<span>T<\/span><span class=["']hero-compass-face["']>O<\/span><span>P<\/span>\s*<\/div>/i);
+  assert.match(opening, /<button\b(?=[^>]*\bclass=["']hero-compass-hotspot["'])(?=[^>]*\bdata-art-action=["']compass["'])(?=[^>]*\baria-label=["']Turn the compass inside the O in TOP["'])[^>]*><\/button>/i);
   assert.match(opening, /<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bhero-expansion\b)(?=[^>]*\baria-label\s*=\s*["']Token Optimisation Protocol["'])[^>]*>[\s\S]*?<span>Token<\/span>[\s\S]*?<span\b[^>]*>•<\/span>[\s\S]*?<span>Optimisation<\/span>[\s\S]*?<span\b[^>]*>•<\/span>[\s\S]*?<span>Protocol<\/span>[\s\S]*?<\/p>/i);
+  assert.match(opening, /data-art-action="atlas"[\s\S]*?assets\/manuscript\/atlas-ouroboros\.webp/i);
+  assert.match(opening, /data-art-action="sisyphus"[\s\S]*?assets\/manuscript\/sisyphus\.webp/i);
   assert.doesNotMatch(opening, /\b(?:audience-rail|route-rail)\b/i);
 
   const mastheadAt = html.search(/<header\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bmasthead\b)/i);
@@ -311,21 +314,17 @@ test("the full-width opening is TOP-only, centred, and precedes the summary", ()
   assert.ok(mastheadAt >= 0 && openingAt > mastheadAt && letterAt > openingAt);
   assert.ok(glanceAt > letterAt, "TOP at a glance must follow the founders' letter");
 
-  const rules = cssDeclarations(".opening-hero");
-  assert.match(rules, /text-align\s*:\s*center/i);
-  assert.match(rules, /(?:width\s*:\s*100%|grid-column\s*:\s*1\s*\/\s*-1)/i);
-  assert.match(cssDeclarations(".opening-hero-heading"), /width\s*:\s*min\(100%,\s*2\.75em\)/i);
-  assert.match(cssDeclarations(".opening-hero h1"), /grid-template-columns\s*:\s*repeat\(3,\s*minmax\(0,1fr\)\)/i);
-  assert.match(cssDeclarations(".opening-hero h1 span"), /width\s*:\s*max-content/i);
-  assert.match(cssDeclarations(".opening-hero h1 span"), /justify-self\s*:\s*center/i);
-  assert.match(cssDeclarations(".opening-hero h1 span"), /text-align\s*:\s*center/i);
-  assert.match(cssDeclarations(".opening-hero .hero-expansion"), /width\s*:\s*100%/i);
-  assert.match(cssDeclarations(".opening-hero .hero-expansion"), /grid-template-columns\s*:\s*repeat\(3,\s*minmax\(0,1fr\)\)/i);
+  assert.match(cssDeclarations(":root"), /--reading-column\s*:\s*clamp\(624px,40vw,760px\)/i);
+  assert.match(html, /\.opening-hero-heading\{[\s\S]*?width:min\(44vw,825px\)[\s\S]*?font-size:clamp\(112px,16vw,300px\)/i);
+  assert.match(cssDeclarations(".hero-wordmark"), /grid-template-columns\s*:\s*repeat\(3,minmax\(0,1fr\)\)/i);
+  assert.match(cssDeclarations(".hero-wordmark>span"), /width\s*:\s*max-content/i);
+  assert.match(cssDeclarations(".hero-wordmark>span"), /justify-self\s*:\s*center/i);
+  assert.match(html, /\.opening-hero \.hero-expansion\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)[\s\S]*?gap:0/i);
   assert.match(html, /span:nth-child\(2\)\{left:calc\(33\.333%\s*-\s*1\.205em\)\}/i);
   assert.match(html, /span:nth-child\(4\)\{left:calc\(66\.667%\s*\+\s*\.605em\)\}/i);
   assert.match(html, /@media\(max-width:480px\)[\s\S]*?span:nth-child\(2\)\{left:calc\(33\.333%\s*-\s*1\.11em\)\}/i);
   assert.match(html, /@media\(max-width:480px\)[\s\S]*?span:nth-child\(4\)\{left:calc\(66\.667%\s*\+\s*\.55em\)\}/i);
-  assert.match(html, /@media\(max-width:800px\)[\s\S]*?\.opening-hero-heading\{font-size:clamp\(102px,33\.5vw,230px\)\}/i);
+  assert.match(html, /@media\(max-width:1120px\)[\s\S]*?:root\{--reading-column:min\(100%,680px\)\}/i);
 });
 
 test("the founders' letter contains Adam's approved revised copy", () => {
@@ -347,8 +346,12 @@ TOP is like the slingshot in David’s hand, helping you go toe to toe with Goli
 
 AI is a massively powerful tool which can be used to accelerate your business:
 
-We want to minimise the asymmetric information available to people like you,
+We want to minimise the asymmetric information available to small and medium sized enterprises,
 so you can understand and leverage the inner workings of the black box of AI.
+
+The current AI market asks you to choose between cost and privacy. The cheaper, easier ways to use AI can come with another price: control of your data.
+
+TOP aims to balance the scales, so using powerful AI at a lower cost does not mean giving up control of what belongs to you.
 
 But we won’t stop there…
 
@@ -380,24 +383,27 @@ Adam Hartley, Sam O'Connell, Chullain Lyons, Fionn Gavin et al.
   assert.doesNotMatch(letterText, /eating you’re dust/);
 });
 
-test("the desktop letter is restrained and uses two-dimensional spinning-top ornaments", () => {
+test("the desktop letter is restrained and uses exactly two manuscript ornaments", () => {
   const letter = elementMarkupById("founders-letter");
-  const tops = letter.match(/<button\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bmanuscript-top\b)(?=[^>]*\bdata-spin-top\b)[^>]*>/gi) || [];
-  assert.equal(tops.length, 2);
-  assert.match(letter, /<svg\b(?=[^>]*\bclass=["']manuscript-top-icon["'])[^>]*>/i);
-  assert.match(letter, /\bmanuscript-top-left\b/);
-  assert.match(letter, /\bmanuscript-top-right\b/);
-  assert.match(cssDeclarations(".manuscript-letter"), /max-width\s*:\s*784px/i);
-  assert.match(cssDeclarations(".letter-copy"), /max-width\s*:\s*576px/i);
-  assert.match(cssDeclarations(".manuscript-top"), /height\s*:\s*54px/i);
-  assert.match(html, /\.manuscript-letter\s*\{\s*padding\s*:\s*78px\s+clamp\(24px,8vw,54px\)\s+80px/i,
-    "compact layouts must keep the ornament clear of the illuminated drop cap");
+  const ornaments = letter.match(/<button\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bornament-button\b)[^>]*>/gi) || [];
+  assert.equal(ornaments.length, 2);
+  assert.match(letter, /ornament-button--top-left[\s\S]*?assets\/manuscript\/ornament-top-left\.webp/i);
+  assert.match(letter, /ornament-button--bottom-right[\s\S]*?assets\/manuscript\/ornament-bottom-right\.webp/i);
+  assert.doesNotMatch(letter, /data-spin-top|manuscript-top-icon/i);
+  assert.match(html, /\.manuscript-letter\{[\s\S]*?width:min\(1040px,100%\)[\s\S]*?padding:clamp\(94px,8vw,132px\) clamp\(82px,8vw,140px\) clamp\(104px,9vw,150px\)/i);
+  assert.match(html, /\.letter-copy\{[\s\S]*?width:min\(var\(--reading-column\),100%\)[\s\S]*?font-size:clamp\(16px,1vw,18px\)[\s\S]*?line-height:1\.68/i);
+  assert.match(letter, /assets\/manuscript\/letter-tree\.webp/i);
+  assert.match(letter, /assets\/manuscript\/pawn-and-king\.webp/i);
+  assert.match(letter, /assets\/manuscript\/balanced-scales\.webp/i);
+  assert.match(letter, /assets\/manuscript\/ink-black-hole\.webp/i);
 });
 
 test("shadowed flourishes are real, accessible, tactile controls", () => {
   const letter = elementMarkupById("founders-letter");
-  assert.match(letter, /<button\b(?=[^>]*\bdata-spin-top\b)(?=[^>]*\baria-label="Spin the upper-left top ornament")[^>]*>[\s\S]*?<svg\b[^>]*class="manuscript-top-icon"/i);
-  assert.match(letter, /<button\b(?=[^>]*\bdata-spin-top\b)(?=[^>]*\baria-label="Spin the lower-right top ornament")[^>]*>[\s\S]*?<svg\b[^>]*class="manuscript-top-icon"/i);
+  assert.match(letter, /<button\b(?=[^>]*\bdata-art-action="ornament")(?=[^>]*\baria-label="Press the top-left manuscript ornament")[^>]*>[\s\S]*?<img\b[^>]*ornament-top-left\.webp/i);
+  assert.match(letter, /<button\b(?=[^>]*\bdata-art-action="ornament")(?=[^>]*\baria-label="Press the bottom-right manuscript ornament")[^>]*>[\s\S]*?<img\b[^>]*ornament-bottom-right\.webp/i);
+  assert.match(letter, /<button\b(?=[^>]*\bdata-art-action="scales")(?=[^>]*\baria-label="Balance the scales between cost and privacy")[^>]*>/i);
+  assert.match(letter, /<button\b(?=[^>]*\bdata-black-hole)(?=[^>]*\baria-label="Pull the site artwork into the black hole")[^>]*>/i);
   assert.match(letter, /<button\b(?=[^>]*\bid="letter-style-toggle")(?=[^>]*\baria-controls="letter-copy")(?=[^>]*\baria-pressed="false")(?=[^>]*\baria-label="Dear reader\. Transform the letter into calligraphy")[^>]*><span aria-hidden="true">D<\/span><\/button><span aria-hidden="true">ear reader,<\/span>/i);
   assert.doesNotMatch(letter, /<article\b[^>]*(?:role="button"|data-playful-press)/i,
     "the letter sheet itself must remain still and non-interactive");
@@ -419,7 +425,8 @@ test("shadowed flourishes are real, accessible, tactile controls", () => {
   assert.match(html, /closest\('\.visually-hidden'\)/,
     "the accessible salutation must not be split into decorative glyphs");
   assert.doesNotMatch(html, /setInterval\s*\(/);
-  assert.match(html, /@font-face\{[\s\S]*?font-family:"Grenze Gotisch"[\s\S]*?GrenzeGotisch-Variable\.ttf[\s\S]*?font-weight:100 900[\s\S]*?font-display:swap/i);
+  assert.match(html, /@font-face\{[\s\S]*?font-family:"UnifrakturCook"[\s\S]*?UnifrakturCook-Bold\.woff2[\s\S]*?font-weight:700[\s\S]*?font-display:swap/i);
+  assert.match(cssDeclarations(":root"), /--letter-calligraphy\s*:\s*"UnifrakturCook","Grenze Gotisch"/i);
   assert.match(cssDeclarations(".calligraphy-glyph.is-calligraphic"), /font-family\s*:\s*var\(--letter-calligraphy\)/i);
   assert.match(cssDeclarations(".manuscript-letter.is-calligraphic .calligraphy-source"), /position\s*:\s*static!important/i);
   assert.match(cssDeclarations(".manuscript-letter.is-calligraphic .calligraphy-source"), /font-family\s*:\s*var\(--letter-calligraphy\)/i);
@@ -429,8 +436,17 @@ test("shadowed flourishes are real, accessible, tactile controls", () => {
   assert.doesNotMatch(html, /glyph\.textContent=character/,
     "generated decorative glyphs must not duplicate the selectable letter text");
   assert.match(html, /@media\(prefers-reduced-motion:reduce\)[\s\S]*?\.calligraphy-glyph\.is-calligraphic\{animation:none!important\}/i);
-  assert.match(html, /@media\(max-width:480px\)[\s\S]*?\.manuscript-top\{width:44px;height:50px/i,
-    "the interactive tops must keep a 44px minimum target on mobile");
+  assert.match(cssDeclarations(".ink-art-control"), /min-width\s*:\s*44px/i);
+  assert.match(cssDeclarations(".ink-art-control"), /min-height\s*:\s*44px/i);
+  assert.match(html, /blackHoleState=\(blackHoleState\+1\)%3/,
+    "the black hole must cycle through consumed, mirrored and restored states");
+  assert.match(html, /setAttribute\('tabindex','-1'\)/,
+    "art controls hidden in the black hole must leave the keyboard order");
+  assert.match(html, /classList\.add\('ink-art-consumed'\)/);
+  assert.match(html, /classList\.add\('ink-art-mirrored'\)/);
+  assert.match(html, /replayClass\(control,'is-balancing',980\)/,
+    "the scales should tip once and settle");
+  assert.match(html, /@media\(prefers-reduced-motion:reduce\)[\s\S]*?animation-duration:\.01ms!important/i);
 });
 
 test("tactile controls release captured pointers and replace stale replay timers", () => {
@@ -516,10 +532,28 @@ test("calligraphy pauses while hidden and reduced motion applies the final state
   assert.equal(reduced.copy.attrs["aria-busy"], "false");
 });
 
-test("the chosen calligraphy font is self-hosted with its licence", () => {
-  assert.equal(fs.existsSync(new URL("assets/fonts/grenze-gotisch/GrenzeGotisch-Variable.ttf", `file://${__dirname}/`)), true);
-  assert.equal(fs.existsSync(new URL("assets/fonts/grenze-gotisch/OFL.txt", `file://${__dirname}/`)), true);
-  assert.match(fs.readFileSync(new URL("ASSET-CREDITS.md", `file://${__dirname}/`), "utf8"), /Grenze Gotisch typeface[\s\S]*?SIL Open Font License 1\.1/i);
+test("the selected manuscript fonts and original artwork are local and credited", () => {
+  for (const asset of [
+    "assets/fonts/eagle-lake/EagleLake-Regular.woff2",
+    "assets/fonts/eagle-lake/OFL.txt",
+    "assets/fonts/unifrakturcook/UnifrakturCook-Bold.woff2",
+    "assets/fonts/unifrakturcook/OFL.txt",
+    "assets/manuscript/atlas-ouroboros.webp",
+    "assets/manuscript/sisyphus.webp",
+    "assets/manuscript/letter-tree.webp",
+    "assets/manuscript/ornament-top-left.webp",
+    "assets/manuscript/ornament-bottom-right.webp",
+    "assets/manuscript/pawn-and-king.webp",
+    "assets/manuscript/balanced-scales.webp",
+    "assets/manuscript/ink-black-hole.webp",
+  ]) {
+    assert.equal(fs.existsSync(new URL(asset, `file://${__dirname}/`)), true, `${asset} must exist`);
+  }
+  const credits = fs.readFileSync(new URL("ASSET-CREDITS.md", `file://${__dirname}/`), "utf8");
+  assert.match(credits, /Eagle Lake typeface[\s\S]*?SIL Open Font License 1\.1/i);
+  assert.match(credits, /UnifrakturCook typeface[\s\S]*?SIL Open Font License 1\.1/i);
+  assert.match(credits, /Original manuscript illustrations[\s\S]*?generated for TOP[\s\S]*?None of the supplied reference files are shipped/i);
+  assert.match(html, /font-family:"Eagle Lake"[\s\S]*?EagleLake-Regular\.woff2/i);
 });
 
 test("TOP at a glance preserves Adam's supplied wording and keeps the full route visible", () => {
@@ -573,6 +607,9 @@ test("TOP at a glance now leads directly to the explicit technical gateway", () 
   assert.match(gateway, /href="\/how-top-works\/"[\s\S]*?>\s*<strong>Explore how TOP works<\/strong>/i);
   assert.match(gateway, /href="\/how-top-works\/#privacy-security"[\s\S]*?>\s*<strong>Privacy and security<\/strong>/i);
   assert.match(gateway, /href="mailto:adam1hartley@gmail\.com\?subject=TOP%20enquiry"[\s\S]*?>\s*<strong>Talk to the TOP team<\/strong>/i);
+  assert.match(gateway, /<strong>Explore how TOP works<\/strong>\s*<span>Recommended<\/span>/i);
+  assert.match(gateway, /<strong>Privacy and security<\/strong>\s*<span>Highly Recommended<\/span>/i);
+  assert.match(gateway, /<strong>Talk to the TOP team<\/strong>\s*<span>A call will be very worth your precious time\. We won't waste it, we'll save it\.<\/span>/i);
   assert.equal((gateway.match(/class="technical-gateway-link"/g) || []).length, 3);
 
   for (const legacyId of [

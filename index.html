@@ -41,6 +41,20 @@
   font-weight:100 900;
   font-display:swap;
 }
+@font-face{
+  font-family:"Eagle Lake";
+  src:url("assets/fonts/eagle-lake/EagleLake-Regular.woff2") format("woff2");
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+}
+@font-face{
+  font-family:"UnifrakturCook";
+  src:url("assets/fonts/unifrakturcook/UnifrakturCook-Bold.woff2") format("woff2");
+  font-style:normal;
+  font-weight:700;
+  font-display:swap;
+}
 :root{
   --ink:#16140f;
   --muted:#5f594e;
@@ -62,7 +76,8 @@
   --candle-red:#ed1b24;
   --max:1700px;
   --anchor-offset:0px;
-  --letter-calligraphy:"Grenze Gotisch",Georgia,"Times New Roman",serif;
+  --letter-calligraphy:"UnifrakturCook","Grenze Gotisch",Georgia,"Times New Roman",serif;
+  --reading-column:clamp(624px,40vw,760px);
   --opening-duration:5s;
 }
 html.opening-reload{--opening-duration:3s}
@@ -138,7 +153,7 @@ html.opening-return .opening-screen{
 }
 .opening-motto{
   margin:0;
-  font:400 clamp(19px,5.5vw,92px)/1.08 "Old English Text MT","Lucida Calligraphy","Apple Chancery","URW Chancery L",cursive;
+  font:400 clamp(18px,3.4vw,58px)/1.12 "Eagle Lake",Georgia,"Times New Roman",serif;
   text-align:center;
   white-space:nowrap;
   letter-spacing:.015em;
@@ -1957,6 +1972,519 @@ h3{
   .vm-controls output{text-align:left}
   .vm-scale{grid-column:1}
 }
+/* Manuscript redesign: calm centre, active marginalia. */
+.layout{grid-template-columns:minmax(0,1fr)}
+.opening-hero{
+  position:relative;
+  min-height:max(620px,calc(100svh - 118px));
+  overflow:hidden;
+  padding:clamp(96px,12vw,190px) 24px;
+  isolation:isolate;
+}
+.opening-hero-heading{
+  position:relative;
+  z-index:3;
+  width:min(44vw,825px);
+  font-size:clamp(112px,16vw,300px);
+}
+.hero-wordmark{
+  display:grid;
+  width:100%;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:center;
+  font:900 1em/.78 Arial,Helvetica,sans-serif;
+  letter-spacing:0;
+}
+.hero-wordmark>span{
+  position:relative;
+  width:max-content;
+  justify-self:center;
+}
+.hero-compass-face{
+  display:grid;
+  place-items:center;
+}
+.hero-compass-face::before,
+.hero-compass-face::after{
+  position:absolute;
+  z-index:1;
+  left:50%;
+  content:"";
+  pointer-events:none;
+}
+.hero-compass-face::before{
+  top:18%;
+  width:max(2px,.018em);
+  height:64%;
+  background:var(--signal);
+  box-shadow:0 0 0 1px var(--paper);
+  transform:translateX(-50%) rotate(27deg);
+  transform-origin:50% 50%;
+}
+.hero-compass-face::after{
+  top:50%;
+  width:.075em;
+  height:.075em;
+  border:2px solid var(--paper);
+  background:var(--signal);
+  transform:translate(-50%,-50%) rotate(45deg);
+}
+.hero-compass-hotspot{
+  position:absolute;
+  z-index:4;
+  top:0;
+  bottom:22%;
+  left:33.333%;
+  width:33.333%;
+  min-height:44px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:transparent;
+  cursor:pointer;
+}
+.hero-compass-hotspot:focus-visible{
+  outline:3px solid var(--signal);
+  outline-offset:8px;
+}
+.opening-hero .hero-expansion{
+  display:grid;
+  width:100%;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  margin:clamp(18px,2.1vw,30px) 0 0;
+  font-size:clamp(10px,.9vw,17px);
+  line-height:1.2;
+  letter-spacing:.075em;
+}
+.opening-hero .hero-expansion span:nth-child(2),
+.opening-hero .hero-expansion span:nth-child(4){
+  color:var(--signal-dark);
+}
+.hero-art-layer{
+  position:absolute;
+  z-index:2;
+  inset:0;
+  pointer-events:none;
+}
+.ink-art-control{
+  display:grid;
+  min-width:44px;
+  min-height:44px;
+  place-items:center;
+  padding:7px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--ink);
+  cursor:pointer;
+  pointer-events:auto;
+}
+.ink-art-control img,
+.letter-tree-plate img{
+  display:block;
+  width:100%;
+  height:auto;
+  pointer-events:none;
+}
+.ink-art-control:focus-visible{
+  outline:3px solid var(--signal);
+  outline-offset:5px;
+  background:var(--lemon);
+}
+.hero-myth{
+  position:absolute;
+  width:clamp(158px,13vw,250px);
+  transition:transform 140ms ease,background 160ms ease,box-shadow 160ms ease,opacity 420ms ease;
+}
+.hero-atlas{
+  top:clamp(54px,8vh,98px);
+  left:clamp(34px,5vw,104px);
+}
+.hero-sisyphus{
+  right:clamp(30px,4.6vw,96px);
+  bottom:clamp(44px,7vh,90px);
+  width:clamp(170px,14vw,268px);
+}
+@media(hover:hover) and (pointer:fine){
+  .hero-myth:hover,
+  .letter-symbol:hover,
+  .ornament-button:hover{
+    background:var(--wash);
+    box-shadow:-3px 3px 0 var(--ink);
+    transform:translate(-2px,2px);
+  }
+}
+.founders-letter-section{
+  padding:clamp(112px,11vw,190px) clamp(24px,6vw,112px);
+}
+.manuscript-letter{
+  width:min(1040px,100%);
+  max-width:none;
+  padding:clamp(94px,8vw,132px) clamp(82px,8vw,140px) clamp(104px,9vw,150px);
+  overflow:visible;
+}
+.letter-copy{
+  position:relative;
+  z-index:3;
+  width:min(var(--reading-column),100%);
+  max-width:none;
+  font-size:clamp(16px,1vw,18px);
+  line-height:1.68;
+}
+.letter-copy p{margin-bottom:2em}
+.letter-copy .letter-outcry{
+  font-size:clamp(22px,1.8vw,30px);
+  line-height:1.18;
+}
+.letter-copy .letter-driving{
+  font-size:clamp(18px,1.35vw,23px);
+  line-height:1.38;
+}
+.letter-control-context{
+  position:relative;
+  margin:0;
+}
+.letter-balance-copy{
+  margin:0;
+  padding:clamp(22px,2vw,30px) 0 1px;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.letter-balance-copy p:last-child{margin-bottom:clamp(22px,2vw,30px)}
+.letter-marginalia{
+  position:absolute;
+  z-index:4;
+  inset:0;
+  pointer-events:none;
+}
+.letter-symbol{
+  position:absolute;
+  width:clamp(94px,7vw,124px);
+  transition:transform 140ms ease,background 160ms ease,box-shadow 160ms ease,opacity 420ms ease;
+}
+.letter-symbol--pawn{
+  top:8%;
+  right:calc(100% + clamp(20px,2.4vw,44px));
+}
+.letter-symbol--scales{
+  top:45%;
+  left:calc(100% + clamp(20px,2.4vw,44px));
+}
+.letter-symbol--black-hole{
+  top:72%;
+  left:calc(100% + clamp(24px,2.7vw,52px));
+  width:clamp(106px,8vw,142px);
+}
+.ornament-button{
+  position:absolute;
+  z-index:5;
+  width:clamp(78px,6.3vw,104px);
+  transition:transform 140ms ease,background 160ms ease,box-shadow 160ms ease,opacity 420ms ease;
+}
+.ornament-button--top-left{top:19px;left:19px}
+.ornament-button--bottom-right{right:19px;bottom:19px}
+.letter-tree-plate{
+  position:absolute;
+  z-index:1;
+  bottom:32px;
+  left:20px;
+  display:block;
+  width:clamp(94px,6.3vw,118px);
+  padding:4px;
+  opacity:.72;
+  pointer-events:none;
+  transition:transform 420ms ease,background 160ms ease,opacity 420ms ease;
+}
+.art-status{position:absolute}
+.top-at-a-glance{
+  padding:clamp(118px,10vw,180px) clamp(24px,6vw,96px) clamp(130px,11vw,190px);
+}
+.glance-inner{
+  width:min(var(--reading-column),100%);
+}
+.glance-header{
+  margin-bottom:clamp(54px,5vw,76px);
+  text-align:center;
+}
+.glance-header h2{
+  max-width:none;
+  font-size:clamp(40px,3.8vw,58px);
+  line-height:1;
+  letter-spacing:-.045em;
+}
+.glance-primer{
+  display:block;
+  border:2px solid var(--ink);
+}
+.glance-primer-main,
+.glance-mission{
+  padding:clamp(34px,3.4vw,48px);
+}
+.glance-primer-main{
+  border-right:0;
+  border-bottom:1px solid var(--ink);
+}
+.glance-primer-main p,
+.glance-mission p{
+  font-size:clamp(16px,1vw,18px);
+  line-height:1.68;
+}
+.glance-control-question{
+  margin-top:2em!important;
+  padding:20px 22px;
+  font-size:clamp(19px,1.45vw,24px)!important;
+}
+.glance-analogy{
+  width:100%;
+  margin:clamp(68px,6vw,94px) auto clamp(78px,7vw,110px);
+  padding:clamp(34px,3.5vw,50px);
+}
+.glance-analogy p{
+  font-size:clamp(16px,1.05vw,19px);
+  line-height:1.7;
+}
+.glance-road{
+  row-gap:clamp(54px,5vw,78px);
+  padding-left:72px;
+}
+.glance-road::before{
+  left:23px;
+  width:12px;
+  transform:none;
+}
+.glance-road::after{
+  left:29px;
+  transform:none;
+}
+.glance-stop{
+  display:block;
+}
+.glance-card,
+.glance-stop--left .glance-card,
+.glance-stop--right .glance-card{
+  width:100%;
+  max-width:none;
+  padding:clamp(28px,2.5vw,38px);
+}
+.glance-card p{
+  font-size:clamp(16px,1vw,18px);
+  line-height:1.7;
+}
+.glance-node{
+  position:absolute;
+  top:20px;
+  left:-72px;
+  width:46px;
+  height:46px;
+}
+.glance-junction{
+  width:100%;
+  margin:0;
+  padding:24px 28px;
+}
+.glance-junction p{
+  font-size:clamp(17px,1.15vw,20px);
+  line-height:1.55;
+}
+.technical-gateway{
+  padding:clamp(108px,9vw,160px) clamp(24px,6vw,96px) clamp(120px,10vw,175px);
+}
+.technical-gateway-inner{
+  width:min(1000px,100%);
+}
+.technical-gateway-kicker{
+  justify-content:center;
+}
+.technical-gateway h2{
+  max-width:var(--reading-column);
+  margin:0 auto clamp(48px,5vw,66px);
+  font-size:clamp(40px,3.8vw,58px);
+  line-height:1;
+  text-align:center;
+}
+.technical-gateway-links{gap:clamp(18px,2vw,26px)}
+.technical-gateway-link{
+  min-height:154px;
+  padding:24px;
+}
+.technical-gateway-link strong{
+  font-size:clamp(18px,1.25vw,22px);
+}
+.technical-gateway-link span{
+  font-size:14px;
+  line-height:1.45;
+}
+[data-ink-art]{
+  transform-origin:50% 50%;
+}
+.is-art-pressed{animation:ink-art-press 430ms cubic-bezier(.2,.75,.25,1)}
+.hero-compass-face.is-compass-turning::before{animation:compass-needle-turn 620ms cubic-bezier(.2,.75,.25,1)}
+.is-balancing{animation:scales-balance 920ms cubic-bezier(.2,.75,.25,1)}
+.is-ornament-awake{animation:ornament-awake 620ms cubic-bezier(.2,.75,.25,1)}
+.hero-compass-face::before,
+.hero-compass-face::after{transition:opacity 220ms ease}
+.ink-art-consumed .hero-compass-face::before,
+.ink-art-consumed .hero-compass-face::after{opacity:0}
+.ink-art-consumed [data-ink-art]:not([data-black-hole]){
+  opacity:0!important;
+  pointer-events:none!important;
+  transform:translate(var(--sink-x,0),var(--sink-y,0)) scale(.02) rotate(180deg)!important;
+}
+.ink-art-consumed [data-black-hole]{
+  animation:black-hole-pulse 720ms ease-in-out infinite alternate;
+}
+.ink-art-mirrored [data-ink-art]:not(.hero-compass-hotspot){
+  padding:8px;
+  background:var(--ink)!important;
+  box-shadow:-4px 4px 0 var(--signal);
+  transform:scaleX(-1)!important;
+}
+.ink-art-mirrored [data-ink-art] img{
+  filter:invert(1) grayscale(1) contrast(1.1);
+}
+.ink-art-mirrored .hero-compass-face::before{
+  transform:translateX(-50%) rotate(-27deg);
+}
+@keyframes ink-art-press{
+  0%,100%{transform:none}
+  45%{transform:translate(-4px,4px) scale(.97)}
+}
+@keyframes compass-needle-turn{
+  0%,100%{transform:translateX(-50%) rotate(27deg)}
+  55%{transform:translateX(-50%) rotate(387deg) scale(.94)}
+}
+@keyframes scales-balance{
+  0%,100%{transform:none}
+  22%{transform:rotate(-7deg)}
+  48%{transform:rotate(5deg)}
+  72%{transform:rotate(-2deg)}
+}
+@keyframes ornament-awake{
+  0%,100%{transform:none}
+  45%{transform:rotate(2deg) translate(-2px,2px)}
+}
+@keyframes black-hole-pulse{
+  from{filter:none;transform:scale(1)}
+  to{filter:contrast(1.2);transform:scale(1.06)}
+}
+@media(max-width:1120px){
+  :root{--reading-column:min(100%,680px)}
+  .opening-hero{
+    display:grid;
+    min-height:auto;
+    gap:54px;
+    padding:clamp(92px,12vw,132px) 24px clamp(64px,9vw,92px);
+  }
+  .opening-hero-heading{
+    order:1;
+    width:min(72vw,660px);
+    font-size:clamp(112px,25vw,240px);
+  }
+  .hero-art-layer{
+    position:static;
+    z-index:3;
+    display:flex;
+    order:2;
+    align-items:end;
+    justify-content:center;
+    gap:clamp(36px,10vw,110px);
+    pointer-events:none;
+  }
+  .hero-myth{
+    position:static;
+    width:min(31vw,170px);
+  }
+  .hero-sisyphus{width:min(34vw,185px)}
+  .manuscript-letter{
+    width:min(900px,100%);
+    padding-right:clamp(72px,10vw,112px);
+    padding-left:clamp(72px,10vw,112px);
+  }
+  .letter-symbol--pawn{right:calc(100% + 18px)}
+  .letter-symbol--scales,
+  .letter-symbol--black-hole{left:calc(100% + 18px)}
+}
+@media(max-width:800px){
+  .opening-motto{font-size:clamp(14px,4.2vw,34px)}
+  .opening-translation{font-size:clamp(8px,2.1vw,12px)}
+  .opening-copy{gap:12px}
+  .opening-hero{
+    gap:42px;
+    padding:76px 18px 62px;
+  }
+  .opening-hero-heading{
+    width:min(90vw,520px);
+    font-size:clamp(98px,31vw,190px);
+  }
+  .opening-hero .hero-expansion{
+    gap:4px;
+    font-size:clamp(8px,2.3vw,10px);
+    letter-spacing:.025em;
+  }
+  .hero-art-layer{gap:18vw}
+  .hero-myth{width:min(34vw,145px)}
+  .hero-sisyphus{width:min(37vw,155px)}
+  .founders-letter-section{padding:70px 18px 82px}
+  .manuscript-letter{
+    padding:86px clamp(24px,7vw,48px) 74px;
+  }
+  .letter-copy{
+    width:100%;
+    font-size:16px;
+    line-height:1.64;
+  }
+  .letter-copy p{margin-bottom:1.7em}
+  .ornament-button{width:64px}
+  .ornament-button--top-left{top:14px;left:14px}
+  .ornament-button--bottom-right{right:14px;bottom:14px}
+  .letter-marginalia{
+    position:static;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+    align-items:center;
+    margin:28px 0 34px;
+    pointer-events:auto;
+  }
+  .letter-symbol,
+  .letter-symbol--pawn,
+  .letter-symbol--scales,
+  .letter-symbol--black-hole{
+    position:static;
+    width:100%;
+    max-width:112px;
+    justify-self:center;
+  }
+  .letter-tree-plate{
+    position:static;
+    width:min(78%,320px);
+    margin:34px auto 0;
+    opacity:.68;
+  }
+  .top-at-a-glance{padding:88px 20px 104px}
+  .glance-header h2{font-size:clamp(38px,10vw,54px)}
+  .glance-primer-main,
+  .glance-mission,
+  .glance-analogy{padding:28px 24px}
+  .glance-road{padding-left:52px}
+  .glance-road::before{left:12px}
+  .glance-road::after{left:18px}
+  .glance-node{left:-52px;width:38px;height:38px}
+  .glance-card{padding:26px 23px!important}
+  .technical-gateway{padding:82px 20px 96px}
+  .technical-gateway h2{font-size:clamp(38px,10vw,54px)}
+  .technical-gateway-links{grid-template-columns:1fr;gap:22px}
+  .technical-gateway-link{min-height:126px}
+}
+@media(max-width:380px){
+  .opening-motto{font-size:13px}
+  .opening-translation{font-size:7.5px;letter-spacing:-.01em}
+  .opening-hero-heading{font-size:clamp(92px,30vw,118px)}
+  .hero-art-layer{gap:12vw}
+  .letter-marginalia{gap:7px}
+  .letter-symbol{padding:4px}
+}
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{
@@ -2015,8 +2543,20 @@ h3{
 
   <main class="layout" id="main-content">
     <section class="opening-hero" id="opening-hero" aria-labelledby="hero-title">
+      <div class="hero-art-layer">
+        <button class="ink-art-control hero-myth hero-atlas" type="button" data-ink-art data-art-action="atlas" aria-label="Wake Atlas and the Ouroboros">
+          <img src="assets/manuscript/atlas-ouroboros.webp" alt="" width="418" height="900" decoding="async">
+        </button>
+        <button class="ink-art-control hero-myth hero-sisyphus" type="button" data-ink-art data-art-action="sisyphus" aria-label="Give Sisyphus another push">
+          <img src="assets/manuscript/sisyphus.webp" alt="" width="712" height="840" decoding="async">
+        </button>
+      </div>
       <div class="opening-hero-heading">
-        <h1 id="hero-title" aria-label="TOP"><span aria-hidden="true">T</span><span aria-hidden="true">O</span><span aria-hidden="true">P</span></h1>
+        <h1 class="visually-hidden" id="hero-title">TOP</h1>
+        <div class="hero-wordmark" aria-hidden="true">
+          <span>T</span><span class="hero-compass-face">O</span><span>P</span>
+        </div>
+        <button class="hero-compass-hotspot" type="button" data-ink-art data-art-action="compass" aria-label="Turn the compass inside the O in TOP"></button>
         <p class="hero-expansion" aria-label="Token Optimisation Protocol">
           <span>Token</span><span aria-hidden="true">•</span><span>Optimisation</span><span aria-hidden="true">•</span><span>Protocol</span>
         </p>
@@ -2025,21 +2565,11 @@ h3{
 
     <section class="founders-letter-section" id="founders-letter" aria-label="A letter from the TOP team">
       <article class="manuscript-letter">
-        <button class="manuscript-top manuscript-top-left" type="button" data-spin-top aria-label="Spin the upper-left top ornament">
-          <svg class="manuscript-top-icon" viewBox="0 0 72 82" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M36 2c-2.5 8-3.1 22.2-3.3 34h6.6C39.1 24.2 38.5 10 36 2Z"/>
-            <path fill="currentColor" d="M4.2 37.2c11.6-.6 22.3-4.1 28-8.3 1 2.8 2.2 4.1 3.8 4.1s2.8-1.3 3.8-4.1c5.7 4.2 16.4 7.7 28 8.3 4.4.2 5 3.1 1.2 5.3-9.8 5.8-21.5 8.1-33 8.1S12.8 48.3 3 42.5c-3.8-2.2-3.2-5.1 1.2-5.3Z"/>
-            <path fill="currentColor" d="M14.8 46.1c6.5 10.8 13.8 25.9 21.2 33.3 7.4-7.4 14.7-22.5 21.2-33.3-6.1 3.7-13.8 5.6-21.2 5.6s-15.1-1.9-21.2-5.6Z"/>
-            <path class="manuscript-top-rim" d="M6.5 42.2c14 6.3 45 6.3 59 0"/>
-          </svg>
+        <button class="ink-art-control ornament-button ornament-button--top-left" type="button" data-ink-art data-art-action="ornament" aria-label="Press the top-left manuscript ornament">
+          <img src="assets/manuscript/ornament-top-left.webp" alt="" width="420" height="414" loading="lazy" decoding="async">
         </button>
-        <button class="manuscript-top manuscript-top-right" type="button" data-spin-top aria-label="Spin the lower-right top ornament">
-          <svg class="manuscript-top-icon" viewBox="0 0 72 82" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M36 2c-2.5 8-3.1 22.2-3.3 34h6.6C39.1 24.2 38.5 10 36 2Z"/>
-            <path fill="currentColor" d="M4.2 37.2c11.6-.6 22.3-4.1 28-8.3 1 2.8 2.2 4.1 3.8 4.1s2.8-1.3 3.8-4.1c5.7 4.2 16.4 7.7 28 8.3 4.4.2 5 3.1 1.2 5.3-9.8 5.8-21.5 8.1-33 8.1S12.8 48.3 3 42.5c-3.8-2.2-3.2-5.1 1.2-5.3Z"/>
-            <path fill="currentColor" d="M14.8 46.1c6.5 10.8 13.8 25.9 21.2 33.3 7.4-7.4 14.7-22.5 21.2-33.3-6.1 3.7-13.8 5.6-21.2 5.6s-15.1-1.9-21.2-5.6Z"/>
-            <path class="manuscript-top-rim" d="M6.5 42.2c14 6.3 45 6.3 59 0"/>
-          </svg>
+        <button class="ink-art-control ornament-button ornament-button--bottom-right" type="button" data-ink-art data-art-action="ornament" aria-label="Press the bottom-right manuscript ornament">
+          <img src="assets/manuscript/ornament-bottom-right.webp" alt="" width="413" height="420" loading="lazy" decoding="async">
         </button>
         <div class="letter-copy" id="letter-copy">
           <p class="letter-salutation"><button class="letter-initial" id="letter-style-toggle" type="button" aria-controls="letter-copy" aria-pressed="false" aria-label="Dear reader. Transform the letter into calligraphy"><span aria-hidden="true">D</span></button><span aria-hidden="true">ear reader,</span></p>
@@ -2056,7 +2586,26 @@ h3{
 
           <p>AI is a massively powerful tool which can be used to accelerate your business:</p>
 
-          <p>We want to minimise the asymmetric information available to people like you,<br>so you can <strong>understand</strong> <em>and</em> <strong>leverage</strong> the inner workings of the black box of AI.</p>
+          <div class="letter-control-context">
+            <p>We want to minimise the asymmetric information available to small and medium sized enterprises,<br>so you can <strong>understand</strong> <em>and</em> <strong>leverage</strong> the inner workings of the black box of AI.</p>
+
+            <div class="letter-balance-copy">
+              <p>The current AI market asks you to choose between cost and privacy. The cheaper, easier ways to use AI can come with another price: control of your data.</p>
+              <p>TOP aims to balance the scales, so using powerful AI at a lower cost does not mean giving up control of what belongs to you.</p>
+            </div>
+
+            <div class="letter-marginalia" aria-label="Interactive symbols for data control, balance and the AI black box">
+              <button class="ink-art-control letter-symbol letter-symbol--pawn" type="button" data-ink-art data-art-action="pawn" aria-label="Press the pawn facing the king">
+                <img src="assets/manuscript/pawn-and-king.webp" alt="" width="419" height="472" loading="lazy" decoding="async">
+              </button>
+              <button class="ink-art-control letter-symbol letter-symbol--scales" type="button" data-ink-art data-art-action="scales" aria-label="Balance the scales between cost and privacy">
+                <img src="assets/manuscript/balanced-scales.webp" alt="" width="480" height="414" loading="lazy" decoding="async">
+              </button>
+              <button class="ink-art-control letter-symbol letter-symbol--black-hole" id="black-hole-control" type="button" data-ink-art data-black-hole aria-label="Pull the site artwork into the black hole">
+                <img src="assets/manuscript/ink-black-hole.webp" alt="" width="480" height="349" loading="lazy" decoding="async">
+              </button>
+            </div>
+          </div>
 
           <p class="letter-turn">But we won’t stop there…</p>
 
@@ -2076,7 +2625,11 @@ h3{
 
           <p class="letter-names">Adam Hartley, Sam O'Connell, Chullain Lyons, Fionn Gavin et al.</p>
         </div>
+        <span class="letter-tree-plate" data-ink-art aria-hidden="true">
+          <img src="assets/manuscript/letter-tree.webp" alt="" width="849" height="960" loading="lazy" decoding="async">
+        </span>
         <span class="visually-hidden" id="letter-style-status" role="status" aria-live="polite"></span>
+        <span class="visually-hidden art-status" id="art-status" role="status" aria-live="polite"></span>
       </article>
     </section>
 
@@ -2148,15 +2701,15 @@ h3{
         <nav class="technical-gateway-links" aria-label="Continue from TOP at a glance">
           <a class="technical-gateway-link" href="/how-top-works/">
             <strong>Explore how TOP works</strong>
-            <span>Architecture, controls and product status.</span>
+            <span>Recommended</span>
           </a>
           <a class="technical-gateway-link" href="/how-top-works/#privacy-security">
             <strong>Privacy and security</strong>
-            <span>Data ownership, permissions and local processing.</span>
+            <span>Highly Recommended</span>
           </a>
           <a class="technical-gateway-link" href="mailto:adam1hartley@gmail.com?subject=TOP%20enquiry">
             <strong>Talk to the TOP team</strong>
-            <span>Discuss your business and where AI fits.</span>
+            <span>A call will be very worth your precious time. We won't waste it, we'll save it.</span>
           </a>
         </nav>
       </div>
@@ -2913,6 +3466,137 @@ function vmValueAt(config,x,amount){
     render();
   });
   render();
+})();
+</script>
+
+<script>
+(function initManuscriptArt(){
+  var root=document.documentElement;
+  var controls=Array.prototype.slice.call(document.querySelectorAll('[data-art-action]'));
+  var artwork=Array.prototype.slice.call(document.querySelectorAll('[data-ink-art]'));
+  var blackHole=document.querySelector('[data-black-hole]');
+  var compassFace=document.querySelector('.hero-compass-face');
+  var status=document.getElementById('art-status');
+  var replayTimers=typeof WeakMap==='function'?new WeakMap():null;
+  var hiddenControls=[];
+  var blackHoleState=0;
+
+  function replayClass(element,className,duration){
+    if(!element)return;
+    var previous=replayTimers?replayTimers.get(element):element.__topArtTimer;
+    if(previous!==undefined&&previous!==null)window.clearTimeout(previous);
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+    var timer=window.setTimeout(function(){
+      element.classList.remove(className);
+      if(replayTimers)replayTimers.delete(element);
+      else element.__topArtTimer=null;
+    },duration);
+    if(replayTimers)replayTimers.set(element,timer);
+    else element.__topArtTimer=timer;
+  }
+
+  controls.forEach(function(control){
+    control.addEventListener('click',function(){
+      var action=control.getAttribute('data-art-action');
+      if(action==='compass'){
+        replayClass(compassFace,'is-compass-turning',680);
+        if(status)status.textContent='The compass turns, then finds north again.';
+        return;
+      }
+      if(action==='scales'){
+        replayClass(control,'is-balancing',980);
+        if(status)status.textContent='The scales settle into balance.';
+        return;
+      }
+      if(action==='ornament'){
+        replayClass(control,'is-ornament-awake',680);
+        if(status)status.textContent='The manuscript ornament stirs.';
+        return;
+      }
+      replayClass(control,'is-art-pressed',500);
+      if(status){
+        status.textContent=action==='sisyphus'
+          ?'Sisyphus pushes again.'
+          :action==='atlas'
+            ?'Atlas steadies the Ouroboros.'
+            :'The smaller piece stands its ground.';
+      }
+    });
+  });
+
+  function setArtworkFocusable(hidden){
+    if(hidden){
+      hiddenControls=[];
+      artwork.forEach(function(item){
+        if(item===blackHole||item.tagName!=='BUTTON')return;
+        hiddenControls.push({
+          element:item,
+          tabindex:item.getAttribute('tabindex'),
+          ariaHidden:item.getAttribute('aria-hidden')
+        });
+        item.setAttribute('tabindex','-1');
+        item.setAttribute('aria-hidden','true');
+      });
+      return;
+    }
+    hiddenControls.forEach(function(record){
+      if(record.tabindex===null)record.element.removeAttribute('tabindex');
+      else record.element.setAttribute('tabindex',record.tabindex);
+      if(record.ariaHidden===null)record.element.removeAttribute('aria-hidden');
+      else record.element.setAttribute('aria-hidden',record.ariaHidden);
+    });
+    hiddenControls=[];
+  }
+
+  function measureBlackHolePull(){
+    if(!blackHole||typeof blackHole.getBoundingClientRect!=='function')return;
+    var target=blackHole.getBoundingClientRect();
+    var targetX=target.left+target.width/2;
+    var targetY=target.top+target.height/2;
+    artwork.forEach(function(item){
+      if(item===blackHole||typeof item.getBoundingClientRect!=='function')return;
+      var rect=item.getBoundingClientRect();
+      item.style.setProperty('--sink-x',Math.round(targetX-(rect.left+rect.width/2))+'px');
+      item.style.setProperty('--sink-y',Math.round(targetY-(rect.top+rect.height/2))+'px');
+    });
+  }
+
+  function renderBlackHoleState(){
+    root.classList.remove('ink-art-consumed','ink-art-mirrored');
+    setArtworkFocusable(false);
+    if(blackHoleState===1){
+      measureBlackHolePull();
+      root.classList.add('ink-art-consumed');
+      setArtworkFocusable(true);
+      blackHole.setAttribute('aria-label','Re-emit the artwork from the black hole');
+      if(status)status.textContent='The artwork has been pulled into the black hole. The words and controls remain.';
+      return;
+    }
+    if(blackHoleState===2){
+      root.classList.add('ink-art-mirrored');
+      blackHole.setAttribute('aria-label','Restore the original artwork');
+      if(status)status.textContent='The artwork returns mirrored and inverted.';
+      return;
+    }
+    artwork.forEach(function(item){
+      item.style.removeProperty('--sink-x');
+      item.style.removeProperty('--sink-y');
+    });
+    blackHole.setAttribute('aria-label','Pull the site artwork into the black hole');
+    if(status)status.textContent='The original artwork has been restored.';
+  }
+
+  if(blackHole){
+    blackHole.addEventListener('click',function(){
+      blackHoleState=(blackHoleState+1)%3;
+      renderBlackHoleState();
+    });
+    window.addEventListener('resize',function(){
+      if(blackHoleState===1)measureBlackHolePull();
+    });
+  }
 })();
 </script>
 
