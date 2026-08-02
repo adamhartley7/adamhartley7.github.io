@@ -50,3 +50,25 @@ TOP serves these compressed image files locally. They are genuine photographs or
 - Designer: Renata Polastri and Omnibus-Type
 - Source: https://github.com/google/fonts/tree/main/ofl/grenzegotisch
 - License: SIL Open Font License 1.1
+
+## Eagle Lake typeface
+
+- Files: `assets/fonts/eagle-lake/EagleLake-Regular.woff2` and `assets/fonts/eagle-lake/OFL.txt`
+- Designer: Astigmatic
+- Source: https://github.com/google/fonts/tree/main/ofl/eaglelake
+- License: SIL Open Font License 1.1
+
+## UnifrakturCook typeface
+
+- Files: `assets/fonts/unifrakturcook/UnifrakturCook-Bold.woff2` and `assets/fonts/unifrakturcook/OFL.txt`
+- Designer: J. Mach Wust
+- Source: https://github.com/google/fonts/tree/main/ofl/unifrakturcook
+- License: SIL Open Font License 1.1
+
+## Original manuscript illustrations
+
+- Files: `assets/manuscript/atlas-ouroboros.webp`, `assets/manuscript/sisyphus.webp`, `assets/manuscript/letter-tree.webp`, `assets/manuscript/ornament-top-left.webp`, `assets/manuscript/ornament-bottom-right.webp`, `assets/manuscript/pawn-and-king.webp`, `assets/manuscript/balanced-scales.webp`, and `assets/manuscript/ink-black-hole.webp`
+- Creation: generated for TOP with OpenAI's built-in image generation tool, then locally background-removed, cropped and compressed
+- Direction: original black pen-and-ink engravings combining restrained medieval manuscript craft with nineteenth-century linework
+- Reference use: Adam Hartley's supplied Pinterest downloads were used only as subject, composition and mood references. None of the supplied reference files are shipped by the website, and the generated illustrations were explicitly prompted not to trace them.
+- Prompt set: Atlas kneeling beneath an Ouroboros; Sisyphus pushing a boulder; an L-shaped old tree; exactly two separated illuminated-manuscript corner ornaments; and three isolated symbols showing a pawn facing a king, balanced scales and an ink black hole
